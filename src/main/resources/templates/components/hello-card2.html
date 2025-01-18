@@ -4,11 +4,8 @@
     th:fragment="hello-card(name)">
   <div class="card-body">
     <h1 class="card-title" th:text="'Hello ' + ${name}"></h1>
-    <form class="contents"
-          hx-post="/hello"
-          hx-target="#hello-card"
-          hx-trigger="submit">
-      <input class="input" placeholder="Name" type="text" name="name" th:value="''"/>
+    <form class="contents" hx-post="/hello" hx-target="#hello-card" hx-trigger="submit">
+      <input class="input" placeholder="Name" type="text" name="name"/>
       <div class="flex flex-row-reverse">
         <button class="btn btn-primary w-1/4">Submit</button>
       </div>

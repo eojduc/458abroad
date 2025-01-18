@@ -2,14 +2,53 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.jetbrains.kotlin.jvm'
 	id 'checkstyle'
+	id 'com.github.spotbugs' version '5.0.14'
 }
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.postgresql:postgresql'
 
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
 
 checkstyle {
 	toolVersion = '10.21.1' // Use the latest stable version
 	configDirectory = file("$rootDir/config") // Path to your configuration file
+}
+
+
+tasks.test {
+	useJUnitPlatform()
+}
+
+tasks.spotbugsMain {
+	dependsOn tasks.compileJava
+	classes = fileTree('build/classes/java/main')
+	reports {
+		html.required = true
+		html.stylesheet = 'fancy-hist.xsl'
+	}
+}
+
+
+spotbugs {
+	toolVersion = '4.9.0'
+}
+
+tasks.register("start") {
+	group = "build"
+	description = "Runs tests, SpotBugs, Checkstyle, and builds the Spring Boot jar"
+
+	dependsOn 'checkstyleMain', 'spotbugsMain', 'test', 'bootJar'
+
+	doLast {
+		println "Custom build completed successfully!"
+	}
 }
 
 
@@ -24,19 +63,4 @@ java {
 
 repositories {
 	mavenCentral()
-}
-
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.postgresql:postgresql'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
 }
