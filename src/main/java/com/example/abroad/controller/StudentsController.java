@@ -17,12 +17,6 @@ public class StudentsController {
     this.studentRepository = studentRepository;
   }
 
-
-  @GetMapping("/")
-  public String helloWorld() {
-    return "hello";
-  }
-
   @GetMapping("/students")
   public String getStudents(Model model) {
     studentRepository.save(

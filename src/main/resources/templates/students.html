@@ -9,7 +9,7 @@
 </head>
 
 <body>
-<div th:insert="header :: header('Students')"></div>
+<div th:insert="~{components/header :: header('Students')}"></div>
 <div class="flex justify-center bg-base-100 h-screen">
   <div class="bg-base-200 card card-normal w-1/2 m-10">
     <div class="card-body">
@@ -33,7 +33,7 @@
     </div>
   </div>
 </div>
-<div th:insert="footer :: footer"></div>
+<div th:insert="~{components/footer :: footer}"></div>
 </body>
 
 </html>
