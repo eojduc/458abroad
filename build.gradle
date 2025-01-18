@@ -12,10 +12,6 @@ checkstyle {
 	configDirectory = file("$rootDir/config") // Path to your configuration file
 }
 
-tasks.checkstyleMain {
-	source = sourceSets.main.allJava
-	include '**/*.java' // Include Java files
-}
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'

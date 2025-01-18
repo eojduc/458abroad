@@ -14,99 +14,99 @@ import java.time.Year;
 @Table(name = "programs")
 public class Program {
 
-    @Id
-    private String id;
-    @Column(nullable = false)
-    private String title;
-    @Column(nullable = false)
-    private Year year;
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Semester semester;
-    @Column(nullable = false)
-    private Instant applicationOpen;
-    @Column(nullable = false)
-    private Instant applicationClose;
-    @Column(nullable = false)
-    private LocalDate startDate;
-    @Column(nullable = false)
-    private LocalDate endDate;
-    @Column(nullable = false)
-    private String facultyLead;
-    @Column(nullable = false)
-    private String description;
+  @Id
+  private String id;
+  @Column(nullable = false)
+  private String title;
+  @Column(nullable = false)
+  private Year year;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private Semester semester;
+  @Column(nullable = false)
+  private Instant applicationOpen;
+  @Column(nullable = false)
+  private Instant applicationClose;
+  @Column(nullable = false)
+  private LocalDate startDate;
+  @Column(nullable = false)
+  private LocalDate endDate;
+  @Column(nullable = false)
+  private String facultyLead;
+  @Column(nullable = false)
+  private String description;
 
 
-    public Program() {
-        this.id = null;
-        this.title = null;
-        this.year = null;
-        this.semester = null;
-        this.applicationOpen = null;
-        this.applicationClose = null;
-        this.startDate = null;
-        this.endDate = null;
-        this.facultyLead = null;
-        this.description = null;
-    }
+  public Program() {
+    this.id = null;
+    this.title = null;
+    this.year = null;
+    this.semester = null;
+    this.applicationOpen = null;
+    this.applicationClose = null;
+    this.startDate = null;
+    this.endDate = null;
+    this.facultyLead = null;
+    this.description = null;
+  }
 
 
-    public Program(String id, String title, Year year, Semester semester, Instant applicationOpen,
-        Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
-        String description) {
-        this.id = id;
-        this.title = title;
-        this.year = year;
-        this.semester = semester;
-        this.applicationOpen = applicationOpen;
-        this.applicationClose = applicationClose;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.facultyLead = facultyLead;
-        this.description = description;
-    }
+  public Program(String id, String title, Year year, Semester semester, Instant applicationOpen,
+      Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
+      String description) {
+    this.id = id;
+    this.title = title;
+    this.year = year;
+    this.semester = semester;
+    this.applicationOpen = applicationOpen;
+    this.applicationClose = applicationClose;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.facultyLead = facultyLead;
+    this.description = description;
+  }
 
-    String getId() {
-        return id;
-    }
+  String getId() {
+    return id;
+  }
 
-    String getTitle() {
-        return title;
-    }
+  String getTitle() {
+    return title;
+  }
 
-    Year getYear() {
-        return year;
-    }
+  Year getYear() {
+    return year;
+  }
 
-    Semester getSemester() {
-        return semester;
-    }
+  Semester getSemester() {
+    return semester;
+  }
 
-    Instant getApplicationOpen() {
-        return applicationOpen;
-    }
+  Instant getApplicationOpen() {
+    return applicationOpen;
+  }
 
-    Instant getApplicationClose() {
-        return applicationClose;
-    }
+  Instant getApplicationClose() {
+    return applicationClose;
+  }
 
-    LocalDate getStartDate() {
-        return startDate;
-    }
+  LocalDate getStartDate() {
+    return startDate;
+  }
 
-    LocalDate getEndDate() {
-        return endDate;
-    }
+  LocalDate getEndDate() {
+    return endDate;
+  }
 
-    String getFacultyLead() {
-        return facultyLead;
-    }
+  String getFacultyLead() {
+    return facultyLead;
+  }
 
-    String getDescription() {
-        return description;
-    }
+  String getDescription() {
+    return description;
+  }
 
-    public enum Semester {
-        FALL, SPRING, SUMMER
-    }
+  public enum Semester {
+    FALL, SPRING, SUMMER
+  }
 }

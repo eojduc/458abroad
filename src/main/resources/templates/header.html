@@ -1,9 +1,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
-<div th:fragment="header(title)">
-  <div class="navbar bg-base-100">
-    <a class="btn btn-ghost text-xl" th:text="${title}"></a>
-  </div>
+<div class="navbar bg-base-100" th:fragment="header(title)">
+  <a class="btn btn-ghost text-xl" th:text="${title}"></a>
 </div>
 
 </html>
