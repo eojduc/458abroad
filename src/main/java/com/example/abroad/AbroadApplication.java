@@ -17,6 +17,11 @@ public class AbroadApplication {
 	@Autowired
 	private StudentRepository studentRepository;
 
+	@GetMapping("/")
+    public String helloWorld() {
+        return "Hello World";
+    }
+	
 	@GetMapping("/students")
 	public List<Student> getStudents() {
 		List<Student> students = new ArrayList<>();
