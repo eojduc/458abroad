@@ -1,9 +1,10 @@
 package com.example.abroad.database;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-
+@Entity
 @Table(name = "students")
 public class Student {
     @Id

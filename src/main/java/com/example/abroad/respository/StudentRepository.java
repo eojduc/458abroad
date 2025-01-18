@@ -1,7 +1,8 @@
 package com.example.abroad.respository;
 
 import com.example.abroad.database.Student;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface StudentRepository extends CrudRepository<Student, String> {
+public interface StudentRepository extends
+    JpaRepository<Student, String> {
 }
