@@ -64,9 +64,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           # Transfer the jar to Production server using scp
-          scp -o StrictHostKeyChecking=no \
-            target/*.jar \
-            $PROD_USER@$PROD_HOST:/opt/458abroad/abroad-0.0.1-SNAPSHOT.jar
+          scp -o StrictHostKeyChecking=no build/libs/*.jar $BETA_USER@$BETA_HOST:/opt/458abroad/abroad-0.0.1-SNAPSHOT.jar
 
           # Restart the Production service via SSH
           ssh -o StrictHostKeyChecking=no $PROD_USER@$PROD_HOST \
