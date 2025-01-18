@@ -1,4 +1,4 @@
-name: Deploy to Beta VM
+name: Deploy to VM
 
 on:
   push:
