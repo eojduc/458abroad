@@ -21,7 +21,8 @@ public class StudentsController {
 
     @GetMapping("/students")
     public String getStudents(Model model) {
-        studentRepository.save(new Student("johnny123", "secure", "johnny@gmail.com", "John Smith"));
+        studentRepository.save(
+            new Student("johnny123", "secure", "johnny@gmail.com", "John Smith"));
         studentRepository.save(new Student("jane123", "password", "jane@gmail.com", "Jane Doe"));
         var students = studentRepository.findAll();
         model.addAttribute("students", students);

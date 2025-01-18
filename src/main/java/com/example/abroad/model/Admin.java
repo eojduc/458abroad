@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 @Table(name = "admins")
 @Entity
 public final class Admin extends User {
+
     @Id
     private String username;
     @Column(nullable = false)
@@ -16,25 +17,6 @@ public final class Admin extends User {
     private String email;
     @Column(nullable = false)
     private String displayName;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     public Admin() {
@@ -50,15 +32,19 @@ public final class Admin extends User {
         this.email = email;
         this.displayName = displayName;
     }
+
     public String getUsername() {
         return username;
     }
+
     public String getPassword() {
         return password;
     }
+
     public String getEmail() {
         return email;
     }
+
     public String getDisplayName() {
         return displayName;
     }

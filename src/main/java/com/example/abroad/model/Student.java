@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "students")
 public final class Student extends User {
+
     @Id
     private String username;
     @Column(nullable = false)
@@ -16,17 +17,6 @@ public final class Student extends User {
     private String email;
     @Column(nullable = false)
     private String displayName;
-
-
-
-
-
-
-
-
-
-
-
 
 
     public Student() {
@@ -46,12 +36,15 @@ public final class Student extends User {
     public String getUsername() {
         return username;
     }
+
     public String getPassword() {
         return password;
     }
+
     public String getEmail() {
         return email;
     }
+
     public String getDisplayName() {
         return displayName;
     }

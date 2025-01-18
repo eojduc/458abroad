@@ -13,6 +13,7 @@ import java.time.Year;
 @Entity
 @Table(name = "programs")
 public class Program {
+
     @Id
     private String id;
     @Column(nullable = false)
@@ -36,18 +37,6 @@ public class Program {
     private String description;
 
 
-
-    public enum Semester {
-        FALL, SPRING, SUMMER
-    }
-
-
-
-
-
-
-
-
     public Program() {
         this.id = null;
         this.title = null;
@@ -60,34 +49,64 @@ public class Program {
         this.facultyLead = null;
         this.description = null;
     }
+
+
+    public Program(String id, String title, Year year, Semester semester, Instant applicationOpen,
+        Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
+        String description) {
+        this.id = id;
+        this.title = title;
+        this.year = year;
+        this.semester = semester;
+        this.applicationOpen = applicationOpen;
+        this.applicationClose = applicationClose;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.facultyLead = facultyLead;
+        this.description = description;
+    }
+
     String getId() {
         return id;
     }
+
     String getTitle() {
         return title;
     }
+
     Year getYear() {
         return year;
     }
+
     Semester getSemester() {
         return semester;
     }
+
     Instant getApplicationOpen() {
         return applicationOpen;
     }
+
     Instant getApplicationClose() {
         return applicationClose;
     }
+
     LocalDate getStartDate() {
         return startDate;
     }
+
     LocalDate getEndDate() {
         return endDate;
     }
+
     String getFacultyLead() {
         return facultyLead;
     }
+
     String getDescription() {
         return description;
+    }
+
+    public enum Semester {
+        FALL, SPRING, SUMMER
     }
 }
