@@ -1,4 +1,4 @@
-name: Deploy to Beta VM
+name: Deploy to VM
 
 on:
   push:
@@ -40,9 +40,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           # Transfer the jar to Beta server using scp
-          scp -o StrictHostKeyChecking=no \
-            target/*.jar \
-            $BETA_USER@$BETA_HOST:/opt/458abroad/abroad-0.0.1-SNAPSHOT.jar
+          scp -o StrictHostKeyChecking=no build/libs/*.jar $BETA_USER@$BETA_HOST:/opt/458abroad/abroad-0.0.1-SNAPSHOT.jar
 
           # Restart the Beta service via SSH
           ssh -o StrictHostKeyChecking=no $BETA_USER@$BETA_HOST \
@@ -52,9 +50,9 @@ jobs:
       - name: Deploy to Production
         if: github.ref == 'refs/heads/main'
         env:
-          PROD_HOST: ${{ secrets.BETA_HOST }}
-          PROD_USER: ${{ secrets.BETA_USER }}
-          PROD_SSH_KEY: ${{ secrets.BETA_SSH_KEY }}
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
         run: |
           echo "Deploying to Production environment..."
 
@@ -64,7 +62,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           # Transfer the jar to Production server using scp
-          scp -o StrictHostKeyChecking=no build/libs/*.jar $BETA_USER@$BETA_HOST:/opt/458abroad/abroad-0.0.1-SNAPSHOT.jar
+          scp -o StrictHostKeyChecking=no build/libs/*.jar $PROD_USER@$PROD_HOST:/opt/458abroad/abroad-prod.jar
 
           # Restart the Production service via SSH
           ssh -o StrictHostKeyChecking=no $PROD_USER@$PROD_HOST \
