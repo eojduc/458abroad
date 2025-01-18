@@ -40,9 +40,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           # Transfer the jar to Beta server using scp
-          scp -o StrictHostKeyChecking=no \
-            target/*.jar \
-            $BETA_USER@$BETA_HOST:/opt/458abroad/abroad-0.0.1-SNAPSHOT.jar
+          scp -o StrictHostKeyChecking=no build/libs/*.jar $BETA_USER@$BETA_HOST:/opt/458abroad/abroad-0.0.1-SNAPSHOT.jar
 
           # Restart the Beta service via SSH
           ssh -o StrictHostKeyChecking=no $BETA_USER@$BETA_HOST \
