@@ -1,6 +1,6 @@
 package com.example.abroad;
 
-import com.example.abroad.database.Student;
+import com.example.abroad.model.Student;
 import com.example.abroad.respository.StudentRepository;
 import java.util.ArrayList;
 import java.util.List;
