@@ -18,7 +18,6 @@ public final class Admin extends User {
     private String displayName;
 
 
-    //only dumb boilerplate code lies below
 
 
 
