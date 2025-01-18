@@ -21,7 +21,7 @@ public class HelloController {
       .filter(cookie -> cookie.getName().equals("name"))
       .findFirst()
       .map(Cookie::getValue)
-      .orElse("world");
+      .orElse("worldd");
     model.addAttribute("name", name);
     return "hello";
   }
