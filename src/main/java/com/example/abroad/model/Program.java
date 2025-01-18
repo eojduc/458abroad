@@ -27,9 +27,9 @@ public class Program {
     @Column(nullable = false)
     private Instant applicationClose;
     @Column(nullable = false)
-    private LocalDate start;
+    private LocalDate startDate;
     @Column(nullable = false)
-    private LocalDate end;
+    private LocalDate endDate;
     @Column(nullable = false)
     private String facultyLead;
     @Column(nullable = false)
@@ -56,8 +56,8 @@ public class Program {
         this.semester = null;
         this.applicationOpen = null;
         this.applicationClose = null;
-        this.start = null;
-        this.end = null;
+        this.startDate = null;
+        this.endDate = null;
         this.facultyLead = null;
         this.description = null;
     }
@@ -79,11 +79,11 @@ public class Program {
     Instant getApplicationClose() {
         return applicationClose;
     }
-    LocalDate getStart() {
-        return start;
+    LocalDate getStartDate() {
+        return startDate;
     }
-    LocalDate getEnd() {
-        return end;
+    LocalDate getEndDate() {
+        return endDate;
     }
     String getFacultyLead() {
         return facultyLead;
