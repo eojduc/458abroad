@@ -1,19 +1,62 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
 
-<head>
-  <title>Hello World</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
-</head>
-
+<head th:replace="~{components/layout :: head('Hello World')}"></head>
 <body>
-  <div th:insert="~{components/header :: header('Hello World')}"></div>
-  <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-    <div th:insert="~{components/hello-card :: hello-card(${name})}" id="hello-card" class="contents"></div>
-  </div>
-  <div th:insert="~{components/footer :: footer}"></div>
+<div th:replace="~{components/layout :: header('Hello World', unknown)}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+  <div th:replace="~{this :: hello-card(${name})}" ></div>
+</div>
+<div th:replace="~{components/layout :: footer}"></div>
 </body>
 
 </html>
+
+
+<div
+    th:fragment="hello-card(name)"
+    xmlns:th="http://www.thymeleaf.org"
+    class="bg-base-200 card card-normal w-1/2 m-10">
+  <div class="card-body">
+    <h1 class="card-title" th:text="'Hello ' + ${name}"></h1>
+    <form class="contents" action="/" method="post">
+      <input class="input" placeholder="Name" type="text" name="name"/>
+      <div class="flex flex-row-reverse">
+        <button class="btn btn-primary w-1/4">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="htmx-page">
+  <head th:replace="~{components/layout :: head('Hello World')}"></head>
+  <body>
+    <div th:replace="~{components/layout :: header('Hello World', unknown)}"></div>
+    <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+      <div th:replace="~{this :: htmx-hello-card(${name})}"></div>
+    </div>
+    <div th:replace="~{components/layout :: footer}"></div>
+  </body>
+</html>
+
+
+
+<div
+    xmlns:th="http://www.thymeleaf.org"
+    class="bg-base-200 card card-normal w-1/2 m-10"
+    th:fragment="htmx-hello-card(name)" id="hello-card">
+  <div class="card-body">
+    <h1 class="card-title" th:text="'Hello ' + ${name}"></h1>
+    <form class="contents" hx-post="/hello" hx-target="#hello-card" hx-trigger="submit" hx-swap="outerHTML">
+      <input class="input" placeholder="Name" type="text" name="name"/>
+      <div class="flex flex-row-reverse">
+        <button class="btn btn-primary w-1/4">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+

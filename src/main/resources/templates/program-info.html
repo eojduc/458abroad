@@ -1,59 +1,78 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
 
-<head>
-  <title th:text="${program.title}"></title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
-</head>
+  <head th:replace="~{components/layout :: head(${program.title})}"></head>
 
-
-<body>
-  <div th:insert="~{components/header :: header(${program.title})}"></div>
-  <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
-    <div class="card card-normal w-1/2 bg-base-200">
-      <div class="card-body">
-        <h1 class="card-title" th:text="${program.title}"></h1>
-        <p th:text="${program.description}"></p>
-        <h2 class="text-lg mt-5">Faculty Lead</h2>
-        <p class="mb-5" th:text="${program.facultyLead}"></p>
-        <h2 class="text-lg mt-5">Program Details</h2>
-        <table class="table table-sm">
-          <tbody>
-            <tr>
-              <td>Term</td>
-              <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
-            </tr>
-            <tr>
-              <td>Start Date</td>
-              <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
-            </tr>
-            <tr>
-              <td>End Date</td>
-              <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
-            </tr>
-            <tr>
-              <td>Students Enrolled</td>
-              <td th:text="${studentsEnrolled}"></td>
-            </tr>
-            <tr>
-              <td>Application Open</td>
-              <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
-            </tr>
-            <tr>
-              <td>Application Deadline</td>
-              <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="flex flex-row-reverse">
-          <a class="btn btn-primary w-1/4"  th:href="@{/apply/{programId}(programId=${program.id})}">Apply</a>
+  <body>
+    <div th:insert="~{components/layout :: header(${program.title}, unknown)}"></div>
+    <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
+      <div class="card card-normal w-1/2 bg-base-200">
+        <div class="card-body">
+          <h1 class="card-title" th:text="${program.title}"></h1>
+          <p th:text="${program.description}"></p>
+          <h2 class="text-lg mt-5">Faculty Lead</h2>
+          <p class="mb-5" th:text="${program.facultyLead}"></p>
+          <h2 class="text-lg mt-5">Program Details</h2>
+          <table class="table table-sm">
+            <tbody>
+              <tr>
+                <td>Term</td>
+                <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
+              </tr>
+              <tr>
+                <td>Start Date</td>
+                <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
+              </tr>
+              <tr>
+                <td>End Date</td>
+                <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
+              </tr>
+              <tr>
+                <td>Students Enrolled</td>
+                <td th:text="${studentsEnrolled}"></td>
+              </tr>
+              <tr>
+                <td>Application Open</td>
+                <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+              </tr>
+              <tr>
+                <td>Application Deadline</td>
+                <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flex flex-row-reverse">
+            <a class="btn btn-primary w-1/4"  th:href="@{/apply/{programId}(programId=${program.id})}">Apply</a>
+          </div>
         </div>
       </div>
     </div>
+    <div th:insert="~{components/layout :: footer}"></div>
+  </body>
+
+</html>
+
+
+
+
+
+
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="not-found">
+
+  <head th:replace="~{components/layout :: head('Not Found')}"></head>
+
+
+  <body>
+  <div th:insert="~{components/layout :: header('Not Found', unknown)}"></div>
+  <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+    <div class="card card-normal w-1/2 m-10 bg-base-200">
+      <div class="card-body">
+        <h1 class="card-title text-center">Not found</h1>
+        <p class="text-center">The program you are looking for does not exist.</p>
+      </div>
+    </div>
   </div>
-  <div th:insert="~{components/footer :: footer}"></div>
-</body>
+  <div th:insert="~{components/layout :: footer}"></div>
+  </body>
 
 </html>

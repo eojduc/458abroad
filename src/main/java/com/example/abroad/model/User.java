@@ -1,6 +1,8 @@
 package com.example.abroad.model;
 
-public sealed interface User permits Admin, Student {
+import java.io.Serializable;
+
+public sealed interface User extends Serializable permits Admin, Student {
 
   String getUsername();
 

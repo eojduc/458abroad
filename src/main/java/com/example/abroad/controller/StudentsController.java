@@ -13,21 +13,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class StudentsController {
 
   private final StudentRepository studentRepository;
-  private final UserService userService;
 
-  public StudentsController(StudentRepository studentRepository, UserService userService) {
+  public StudentsController(StudentRepository studentRepository) {
     this.studentRepository = studentRepository;
-    this.userService = userService;
   }
   @GetMapping("/students")
   public String getStudents(Model model, HttpServletRequest request) {
     var students = studentRepository.findAll();
-    var student = students.stream().findFirst().orElse(null);
-    if (student != null) {
-      userService.setUser(request, student);
-    }
+    // here until auth is set up, we'll just set the first student as the user
+    students.stream().findFirst().ifPresent(student -> UserService.setUser(request, student));
     model.addAttribute("students", students);
-    return "students";
+    return "students :: page";
   }
 
 }

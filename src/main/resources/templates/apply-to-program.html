@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<head th:replace="~{components/layout :: head('Apply to ' + ${program.title})}"></head>
+
+<body>
+  <div th:insert="~{components/layout :: header(${program.title}, ${user.displayName})}"></div>
+  <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
+    <div th:if="${error.isPresent()}" th:text="${error.get()}" class="alert alert-error w-1/2"></div>
+    <div class="card card-normal w-1/2 bg-base-200 m-10">
+      <div class="card-body flex flex-col gap-4">
+        <div class="flex flex-row justify-between">
+          <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
+          <a class="btn btn-primary" th:href="@{/programs/{programId}(programId=${program.id})}">Program Info</a>
+        </div>
+        <form th:replace="~{this :: apply-form}"></form>
+      </div>
+    </div>
+  </div>
+  <div th:insert="~{components/layout :: footer}"></div>
+</body>
+
+</html>
+
+
+
+<form xmlns:th="http://www.thymeleaf.org"
+    class="contents" th:action="@{/apply/{programId}(programId=${program.id})}" method="post"
+      th:fragment="apply-form">
+  <div class="form-control">
+    <div class="label">
+      <span class="label-text">Major</span>
+    </div>
+    <input class="input" type="text" name="major" required />
+  </div>
+  <div class="form-control">
+    <div class="label">
+      <span class="label-text">Date of Birth</span>
+    </div>
+    <input class="input" type="date" name="dob" required />
+  </div>
+  <div class="form-control">
+    <div class="label">
+      <span class="label-text">GPA</span>
+    </div>
+    <input class="input" type="number" name="gpa" min="0" max="4" step="0.01" required />
+  </div>
+  <div class="form-control" th:each="question : ${questions}">
+    <div class="label">
+      <span class="label-text" th:text="${question.text}"></span>
+    </div>
+    <textarea th:name="${question.field}" class="textarea" required></textarea>
+  </div>
+  <div class="flex flex-row-reverse">
+    <button class="btn btn-primary w-1/4" type="submit">Submit</button>
+  </div>
+</form>

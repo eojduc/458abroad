@@ -34,10 +34,10 @@ public class ProgramInfoController {
         model.addAttribute("program", program);
         model.addAttribute("studentsEnrolled", studentsEnrolled);
         model.addAttribute("formatter", formatter);
-        return "program-info";
+        return "program-info :: page";
       }
       case ProgramNotFound n -> {
-        return "program-not-found";
+        return "program-info :: not-found";
       }
     }
   }

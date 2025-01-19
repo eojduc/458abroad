@@ -1,16 +1,14 @@
 package com.example.abroad.controller.student;
 
-import com.example.abroad.model.Program;
-import com.example.abroad.model.User;
 import com.example.abroad.service.ApplyToProgramService;
 import com.example.abroad.service.ApplyToProgramService.Failure;
 import com.example.abroad.service.ApplyToProgramService.ProgramNotFound;
 import com.example.abroad.service.ApplyToProgramService.PageData;
 import com.example.abroad.service.ApplyToProgramService.SuccessfullyApplied;
 import com.example.abroad.service.ApplyToProgramService.UserNotFound;
-import com.example.abroad.service.ProgramInfoService.ProgramInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,18 +21,19 @@ public class ApplyToProgramController {
 
   private final ApplyToProgramService service;
 
-
   public ApplyToProgramController(ApplyToProgramService service) {
     this.service = service;
   }
 
   @GetMapping("/apply/{programId}")
-  public String applyToProgram(@PathVariable String programId, HttpServletRequest request, Model model) {
+  public String applyToProgram(@PathVariable String programId, HttpServletRequest request, Model model, @RequestParam Optional<String> error) {
     switch (service.getPageData(programId, request)) {
-      case PageData(Program program, User user) -> {
+      case PageData(var program, var user, var questions) -> {
         model.addAttribute("program", program);
         model.addAttribute("user", user);
-        return "apply";
+        model.addAttribute("error", error);
+        model.addAttribute("questions", questions);
+        return "apply-to-program :: page";
       }
       case UserNotFound n -> {
         return "redirect:/login";
@@ -46,18 +45,17 @@ public class ApplyToProgramController {
   }
 
   @PostMapping("/apply/{programId}")
-  public String applyToProgramPost(@PathVariable String programId, HttpServletRequest request, Model model,
+  public String applyToProgramPost(@PathVariable String programId, HttpServletRequest request,
     @RequestParam String major, @RequestParam Float gpa, @RequestParam LocalDate dob,
     @RequestParam String answer1, @RequestParam String answer2, @RequestParam String answer3,
     @RequestParam String answer4, @RequestParam String answer5
   ) {
     switch (service.applyToProgram(programId, request, major, gpa, dob, answer1, answer2, answer3, answer4, answer5)) {
       case SuccessfullyApplied s -> {
-        return "redirect:/programs";
+        return "redirect:/applications";
       }
       case Failure(var message) -> {
-        model.addAttribute("error", message);
-        return "apply";
+        return "redirect:/apply/" + programId  + "?error=" + message;
       }
     }
   }

@@ -8,28 +8,40 @@ import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ApplyToProgramService {
 
+  private static final List<Question> QUESTIONS = List.of(
+    new Question("answer1", "Why do you want to participate in this study abroad program?"),
+    new Question("answer2", "How does this program align with your academic or career goals?"),
+    new Question("answer3", "What challenges do you anticipate during this experience, and how will you address them?"),
+    new Question("answer4", "Describe a time you adapted to a new or unfamiliar environment."),
+    new Question("answer5", "What unique perspective or contribution will you bring to the group?")
+  );
+
   private final ApplicationRepository applicationRepository;
   private final ProgramRepository programRepository;
-  private final UserService userService;
 
-  public ApplyToProgramService(ApplicationRepository applicationRepository, UserService userService, ProgramRepository programRepository) {
+  record Question(String field, String text) { }
+
+
+
+  public ApplyToProgramService(ApplicationRepository applicationRepository, ProgramRepository programRepository) {
     this.applicationRepository = applicationRepository;
-    this.userService = userService;
     this.programRepository = programRepository;
   }
 
   public sealed interface GetPageDataResponse permits PageData, UserNotFound, ProgramNotFound { }
-  public record PageData(Program program, User user) implements GetPageDataResponse { }
+  public record PageData(Program program, User user, List<Question> questions) implements GetPageDataResponse { }
   public record UserNotFound() implements GetPageDataResponse { }
   public record ProgramNotFound() implements GetPageDataResponse { }
 
   public GetPageDataResponse getPageData(String programId, HttpServletRequest request) {
-    var user = userService.getUser(request).orElse(null);
+    var user = UserService.getUser(request).orElse(null);
     if (user == null) {
       return new UserNotFound();
     }
@@ -37,10 +49,8 @@ public class ApplyToProgramService {
     if (program == null) {
       return new ProgramNotFound();
     }
-    return new PageData(program, user);
+    return new PageData(program, user, List.copyOf(QUESTIONS));
   }
-
-
 
 
 
@@ -56,10 +66,10 @@ public class ApplyToProgramService {
     HttpServletRequest request, String major, Float gpa, LocalDate dob,
     String answer1, String answer2, String answer3, String answer4, String answer5
   ) {
-    var user = userService.getUser(request).orElse(null);
+    var user = UserService.getUser(request).orElse(null);
 
     if (user == null) {
-      return new Failure("User not found");
+      return new Failure("User is not Logged in");
     }
     var application = new Application(
       null, user.getUsername(), programId, dob, gpa, major, answer1, answer2, answer3, answer4, answer5, Status.APPLIED

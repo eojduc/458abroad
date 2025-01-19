@@ -1,15 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
 
-<head>
-  <title>Students</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
-</head>
-
+<head th:replace="~{components/layout :: head('Students')}"></head>
 <body>
-  <div th:insert="~{components/header :: header('Students')}"></div>
+  <div th:insert="~{components/layout :: header('Students', unknown)}"></div>
   <div class="flex justify-center bg-base-100 h-screen">
     <div class="bg-base-200 card card-normal w-1/2 m-10">
       <div class="card-body">
@@ -33,7 +27,7 @@
       </div>
     </div>
   </div>
-  <div th:insert="~{components/footer :: footer}"></div>
+  <div th:insert="~{components/layout :: footer}"></div>
 </body>
 
 </html>

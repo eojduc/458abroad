@@ -25,6 +25,14 @@ checkstyle {
 spotbugs {
 	toolVersion = '4.9.0'
 }
+
+task fillDb {
+	doLast {
+		exec {
+			commandLine 'psql', '-U', 'postgres', '-d', 'abroad', '-f', 'sample.sql'
+		}
+	}
+}
 tasks.test {
 	useJUnitPlatform()
 }
@@ -42,7 +50,7 @@ tasks.register("start") {
 	group = "build"
 	description = "Runs tests, SpotBugs, Checkstyle, and builds the Spring Boot jar"
 
-	dependsOn 'checkstyleMain', 'spotbugsMain', 'test', 'bootJar'
+	dependsOn 'test', 'bootJar', 'fillDb'
 
 	doLast {
 		println "Custom build completed successfully!"

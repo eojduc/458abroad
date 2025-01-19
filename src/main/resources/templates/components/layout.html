@@ -1,0 +1,33 @@
+
+<div
+    xmlns:th="http://www.thymeleaf.org"
+    class="footer bg-base-200 p-20"
+    th:fragment="footer">
+  <h1 class="footer-title">Brought to you by Abhishek Chataut, Arnav Nayak, Delali Cudjoe, and Joseph Oluwagbotemi</h1>
+</div>
+
+
+
+<head xmlns:th="http://www.thymeleaf.org" th:fragment="head(title)">
+  <title th:text="${title}"></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
+</head>
+
+
+
+
+<div
+    xmlns:th="http://www.thymeleaf.org"
+    class="bg-base-100" th:fragment="header(title, name)">
+  <div class="flex flex-row justify-between">
+    <div class="navbar">
+      <a class="btn btn-ghost text-xl" th:text="${title}"></a>
+      <a class="btn btn-ghost" th:href="@{/}">Hello</a>
+      <a class="btn btn-ghost" th:href="@{/hello}">Hello with HTMX</a>
+      <a class="btn btn-ghost" th:href="@{/students}">Students</a>
+    </div>
+    <span class="btn btn-ghost" th:text="'Welcome ' + ${name}"></span>
+  </div>
+</div>

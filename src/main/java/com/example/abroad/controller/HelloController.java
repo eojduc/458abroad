@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class HelloController {
 
 
-  //sessions are storage for each user, stored server side. cookies are stored client side
+  //sessions are storage for each user, stored server side.
   @GetMapping("/")
   public String helloWorld(HttpServletRequest request, Model model) {
     var name = Optional.ofNullable(request.getSession().getAttribute("name"))
@@ -23,7 +23,7 @@ public class HelloController {
       .map(obj -> (String) obj)
       .orElse("world");
     model.addAttribute("name", name);
-    return "hello";
+    return "hello :: page";
   }
 
 
@@ -32,7 +32,7 @@ public class HelloController {
   public String helloWorldPost(@RequestParam String name, Model model, HttpServletRequest request) {
     request.getSession().setAttribute("name", name);
     model.addAttribute("name", name);
-    return "hello";
+    return "redirect:/";
   }
   
   // these are the ones that use htmx
@@ -43,7 +43,7 @@ public class HelloController {
       .map(obj -> (String) obj)
       .orElse("world");
     model.addAttribute("name", name);
-    return "hello2";
+    return "hello :: htmx-page";
   }
 
 
@@ -51,7 +51,7 @@ public class HelloController {
   public String helloWorldPost2(HttpServletRequest request, @RequestParam String name, Model model) {
     request.getSession().setAttribute("name", name);
     model.addAttribute("name", name);
-    return "components/hello-card2";
+    return "hello :: htmx-hello-card";
   }
 
 }
