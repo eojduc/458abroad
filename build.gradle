@@ -21,7 +21,9 @@ checkstyle {
 	configDirectory = file("$rootDir/config") // Path to your configuration file
 }
 
-
+spotbugs {
+	toolVersion = '4.9.0'
+}
 tasks.test {
 	useJUnitPlatform()
 }
@@ -33,11 +35,6 @@ tasks.spotbugsMain {
 		html.required = true
 		html.stylesheet = 'fancy-hist.xsl'
 	}
-}
-
-
-spotbugs {
-	toolVersion = '4.9.0'
 }
 
 tasks.register("start") {

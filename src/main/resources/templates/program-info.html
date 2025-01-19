@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <title>Program Info</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
+</head>
+
+
+<body>
+  <div th:insert="~{components/header :: header('Hello World')}"></div>
+  <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+    <div class="card card-normal w-1/2 m-10 bg-base-200">
+      <div class="card-body">
+        <h1 class="card-title" th:text="${data.program.title}"></h1>
+        <p th:text="${data.program.description}"></p>
+        <h2 class="text-lg mt-5">Faculty Lead</h2>
+        <p class="mb-5"
+            th:text="${data.program.facultyLead}"></p>
+        <h2 class="card-title">Program Details</h2>
+        <table class="table table-sm m-10">
+          <tbody>
+            <tr>
+              <td>Term</td>
+              <td th:text="${data.formatSemester.apply(data.program.semester)} + ' ' + ${data.formatYear.apply(data.program.year)}"></td>
+            </tr>
+            <tr>
+              <td>Start Date</td>
+              <td th:text="${data.formatLocalDate.apply(data.program.startDate)}"></td>
+            </tr>
+            <tr>
+              <td>End Date</td>
+              <td th:text="${data.formatLocalDate.apply(data.program.endDate)}"></td>
+            </tr>
+            <tr>
+              <td>Students Enrolled</td>
+              <td th:text="${data.studentsEnrolled}"></td>
+            </tr>
+            <tr>
+              <td>Application Open Date</td>
+              <td th:text="${data.formatInstant.apply(data.program.applicationOpen)}"></td>
+            </tr>
+            <tr>
+              <td>Application Deadline</td>
+              <td th:text="${data.formatInstant.apply(data.program.applicationClose)}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div th:insert="~{components/footer :: footer}"></div>
+</body>
+
+</html>

@@ -9,31 +9,31 @@
 </head>
 
 <body>
-<div th:insert="~{components/header :: header('Students')}"></div>
-<div class="flex justify-center bg-base-100 h-screen">
-  <div class="bg-base-200 card card-normal w-1/2 m-10">
-    <div class="card-body">
-      <h1 class="card-title">Students</h1>
-      <table class="table table-compact">
-        <thead>
-        <tr>
-          <th>display name</th>
-          <th>username</th>
-          <th>email</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="student : ${students}">
-          <td th:text="${student.displayName}"></td>
-          <td th:text="${student.username}"></td>
-          <td th:text="${student.email}"></td>
-        </tr>
-        </tbody>
-      </table>
+  <div th:insert="~{components/header :: header('Students')}"></div>
+  <div class="flex justify-center bg-base-100 h-screen">
+    <div class="bg-base-200 card card-normal w-1/2 m-10">
+      <div class="card-body">
+        <h1 class="card-title">Students</h1>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>display name</th>
+              <th>username</th>
+              <th>email</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="student : ${students}">
+              <td th:text="${student.displayName}"></td>
+              <td th:text="${student.username}"></td>
+              <td th:text="${student.email}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-</div>
-<div th:insert="~{components/footer :: footer}"></div>
+  <div th:insert="~{components/footer :: footer}"></div>
 </body>
 
 </html>

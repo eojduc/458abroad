@@ -9,11 +9,11 @@
 </head>
 
 <body>
-<div th:insert="~{components/header :: header('Hello World')}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-  <div th:insert="~{components/hello-card :: hello-card(${name})}" id="hello-card" class="contents"></div>
-</div>
-<div th:insert="~{components/footer :: footer}"></div>
+  <div th:insert="~{components/header :: header('Hello World')}"></div>
+  <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+    <div th:insert="~{components/hello-card :: hello-card(${name})}" id="hello-card" class="contents"></div>
+  </div>
+  <div th:insert="~{components/footer :: footer}"></div>
 </body>
 
 </html>
