@@ -50,7 +50,7 @@ tasks.register("start") {
 	group = "build"
 	description = "Runs tests, SpotBugs, Checkstyle, and builds the Spring Boot jar"
 
-	dependsOn 'test', 'bootJar', 'fillDb'
+	dependsOn 'test', 'fillDb', 'bootJar'
 
 	doLast {
 		println "Custom build completed successfully!"

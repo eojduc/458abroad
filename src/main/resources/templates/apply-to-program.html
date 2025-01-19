@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
-<head th:replace="~{components/layout :: head('Apply to ' + ${program.title})}"></head>
+<head th:replace="~{components :: head('Apply to ' + ${program.title})}"></head>
 
 <body>
-  <div th:insert="~{components/layout :: header(${program.title}, ${user.displayName})}"></div>
+  <div th:insert="~{components :: header(${program.title}, ${user.displayName})}"></div>
   <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
     <div th:if="${error.isPresent()}" th:text="${error.get()}" class="alert alert-error w-1/2"></div>
     <div class="card card-normal w-1/2 bg-base-200 m-10">
@@ -16,11 +16,10 @@
       </div>
     </div>
   </div>
-  <div th:insert="~{components/layout :: footer}"></div>
+  <div th:insert="~{components :: footer}"></div>
 </body>
 
 </html>
-
 
 
 <form xmlns:th="http://www.thymeleaf.org"

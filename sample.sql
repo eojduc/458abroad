@@ -13,7 +13,7 @@ VALUES
 INSERT INTO students (username, password, email, display_name)
 VALUES
     ('student1', 'password789', 'student1@example.com', 'Student One'),
-('student2', 'password101', 'student2@example.com', 'Student Two');
+('student2', 'password101', 'student2@example.com', 'Student Three');
 
 -- Populate programs table
 INSERT INTO programs (id, title, year, semester, application_open, application_close, start_date, end_date, faculty_lead, description)

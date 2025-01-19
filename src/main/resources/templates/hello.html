@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
 
-<head th:replace="~{components/layout :: head('Hello World')}"></head>
+<head th:replace="~{components :: head('Hello World')}"></head>
 <body>
-<div th:replace="~{components/layout :: header('Hello World', unknown)}"></div>
+<div th:replace="~{components :: header('Hello World', unknown)}"></div>
 <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
   <div th:replace="~{this :: hello-card(${name})}" ></div>
 </div>
-<div th:replace="~{components/layout :: footer}"></div>
+<div th:replace="~{components :: footer}"></div>
 </body>
 
 </html>
@@ -33,13 +33,13 @@
 
 
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="htmx-page">
-  <head th:replace="~{components/layout :: head('Hello World')}"></head>
+  <head th:replace="~{components :: head('Hello World')}"></head>
   <body>
-    <div th:replace="~{components/layout :: header('Hello World', unknown)}"></div>
+    <div th:replace="~{components :: header('Hello World', unknown)}"></div>
     <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
       <div th:replace="~{this :: htmx-hello-card(${name})}"></div>
     </div>
-    <div th:replace="~{components/layout :: footer}"></div>
+    <div th:replace="~{components :: footer}"></div>
   </body>
 </html>
 

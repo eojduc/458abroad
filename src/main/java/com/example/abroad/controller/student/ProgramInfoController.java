@@ -5,6 +5,8 @@ import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ProgramInfoService;
 import com.example.abroad.service.ProgramInfoService.ProgramNotFound;
 import com.example.abroad.service.ProgramInfoService.ProgramInfo;
+import com.example.abroad.service.ProgramInfoService.UserNotFound;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,17 +29,23 @@ public class ProgramInfoController {
   @GetMapping("/programs/{programId}")
   public String getProgramInfo(
     @PathVariable("programId") String programId,
-    Model model
+    Model model,
+    HttpServletRequest request
   ) {
-    switch (service.getProgramInfo(programId)) {
-      case ProgramInfo(var program, var studentsEnrolled) -> {
+    switch (service.getProgramInfo(programId, request)) {
+      case ProgramInfo(var program, var studentsEnrolled, var applicationStatus, var user) -> {
         model.addAttribute("program", program);
         model.addAttribute("studentsEnrolled", studentsEnrolled);
+        model.addAttribute("applicationStatus", applicationStatus);
+        model.addAttribute("user", user);
         model.addAttribute("formatter", formatter);
         return "program-info :: page";
       }
       case ProgramNotFound n -> {
         return "program-info :: not-found";
+      }
+      case UserNotFound n -> {
+        return "redirect:/login";
       }
     }
   }

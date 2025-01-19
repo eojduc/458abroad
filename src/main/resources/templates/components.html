@@ -31,3 +31,16 @@
     <span class="btn btn-ghost" th:text="'Welcome ' + ${name}"></span>
   </div>
 </div>
+
+
+<div
+    xmlns:th="http://www.thymeleaf.org"
+    th:fragment="statusBadge(status)"
+    class="contents"
+    th:switch="${status}">
+  <span class="badge badge-info" th:case="APPLIED">Applied</span>
+  <span class="badge badge-success" th:case="ENROLLED">Enrolled</span>
+  <span class="badge badge-error" th:case="CANCELLED">Cancelled</span>
+  <span class="badge badge-warning" th:case="WITHDRAWN">Withdrawn</span>
+  <span class="badge badge-neutral" th:case="NOT_APPLIED">Not Applied</span>
+</div>
