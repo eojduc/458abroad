@@ -1,9 +1,6 @@
 package com.example.abroad.controller;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.util.Arrays;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,16 +8,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * This file is a sample controller. really logic should be in service layer. there's a sample both with pure ssr and with htmx
+ */
 @Controller
 public class HelloController {
 
 
+  //sessions are storage for each user, stored server side. cookies are stored client side
   @GetMapping("/")
   public String helloWorld(HttpServletRequest request, Model model) {
-    var name = Arrays.stream(Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]))
-      .filter(cookie -> cookie.getName().equals("name"))
-      .findFirst()
-      .map(Cookie::getValue)
+    var name = Optional.ofNullable(request.getSession().getAttribute("name"))
+      .filter(obj -> obj instanceof String)
+      .map(obj -> (String) obj)
       .orElse("world");
     model.addAttribute("name", name);
     return "hello";
@@ -29,8 +29,8 @@ public class HelloController {
 
 
   @PostMapping("/")
-  public String helloWorldPost(HttpServletResponse response, @RequestParam String name, Model model) {
-    response.addCookie(new Cookie("name", name));
+  public String helloWorldPost(@RequestParam String name, Model model, HttpServletRequest request) {
+    request.getSession().setAttribute("name", name);
     model.addAttribute("name", name);
     return "hello";
   }
@@ -38,10 +38,9 @@ public class HelloController {
   // these are the ones that use htmx
   @GetMapping("/hello")
   public String helloWorld2(HttpServletRequest request, Model model) {
-    var name = Arrays.stream(request.getCookies())
-      .filter(cookie -> cookie.getName().equals("name"))
-      .findFirst()
-      .map(Cookie::getValue)
+    var name =  Optional.ofNullable(request.getSession().getAttribute("name"))
+      .filter(obj -> obj instanceof String)
+      .map(obj -> (String) obj)
       .orElse("world");
     model.addAttribute("name", name);
     return "hello2";
@@ -49,8 +48,8 @@ public class HelloController {
 
 
   @PostMapping("/hello")
-  public String helloWorldPost2(HttpServletResponse response, @RequestParam String name, Model model) {
-    response.addCookie(new Cookie("name", name));
+  public String helloWorldPost2(HttpServletRequest request, @RequestParam String name, Model model) {
+    request.getSession().setAttribute("name", name);
     model.addAttribute("name", name);
     return "components/hello-card2";
   }

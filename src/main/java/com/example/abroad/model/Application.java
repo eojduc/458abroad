@@ -122,7 +122,7 @@ public class Application {
     return status;
   }
 
-  enum Status {
+  public enum Status {
     APPLIED,
     ENROLLED,
     CANCELLED,

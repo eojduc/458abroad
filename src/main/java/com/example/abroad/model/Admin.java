@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 
 @Table(name = "admins")
 @Entity
-public final class Admin extends User {
+public final class Admin implements User {
 
   @Id
   private String username;

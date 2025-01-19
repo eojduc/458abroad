@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-  <title>Program Info</title>
+  <title th:text="${program.title}"></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
@@ -10,44 +10,46 @@
 
 
 <body>
-  <div th:insert="~{components/header :: header('Hello World')}"></div>
-  <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-    <div class="card card-normal w-1/2 m-10 bg-base-200">
+  <div th:insert="~{components/header :: header(${program.title})}"></div>
+  <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="card card-normal w-1/2 bg-base-200">
       <div class="card-body">
-        <h1 class="card-title" th:text="${data.program.title}"></h1>
-        <p th:text="${data.program.description}"></p>
+        <h1 class="card-title" th:text="${program.title}"></h1>
+        <p th:text="${program.description}"></p>
         <h2 class="text-lg mt-5">Faculty Lead</h2>
-        <p class="mb-5"
-            th:text="${data.program.facultyLead}"></p>
-        <h2 class="card-title">Program Details</h2>
-        <table class="table table-sm m-10">
+        <p class="mb-5" th:text="${program.facultyLead}"></p>
+        <h2 class="text-lg mt-5">Program Details</h2>
+        <table class="table table-sm">
           <tbody>
             <tr>
               <td>Term</td>
-              <td th:text="${data.formatSemester.apply(data.program.semester)} + ' ' + ${data.formatYear.apply(data.program.year)}"></td>
+              <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
             </tr>
             <tr>
               <td>Start Date</td>
-              <td th:text="${data.formatLocalDate.apply(data.program.startDate)}"></td>
+              <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
             </tr>
             <tr>
               <td>End Date</td>
-              <td th:text="${data.formatLocalDate.apply(data.program.endDate)}"></td>
+              <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
             </tr>
             <tr>
               <td>Students Enrolled</td>
-              <td th:text="${data.studentsEnrolled}"></td>
+              <td th:text="${studentsEnrolled}"></td>
             </tr>
             <tr>
-              <td>Application Open Date</td>
-              <td th:text="${data.formatInstant.apply(data.program.applicationOpen)}"></td>
+              <td>Application Open</td>
+              <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
             </tr>
             <tr>
               <td>Application Deadline</td>
-              <td th:text="${data.formatInstant.apply(data.program.applicationClose)}"></td>
+              <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
             </tr>
           </tbody>
         </table>
+        <div class="flex flex-row-reverse">
+          <a class="btn btn-primary w-1/4"  th:href="@{/apply/{programId}(programId=${program.id})}">Apply</a>
+        </div>
       </div>
     </div>
   </div>

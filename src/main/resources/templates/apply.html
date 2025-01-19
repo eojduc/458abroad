@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <title th:text="'Apply to ' + ${program.title}"></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
+  <script type="module" src="https://unpkg.com/cally"></script>
+</head>
+
+
+<body>
+  <div th:insert="~{components/header :: header(${program.title})}"></div>
+  <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="card card-normal w-1/2 bg-base-200 m-10">
+      <div class="card-body flex flex-col gap-4">
+        <div class="flex flex-row justify-between">
+          <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
+          <a class="btn btn-primary" th:href="@{/programs/{programId}(programId=${program.id})}">Program Info</a>
+        </div>
+        <form class="contents" th:action="@{/apply}" method="post">
+          <div class="form-control">
+            <div class="label">
+              <span class="label-text">Major</span>
+            </div>
+            <input class="input" type="text" name="major" required />
+          </div>
+          <div class="form-control">
+            <div class="label">
+              <span class="label-text">Date of Birth</span>
+            </div>
+            <input class="input" type="date" name="dob" required />
+          </div>
+          <div class="form-control">
+            <div class="label">
+              <span class="label-text">GPA</span>
+            </div>
+            <input class="input" type="number" name="gpa" min="0" max="4" step="0.01" required />
+          </div>
+          <div class="form-control">
+            <div class = "label">
+              <span class="label-text">Why do you want to participate in this study abroad program?</span>
+            </div>
+            <textarea  name="answer1" class="textarea" required></textarea>
+          </div>
+          <div class="form-control">
+            <div class = "label">
+              <span class="label-text">How does this program align with your academic or career goals?</span>
+            </div>
+            <textarea name="answer2" class="textarea" required></textarea>
+          </div>
+          <div class="form-control">
+            <div class = "label">
+              <span class="label-text">What challenges do you anticipate during this experience, and how will you address them?</span>
+            </div>
+            <textarea name="answer3" class="textarea" required></textarea>
+          </div>
+          <div class="form-control">
+            <div class = "label">
+              <span class="label-text">Describe a time you adapted to a new or unfamiliar environment.</span>
+            </div>
+            <textarea name="answer4" class="textarea" required></textarea>
+          </div>
+          <div class="form-control">
+            <div class = "label">
+              <span class="label-text">What unique perspective or contribution will you bring to the group?</span>
+            </div>
+            <textarea name="answer5" class="textarea" required></textarea>
+          </div>
+          <div class="flex flex-row-reverse">
+            <button class="btn btn-primary w-1/4" type="submit">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div th:insert="~{components/footer :: footer}"></div>
+</body>
+
+</html>

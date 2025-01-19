@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "students")
-public final class Student extends User {
+public final class Student implements User {
 
   @Id
   private String username;
