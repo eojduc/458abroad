@@ -35,9 +35,10 @@ public class ApplyToProgramService {
     this.programRepository = programRepository;
   }
 
-  public sealed interface GetPageDataResponse permits PageData, UserNotFound, ProgramNotFound { }
+  public sealed interface GetPageDataResponse permits PageData, UserNotFound, ProgramNotFound, StudentAlreadyApplied { }
   public record PageData(Program program, User user, List<Question> questions) implements GetPageDataResponse { }
-  public record UserNotFound() implements GetPageDataResponse { }
+  public record UserNotFound() implements GetPageDataResponse, ApplyToProgramResponse { }
+  public record StudentAlreadyApplied() implements GetPageDataResponse { }
   public record ProgramNotFound() implements GetPageDataResponse { }
 
   public GetPageDataResponse getPageData(String programId, HttpServletRequest request) {
@@ -49,17 +50,18 @@ public class ApplyToProgramService {
     if (program == null) {
       return new ProgramNotFound();
     }
-    return new PageData(program, user, List.copyOf(QUESTIONS));
+    var alreadyApplied = applicationRepository.findByProgramIdAndStudent(programId, user.getUsername()).isPresent();
+    if (alreadyApplied) {
+      return new StudentAlreadyApplied();
+    }
+    return new PageData(program, user, QUESTIONS);
   }
 
 
 
-  public sealed interface ApplyToProgramResponse permits SuccessfullyApplied, Failure {
+  public sealed interface ApplyToProgramResponse permits SuccessfullyApplied, UserNotFound {
   }
-  public record SuccessfullyApplied() implements ApplyToProgramResponse {
-  }
-  public record Failure(String message) implements ApplyToProgramResponse {
-  }
+  public record SuccessfullyApplied() implements ApplyToProgramResponse { }
 
   public ApplyToProgramResponse applyToProgram(
     String programId,
@@ -69,7 +71,7 @@ public class ApplyToProgramService {
     var user = UserService.getUser(request).orElse(null);
 
     if (user == null) {
-      return new Failure("User is not Logged in");
+      return new UserNotFound();
     }
     var application = new Application(
       null, user.getUsername(), programId, dob, gpa, major, answer1, answer2, answer3, answer4, answer5, Status.APPLIED

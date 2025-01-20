@@ -41,10 +41,11 @@ public class ProgramInfoController {
         model.addAttribute("formatter", formatter);
         return "program-info :: page";
       }
-      case ProgramNotFound n -> {
+      case ProgramNotFound(var user) -> {
+        model.addAttribute("user", user);
         return "program-info :: not-found";
       }
-      case UserNotFound n -> {
+      case UserNotFound() -> {
         return "redirect:/login";
       }
     }

@@ -1,9 +1,9 @@
 package com.example.abroad.controller.student;
 
 import com.example.abroad.service.ApplyToProgramService;
-import com.example.abroad.service.ApplyToProgramService.Failure;
 import com.example.abroad.service.ApplyToProgramService.ProgramNotFound;
 import com.example.abroad.service.ApplyToProgramService.PageData;
+import com.example.abroad.service.ApplyToProgramService.StudentAlreadyApplied;
 import com.example.abroad.service.ApplyToProgramService.SuccessfullyApplied;
 import com.example.abroad.service.ApplyToProgramService.UserNotFound;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,11 +35,14 @@ public class ApplyToProgramController {
         model.addAttribute("questions", questions);
         return "apply-to-program :: page";
       }
-      case UserNotFound n -> {
+      case UserNotFound() -> {
         return "redirect:/login";
       }
-      case ProgramNotFound n -> {
+      case ProgramNotFound() -> {
         return "redirect:/programs";
+      }
+      case StudentAlreadyApplied() -> {
+        return "redirect:/applications/" + programId + "/error=You have already applied to this program";
       }
     }
   }
@@ -51,11 +54,11 @@ public class ApplyToProgramController {
     @RequestParam String answer4, @RequestParam String answer5
   ) {
     switch (service.applyToProgram(programId, request, major, gpa, dob, answer1, answer2, answer3, answer4, answer5)) {
-      case SuccessfullyApplied s -> {
+      case SuccessfullyApplied() -> {
         return "redirect:/applications";
       }
-      case Failure(var message) -> {
-        return "redirect:/apply/" + programId  + "?error=" + message;
+      case UserNotFound() -> {
+        return "redirect:/login";
       }
     }
   }

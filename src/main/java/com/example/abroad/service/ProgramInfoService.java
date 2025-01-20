@@ -24,18 +24,18 @@ public class ProgramInfoService {
   public record ProgramInfo(Program program, Integer studentsEnrolled, String applicationStatus, User user) implements
     GetProgramInfoResponse {
   }
-  public record ProgramNotFound() implements GetProgramInfoResponse { }
+  public record ProgramNotFound(User user) implements GetProgramInfoResponse { }
   public record UserNotFound() implements GetProgramInfoResponse { }
 
 
   public GetProgramInfoResponse getProgramInfo(String programId, HttpServletRequest request) {
-    var program = programRepository.findById(programId).orElse(null);
-    if (program == null) {
-      return new ProgramNotFound();
-    }
     var user = UserService.getUser(request).orElse(null);
     if (user == null) {
       return new UserNotFound();
+    }
+    var program = programRepository.findById(programId).orElse(null);
+    if (program == null) {
+      return new ProgramNotFound(user);
     }
     var students = applicationRepository.countByProgramId(programId);
     var applicationStatus = applicationRepository.findByProgramIdAndStudent(programId, user.getUsername())
