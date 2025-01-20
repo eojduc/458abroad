@@ -9,11 +9,14 @@ import com.example.abroad.respository.ProgramRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ApplyToProgramService {
+public record ApplyToProgramService(
+  ApplicationRepository applicationRepository,
+  ProgramRepository programRepository,
+  UserService userService
+) {
 
   public static final List<Question> QUESTIONS = List.of(
     new Question("answer1", "Why do you want to participate in this study abroad program?"),
@@ -23,19 +26,7 @@ public class ApplyToProgramService {
     new Question("answer5", "What unique perspective or contribution will you bring to the group?")
   );
 
-  private final ApplicationRepository applicationRepository;
-  private final ProgramRepository programRepository;
-  private final UserService userService;
-
   public record Question(String field, String text) { }
-
-
-
-  public ApplyToProgramService(ApplicationRepository applicationRepository, ProgramRepository programRepository, UserService userService) {
-    this.applicationRepository = applicationRepository;
-    this.programRepository = programRepository;
-    this.userService = userService;
-  }
 
   public sealed interface GetPageDataResponse permits PageData, UserNotFound, ProgramNotFound, StudentAlreadyApplied { }
   public record PageData(Program program, User user, List<Question> questions) implements GetPageDataResponse { }

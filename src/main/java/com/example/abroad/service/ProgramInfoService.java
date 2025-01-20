@@ -8,20 +8,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProgramInfoService {
-
-  private final ProgramRepository programRepository;
-
-  private final ApplicationRepository applicationRepository;
-  private final UserService userService;
-
-
-  public ProgramInfoService(ProgramRepository programRepository,
-    ApplicationRepository applicationRepository, UserService userService) {
-    this.programRepository = programRepository;
-    this.applicationRepository = applicationRepository;
-    this.userService = userService;
-  }
+public record ProgramInfoService(
+  ProgramRepository programRepository,
+  ApplicationRepository applicationRepository,
+  UserService userService
+) {
 
   public GetProgramInfoResponse getProgramInfo(String programId, HttpServletRequest request) {
     var user = userService.getUser(request).orElse(null);

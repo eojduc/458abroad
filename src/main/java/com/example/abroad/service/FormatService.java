@@ -5,12 +5,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FormatService {
+public record FormatService() {
   public String formatInstant(Instant instant) {
     return instant.atZone(ZoneId.systemDefault())
       .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));

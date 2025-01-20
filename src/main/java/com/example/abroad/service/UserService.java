@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
  * This class is used to manage the user session
  */
 @Service
-public class UserService {
+public record UserService() {
 
   public void setUser(HttpServletRequest request, User user) {
     request.getSession().setAttribute("user", user);
