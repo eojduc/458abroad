@@ -58,7 +58,7 @@ public class ApplyToProgramController {
     switch (service.applyToProgram(programId, request, major, gpa, dob, answer1, answer2, answer3,
       answer4, answer5)) {
       case SuccessfullyApplied() -> {
-        return "redirect:/applications";
+        return "redirect:/applications/" + programId;
       }
       case UserNotFound() -> {
         return "redirect:/login";
