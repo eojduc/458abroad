@@ -17,13 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public class ApplyToProgramController {
-
-  private final ApplyToProgramService service;
-
-  public ApplyToProgramController(ApplyToProgramService service) {
-    this.service = service;
-  }
+public record ApplyToProgramController(ApplyToProgramService service) {
 
   @GetMapping("/apply/{programId}")
   public String applyToProgram(@PathVariable String programId, HttpServletRequest request,
@@ -43,8 +37,8 @@ public class ApplyToProgramController {
         return "redirect:/programs";
       }
       case StudentAlreadyApplied() -> {
-        return "redirect:/applications/" + programId
-          + "/error=You have already applied to this program";
+        return "redirect:/applications/" + programId + "?"
+          + "error=You have already applied to this program";
       }
     }
   }

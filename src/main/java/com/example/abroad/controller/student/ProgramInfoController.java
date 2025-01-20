@@ -13,17 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
-public class ProgramInfoController {
-
-
-  private final ProgramInfoService service;
-  private final FormatService formatter;
-
-
-  public ProgramInfoController(ProgramInfoService service, FormatService formatter) {
-    this.service = service;
-    this.formatter = formatter;
-  }
+public record ProgramInfoController(ProgramInfoService service, FormatService formatter) {
 
 
   @GetMapping("/programs/{programId}")
