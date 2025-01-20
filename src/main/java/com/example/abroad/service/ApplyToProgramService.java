@@ -37,7 +37,7 @@ public record ApplyToProgramService(
       return new ProgramNotFound();
     }
     var alreadyApplied = applicationRepository.findByProgramIdAndStudent(programId,
-      user.getUsername()).isPresent();
+      user.username()).isPresent();
     if (alreadyApplied) {
       return new StudentAlreadyApplied();
     }
@@ -55,7 +55,7 @@ public record ApplyToProgramService(
       return new UserNotFound();
     }
     var application = new Application(
-      user.getUsername() + "_" + programId, user.getUsername(), programId, dob, gpa, major, answer1,
+      user.username() + "_" + programId, user.username(), programId, dob, gpa, major, answer1,
       answer2, answer3, answer4, answer5, Status.APPLIED
     );
     applicationRepository.save(application);

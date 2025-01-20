@@ -20,10 +20,6 @@ public final class Admin implements User {
 
 
   public Admin() {
-    this.username = null;
-    this.password = null;
-    this.email = null;
-    this.displayName = null;
   }
 
   public Admin(String username, String password, String email, String displayName) {
@@ -33,19 +29,19 @@ public final class Admin implements User {
     this.displayName = displayName;
   }
 
-  public String getUsername() {
+  public String username() {
     return username;
   }
 
-  public String getPassword() {
+  public String password() {
     return password;
   }
 
-  public String getEmail() {
+  public String email() {
     return email;
   }
 
-  public String getDisplayName() {
+  public String displayName() {
     return displayName;
   }
 

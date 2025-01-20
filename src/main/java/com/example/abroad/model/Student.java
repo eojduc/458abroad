@@ -33,19 +33,19 @@ public final class Student implements User {
     this.displayName = displayName;
   }
 
-  public String getUsername() {
+  public String username() {
     return username;
   }
 
-  public String getPassword() {
+  public String password() {
     return password;
   }
 
-  public String getEmail() {
+  public String email() {
     return email;
   }
 
-  public String getDisplayName() {
+  public String displayName() {
     return displayName;
   }
 

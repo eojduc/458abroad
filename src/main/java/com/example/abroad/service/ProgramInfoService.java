@@ -25,8 +25,8 @@ public record ProgramInfoService(
     }
     var students = applicationRepository.countByProgramId(programId);
     var applicationStatus = applicationRepository.findByProgramIdAndStudent(programId,
-        user.getUsername())
-      .map(application -> application.getStatus().name())
+        user.username())
+      .map(application -> application.status().name())
       .orElse("NOT_APPLIED");
     return new ProgramInfo(program, students, applicationStatus, user);
   }

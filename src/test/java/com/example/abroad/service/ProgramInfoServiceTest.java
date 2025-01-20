@@ -48,7 +48,7 @@ class ProgramInfoServiceTest {
     when(userService.getUser(request)).thenReturn(Optional.empty());
 
 
-    var response = service.getProgramInfo(PROGRAM.getId(), request);
+    var response = service.getProgramInfo(PROGRAM.id(), request);
     assertThat(response).isEqualTo(new UserNotFound());
 
   }
@@ -56,34 +56,34 @@ class ProgramInfoServiceTest {
   @Test
   void testProgramNotFound() {
     when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.STUDENT));
-    when(programRepository.findById(PROGRAM.getId())).thenReturn(Optional.empty());
+    when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
-    var response = service.getProgramInfo(PROGRAM.getId(), request);
+    var response = service.getProgramInfo(PROGRAM.id(), request);
     assertThat(response).isEqualTo(new ProgramNotFound(STUDENT));
   }
 
   @Test
   void testGetProgramInfoApplied() {
     when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
-    when(programRepository.findById(PROGRAM.getId())).thenReturn(Optional.of(PROGRAM));
-    when(applicationRepository.countByProgramId(PROGRAM.getId())).thenReturn(1);
-    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.getId(), STUDENT.getUsername()))
+    when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
+    when(applicationRepository.countByProgramId(PROGRAM.id())).thenReturn(1);
+    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username()))
       .thenReturn(Optional.of(APPLICATION));
 
 
-    var response = service.getProgramInfo(PROGRAM.getId(), request);
-    assertThat(response).isEqualTo(new ProgramInfo(PROGRAM, 1, APPLICATION.getStatus().name(), STUDENT));
+    var response = service.getProgramInfo(PROGRAM.id(), request);
+    assertThat(response).isEqualTo(new ProgramInfo(PROGRAM, 1, APPLICATION.status().name(), STUDENT));
   }
 
   @Test
   void testGetProgramInfoNotApplied() {
     when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
-    when(programRepository.findById(PROGRAM.getId())).thenReturn(Optional.of(PROGRAM));
-    when(applicationRepository.countByProgramId(PROGRAM.getId())).thenReturn(1);
-    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.getId(), STUDENT.getUsername()))
+    when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
+    when(applicationRepository.countByProgramId(PROGRAM.id())).thenReturn(1);
+    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username()))
       .thenReturn(Optional.empty());
 
-    var response = service.getProgramInfo(PROGRAM.getId(), request);
+    var response = service.getProgramInfo(PROGRAM.id(), request);
     assertThat(response).isEqualTo(new ProgramInfo(PROGRAM, 1, "NOT_APPLIED", STUDENT));
 
   }

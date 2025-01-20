@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.Objects;
-import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Table(name = "programs")
@@ -19,7 +18,6 @@ public class Program {
 
   @Id
   @GeneratedValue(generator = "uuid")
-  @GenericGenerator(name = "uuid", strategy = "uuid2")
   private String id;
   @Column(nullable = false)
   private String title;
@@ -88,43 +86,43 @@ public class Program {
   }
 
 
-  public String getId() {
+  public String id() {
     return id;
   }
 
-  public String getTitle() {
+  public String title() {
     return title;
   }
 
-  public Year getYear() {
+  public Year year() {
     return year;
   }
 
-  public Semester getSemester() {
+  public Semester semester() {
     return semester;
   }
 
-  public Instant getApplicationOpen() {
+  public Instant applicationOpen() {
     return applicationOpen;
   }
 
-  public Instant getApplicationClose() {
+  public Instant applicationClose() {
     return applicationClose;
   }
 
-  public LocalDate getStartDate() {
+  public LocalDate startDate() {
     return startDate;
   }
 
-  public LocalDate getEndDate() {
+  public LocalDate endDate() {
     return endDate;
   }
 
-  public String getFacultyLead() {
+  public String facultyLead() {
     return facultyLead;
   }
 
-  public String getDescription() {
+  public String description() {
     return description;
   }
 

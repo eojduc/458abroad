@@ -52,7 +52,7 @@ public class ApplyToProgramServiceTest {
   void testGetPageDataUserNotFound() {
     when(userService.getUser(request)).thenReturn(Optional.empty());
 
-    var response = service.getPageData(PROGRAM.getId(), request);
+    var response = service.getPageData(PROGRAM.id(), request);
     assertThat(response).isEqualTo(new UserNotFound());
   }
 
@@ -60,9 +60,9 @@ public class ApplyToProgramServiceTest {
   @Test
   void testGetPageDataProgramNotFound() {
     when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
-    when(programRepository.findById(PROGRAM.getId())).thenReturn(Optional.empty());
+    when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
-    var response = service.getPageData(PROGRAM.getId(), request);
+    var response = service.getPageData(PROGRAM.id(), request);
     assertThat(response).isEqualTo(new ProgramNotFound());
   }
 
@@ -70,20 +70,20 @@ public class ApplyToProgramServiceTest {
   @Test
   void testGetPageDataStudentAlreadyApplied() {
     when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
-    when(programRepository.findById(PROGRAM.getId())).thenReturn(Optional.of(PROGRAM));
-    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.getId(), STUDENT.getUsername())).thenReturn(Optional.of(APPLICATION));
+    when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
+    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.of(APPLICATION));
 
-    var response = service.getPageData(PROGRAM.getId(), request);
+    var response = service.getPageData(PROGRAM.id(), request);
     assertThat(response).isEqualTo(new StudentAlreadyApplied());
   }
 
   @Test
   void testGetPageData() {
     when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
-    when(programRepository.findById(PROGRAM.getId())).thenReturn(Optional.of(PROGRAM));
-    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.getId(), STUDENT.getUsername())).thenReturn(Optional.empty());
+    when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
+    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.empty());
 
-    var response = service.getPageData(PROGRAM.getId(), request);
+    var response = service.getPageData(PROGRAM.id(), request);
     assertThat(response).isEqualTo(new PageData(PROGRAM, STUDENT, ApplyToProgramService.QUESTIONS));
   }
 
@@ -92,10 +92,10 @@ public class ApplyToProgramServiceTest {
     when(userService.getUser(request)).thenReturn(Optional.empty());
 
     var response = service.applyToProgram(
-      APPLICATION.getProgramId(),
-      request, APPLICATION.getMajor(), APPLICATION.getGpa(), APPLICATION.getDateOfBirth(),
-      APPLICATION.getAnswer1(), APPLICATION.getAnswer2(), APPLICATION.getAnswer3(),
-      APPLICATION.getAnswer4(), APPLICATION.getAnswer5()
+      APPLICATION.programId(),
+      request, APPLICATION.major(), APPLICATION.gpa(), APPLICATION.dateOfBirth(),
+      APPLICATION.answer1(), APPLICATION.answer2(), APPLICATION.answer3(),
+      APPLICATION.answer4(), APPLICATION.answer5()
     );
 
     assertThat(response).isEqualTo(new UserNotFound());
@@ -106,15 +106,15 @@ public class ApplyToProgramServiceTest {
     when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
 
     var response = service.applyToProgram(
-      APPLICATION.getProgramId(),
-      request, APPLICATION.getMajor(), APPLICATION.getGpa(), APPLICATION.getDateOfBirth(),
-      APPLICATION.getAnswer1(), APPLICATION.getAnswer2(), APPLICATION.getAnswer3(),
-      APPLICATION.getAnswer4(), APPLICATION.getAnswer5()
+      APPLICATION.programId(),
+      request, APPLICATION.major(), APPLICATION.gpa(), APPLICATION.dateOfBirth(),
+      APPLICATION.answer1(), APPLICATION.answer2(), APPLICATION.answer3(),
+      APPLICATION.answer4(), APPLICATION.answer5()
     );
     verify(applicationRepository).save(new Application(
-      APPLICATION.getId(), STUDENT.getUsername(), APPLICATION.getProgramId(), APPLICATION.getDateOfBirth(),
-      APPLICATION.getGpa(), APPLICATION.getMajor(), APPLICATION.getAnswer1(), APPLICATION.getAnswer2(),
-      APPLICATION.getAnswer3(), APPLICATION.getAnswer4(), APPLICATION.getAnswer5(), Application.Status.APPLIED
+      APPLICATION.id(), STUDENT.username(), APPLICATION.programId(), APPLICATION.dateOfBirth(),
+      APPLICATION.gpa(), APPLICATION.major(), APPLICATION.answer1(), APPLICATION.answer2(),
+      APPLICATION.answer3(), APPLICATION.answer4(), APPLICATION.answer5(), Application.Status.APPLIED
     ));
     assertThat(response).isEqualTo(new SuccessfullyApplied());
   }

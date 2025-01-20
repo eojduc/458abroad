@@ -74,51 +74,51 @@ public class Application {
     this.status = status;
   }
 
-  public String getId() {
+  public String id() {
     return id;
   }
 
-  public String getStudent() {
+  public String student() {
     return student;
   }
 
-  public String getProgramId() {
+  public String programId() {
     return programId;
   }
 
-  public LocalDate getDateOfBirth() {
+  public LocalDate dateOfBirth() {
     return dateOfBirth;
   }
 
-  public Double getGpa() {
+  public Double gpa() {
     return gpa;
   }
 
-  public String getMajor() {
+  public String major() {
     return major;
   }
 
-  public String getAnswer1() {
+  public String answer1() {
     return answer1;
   }
 
-  public String getAnswer2() {
+  public String answer2() {
     return answer2;
   }
 
-  public String getAnswer3() {
+  public String answer3() {
     return answer3;
   }
 
-  public String getAnswer4() {
+  public String answer4() {
     return answer4;
   }
 
-  public String getAnswer5() {
+  public String answer5() {
     return answer5;
   }
 
-  public Status getStatus() {
+  public Status status() {
     return status;
   }
 

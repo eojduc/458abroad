@@ -4,12 +4,12 @@ import java.io.Serializable;
 
 public sealed interface User extends Serializable permits Admin, Student {
 
-  String getUsername();
+  String username();
 
-  String getPassword();
+  String password();
 
-  String getDisplayName();
+  String displayName();
 
-  String getEmail();
+  String email();
 
 }
