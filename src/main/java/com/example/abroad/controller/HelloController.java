@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * with pure ssr and with htmx
  */
 @Controller
-public class HelloController {
+public record HelloController() {
 
 
   //sessions are storage for each user, stored server side.

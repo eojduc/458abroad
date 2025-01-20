@@ -14,39 +14,31 @@ public record ProgramInfoService(
   UserService userService
 ) {
 
-  public GetProgramInfoResponse getProgramInfo(String programId, HttpServletRequest request) {
+  public GetProgramInfoOutput getProgramInfo(Integer programId, HttpServletRequest request) {
     var user = userService.getUser(request).orElse(null);
     if (user == null) {
-      return new UserNotFound();
+      return new GetProgramInfoOutput.UserNotFound();
     }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
-      return new ProgramNotFound(user);
+      return new GetProgramInfoOutput.ProgramNotFound(user);
     }
     var students = applicationRepository.countByProgramId(programId);
     var applicationStatus = applicationRepository.findByProgramIdAndStudent(programId, user.username())
       .map(application -> application.status().name())
       .orElse("NOT_APPLIED");
-    return new ProgramInfo(program, students, applicationStatus, user);
+    return new GetProgramInfoOutput.Success(program, students, applicationStatus, user);
   }
 
-  public sealed interface GetProgramInfoResponse permits ProgramInfo, ProgramNotFound,
-    UserNotFound {
-
-  }
-
-  public record ProgramInfo(Program program, Integer studentsEnrolled, String applicationStatus,
-                            User user) implements
-    GetProgramInfoResponse {
-
-  }
-
-  public record ProgramNotFound(User user) implements GetProgramInfoResponse {
-
-  }
-
-  public record UserNotFound() implements GetProgramInfoResponse {
-
+  public sealed interface GetProgramInfoOutput permits
+    GetProgramInfoOutput.Success, GetProgramInfoOutput.ProgramNotFound, GetProgramInfoOutput.UserNotFound {
+    record Success(Program program, Integer studentsEnrolled, String applicationStatus, User user)
+      implements GetProgramInfoOutput {
+    }
+    record ProgramNotFound(User user) implements GetProgramInfoOutput {
+    }
+    record UserNotFound() implements GetProgramInfoOutput {
+    }
   }
 
 }

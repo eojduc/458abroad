@@ -5,7 +5,7 @@ import jakarta.persistence.Converter;
 import java.time.Year;
 
 @Converter(autoApply = true)
-public class YearAttributeConverter implements AttributeConverter<Year, Integer> {
+public record YearAttributeConverter() implements AttributeConverter<Year, Integer> {
 
   @Override
   public Integer convertToDatabaseColumn(Year attribute) {

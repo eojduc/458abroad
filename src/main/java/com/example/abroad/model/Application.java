@@ -4,22 +4,21 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "applications")
 public class Application {
 
-  @GeneratedValue(generator = "uuid")
   @Id
   private String id;
   @Column(nullable = false)
   private String student;
   @Column(nullable = false)
-  private String programId;
+  private Integer programId;
   @Column(nullable = false)
   private LocalDate dateOfBirth;
   @Column(nullable = false)
@@ -57,7 +56,7 @@ public class Application {
   }
 
 
-  public Application(String id, String student, String programId, LocalDate dateOfBirth,
+  public Application(String id, String student, Integer programId, LocalDate dateOfBirth,
     Double gpa, String major, String answer1, String answer2, String answer3, String answer4,
     String answer5, Status status) {
     this.id = id;
@@ -82,7 +81,7 @@ public class Application {
     return student;
   }
 
-  public String programId() {
+  public Integer programId() {
     return programId;
   }
 
@@ -133,7 +132,7 @@ public class Application {
 
     Application that = (Application) o;
 
-    if (!id.equals(that.id)) {
+    if (!Objects.equals(id, that.id)) {
       return false;
     }
     if (!student.equals(that.student)) {

@@ -27,73 +27,67 @@ public record ApplyToProgramService(
     new Question("answer5", "What unique perspective or contribution will you bring to the group?")
   );
 
-  public GetPageDataResponse getPageData(String programId, HttpServletRequest request) {
+  public GetPageDataOutput getPageData(Integer programId, HttpServletRequest request) {
     var user = userService.getUser(request).orElse(null);
     if (user == null) {
-      return new UserNotFound();
+      return new GetPageDataOutput.UserNotFound();
     }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
-      return new ProgramNotFound();
+      return new GetPageDataOutput.ProgramNotFound();
     }
     var alreadyApplied = applicationRepository.findByProgramIdAndStudent(programId,
       user.username()).isPresent();
     if (alreadyApplied) {
-      return new StudentAlreadyApplied();
+      return new GetPageDataOutput.StudentAlreadyApplied();
     }
-    return new PageData(program, user, QUESTIONS);
+    return new GetPageDataOutput.Success(program, user, QUESTIONS);
   }
 
-  public ApplyToProgramResponse applyToProgram(
-    String programId,
+  public ApplyToProgramOutput applyToProgram(
+    Integer programId,
     HttpServletRequest request, String major, Double gpa, LocalDate dob,
     String answer1, String answer2, String answer3, String answer4, String answer5
   ) {
     var user = userService.getUser(request).orElse(null);
 
     if (user == null) {
-      return new UserNotFound();
+      return new ApplyToProgramOutput.UserNotFound();
     }
     var application = new Application(
-      user.username() + "_" + programId, user.username(), programId, dob, gpa, major, answer1,
+      null, user.username(), programId, dob, gpa, major, answer1,
       answer2, answer3, answer4, answer5, Status.APPLIED
     );
     applicationRepository.save(application);
 
-    return new SuccessfullyApplied();
+    return new ApplyToProgramOutput.Success();
   }
 
-  public sealed interface GetPageDataResponse permits PageData, UserNotFound, ProgramNotFound,
-    StudentAlreadyApplied {
+  public sealed interface GetPageDataOutput permits
+    GetPageDataOutput.Success, GetPageDataOutput.UserNotFound, GetPageDataOutput.ProgramNotFound,
+    GetPageDataOutput.StudentAlreadyApplied {
+    record Success(Program program, User user, List<Question> questions) implements GetPageDataOutput {
+    }
+    record UserNotFound() implements GetPageDataOutput {
+    }
+    record ProgramNotFound() implements GetPageDataOutput {
+    }
+    record StudentAlreadyApplied() implements GetPageDataOutput {
+    }
 
   }
 
-  public sealed interface ApplyToProgramResponse permits SuccessfullyApplied, UserNotFound {
+  public sealed interface ApplyToProgramOutput permits ApplyToProgramOutput.Success,
+    ApplyToProgramOutput.UserNotFound {
+    record Success() implements ApplyToProgramOutput {
+    }
+
+    record UserNotFound() implements ApplyToProgramOutput {
+    }
 
   }
 
   public record Question(String field, String text) {
-
-  }
-
-  public record PageData(Program program, User user, List<Question> questions) implements
-    GetPageDataResponse {
-
-  }
-
-  public record UserNotFound() implements GetPageDataResponse, ApplyToProgramResponse {
-
-  }
-
-  public record StudentAlreadyApplied() implements GetPageDataResponse {
-
-  }
-
-  public record ProgramNotFound() implements GetPageDataResponse {
-
-  }
-
-  public record SuccessfullyApplied() implements ApplyToProgramResponse {
 
   }
 

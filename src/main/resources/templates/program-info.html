@@ -4,9 +4,10 @@
   <head th:replace="~{components :: head(${program.title})}"></head>
 
   <body>
-    <div th:insert="~{components :: header(${program.title}, ${user.displayName})}"></div>
+    <div th:replace="~{components :: navbar(${program.title}, ${user.displayName})}"></div>
     <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
-      <div class="card card-normal w-1/2 bg-base-200">
+      <div th:replace="~{components :: alerts(${alerts})}"></div>
+      <div class="card card-normal w-1/2 bg-base-200 m-4">
         <div class="card-body">
           <div class="flex flex-row justify-between">
             <h1 class="card-title" th:text="${program.title}"></h1>
@@ -50,12 +51,12 @@
               th:href="@{/apply/{programId}(programId=${program.id})}">Apply</a>
             <a th:unless = "${applicationStatus == 'NOT_APPLIED'}"
               class="btn btn-primary w-1/4"
-              th:href="@{/applications/{programId}(programId=${program.id})}">View Application</a>
+              th:href="@{/applications/{applicationId}(applicationId=${program.id + '_' + user.username})}">View Application</a>
           </div>
         </div>
       </div>
     </div>
-    <div th:insert="~{components :: footer}"></div>
+    <div th:replace="~{components :: footer}"></div>
   </body>
 
 </html>
@@ -68,7 +69,7 @@
 
 
   <body>
-  <div th:insert="~{components :: header('Not Found', ${user.displayName})}"></div>
+  <div th:replace="~{components :: navbar('Not Found', ${user.displayName})}"></div>
   <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
     <div class="card card-normal w-1/2 m-10 bg-base-200">
       <div class="card-body">
@@ -77,7 +78,7 @@
       </div>
     </div>
   </div>
-  <div th:insert="~{components :: footer}"></div>
+  <div th:replace="~{components :: footer}"></div>
   </body>
 
 </html>

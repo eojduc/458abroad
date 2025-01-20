@@ -17,8 +17,8 @@ import java.util.Objects;
 public class Program {
 
   @Id
-  @GeneratedValue(generator = "uuid")
-  private String id;
+  @GeneratedValue
+  private Integer id;
   @Column(nullable = false)
   private String title;
   @Column(nullable = false)
@@ -54,7 +54,7 @@ public class Program {
   }
 
 
-  public Program(String id, String title, Year year, Semester semester, Instant applicationOpen,
+  public Program(Integer id, String title, Year year, Semester semester, Instant applicationOpen,
     Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
     String description) {
     this.id = id;
@@ -86,7 +86,7 @@ public class Program {
   }
 
 
-  public String id() {
+  public Integer id() {
     return id;
   }
 

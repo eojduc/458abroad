@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+
+<head th:replace="~{components :: head(${program.title})}"></head>
+
+<body>
+<div th:replace="~{components :: navbar(${program.title}, ${user.displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10">
+  <div class="card card-normal min-w-1/2 bg-base-200">
+    <div class="card-body">
+      <h1 class="card-title" th:text="${program.title}"></h1>
+      <p th:text="${program.description}"></p>
+      <h2 class="text-lg mt-5">Faculty Lead</h2>
+      <p class="mb-5" th:text="${program.facultyLead}"></p>
+      <h2 class="text-lg mt-5">Program Details</h2>
+      <table class="table table-sm">
+        <tbody>
+        <tr>
+          <td>Term</td>
+          <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
+        </tr>
+        <tr>
+          <td>Start Date</td>
+          <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
+        </tr>
+        <tr>
+          <td>End Date</td>
+          <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
+        </tr>
+        <tr>
+          <td>Application Open</td>
+          <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+        </tr>
+        <tr>
+          <td>Application Deadline</td>
+          <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+        </tr>
+        </tbody>
+      </table>
+      <h2 class="text-lg mt-5">Applicants</h2>
+      <table class="table table-sm">
+        <thead>
+        <tr>
+          <th>display name</th>
+          <th>username</th>
+          <th>email</th>
+          <th>major</th>
+          <th>gpa</th>
+          <th>date of birth</th>
+          <th>application</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="applicant : ${applicants}">
+          <td th:text="${applicant.displayName}"></td>
+          <td th:text="${applicant.username}"></td>
+          <td th:text="${applicant.email}"></td>
+          <td th:text="${applicant.major}"></td>
+          <td th:text="${applicant.gpa}"></td>
+          <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
+          <td>
+            <a th:href="@{/admin/applications/{programId}/{username}(programId=${program.id}, username=${applicant.username})}">
+              <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <div class="card-actions">
+        <a class="btn btn-primary" th:href="@{/admin/programs/edit/{programId}(programId=${program.id})}">Edit</a>
+        <form class="contents"
+          onsubmit="return confirm('Are you sure you want to delete this program?')"
+          th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post">
+          <button class="btn btn-error" type="submit">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>
+
+
+
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="not-found">
+
+<head th:replace="~{components :: head('Not Found')}"></head>
+
+
+<body>
+<div th:replace="~{components :: navbar('Not Found', ${user.displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+  <div class="card card-normal w-1/2 m-10 bg-base-200">
+    <div class="card-body">
+      <h1 class="card-title text-center">Not found</h1>
+      <p class="text-center">The program you are looking for does not exist.</p>
+    </div>
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>

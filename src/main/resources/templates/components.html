@@ -13,9 +13,16 @@
 </head>
 
 
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="alerts(alerts)" class="contents">
+  <div th:if="${alerts.error.isPresent()}" th:text="${alerts.error.get()}" class="alert alert-error w-1/2 m-4"></div>
+  <div th:if="${alerts.success.isPresent()}" th:text="${alerts.success.get()}" class="alert alert-success w-1/2 m-4"></div>
+  <div th:if="${alerts.warning.isPresent()}" th:text="${alerts.warning.get()}" class="alert alert-warning w-1/2 m-4"></div>
+  <div th:if="${alerts.info.isPresent()}" th:text="${alerts.info.get()}" class="alert alert-info w-1/2 m-4"></div>
+</div>
 
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="header(title, name)" class="bg-base-100">
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="navbar(title, name)" class="bg-base-100">
   <div class="flex flex-row justify-between">
     <div class="navbar">
       <a th:text="${title}" class="btn btn-ghost text-xl"></a>

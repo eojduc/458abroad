@@ -11,7 +11,7 @@ import java.time.Year;
 public class TestConstants {
 
   public static final Program PROGRAM = new Program(
-    "111111-1111-1111-1111",
+    1,
     "Test Program",
     Year.of(2022),
     Program.Semester.FALL,
@@ -32,9 +32,9 @@ public class TestConstants {
   );
 
   public static final Application APPLICATION = new Application(
-    "testUser_111111-1111-1111-1111",
+    "1_testUser",
     "testUser",
-    "111111-1111-1111-1111",
+    1,
     LocalDate.parse("2021-09-01"),
     3.5,
     "Chemistry",
