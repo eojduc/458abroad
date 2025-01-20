@@ -23,7 +23,7 @@ public class Application {
   @Column(nullable = false)
   private LocalDate dateOfBirth;
   @Column(nullable = false)
-  private Float gpa;
+  private Double gpa;
   @Column(nullable = false)
   private String major;
   @Column(nullable = false)
@@ -58,7 +58,7 @@ public class Application {
 
 
   public Application(String id, String student, String programId, LocalDate dateOfBirth,
-      Float gpa, String major, String answer1, String answer2, String answer3, String answer4,
+      Double gpa, String major, String answer1, String answer2, String answer3, String answer4,
       String answer5, Status status) {
     this.id = id;
     this.student = student;
@@ -90,7 +90,7 @@ public class Application {
     return dateOfBirth;
   }
 
-  public Float getGpa() {
+  public Double getGpa() {
     return gpa;
   }
 
@@ -127,6 +127,27 @@ public class Application {
     ENROLLED,
     CANCELLED,
     WITHDRAWN
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Application that = (Application) o;
+
+    if (!id.equals(that.id)) return false;
+    if (!student.equals(that.student)) return false;
+    if (!programId.equals(that.programId)) return false;
+    if (!dateOfBirth.equals(that.dateOfBirth)) return false;
+    if (!gpa.equals(that.gpa)) return false;
+    if (!major.equals(that.major)) return false;
+    if (!answer1.equals(that.answer1)) return false;
+    if (!answer2.equals(that.answer2)) return false;
+    if (!answer3.equals(that.answer3)) return false;
+    if (!answer4.equals(that.answer4)) return false;
+    if (!answer5.equals(that.answer5)) return false;
+    return status == that.status;
   }
 
 

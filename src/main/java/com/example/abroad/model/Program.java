@@ -55,9 +55,10 @@ public class Program {
   }
 
 
-  public Program(String title, Year year, Semester semester, Instant applicationOpen,
+  public Program(String id, String title, Year year, Semester semester, Instant applicationOpen,
     Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
     String description) {
+    this.id = id;
     this.title = title;
     this.year = year;
     this.semester = semester;
@@ -128,5 +129,26 @@ public class Program {
 
   public enum Semester {
     FALL, SPRING, SUMMER
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Program program = (Program) o;
+
+    if (id != null ? !id.equals(program.id) : program.id != null) return false;
+    if (title != null ? !title.equals(program.title) : program.title != null) return false;
+    if (year != null ? !year.equals(program.year) : program.year != null) return false;
+    if (semester != program.semester) return false;
+    if (applicationOpen != null ? !applicationOpen.equals(program.applicationOpen) : program.applicationOpen != null)
+      return false;
+    if (applicationClose != null ? !applicationClose.equals(program.applicationClose) : program.applicationClose != null)
+      return false;
+    if (startDate != null ? !startDate.equals(program.startDate) : program.startDate != null) return false;
+    if (endDate != null ? !endDate.equals(program.endDate) : program.endDate != null) return false;
+    if (facultyLead != null ? !facultyLead.equals(program.facultyLead) : program.facultyLead != null) return false;
+    return description != null ? description.equals(program.description) : program.description == null;
   }
 }

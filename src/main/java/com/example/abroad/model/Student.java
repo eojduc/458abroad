@@ -48,4 +48,17 @@ public final class Student implements User {
   public String getDisplayName() {
     return displayName;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Student student = (Student) o;
+
+    if (!username.equals(student.username)) return false;
+    if (!password.equals(student.password)) return false;
+    if (!email.equals(student.email)) return false;
+    return displayName.equals(student.displayName);
+  }
 }

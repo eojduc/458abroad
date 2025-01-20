@@ -49,7 +49,7 @@ public class ApplyToProgramController {
 
   @PostMapping("/apply/{programId}")
   public String applyToProgramPost(@PathVariable String programId, HttpServletRequest request,
-    @RequestParam String major, @RequestParam Float gpa, @RequestParam LocalDate dob,
+    @RequestParam String major, @RequestParam Double gpa, @RequestParam LocalDate dob,
     @RequestParam String answer1, @RequestParam String answer2, @RequestParam String answer3,
     @RequestParam String answer4, @RequestParam String answer5
   ) {

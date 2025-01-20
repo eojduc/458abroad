@@ -24,7 +24,9 @@
 
 <form xmlns:th="http://www.thymeleaf.org"
     class="contents" th:action="@{/apply/{programId}(programId=${program.id})}" method="post"
-      th:fragment="apply-form">
+      th:fragment="apply-form"
+      onsubmit="return confirm('Are you sure you want to submit this application?')">
+
   <div class="form-control">
     <div class="label">
       <span class="label-text">Major</span>
