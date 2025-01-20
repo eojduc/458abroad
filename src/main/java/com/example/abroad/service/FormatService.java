@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public record FormatService() {
+
   public String formatInstant(Instant instant) {
     return instant.atZone(ZoneId.systemDefault())
       .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));

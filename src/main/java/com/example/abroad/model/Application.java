@@ -58,8 +58,8 @@ public class Application {
 
 
   public Application(String id, String student, String programId, LocalDate dateOfBirth,
-      Double gpa, String major, String answer1, String answer2, String answer3, String answer4,
-      String answer5, Status status) {
+    Double gpa, String major, String answer1, String answer2, String answer3, String answer4,
+    String answer5, Status status) {
     this.id = id;
     this.student = student;
     this.programId = programId;
@@ -122,32 +122,58 @@ public class Application {
     return status;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Application that = (Application) o;
+
+    if (!id.equals(that.id)) {
+      return false;
+    }
+    if (!student.equals(that.student)) {
+      return false;
+    }
+    if (!programId.equals(that.programId)) {
+      return false;
+    }
+    if (!dateOfBirth.equals(that.dateOfBirth)) {
+      return false;
+    }
+    if (!gpa.equals(that.gpa)) {
+      return false;
+    }
+    if (!major.equals(that.major)) {
+      return false;
+    }
+    if (!answer1.equals(that.answer1)) {
+      return false;
+    }
+    if (!answer2.equals(that.answer2)) {
+      return false;
+    }
+    if (!answer3.equals(that.answer3)) {
+      return false;
+    }
+    if (!answer4.equals(that.answer4)) {
+      return false;
+    }
+    if (!answer5.equals(that.answer5)) {
+      return false;
+    }
+    return status == that.status;
+  }
+
   public enum Status {
     APPLIED,
     ENROLLED,
     CANCELLED,
     WITHDRAWN
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    Application that = (Application) o;
-
-    if (!id.equals(that.id)) return false;
-    if (!student.equals(that.student)) return false;
-    if (!programId.equals(that.programId)) return false;
-    if (!dateOfBirth.equals(that.dateOfBirth)) return false;
-    if (!gpa.equals(that.gpa)) return false;
-    if (!major.equals(that.major)) return false;
-    if (!answer1.equals(that.answer1)) return false;
-    if (!answer2.equals(that.answer2)) return false;
-    if (!answer3.equals(that.answer3)) return false;
-    if (!answer4.equals(that.answer4)) return false;
-    if (!answer5.equals(that.answer5)) return false;
-    return status == that.status;
   }
 
 

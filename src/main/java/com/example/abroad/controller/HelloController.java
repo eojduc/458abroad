@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * This file is a sample controller. really logic should be in service layer. there's a sample both with pure ssr and with htmx
+ * This file is a sample controller. really logic should be in service layer. there's a sample both
+ * with pure ssr and with htmx
  */
 @Controller
 public class HelloController {
@@ -27,18 +28,17 @@ public class HelloController {
   }
 
 
-
   @PostMapping("/")
   public String helloWorldPost(@RequestParam String name, Model model, HttpServletRequest request) {
     request.getSession().setAttribute("name", name);
     model.addAttribute("name", name);
     return "redirect:/";
   }
-  
+
   // these are the ones that use htmx
   @GetMapping("/hello")
   public String helloWorld2(HttpServletRequest request, Model model) {
-    var name =  Optional.ofNullable(request.getSession().getAttribute("name"))
+    var name = Optional.ofNullable(request.getSession().getAttribute("name"))
       .filter(obj -> obj instanceof String)
       .map(obj -> (String) obj)
       .orElse("world");
@@ -48,7 +48,8 @@ public class HelloController {
 
 
   @PostMapping("/hello")
-  public String helloWorldPost2(HttpServletRequest request, @RequestParam String name, Model model) {
+  public String helloWorldPost2(HttpServletRequest request, @RequestParam String name,
+    Model model) {
     request.getSession().setAttribute("name", name);
     model.addAttribute("name", name);
     return "hello :: htmx-hello-card";

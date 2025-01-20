@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.Objects;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
@@ -127,28 +128,48 @@ public class Program {
     return description;
   }
 
-  public enum Semester {
-    FALL, SPRING, SUMMER
-  }
-
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Program program = (Program) o;
 
-    if (id != null ? !id.equals(program.id) : program.id != null) return false;
-    if (title != null ? !title.equals(program.title) : program.title != null) return false;
-    if (year != null ? !year.equals(program.year) : program.year != null) return false;
-    if (semester != program.semester) return false;
-    if (applicationOpen != null ? !applicationOpen.equals(program.applicationOpen) : program.applicationOpen != null)
+    if (!Objects.equals(id, program.id)) {
       return false;
-    if (applicationClose != null ? !applicationClose.equals(program.applicationClose) : program.applicationClose != null)
+    }
+    if (!Objects.equals(title, program.title)) {
       return false;
-    if (startDate != null ? !startDate.equals(program.startDate) : program.startDate != null) return false;
-    if (endDate != null ? !endDate.equals(program.endDate) : program.endDate != null) return false;
-    if (facultyLead != null ? !facultyLead.equals(program.facultyLead) : program.facultyLead != null) return false;
-    return description != null ? description.equals(program.description) : program.description == null;
+    }
+    if (!Objects.equals(year, program.year)) {
+      return false;
+    }
+    if (semester != program.semester) {
+      return false;
+    }
+    if (!Objects.equals(applicationOpen, program.applicationOpen)) {
+      return false;
+    }
+    if (!Objects.equals(applicationClose, program.applicationClose)) {
+      return false;
+    }
+    if (!Objects.equals(startDate, program.startDate)) {
+      return false;
+    }
+    if (!Objects.equals(endDate, program.endDate)) {
+      return false;
+    }
+    if (!Objects.equals(facultyLead, program.facultyLead)) {
+      return false;
+    }
+    return Objects.equals(description, program.description);
+  }
+
+  public enum Semester {
+    FALL, SPRING, SUMMER
   }
 }

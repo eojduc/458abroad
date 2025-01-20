@@ -51,14 +51,24 @@ public final class Admin implements User {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Admin admin = (Admin) o;
 
-    if (!username.equals(admin.username)) return false;
-    if (!password.equals(admin.password)) return false;
-    if (!email.equals(admin.email)) return false;
+    if (!username.equals(admin.username)) {
+      return false;
+    }
+    if (!password.equals(admin.password)) {
+      return false;
+    }
+    if (!email.equals(admin.email)) {
+      return false;
+    }
     return displayName.equals(admin.displayName);
   }
 }

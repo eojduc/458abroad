@@ -21,18 +21,11 @@ public record ApplyToProgramService(
   public static final List<Question> QUESTIONS = List.of(
     new Question("answer1", "Why do you want to participate in this study abroad program?"),
     new Question("answer2", "How does this program align with your academic or career goals?"),
-    new Question("answer3", "What challenges do you anticipate during this experience, and how will you address them?"),
+    new Question("answer3",
+      "What challenges do you anticipate during this experience, and how will you address them?"),
     new Question("answer4", "Describe a time you adapted to a new or unfamiliar environment."),
     new Question("answer5", "What unique perspective or contribution will you bring to the group?")
   );
-
-  public record Question(String field, String text) { }
-
-  public sealed interface GetPageDataResponse permits PageData, UserNotFound, ProgramNotFound, StudentAlreadyApplied { }
-  public record PageData(Program program, User user, List<Question> questions) implements GetPageDataResponse { }
-  public record UserNotFound() implements GetPageDataResponse, ApplyToProgramResponse { }
-  public record StudentAlreadyApplied() implements GetPageDataResponse { }
-  public record ProgramNotFound() implements GetPageDataResponse { }
 
   public GetPageDataResponse getPageData(String programId, HttpServletRequest request) {
     var user = userService.getUser(request).orElse(null);
@@ -43,18 +36,13 @@ public record ApplyToProgramService(
     if (program == null) {
       return new ProgramNotFound();
     }
-    var alreadyApplied = applicationRepository.findByProgramIdAndStudent(programId, user.getUsername()).isPresent();
+    var alreadyApplied = applicationRepository.findByProgramIdAndStudent(programId,
+      user.getUsername()).isPresent();
     if (alreadyApplied) {
       return new StudentAlreadyApplied();
     }
     return new PageData(program, user, QUESTIONS);
   }
-
-
-
-  public sealed interface ApplyToProgramResponse permits SuccessfullyApplied, UserNotFound {
-  }
-  public record SuccessfullyApplied() implements ApplyToProgramResponse { }
 
   public ApplyToProgramResponse applyToProgram(
     String programId,
@@ -67,11 +55,46 @@ public record ApplyToProgramService(
       return new UserNotFound();
     }
     var application = new Application(
-      user.getUsername() + "_" + programId , user.getUsername(), programId, dob, gpa, major, answer1, answer2, answer3, answer4, answer5, Status.APPLIED
+      user.getUsername() + "_" + programId, user.getUsername(), programId, dob, gpa, major, answer1,
+      answer2, answer3, answer4, answer5, Status.APPLIED
     );
     applicationRepository.save(application);
 
     return new SuccessfullyApplied();
+  }
+
+  public sealed interface GetPageDataResponse permits PageData, UserNotFound, ProgramNotFound,
+    StudentAlreadyApplied {
+
+  }
+
+  public sealed interface ApplyToProgramResponse permits SuccessfullyApplied, UserNotFound {
+
+  }
+
+  public record Question(String field, String text) {
+
+  }
+
+  public record PageData(Program program, User user, List<Question> questions) implements
+    GetPageDataResponse {
+
+  }
+
+  public record UserNotFound() implements GetPageDataResponse, ApplyToProgramResponse {
+
+  }
+
+  public record StudentAlreadyApplied() implements GetPageDataResponse {
+
+  }
+
+  public record ProgramNotFound() implements GetPageDataResponse {
+
+  }
+
+  public record SuccessfullyApplied() implements ApplyToProgramResponse {
+
   }
 
 }
