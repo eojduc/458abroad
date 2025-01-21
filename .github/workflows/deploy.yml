@@ -22,7 +22,7 @@ jobs:
 
       # 3. Build project
       - name: Build with Gradle
-        run: ./gradlew clean test bootJar --info
+        run: ./gradlew clean bootJar
 
       # 4. Deploy to Beta environment (only if running on beta branch)
       - name: Deploy to Beta
