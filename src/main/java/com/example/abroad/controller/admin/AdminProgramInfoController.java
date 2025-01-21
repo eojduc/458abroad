@@ -1,11 +1,12 @@
 package com.example.abroad.controller.admin;
 
 import com.example.abroad.service.AdminProgramInfoService;
-import com.example.abroad.service.AdminProgramInfoService.DeleteProgramOutput;
-import com.example.abroad.service.AdminProgramInfoService.DeleteProgramOutput.ProgramNotFound;
-import com.example.abroad.service.AdminProgramInfoService.GetProgramInfoOutput;
+import com.example.abroad.service.AdminProgramInfoService.DeleteProgram;
+import com.example.abroad.service.AdminProgramInfoService.DeleteProgram.ProgramNotFound;
+import com.example.abroad.service.AdminProgramInfoService.GetProgramInfo;
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,21 +20,26 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
   @GetMapping("/admin/programs/{programId}")
   public String getProgramInfo(@PathVariable Integer programId, HttpServletRequest request, Model model) {
     switch (service.getProgramInfo(programId, request)) {
-      case GetProgramInfoOutput.UserNotFound() -> {
+      case GetProgramInfo.UserNotFound() -> {
         return "redirect:/login?error=You are not logged in";
       }
-      case GetProgramInfoOutput.UserNotAdmin() -> {
+      case GetProgramInfo.UserNotAdmin() -> {
         return String.format("redirect:/programs/%s?error=You are not an admin", programId);
       }
-      case GetProgramInfoOutput.ProgramNotFound(var user) -> {
-        model.addAttribute("user", user);
-        return "program-info :: not-found";
+      case GetProgramInfo.ProgramNotFound(var user) -> {
+        model.addAllAttributes(Map.of(
+          "title", "Program not found",
+          "message", "That program does not exist"
+        ));
+        return "error :: custom-page";
       }
-      case GetProgramInfoOutput.Success(var program, var applicants, var user) -> {
-        model.addAttribute("program", program);
-        model.addAttribute("applicants", applicants);
-        model.addAttribute("user", user);
-        model.addAttribute("formatter", formatter);
+      case GetProgramInfo.Success(var program, var applicants, var user) -> {
+        model.addAllAttributes(Map.of(
+          "program", program,
+          "applicants", applicants,
+          "user", user,
+          "formatter", formatter
+        ));
         return "admin/program-info :: page";
       }
     }
@@ -42,11 +48,11 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
   @PostMapping("/admin/programs/{programId}/delete")
   public String deleteProgram(@PathVariable Integer programId, HttpServletRequest request) {
     return switch (service.deleteProgram(programId, request)) {
-      case DeleteProgramOutput.Success() ->
+      case DeleteProgram.Success() ->
         "redirect:/admin/programs?success=Program deleted";
-      case DeleteProgramOutput.UserNotFound() ->
+      case DeleteProgram.UserNotFound() ->
         "redirect:/login?error=You are not logged in";
-      case DeleteProgramOutput.UserNotAdmin() ->
+      case DeleteProgram.UserNotAdmin() ->
         String.format("redirect:/programs/%s?error=You are not an admin", programId);
       case ProgramNotFound() ->
         "redirect:/admin/programs?error=That program does not exist";

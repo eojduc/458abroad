@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name)">
 
 <head th:replace="~{components :: head('Hello World')}"></head>
   <body>
@@ -28,7 +28,7 @@
 
 
 
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="htmx-page">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="htmx-page(name)">
   <head th:replace="~{components :: head('Hello World')}"></head>
   <body>
     <div th:replace="~{components :: navbar('Hello World', unknown)}"></div>

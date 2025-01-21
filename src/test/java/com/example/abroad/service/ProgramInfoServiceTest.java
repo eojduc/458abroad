@@ -10,7 +10,7 @@ import com.example.abroad.model.Program;
 import com.example.abroad.model.Student;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
-import com.example.abroad.service.ProgramInfoService.GetProgramInfoOutput;
+import com.example.abroad.service.ProgramInfoService.GetProgramInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ class ProgramInfoServiceTest {
 
 
     var response = service.getProgramInfo(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetProgramInfoOutput.UserNotFound());
+    assertThat(response).isEqualTo(new GetProgramInfo.UserNotFound());
 
   }
 
@@ -57,7 +57,7 @@ class ProgramInfoServiceTest {
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
     var response = service.getProgramInfo(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetProgramInfoOutput.ProgramNotFound(STUDENT));
+    assertThat(response).isEqualTo(new GetProgramInfo.ProgramNotFound());
   }
 
   @Test
@@ -70,7 +70,7 @@ class ProgramInfoServiceTest {
 
 
     var response = service.getProgramInfo(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetProgramInfoOutput.Success(PROGRAM, 1, APPLICATION.status().name(), STUDENT));
+    assertThat(response).isEqualTo(new GetProgramInfo.Success(PROGRAM, 1, APPLICATION.status().name(), STUDENT));
   }
 
   @Test
@@ -82,7 +82,7 @@ class ProgramInfoServiceTest {
       .thenReturn(Optional.empty());
 
     var response = service.getProgramInfo(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetProgramInfoOutput.Success(PROGRAM, 1, "NOT_APPLIED", STUDENT));
+    assertThat(response).isEqualTo(new GetProgramInfo.Success(PROGRAM, 1, "NOT_APPLIED", STUDENT));
 
   }
 

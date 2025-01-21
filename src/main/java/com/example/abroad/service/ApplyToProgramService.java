@@ -3,6 +3,7 @@ package com.example.abroad.service;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
@@ -18,33 +19,25 @@ public record ApplyToProgramService(
   UserService userService
 ) {
 
-  public static final List<Question> QUESTIONS = List.of(
-    new Question("answer1", "Why do you want to participate in this study abroad program?"),
-    new Question("answer2", "How does this program align with your academic or career goals?"),
-    new Question("answer3",
-      "What challenges do you anticipate during this experience, and how will you address them?"),
-    new Question("answer4", "Describe a time you adapted to a new or unfamiliar environment."),
-    new Question("answer5", "What unique perspective or contribution will you bring to the group?")
-  );
 
-  public GetPageDataOutput getPageData(Integer programId, HttpServletRequest request) {
+  public GetApplyPageData getPageData(Integer programId, HttpServletRequest request) {
     var user = userService.getUser(request).orElse(null);
     if (user == null) {
-      return new GetPageDataOutput.UserNotFound();
+      return new GetApplyPageData.UserNotFound();
     }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
-      return new GetPageDataOutput.ProgramNotFound();
+      return new GetApplyPageData.ProgramNotFound();
     }
-    var alreadyApplied = applicationRepository.findByProgramIdAndStudent(programId,
-      user.username()).isPresent();
-    if (alreadyApplied) {
-      return new GetPageDataOutput.StudentAlreadyApplied();
+    var existingApplication = applicationRepository.findByProgramIdAndStudent(programId,
+      user.username());
+    if (existingApplication.isPresent()) {
+      return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().id());
     }
-    return new GetPageDataOutput.Success(program, user, QUESTIONS);
+    return new GetApplyPageData.Success(program, user, Question.QUESTIONS);
   }
 
-  public ApplyToProgramOutput applyToProgram(
+  public ApplyToProgram applyToProgram(
     Integer programId,
     HttpServletRequest request, String major, Double gpa, LocalDate dob,
     String answer1, String answer2, String answer3, String answer4, String answer5
@@ -52,7 +45,7 @@ public record ApplyToProgramService(
     var user = userService.getUser(request).orElse(null);
 
     if (user == null) {
-      return new ApplyToProgramOutput.UserNotFound();
+      return new ApplyToProgram.UserNotFound();
     }
     var application = new Application(
       null, user.username(), programId, dob, gpa, major, answer1,
@@ -60,35 +53,33 @@ public record ApplyToProgramService(
     );
     applicationRepository.save(application);
 
-    return new ApplyToProgramOutput.Success();
+    return new ApplyToProgram.Success();
   }
 
-  public sealed interface GetPageDataOutput permits
-    GetPageDataOutput.Success, GetPageDataOutput.UserNotFound, GetPageDataOutput.ProgramNotFound,
-    GetPageDataOutput.StudentAlreadyApplied {
-    record Success(Program program, User user, List<Question> questions) implements GetPageDataOutput {
+  public sealed interface GetApplyPageData permits
+    GetApplyPageData.Success, GetApplyPageData.UserNotFound, GetApplyPageData.ProgramNotFound,
+    GetApplyPageData.StudentAlreadyApplied {
+    record Success(Program program, User user, List<Question> questions) implements
+      GetApplyPageData {
     }
-    record UserNotFound() implements GetPageDataOutput {
+    record UserNotFound() implements GetApplyPageData {
     }
-    record ProgramNotFound() implements GetPageDataOutput {
+    record ProgramNotFound() implements GetApplyPageData {
     }
-    record StudentAlreadyApplied() implements GetPageDataOutput {
-    }
-
-  }
-
-  public sealed interface ApplyToProgramOutput permits ApplyToProgramOutput.Success,
-    ApplyToProgramOutput.UserNotFound {
-    record Success() implements ApplyToProgramOutput {
-    }
-
-    record UserNotFound() implements ApplyToProgramOutput {
+    record StudentAlreadyApplied(String applicationId) implements GetApplyPageData {
     }
 
   }
 
-  public record Question(String field, String text) {
+  public sealed interface ApplyToProgram permits ApplyToProgram.Success,
+    ApplyToProgram.UserNotFound {
+    record Success() implements ApplyToProgram {
+    }
+
+    record UserNotFound() implements ApplyToProgram {
+    }
 
   }
+
 
 }

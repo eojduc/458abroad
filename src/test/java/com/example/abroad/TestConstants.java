@@ -1,5 +1,6 @@
 package com.example.abroad;
 
+import com.example.abroad.model.Admin;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
@@ -44,5 +45,12 @@ public class TestConstants {
     "Test answer",
     "Test answer",
     Status.APPLIED
+  );
+
+  public static final Admin ADMIN = new Admin(
+    "admin",
+    "adminpass",
+    "admin@test.com",
+    "Admin User"
   );
 }

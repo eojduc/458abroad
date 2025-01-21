@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, applicants, user, formatter)">
 
 <head th:replace="~{components :: head(${program.title})}"></head>
 
@@ -59,7 +59,7 @@
           <td th:text="${applicant.gpa}"></td>
           <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
           <td>
-            <a th:href="@{/admin/applications/{programId}/{username}(programId=${program.id}, username=${applicant.username})}">
+            <a th:href="@{/admin/applications/{applicationId}(applicationId=${program.id} + '_' + ${applicant.username})}">
               <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
             </a>
           </td>
@@ -84,7 +84,7 @@
 
 
 
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="not-found">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="not-found(user)">
 
 <head th:replace="~{components :: head('Not Found')}"></head>
 

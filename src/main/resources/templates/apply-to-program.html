@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, user, alerts, questions)">
 <head th:replace="~{components :: head('Apply to ' + ${program.title})}"></head>
 
 <body>
@@ -12,7 +12,7 @@
           <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
           <a class="btn btn-primary" th:href="@{/programs/{programId}(programId=${program.id})}">Program Info</a>
         </div>
-        <form th:replace="~{this :: apply-form}"></form>
+        <form th:replace="~{this :: apply-form(${program}, ${user}, ${questions})}"></form>
       </div>
     </div>
   </div>
@@ -24,7 +24,7 @@
 
 <form xmlns:th="http://www.thymeleaf.org"
     class="contents" th:action="@{/apply/{programId}(programId=${program.id})}" method="post"
-      th:fragment="apply-form"
+      th:fragment="apply-form(program, user, questions)"
       onsubmit="return confirm('Are you sure you want to submit this application?')">
 
   <div class="form-control">

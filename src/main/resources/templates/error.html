@@ -1,15 +1,37 @@
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="default-page">
 
-<head th:replace="~{components :: head('404 Not Found')}"></head>
+<head th:replace="~{components :: head('Error')}"></head>
 
 
 <body>
-<div th:replace="~{components :: navbar('Not Found','')}"></div>
+<div th:replace="~{components :: navbar('Error','')}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+  <div class="card card-normal w-1/2 m-10 bg-base-200">
+    <div class="card-body">
+      <h1 class="card-title text-center">Error</h1>
+      <p class="text-center">An Unknown Error occurred (probably no template has been made yet for this page)</p>
+    </div>
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>
+
+
+
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="custom-page(title, message)">
+
+<head th:replace="~{components :: head(${title})}"></head>
+
+
+<body>
+<div th:replace="~{components :: navbar(${title},'')}"></div>
 <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
   <div class="card card-normal w-1/2 m-10 bg-base-200">
     <div class="card-body">
       <h1 class="card-title text-center">404</h1>
-      <p class="text-center">The page you are looking for does not exist.</p>
+      <p class="text-center" th:text="${message}"></p>
     </div>
   </div>
 </div>

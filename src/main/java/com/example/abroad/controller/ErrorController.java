@@ -8,7 +8,7 @@ public class ErrorController {
 
   @GetMapping("/error")
   public String error() {
-    return "error :: page";
+    return "error :: default-page";
   }
 
 }

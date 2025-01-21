@@ -25,33 +25,33 @@ public record AdminProgramInfoService(
   AdminRepository adminRepository
 ) {
 
-  public DeleteProgramOutput deleteProgram(Integer programId, HttpServletRequest request) {
+  public DeleteProgram deleteProgram(Integer programId, HttpServletRequest request) {
     var user = userService.getUser(request).orElse(null);
     if (user == null) {
-      return new DeleteProgramOutput.UserNotFound();
+      return new DeleteProgram.UserNotFound();
     }
     if (adminRepository.findByUsername(user.username()).isEmpty()) {
-      return new DeleteProgramOutput.UserNotAdmin();
+      return new DeleteProgram.UserNotAdmin();
     }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
-      return new DeleteProgramOutput.ProgramNotFound();
+      return new DeleteProgram.ProgramNotFound();
     }
     programRepository.deleteById(programId);
-    return new DeleteProgramOutput.Success();
+    return new DeleteProgram.Success();
   }
 
-  public GetProgramInfoOutput getProgramInfo(Integer programId, HttpServletRequest request) {
+  public GetProgramInfo getProgramInfo(Integer programId, HttpServletRequest request) {
     var user = userService.getUser(request).orElse(null);
     if (user == null) {
-      return new GetProgramInfoOutput.UserNotFound();
+      return new GetProgramInfo.UserNotFound();
     }
     if (adminRepository.findByUsername(user.username()).isEmpty()) {
-      return new GetProgramInfoOutput.UserNotAdmin();
+      return new GetProgramInfo.UserNotAdmin();
     }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
-      return new GetProgramInfoOutput.ProgramNotFound(user);
+      return new GetProgramInfo.ProgramNotFound(user);
     }
     var studentsByUsername = studentRepository.findAll().stream()
       .collect(Collectors.toMap(Student::username, Function.identity()));
@@ -61,50 +61,50 @@ public record AdminProgramInfoService(
         Stream.ofNullable(studentsByUsername.get(application.student()))
           .map(student -> applicant(student, application)))
       .toList();
-    return new GetProgramInfoOutput.Success(program, applicants, user);
+    return new GetProgramInfo.Success(program, applicants, user);
   }
 
-  public sealed interface DeleteProgramOutput permits
-    DeleteProgramOutput.ProgramNotFound,
-    DeleteProgramOutput.UserNotFound,
-    DeleteProgramOutput.UserNotAdmin,
-    DeleteProgramOutput.Success {
+  public sealed interface DeleteProgram permits
+    DeleteProgram.ProgramNotFound,
+    DeleteProgram.UserNotFound,
+    DeleteProgram.UserNotAdmin,
+    DeleteProgram.Success {
 
-    record Success() implements DeleteProgramOutput {
-
-    }
-
-    record ProgramNotFound() implements DeleteProgramOutput {
+    record Success() implements DeleteProgram {
 
     }
 
-    record UserNotFound() implements DeleteProgramOutput {
+    record ProgramNotFound() implements DeleteProgram {
 
     }
 
-    record UserNotAdmin() implements DeleteProgramOutput {
+    record UserNotFound() implements DeleteProgram {
+
+    }
+
+    record UserNotAdmin() implements DeleteProgram {
 
     }
   }
 
-  public sealed interface GetProgramInfoOutput permits
-    GetProgramInfoOutput.Success, GetProgramInfoOutput.ProgramNotFound,
-    GetProgramInfoOutput.UserNotFound, GetProgramInfoOutput.UserNotAdmin {
+  public sealed interface GetProgramInfo permits
+    GetProgramInfo.Success, GetProgramInfo.ProgramNotFound,
+    GetProgramInfo.UserNotFound, GetProgramInfo.UserNotAdmin {
 
     record Success(Program program, List<Applicant> applicants, User user) implements
-      GetProgramInfoOutput {
+      GetProgramInfo {
 
     }
 
-    record ProgramNotFound(User user) implements GetProgramInfoOutput {
+    record ProgramNotFound(User user) implements GetProgramInfo {
 
     }
 
-    record UserNotFound() implements GetProgramInfoOutput {
+    record UserNotFound() implements GetProgramInfo {
 
     }
 
-    record UserNotAdmin() implements GetProgramInfoOutput {
+    record UserNotAdmin() implements GetProgramInfo {
 
     }
   }

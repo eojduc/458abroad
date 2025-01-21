@@ -7,11 +7,12 @@ import static org.mockito.Mockito.when;
 import com.example.abroad.TestConstants;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Question;
 import com.example.abroad.model.Student;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
-import com.example.abroad.service.ApplyToProgramService.ApplyToProgramOutput;
-import com.example.abroad.service.ApplyToProgramService.GetPageDataOutput;
+import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
+import com.example.abroad.service.ApplyToProgramService.GetApplyPageData;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +51,7 @@ public class ApplyToProgramServiceTest {
     when(userService.getUser(request)).thenReturn(Optional.empty());
 
     var response = service.getPageData(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetPageDataOutput.UserNotFound());
+    assertThat(response).isEqualTo(new GetApplyPageData.UserNotFound());
   }
 
 
@@ -60,7 +61,7 @@ public class ApplyToProgramServiceTest {
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
     var response = service.getPageData(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetPageDataOutput.ProgramNotFound());
+    assertThat(response).isEqualTo(new GetApplyPageData.ProgramNotFound());
   }
 
 
@@ -71,7 +72,7 @@ public class ApplyToProgramServiceTest {
     when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.of(APPLICATION));
 
     var response = service.getPageData(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetPageDataOutput.StudentAlreadyApplied());
+    assertThat(response).isEqualTo(new GetApplyPageData.StudentAlreadyApplied(APPLICATION.id()));
   }
 
   @Test
@@ -81,7 +82,7 @@ public class ApplyToProgramServiceTest {
     when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.empty());
 
     var response = service.getPageData(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetPageDataOutput.Success(PROGRAM, STUDENT, ApplyToProgramService.QUESTIONS));
+    assertThat(response).isEqualTo(new GetApplyPageData.Success(PROGRAM, STUDENT, Question.QUESTIONS));
   }
 
   @Test
@@ -95,7 +96,7 @@ public class ApplyToProgramServiceTest {
       APPLICATION.answer4(), APPLICATION.answer5()
     );
 
-    assertThat(response).isEqualTo(new ApplyToProgramOutput.UserNotFound());
+    assertThat(response).isEqualTo(new ApplyToProgram.UserNotFound());
   }
 
   @Test
@@ -113,7 +114,7 @@ public class ApplyToProgramServiceTest {
       APPLICATION.gpa(), APPLICATION.major(), APPLICATION.answer1(), APPLICATION.answer2(),
       APPLICATION.answer3(), APPLICATION.answer4(), APPLICATION.answer5(), Application.Status.APPLIED
     ));
-    assertThat(response).isEqualTo(new ApplyToProgramOutput.Success());
+    assertThat(response).isEqualTo(new ApplyToProgram.Success());
   }
 
 

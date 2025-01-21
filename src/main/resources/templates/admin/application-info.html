@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<head th:replace="~{components :: head(${program.title})}"></head>
+
+<body>
+<div th:replace="~{components :: navbar(${program.title}, ${student.displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
+  <div class="card card-normal min-w-1/2 bg-base-200 m-10">
+    <div class="card-body">
+      <div class="flex flex-row justify-between">
+        <h1 class="card-title" th:text="${student.displayName}"></h1>
+        <div id="status-badge">
+          <div th:replace="~{components :: statusBadge(${_application.status.name()})}"></div>
+        </div>
+      </div>
+      <h2 class="text-lg mt-5">Program Details</h2>
+      <table class="table table-sm">
+        <tbody>
+        <tr>
+          <td>Title</td>
+          <td th:text="${program.title}"></td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td th:text="${program.description}"></td>
+        </tr>
+        <tr>
+          <td>Faculty Lead</td>
+          <td th:text="${program.facultyLead}"></td>
+        </tr>
+        <tr>
+          <td>Term</td>
+          <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
+        </tr>
+        <tr>
+          <td>Start Date</td>
+          <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
+        </tr>
+        <tr>
+          <td>End Date</td>
+          <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
+        </tr>
+        <tr>
+          <td>Application Open</td>
+          <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+        </tr>
+        <tr>
+          <td>Application Deadline</td>
+          <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+        </tr>
+        </tbody>
+      </table>
+      <h2 class="text-lg mt-5">Application</h2>
+
+      <table class="table table-sm">
+        <tbody>
+        <tr>
+          <td>Major</td>
+          <td th:text="${_application.major}"></td>
+        </tr>
+        <tr>
+          <td>GPA</td>
+          <td th:text="${_application.gpa}"></td>
+        </tr>
+        <tr>
+          <td>Date of Birth</td>
+          <td th:text="${formatter.formatLocalDate(_application.dateOfBirth)}"></td>
+        </tr>
+        <tr th:each="question : ${questions}">
+          <td th:text="${question.text}"></td>
+          <td th:text="${_application[question.field]}"></td>
+        </tr>
+        <tr>
+          <td>Status</td>
+          <td>
+            <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${_application.id})}"
+                  hx-trigger="change"
+                  hx-target="#status-badge">
+              <select name="status" th:value="${_application.status.name()}">
+                <option value="APPLIED">Applied</option>
+                <option value="ENROLLED">Enrolled</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="WITHDRAWN">Withdrawn</option>
+              </select>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>
+
+
+

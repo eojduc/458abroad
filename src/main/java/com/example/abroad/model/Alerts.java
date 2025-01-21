@@ -1,4 +1,4 @@
-package com.example.abroad.controller;
+package com.example.abroad.model;
 
 import java.util.Optional;
 public record Alerts(
