@@ -43,7 +43,7 @@ public record ProgramInfoController(ProgramInfoService service, FormatService fo
           "title", "Program not found",
           "message", "The program you are looking for does not exist."
         ));
-        return "error :: custom-page";
+        return "error :: page";
       }
       case GetProgramInfo.UserNotFound() -> {
         return "redirect:/login";

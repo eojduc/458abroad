@@ -32,6 +32,13 @@ public class TestConstants {
     "Test User"
   );
 
+  public static final Student STUDENT_2 = new Student(
+    "testUser2",
+    "testpass",
+    "test2@test.com",
+    "Test User 2"
+  );
+
   public static final Application APPLICATION = new Application(
     "1_testUser",
     "testUser",
@@ -45,6 +52,21 @@ public class TestConstants {
     "Test answer",
     "Test answer",
     Status.APPLIED
+  );
+
+  public static final Application APPLICATION_2 = new Application(
+    "2_testUser",
+    "testUser",
+    1,
+    LocalDate.parse("2021-09-01"),
+    3.5,
+    "Chemistry",
+    "Test answer",
+    "Test answer",
+    "Test answer",
+    "Test answer",
+    "Test answer",
+    Status.ENROLLED
   );
 
   public static final Admin ADMIN = new Admin(

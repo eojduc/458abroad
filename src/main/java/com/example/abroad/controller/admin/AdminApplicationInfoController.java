@@ -6,7 +6,6 @@ import com.example.abroad.model.Question;
 import com.example.abroad.service.AdminApplicationInfoService;
 import com.example.abroad.service.AdminApplicationInfoService.GetApplicationInfo;
 import com.example.abroad.service.AdminApplicationInfoService.UpdateApplicationStatus;
-import com.example.abroad.service.AdminApplicationInfoService.UpdateApplicationStatus.UserNotAdmin;
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -24,7 +23,6 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
   public String getApplicationInfo(@PathVariable String applicationId, HttpServletRequest request, Model model) {
     switch (service.getApplicationInfo(applicationId, request)) {
       case GetApplicationInfo.Success(var program, var student, var application) -> {
-        System.out.println(application.dateOfBirth().getClass());
         model.addAllAttributes(Map.of(
           "program", program,
           "student", student,

@@ -37,35 +37,7 @@
         </tr>
         </tbody>
       </table>
-      <h2 class="text-lg mt-5">Applicants</h2>
-      <table class="table table-sm">
-        <thead>
-        <tr>
-          <th>display name</th>
-          <th>username</th>
-          <th>email</th>
-          <th>major</th>
-          <th>gpa</th>
-          <th>date of birth</th>
-          <th>application</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="applicant : ${applicants}">
-          <td th:text="${applicant.displayName}"></td>
-          <td th:text="${applicant.username}"></td>
-          <td th:text="${applicant.email}"></td>
-          <td th:text="${applicant.major}"></td>
-          <td th:text="${applicant.gpa}"></td>
-          <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
-          <td>
-            <a th:href="@{/admin/applications/{applicationId}(applicationId=${program.id} + '_' + ${applicant.username})}">
-              <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
-            </a>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+      <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE)}"></div>
       <div class="card-actions">
         <a class="btn btn-primary" th:href="@{/admin/programs/edit/{programId}(programId=${program.id})}">Edit</a>
         <form class="contents"
@@ -82,24 +54,143 @@
 
 </html>
 
-
+<div
+    xmlns:th="http://www.thymeleaf.org"
+    th:fragment="applicant-table(applicants, program, formatter, sortColumn, sortFilter)"
+    id="applicant-table"
+    class="contents">
+  <div class="flex flex-row mt-5">
+    <h2 class="text-lg mr-4">Applicants</h2>
+    <div class="flex flex-row gap-6">
+      <button class="contents"
+              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='APPLIED')}"
+              hx-swap="outerHTML"
+              hx-target="#applicant-table">
+        <div th:replace="~{components :: statusBadge('APPLIED')}"></div>
+      </button>
+      <button class="contents"
+              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='ENROLLED')}"
+              hx-swap="outerHTML"
+              hx-target="#applicant-table">
+        <div th:replace="~{components :: statusBadge('ENROLLED')}"></div>
+      </button>
+      <button class="contents"
+              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='WITHDRAWN')}"
+              hx-swap="outerHTML"
+              hx-target="#applicant-table">
+        <div th:replace="~{components :: statusBadge('WITHDRAWN')}"></div>
+      </button>
+      <button class="contents"
+              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='CANCELLED')}"
+              hx-swap="outerHTML"
+              hx-target="#applicant-table">
+        <div th:replace="~{components :: statusBadge('CANCELLED')}"></div>
+      </button>
+    </div>
+  </div>
+  <table
+      class="table table-sm">
+    <thead>
+    <tr>
+      <th>
+        <button
+            th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='DISPLAY_NAME', filter=${sortFilter})}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table"
+            class="contents"> name</button>
+      </th>
+      <th>
+        <button
+            th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='USERNAME', filter=${sortFilter})}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table"
+            class="contents">username</button>
+      </th>
+      <th>
+        <button
+            th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='EMAIL', filter=${sortFilter})}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table"
+            class="contents">email</button>
+      </th>
+      <th>
+        <button
+            th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='MAJOR', filter=${sortFilter})}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table"
+            class="contents">major</button>
+      </th>
+      <th>
+        <button
+            th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='GPA', filter=${sortFilter})}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table"
+            class="contents">gpa</button>
+      </th>
+      <th>
+        <button
+            th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='DOB', filter=${sortFilter})}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table"
+            class="contents">date of birth</button>
+      </th>
+      <th>
+        <button
+            th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='STATUS', filter=${sortFilter})}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table"
+            class="contents">application</button>
+      </th>
+      <th>status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="applicant : ${applicants}">
+      <td th:text="${applicant.displayName}"></td>
+      <td th:text="${applicant.username}"></td>
+      <td th:text="${applicant.email}"></td>
+      <td th:text="${applicant.major}"></td>
+      <td th:text="${applicant.gpa}"></td>
+      <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
+      <td>
+        <a th:href="@{/admin/applications/{applicationId}(applicationId=${program.id} + '_' + ${applicant.username})}">
+          <div th:id="'status-badge-' + ${applicant.username}">
+            <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
+          </div>
+        </a>
+      </td>
+      <td>
+        <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${program.id} + '_' + ${applicant.username})}"
+              hx-trigger="change"
+              th:hx-target="'#status-badge-' + ${applicant.username}">
+          <select name="status" class="select">
+            <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
+            <option value="ENROLLED" th:selected="${applicant.status.name() == 'ENROLLED'}">Enrolled</option>
+            <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
+            <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
+          </select>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
 
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="not-found(user)">
 
-<head th:replace="~{components :: head('Not Found')}"></head>
+  <head th:replace="~{components :: head('Not Found')}"></head>
 
-
-<body>
-<div th:replace="~{components :: navbar('Not Found', ${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-  <div class="card card-normal w-1/2 m-10 bg-base-200">
-    <div class="card-body">
-      <h1 class="card-title text-center">Not found</h1>
-      <p class="text-center">The program you are looking for does not exist.</p>
+  <body>
+    <div th:replace="~{components :: navbar('Not Found', ${user.displayName})}"></div>
+    <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+      <div class="card card-normal w-1/2 m-10 bg-base-200">
+        <div class="card-body">
+          <h1 class="card-title text-center">Not found</h1>
+          <p class="text-center">The program you are looking for does not exist.</p>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-<div th:replace="~{components :: footer}"></div>
-</body>
+    <div th:replace="~{components :: footer}"></div>
+  </body>
 
 </html>

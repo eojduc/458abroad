@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(students)">
 
-<head th:replace="~{components :: head(Students)}"></head>
-<body>
-  <div th:replace="~{components :: navbar(Students, unknown)}"></div>
-  <div class="flex justify-center bg-base-100 h-screen">
-    <div class="bg-base-200 card card-normal w-1/2 m-10">
-      <div class="card-body">
-        <h1 class="card-title">Students</h1>
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>display name</th>
-              <th>username</th>
-              <th>email</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr th:each="student : ${students}">
-              <td th:text="${student.displayName}"></td>
-              <td th:text="${student.username}"></td>
-              <td th:text="${student.email}"></td>
-            </tr>
-          </tbody>
-        </table>
+  <head th:replace="~{components :: head(Students)}"></head>
+  <body>
+    <div th:replace="~{components :: navbar(Students, unknown)}"></div>
+    <div class="flex justify-center bg-base-100 h-screen">
+      <div class="bg-base-200 card card-normal w-1/2 m-10">
+        <div class="card-body">
+          <h1 class="card-title">Students</h1>
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>display name</th>
+                <th>username</th>
+                <th>email</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="student : ${students}">
+                <td th:text="${student.displayName}"></td>
+                <td th:text="${student.username}"></td>
+                <td th:text="${student.email}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-  <div th:replace="~{components :: footer}"></div>
-</body>
+    <div th:replace="~{components :: footer}"></div>
+  </body>
 
 </html>
