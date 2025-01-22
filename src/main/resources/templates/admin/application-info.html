@@ -76,7 +76,7 @@
             <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${_application.id})}"
                   hx-trigger="change"
                   hx-target="#status-badge">
-              <select name="status" th:value="${_application.status.name()}">
+              <select name="status" th:value="${_application.status.name()}" class="select">
                 <option value="APPLIED">Applied</option>
                 <option value="ENROLLED">Enrolled</option>
                 <option value="CANCELLED">Cancelled</option>

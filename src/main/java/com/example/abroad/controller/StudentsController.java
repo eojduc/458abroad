@@ -16,7 +16,7 @@ public record StudentsController(StudentRepository studentRepository, UserServic
     var students = studentRepository.findAll();
     var admins = adminRepository.findAll();
     // here until auth is set up, we'll just set the first student as the user
-  //  students.stream().findFirst().ifPresent(student -> userService.setUser(request, student));
+//    students.stream().findFirst().ifPresent(student -> userService.setUser(request, student));
   admins.stream().findFirst().ifPresent(admin -> userService.setUser(request, admin));
     model.addAttribute("students", students);
     return "students :: page";
