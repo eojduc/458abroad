@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+
+<head th:replace="~{components :: head('Register')}"></head>
+
+<body>
+<div th:replace="~{components :: navbar('Register', '')}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+    <div class="card card-normal w-96 bg-base-200">
+        <div class="card-body">
+            <h1 class="card-title text-center">Register</h1>
+
+            <!-- Show error message if exists -->
+            <div th:if="${error}" class="alert alert-error mb-4">
+                <span th:text="${error}"></span>
+            </div>
+
+            <form class="form-control gap-4" action="/register" method="post">
+                <div>
+                    <input type="text" name="username" placeholder="Username"
+                           class="input input-bordered w-full" required
+                           pattern=".{3,}" title="Username must be at least 3 characters"/>
+                </div>
+                <div>
+                    <input type="email" name="email" placeholder="Email"
+                           class="input input-bordered w-full" required />
+                </div>
+                <div>
+                    <input type="password" name="password" placeholder="Password"
+                           class="input input-bordered w-full" required
+                           pattern=".{6,}" title="Password must be at least 6 characters"/>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button class="btn btn-primary">Register</button>
+                    <a href="/login" class="btn btn-ghost">Already have an account? Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>
