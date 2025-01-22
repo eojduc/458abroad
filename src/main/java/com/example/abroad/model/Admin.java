@@ -41,6 +41,11 @@ public final class Admin implements User {
     return email;
   }
 
+  @Override
+  public Role role() {
+    return Role.ROLE_ADMIN;
+  }
+
   public String displayName() {
     return displayName;
   }

@@ -45,6 +45,11 @@ public final class Student implements User {
     return email;
   }
 
+  @Override
+  public Role role() {
+    return Role.ROLE_STUDENT;
+  }
+
   public String displayName() {
     return displayName;
   }

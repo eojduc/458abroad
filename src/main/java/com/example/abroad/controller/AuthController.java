@@ -2,24 +2,24 @@ package com.example.abroad.controller;
 
 import com.example.abroad.exception.EmailAlreadyInUseException;
 import com.example.abroad.exception.IncorrectPasswordException;
-import com.example.abroad.exception.UserAlreadyExistsException;
 import com.example.abroad.exception.UsernameAlreadyInUseException;
 import com.example.abroad.model.User;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Controller
 public class AuthController {
-
-    private final UserService userService; // You'll need to create this service
+    private final UserService userService;
 
     public AuthController(UserService userService) {
         this.userService = userService;
@@ -36,17 +36,36 @@ public class AuthController {
                             HttpServletRequest request,
                             Model model) {
         try {
+            // Create authentication token
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(username, password);
+
+            // Authenticate user
+            Authentication authentication = authenticationManager.authenticate(authToken);
+
+            // Set authentication in security context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // Create session and set user
             User user = userService.authenticateUser(username, password);
-            request.getSession().setAttribute("user", user);
+            userService.setUser(request, user);
+
+            // Redirect based on role
+            if (user.isAdmin()) {
+                return "redirect:/admin/dashboard";
+            }
             return "redirect:/dashboard";
+
         } catch (UsernameNotFoundException e) {
             model.addAttribute("error", "Username not found");
             return "auth/login";
-        } catch (IncorrectPasswordException e) {
+        } catch (IncorrectPasswordException | BadCredentialsException e) {
             model.addAttribute("error", "Incorrect password");
             return "auth/login";
         }
     }
+
+
 
 
     @GetMapping("/register")
@@ -60,7 +79,7 @@ public class AuthController {
                                @RequestParam String password,
                                Model model) {
         try {
-            userService.registerUser(username, email, password);
+            userService.registerStudent(username, email, password);  // Note: changed to registerStudent
             return "redirect:/login?registered=true";
         } catch (UsernameAlreadyInUseException e) {
             model.addAttribute("error", "Username is already taken");
@@ -71,9 +90,5 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/logout")
-    public String logout(HttpServletRequest request) {
-        request.getSession().invalidate();
-        return "redirect:/login?logout=true";
-    }
+    // We don't need the /logout POST mapping anymore as Spring Security handles it
 }
