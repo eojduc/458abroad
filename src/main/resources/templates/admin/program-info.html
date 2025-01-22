@@ -63,6 +63,11 @@
     <h2 class="text-lg mr-4">Applicants</h2>
     <div class="flex flex-row gap-6">
       <button class="contents"
+              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='NONE')}"
+              hx-swap="outerHTML"
+              hx-target="#applicant-table">
+        <span class="badge badge-neutral">ALL</span>
+      <button class="contents"
               th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='APPLIED')}"
               hx-swap="outerHTML"
               hx-target="#applicant-table">
@@ -160,7 +165,8 @@
         </a>
       </td>
       <td>
-        <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${program.id} + '_' + ${applicant.username})}"
+        <form class="contents"
+              th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${program.id} + '_' + ${applicant.username})}"
               hx-trigger="change"
               th:hx-target="'#status-badge-' + ${applicant.username}">
           <select name="status" class="select">

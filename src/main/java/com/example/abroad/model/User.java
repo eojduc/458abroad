@@ -12,4 +12,8 @@ public sealed interface User extends Serializable permits Admin, Student {
 
   String email();
 
+  default boolean isAdmin() {
+    return this instanceof Admin;
+  }
+
 }
