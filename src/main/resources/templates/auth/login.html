@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+
+<head th:replace="~{components :: head('Login')}"></head>
+
+<body>
+<div th:replace="~{components :: navbar('Login', '')}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
+    <div class="card card-normal w-96 bg-base-200">
+        <div class="card-body">
+            <h1 class="card-title text-center">Login</h1>
+
+            <!-- Show error message if exists -->
+            <div th:if="${error}" class="alert alert-error mb-4">
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Show success message if registered -->
+            <div th:if="${param.registered}" class="alert alert-success mb-4">
+                <span>Registration successful! Please login.</span>
+            </div>
+
+            <form class="form-control gap-4" action="/login" method="post">
+                <div>
+                    <input type="text" name="username" placeholder="Username"
+                           class="input input-bordered w-full" required />
+                </div>
+                <div>
+                    <input type="password" name="password" placeholder="Password"
+                           class="input input-bordered w-full" required />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button class="btn btn-primary">Login</button>
+                    <a href="/register" class="btn btn-ghost">Need an account? Register</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>
