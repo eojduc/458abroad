@@ -4,14 +4,15 @@
 <head th:replace="~{components :: head(${program.title})}"></head>
 
 <body>
-<div th:replace="~{components :: navbar(${program.title}, ${user.displayName})}"></div>
+<div th:replace="~{components :: admin-navbar(${program.title}, ${user.displayName})}"></div>
 <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal min-w-1/2 bg-base-200">
     <div class="card-body">
       <h1 class="card-title" th:text="${program.title}"></h1>
       <p th:text="${program.description}"></p>
       <h2 class="text-lg mt-5">Faculty Lead</h2>
-      <p class="mb-5" th:text="${program.facultyLead}"></p>
+      <p  th:text="${program.facultyLead}"></p>
       <h2 class="text-lg mt-5">Program Details</h2>
       <table class="table table-sm">
         <tbody>
@@ -39,11 +40,17 @@
       </table>
       <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE)}"></div>
       <div class="card-actions">
-        <a class="btn btn-primary" th:href="@{/admin/programs/edit/{programId}(programId=${program.id})}">Edit</a>
-        <form class="contents"
+        <a class="btn btn-primary" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
+        <form th:if="${applicants.size() > 0}"
+              th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post"
+              th:onsubmit="return confirm('Are you really sure you want to delete this program? This will delete the data of [[${applicants.size()}]] applicants.\n THIS CANNOT BE UNDONE')">
+          <button class="btn btn-secondary" type="submit">Delete</button>
+        </form>
+        <form
+              th:unless="${applicants.size() > 0}"
           onsubmit="return confirm('Are you sure you want to delete this program?')"
           th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post">
-          <button class="btn btn-error" type="submit">Delete</button>
+          <button class="btn btn-secondary" type="submit">Delete</button>
         </form>
       </div>
     </div>
@@ -61,7 +68,7 @@
     class="contents">
   <div class="flex flex-row mt-5">
     <h2 class="text-lg mr-4">Applicants</h2>
-    <div class="flex flex-row gap-6">
+    <div class="flex flex-row gap-6 items-center">
       <button class="contents"
               th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='NONE')}"
               hx-swap="outerHTML"
@@ -140,63 +147,44 @@
             class="contents">date of birth</button>
       </th>
       <th>
-        <button
-            th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='STATUS', filter=${sortFilter})}"
-            hx-swap="outerHTML"
-            hx-target="#applicant-table"
-            class="contents">application</button>
+      <button
+          th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='STATUS', filter=${sortFilter})}"
+          hx-swap="outerHTML"
+          hx-target="#applicant-table"
+          class="contents">status</button>
       </th>
-      <th>status</th>
+      <th>application</th>
     </tr>
     </thead>
     <tbody>
-    <tr th:each="applicant : ${applicants}">
-      <td th:text="${applicant.displayName}"></td>
-      <td th:text="${applicant.username}"></td>
-      <td th:text="${applicant.email}"></td>
-      <td th:text="${applicant.major}"></td>
-      <td th:text="${applicant.gpa}"></td>
-      <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
-      <td>
-        <a th:href="@{/admin/applications/{applicationId}(applicationId=${program.id} + '_' + ${applicant.username})}">
-          <div th:id="'status-badge-' + ${applicant.username}">
-            <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
-          </div>
-        </a>
-      </td>
-      <td>
-        <form class="contents"
-              th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${program.id} + '_' + ${applicant.username})}"
-              hx-trigger="change"
-              th:hx-target="'#status-badge-' + ${applicant.username}">
-          <select name="status" class="select">
-            <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
-            <option value="ENROLLED" th:selected="${applicant.status.name() == 'ENROLLED'}">Enrolled</option>
-            <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
-            <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
-          </select>
-        </form>
-      </td>
-    </tr>
+      <tr th:each="applicant : ${applicants}">
+        <td th:text="${applicant.displayName}"></td>
+        <td th:text="${applicant.username}"></td>
+        <td th:text="${applicant.email}"></td>
+        <td th:text="${applicant.major}"></td>
+        <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 3)}"></td>
+        <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
+        <td>
+          <form class="contents"
+                th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${program.id} + '_' + ${applicant.username})}"
+                hx-trigger="change"
+                th:hx-target="'#status-badge-' + ${applicant.username}">
+            <select name="status" class="select">
+              <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
+              <option value="ENROLLED" th:selected="${applicant.status.name() == 'ENROLLED'}">Enrolled</option>
+              <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
+              <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
+            </select>
+          </form>
+        </td>
+        <td>
+          <a th:href="@{/admin/applications/{applicationId}(applicationId=${program.id} + '_' + ${applicant.username})}">
+            <div th:id="'status-badge-' + ${applicant.username}">
+              <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
+            </div>
+          </a>
+        </td>
+      </tr>
     </tbody>
   </table>
 </div>
-
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="not-found(user)">
-
-  <head th:replace="~{components :: head('Not Found')}"></head>
-
-  <body>
-    <div th:replace="~{components :: navbar('Not Found', ${user.displayName})}"></div>
-    <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-      <div class="card card-normal w-1/2 m-10 bg-base-200">
-        <div class="card-body">
-          <h1 class="card-title text-center">Not found</h1>
-          <p class="text-center">The program you are looking for does not exist.</p>
-        </div>
-      </div>
-    </div>
-    <div th:replace="~{components :: footer}"></div>
-  </body>
-
-</html>

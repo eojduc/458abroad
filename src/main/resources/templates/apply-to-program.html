@@ -23,7 +23,7 @@
 
 
 <form xmlns:th="http://www.thymeleaf.org"
-    class="contents" th:action="@{/apply/{programId}(programId=${program.id})}" method="post"
+    class="contents" th:action="@{/programs/{programId}/apply(programId=${program.id})}" method="post"
       th:fragment="apply-form(program, user, questions)"
       onsubmit="return confirm('Are you sure you want to submit this application?')">
 

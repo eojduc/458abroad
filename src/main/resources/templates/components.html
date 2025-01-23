@@ -34,6 +34,18 @@
   </div>
 </div>
 
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(title, name)" class="bg-base-100">
+  <div class="flex flex-row justify-between">
+    <div class="navbar">
+      <a th:text="${title}" class="btn btn-ghost text-xl"></a>
+      <a href="/" class="btn btn-ghost">Home</a>
+      <a href="/admin/programs" class="btn btn-ghost">Programs</a>
+      <a href="/programs" class="btn btn-ghost">Student View</a>
+    </div>
+    <span th:text="'Welcome ' + ${name}" class="btn btn-ghost"></span>
+  </div>
+</div>
+
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="statusBadge(status)" th:switch="${status}" class="contents">
   <span th:case="APPLIED" class="badge badge-info">Applied</span>

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public record ApplyToProgramController(ApplyToProgramService service) {
 
-  @GetMapping("/apply/{programId}")
+  @GetMapping("/programs/{programId}/apply")
   public String applyToProgram(@PathVariable Integer programId, HttpServletRequest request,
     Model model, @RequestParam Optional<String> error) {
     switch (service.getPageData(programId, request)) {
@@ -44,7 +44,7 @@ public record ApplyToProgramController(ApplyToProgramService service) {
     }
   }
 
-  @PostMapping("/apply/{programId}")
+  @PostMapping("/programs/{programId}/apply")
   public String applyToProgramPost(@PathVariable Integer programId, HttpServletRequest request,
     @RequestParam String major, @RequestParam Double gpa, @RequestParam LocalDate dob,
     @RequestParam String answer1, @RequestParam String answer2, @RequestParam String answer3,

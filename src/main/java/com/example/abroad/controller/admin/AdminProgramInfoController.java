@@ -1,5 +1,6 @@
 package com.example.abroad.controller.admin;
 
+import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.AdminProgramInfoService;
 import com.example.abroad.service.AdminProgramInfoService.Column;
@@ -24,7 +25,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public record AdminProgramInfoController(AdminProgramInfoService service, FormatService formatter) {
 
   @GetMapping("/admin/programs/{programId}")
-  public String getProgramInfo(@PathVariable Integer programId, HttpServletRequest request, Model model) {
+  public String getProgramInfo(@PathVariable Integer programId, HttpServletRequest request, Model model,
+    @RequestParam Optional<String> error, @RequestParam Optional<String> success,
+    @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     switch (service.getProgramInfo(programId, request)) {
       case GetProgramInfo.UserNotFound() -> {
         return "redirect:/login?error=You are not logged in";
@@ -44,7 +47,8 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "program", program,
           "applicants", applicants,
           "user", user,
-          "formatter", formatter
+          "formatter", formatter,
+          "alerts", new Alerts(error, success, warning, info)
         ));
         return "admin/program-info :: page";
       }

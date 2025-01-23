@@ -120,7 +120,7 @@ class AdminApplicationInfoServiceTest {
     var result = service.getApplicationInfo(APPLICATION.id(), request);
 
     assertThat(result).isEqualTo(
-      new AdminApplicationInfoService.GetApplicationInfo.Success(PROGRAM, STUDENT, APPLICATION)
+      new AdminApplicationInfoService.GetApplicationInfo.Success(PROGRAM, STUDENT, APPLICATION, ADMIN)
     );
   }
 

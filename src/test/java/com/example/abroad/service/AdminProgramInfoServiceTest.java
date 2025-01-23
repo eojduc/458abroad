@@ -1,10 +1,19 @@
 package com.example.abroad.service;
 
+import static com.example.abroad.TestConstants.ADMIN;
+import static com.example.abroad.TestConstants.APPLICATION;
+import static com.example.abroad.TestConstants.APPLICATION_2;
+import static com.example.abroad.TestConstants.APPLICATION_3;
+import static com.example.abroad.TestConstants.PROGRAM;
+import static com.example.abroad.TestConstants.STUDENT;
+import static com.example.abroad.TestConstants.STUDENT_2;
+import static com.example.abroad.TestConstants.STUDENT_3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.abroad.TestConstants;
+import com.example.abroad.model.Admin;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Student;
@@ -20,8 +29,11 @@ import com.example.abroad.service.AdminProgramInfoService.GetProgramInfo;
 import com.example.abroad.service.AdminProgramInfoService.SortApplicantTable;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -29,8 +41,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 public class AdminProgramInfoServiceTest {
-  private static final Program PROGRAM = TestConstants.PROGRAM;
-
   @Mock
   private ProgramRepository programRepository;
   @Mock
@@ -64,17 +74,34 @@ public class AdminProgramInfoServiceTest {
   }
 
   @Test
+  public void testGetProgramInfoWorksForTwoApplicants() {
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
+    when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
+    when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2));
+    when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(List.of(APPLICATION, APPLICATION_2));
+    var result = service.getProgramInfo(PROGRAM.id(), request);
+    assertThat(result).isEqualTo(
+      new GetProgramInfo.Success(
+        PROGRAM,
+        List.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2)),
+        ADMIN
+      )
+    );
+  }
+
+  @Test
   public void testGetProgramInfoNotAdmin() {
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.STUDENT));
-    when(adminRepository.findByUsername(TestConstants.STUDENT.username())).thenReturn(Optional.empty());
+    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(adminRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
     var result = service.getProgramInfo(PROGRAM.id(), request);
     assertThat(result).isEqualTo(new GetProgramInfo.UserNotAdmin());
   }
 
   @Test
   public void testGetProgramInfoProgramNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.ADMIN));
-    when(adminRepository.findByUsername(TestConstants.ADMIN.username())).thenReturn(Optional.of(TestConstants.ADMIN));
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
     var result = service.getProgramInfo(PROGRAM.id(), request);
     assertThat(result).isEqualTo(new GetProgramInfo.ProgramNotFound());
@@ -82,17 +109,17 @@ public class AdminProgramInfoServiceTest {
 
   @Test
   public void testGetProgramInfo() {
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.ADMIN));
-    when(adminRepository.findByUsername(TestConstants.ADMIN.username())).thenReturn(Optional.of(TestConstants.ADMIN));
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
-    when(studentRepository.findAll()).thenReturn(List.of(TestConstants.STUDENT));
-    when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(List.of(TestConstants.APPLICATION));
+    when(studentRepository.findAll()).thenReturn(List.of(STUDENT));
+    when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(List.of(APPLICATION));
     var result = service.getProgramInfo(PROGRAM.id(), request);
     assertThat(result).isEqualTo(
       new GetProgramInfo.Success(
         PROGRAM,
-        List.of(applicant(TestConstants.STUDENT, TestConstants.APPLICATION)),
-        TestConstants.ADMIN
+        List.of(applicant(STUDENT, APPLICATION)),
+        ADMIN
       )
     );
   }
@@ -111,16 +138,16 @@ public class AdminProgramInfoServiceTest {
 
   @Test
   public void testDeleteProgramNotAdmin() {
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.STUDENT));
-    when(adminRepository.findByUsername(TestConstants.STUDENT.username())).thenReturn(Optional.empty());
+    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(adminRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
     var result = service.deleteProgram(PROGRAM.id(), request);
     assertThat(result).isEqualTo(new DeleteProgram.UserNotAdmin());
   }
 
   @Test
   public void testDeleteProgramProgramNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.ADMIN));
-    when(adminRepository.findByUsername(TestConstants.ADMIN.username())).thenReturn(Optional.of(TestConstants.ADMIN));
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
     var result = service.deleteProgram(PROGRAM.id(), request);
     assertThat(result).isEqualTo(new DeleteProgram.ProgramNotFound());
@@ -128,8 +155,8 @@ public class AdminProgramInfoServiceTest {
 
   @Test
   public void testDeleteProgramSuccess() {
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.ADMIN));
-    when(adminRepository.findByUsername(TestConstants.ADMIN.username())).thenReturn(Optional.of(TestConstants.ADMIN));
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
 
     var result = service.deleteProgram(PROGRAM.id(), request);
@@ -138,30 +165,23 @@ public class AdminProgramInfoServiceTest {
     assertThat(result).isEqualTo(new DeleteProgram.Success());
   }
 
-  // ----------------------------------------------------------
-  // Tests for sortApplicantTable
-  // ----------------------------------------------------------
-
   @Test
   public void testSortApplicantTableUserNotFound() {
-    // If user is not found, we should get a Failure.
     when(userService.getUser(request)).thenReturn(Optional.empty());
 
     var result = service.sortApplicantTable(
       Optional.of(Column.USERNAME),
-      Optional.of(Filter.APPLIED),
+      Optional.of(Filter.NONE),
       PROGRAM.id(),
       request
     );
-
-    assertThat(result).isInstanceOf(SortApplicantTable.Failure.class);
+    assertThat(result).isEqualTo(new SortApplicantTable.Failure());
   }
 
   @Test
   public void testSortApplicantTableUserNotAdmin() {
-    // User is found but not an admin -> Failure
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.STUDENT));
-    when(adminRepository.findByUsername(TestConstants.STUDENT.username())).thenReturn(Optional.empty());
+    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(adminRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
 
     var result = service.sortApplicantTable(
       Optional.of(Column.USERNAME),
@@ -169,15 +189,13 @@ public class AdminProgramInfoServiceTest {
       PROGRAM.id(),
       request
     );
-
-    assertThat(result).isInstanceOf(SortApplicantTable.Failure.class);
+    assertThat(result).isEqualTo(new SortApplicantTable.Failure());
   }
 
   @Test
   public void testSortApplicantTableProgramNotFound() {
-    // User is admin but program not found -> Failure
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.ADMIN));
-    when(adminRepository.findByUsername(TestConstants.ADMIN.username())).thenReturn(Optional.of(TestConstants.ADMIN));
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
     var result = service.sortApplicantTable(
@@ -186,54 +204,256 @@ public class AdminProgramInfoServiceTest {
       PROGRAM.id(),
       request
     );
-
-    assertThat(result).isInstanceOf(SortApplicantTable.Failure.class);
+    assertThat(result).isEqualTo(new SortApplicantTable.Failure());
   }
 
   @Test
   public void testSortApplicantTableSuccess() {
-    // User is admin, program is found, let's create multiple Students/Applications
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.ADMIN));
-    when(adminRepository.findByUsername(TestConstants.ADMIN.username()))
-      .thenReturn(Optional.of(TestConstants.ADMIN));
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username()))
+      .thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
-
-    // Define two different Students
-    var studentA = TestConstants.STUDENT;
-    var studentB = TestConstants.STUDENT_2;
-
-    // Applications with different statuses (e.g. APPLIED, ENROLLED)
-    var applicationA = TestConstants.APPLICATION;
-
-    var applicationB = TestConstants.APPLICATION_2;
-
-    // Mock DB calls
-    when(studentRepository.findAll()).thenReturn(List.of(studentA, studentB));
+    when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2, STUDENT_3));
     when(applicationRepository.findByProgramId(PROGRAM.id()))
-      .thenReturn(List.of(applicationA, applicationB));
+      .thenReturn(List.of(APPLICATION, APPLICATION_2));
 
-    // We'll filter by APPLIED and sort by USERNAME
     var result = service.sortApplicantTable(
       Optional.of(Column.USERNAME),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result).isEqualTo(
+      new SortApplicantTable.Success(List.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2)), PROGRAM
+      )
+    );
+  }
+
+  @Test
+  public void testSorApplicantTableBySorters() {
+
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username()))
+      .thenReturn(Optional.of(ADMIN));
+    when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
+    when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2, STUDENT_3));
+    when(applicationRepository.findByProgramId(PROGRAM.id()))
+      .thenReturn(List.of(APPLICATION, APPLICATION_2, APPLICATION_3));
+    var applicants = Stream.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2), applicant(STUDENT_3, APPLICATION_3)).toList();
+    var result1 = service.sortApplicantTable(
+      Optional.of(Column.USERNAME),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result1).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream()
+          .sorted(Comparator.comparing(Applicant::username)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result2 = service.sortApplicantTable(
+      Optional.of(Column.DOB),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+    assertThat(result2).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::dob)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result3 = service.sortApplicantTable(
+      Optional.of(Column.GPA),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result3).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::gpa)).toList(),
+        PROGRAM
+      )
+    );
+    var result4 = service.sortApplicantTable(
+      Optional.of(Column.STATUS),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+    assertThat(result4).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::status)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result5 = service.sortApplicantTable(
+      Optional.of(Column.MAJOR),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+    assertThat(result5).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::major)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result6 = service.sortApplicantTable(
+      Optional.of(Column.EMAIL),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+    assertThat(result6).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::email)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result7 = service.sortApplicantTable(
+      Optional.of(Column.DISPLAY_NAME),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result7).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::displayName)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result8 = service.sortApplicantTable(
+      Optional.of(Column.NONE),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result8).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::username)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result9 = service.sortApplicantTable(
+      Optional.empty(),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result9).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::username)).toList(),
+        PROGRAM
+      )
+    );
+
+
+    var result10 = service.sortApplicantTable(
+      Optional.empty(),
+      Optional.of(Filter.NONE),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result10).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().sorted(Comparator.comparing(Applicant::username)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result11 = service.sortApplicantTable(
+      Optional.empty(),
       Optional.of(Filter.APPLIED),
       PROGRAM.id(),
       request
     );
 
-    // Check the result
-    assertThat(result).isInstanceOf(SortApplicantTable.Success.class);
-    SortApplicantTable.Success successResult = (SortApplicantTable.Success) result;
+    assertThat(result11).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().filter(applicant -> applicant.status().equals(Application.Status.APPLIED)).toList(),
+        PROGRAM
+      )
+    );
 
-    // We expect only the APPLIED applicant(s), sorted by USERNAME
-    // But since we only have one APPLIED (alpha), the list is just that one
-    assertThat(successResult.applicants().size()).isEqualTo(1);
+    var result12 = service.sortApplicantTable(
+      Optional.empty(),
+      Optional.of(Filter.ENROLLED),
+      PROGRAM.id(),
+      request
+    );
 
-    Applicant onlyApplicant = successResult.applicants().get(0);
-    assertThat(onlyApplicant).isEqualTo(applicant(studentA, applicationA));
+    assertThat(result12).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().filter(applicant -> applicant.status().equals(Application.Status.ENROLLED)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result13 = service.sortApplicantTable(
+      Optional.empty(),
+      Optional.of(Filter.CANCELLED),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result13).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().filter(applicant -> applicant.status().equals(Application.Status.CANCELLED)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result14 = service.sortApplicantTable(
+      Optional.empty(),
+      Optional.of(Filter.WITHDRAWN),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result14).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().filter(applicant -> applicant.status().equals(Application.Status.WITHDRAWN)).toList(),
+        PROGRAM
+      )
+    );
+
+    var result15 = service.sortApplicantTable(
+      Optional.empty(),
+      Optional.empty(),
+      PROGRAM.id(),
+      request
+    );
+
+    assertThat(result15).isEqualTo(
+      new SortApplicantTable.Success(
+        applicants.stream().toList(),
+        PROGRAM
+      )
+    );
+
+
+
   }
 
   // Helper for getProgramInfo tests
-  private Applicant applicant(Student student, Application application) {
+  private static Applicant applicant(Student student, Application application) {
     return new Applicant(
       student.username(),
       student.displayName(),

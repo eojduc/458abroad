@@ -22,13 +22,14 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
   @GetMapping("/admin/applications/{applicationId}")
   public String getApplicationInfo(@PathVariable String applicationId, HttpServletRequest request, Model model) {
     switch (service.getApplicationInfo(applicationId, request)) {
-      case GetApplicationInfo.Success(var program, var student, var application) -> {
+      case GetApplicationInfo.Success(var program, var student, var application, var user) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "student", student,
           "_application", application, // _application is used to avoid conflict with the application variable
           "formatter", formatter,
-          "questions", Question.QUESTIONS
+          "questions", Question.QUESTIONS,
+          "user", user
         ));
         return "admin/application-info :: page";
       }

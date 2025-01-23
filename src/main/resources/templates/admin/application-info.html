@@ -3,7 +3,7 @@
 <head th:replace="~{components :: head(${program.title})}"></head>
 
 <body>
-<div th:replace="~{components :: navbar(${program.title}, ${student.displayName})}"></div>
+<div th:replace="~{components :: navbar(${program.title}, ${user.displayName})}"></div>
 <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
   <div class="card card-normal min-w-1/2 bg-base-200 m-10">
     <div class="card-body">
@@ -55,6 +55,18 @@
       <table class="table table-sm">
         <tbody>
         <tr>
+          <td>Name</td>
+          <td th:text="${student.displayName}"></td>
+        </tr>
+        <tr>
+          <td>Username</td>
+          <td th:text="${student.username}"></td>
+        </tr>
+        <tr>
+          <td>Email</td>
+          <td th:text="${student.email}"></td>
+        </tr>
+        <tr>
           <td>Major</td>
           <td th:text="${_application.major}"></td>
         </tr>
@@ -76,11 +88,19 @@
             <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${_application.id})}"
                   hx-trigger="change"
                   hx-target="#status-badge">
-              <select name="status" th:value="${_application.status.name()}" class="select">
-                <option value="APPLIED">Applied</option>
-                <option value="ENROLLED">Enrolled</option>
-                <option value="CANCELLED">Cancelled</option>
-                <option value="WITHDRAWN">Withdrawn</option>
+              <select name="status" class="select">
+                <option value="APPLIED"
+                        th:selected="${_application.status.name() == 'APPLIED'}"
+                >Applied</option>
+                <option value="ENROLLED"
+                        th:selected="${_application.status.name() == 'ENROLLED'}"
+                >Enrolled</option>
+                <option value="CANCELLED"
+                        th:selected="${_application.status.name() == 'CANCELLED'}"
+                >Cancelled</option>
+                <option value="WITHDRAWN"
+                        th:selected="${_application.status.name() == 'WITHDRAWN'}"
+                >Withdrawn</option>
               </select>
             </form>
           </td>
