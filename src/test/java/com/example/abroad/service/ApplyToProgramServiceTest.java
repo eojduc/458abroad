@@ -65,6 +65,14 @@ public class ApplyToProgramServiceTest {
     assertThat(response).isEqualTo(new GetApplyPageData.ProgramNotFound());
   }
 
+  @Test
+  void testGetPageDataUserNotStudent() {
+    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.ADMIN));
+
+    var response = service.getPageData(PROGRAM.id(), request);
+    assertThat(response).isEqualTo(new GetApplyPageData.UserNotStudent());
+  }
+
 
   @Test
   void testGetPageDataStudentAlreadyApplied() {
