@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
@@ -56,13 +57,10 @@ public record AdminProgramInfoService(
     if (program == null) {
       return new GetProgramInfo.ProgramNotFound();
     }
-    var studentsByUsername = studentRepository.findAll().stream()
-      .collect(Collectors.toMap(Student::username, Function.identity()));
+    var students = studentRepository.findAll();
 
     var applicants = applicationRepository.findByProgramId(programId).stream()
-      .flatMap(application ->
-        Stream.ofNullable(studentsByUsername.get(application.student()))
-          .map(student -> applicant(student, application)))
+      .flatMap(application -> applicants(students.stream(), application))
       .toList();
     return new GetProgramInfo.Success(program, applicants, user);
   }
@@ -84,35 +82,30 @@ public record AdminProgramInfoService(
     if (program == null) {
       return new SortApplicantTable.Failure();
     }
-    var studentsByUsername = studentRepository.findAll().stream()
-      .collect(Collectors.toMap(Student::username, Function.identity()));
+    var students = studentRepository.findAll();
 
+    var sorter = switch(column.orElse(Column.NONE)) {
+      case USERNAME, NONE -> Comparator.comparing(Applicant::username);
+      case DISPLAY_NAME -> Comparator.comparing(Applicant::displayName);
+      case EMAIL -> Comparator.comparing(Applicant::email);
+      case MAJOR -> Comparator.comparing(Applicant::major);
+      case GPA -> Comparator.comparing(Applicant::gpa);
+      case DOB -> Comparator.comparing(Applicant::dob);
+      case STATUS -> Comparator.comparing(Applicant::status);
+    };
+    Predicate<Applicant> filterer = switch (filter.orElse(Filter.NONE)) {
+      case APPLIED -> applicant -> applicant.status() == Status.APPLIED;
+      case ENROLLED -> applicant -> applicant.status() == Status.ENROLLED;
+      case CANCELLED -> applicant -> applicant.status() == Status.CANCELLED;
+      case WITHDRAWN -> applicant -> applicant.status() == Status.WITHDRAWN;
+      case NONE -> applicant -> true;
+    };
     var applicants = applicationRepository.findByProgramId(programId).stream()
-      .flatMap(application ->
-        Stream.ofNullable(studentsByUsername.get(application.student()))
-          .map(student -> applicant(student, application)))
+      .flatMap(application -> applicants(students.stream(), application))
+      .sorted(sorter)
+      .filter(filterer)
       .toList();
-    var sortedApplicants = switch (column.orElse(null)) {
-      case USERNAME -> applicants.stream().sorted(Comparator.comparing(Applicant::username)).toList();
-      case DISPLAY_NAME -> applicants.stream().sorted(Comparator.comparing(Applicant::displayName)).toList();
-      case EMAIL -> applicants.stream().sorted(Comparator.comparing(Applicant::email)).toList();
-      case MAJOR -> applicants.stream().sorted(Comparator.comparing(Applicant::major)).toList();
-      case GPA -> applicants.stream().sorted(Comparator.comparing(Applicant::gpa)).toList();
-      case DOB -> applicants.stream().sorted(Comparator.comparing(Applicant::dob)).toList();
-      case STATUS -> applicants.stream().sorted(Comparator.comparing(Applicant::status)).toList();
-      case NONE -> applicants;
-      case null -> applicants;
-    };
-
-    var filteredApplicants = switch (filter.orElse(null)) {
-      case APPLIED -> sortedApplicants.stream().filter(applicant -> applicant.status() == Status.APPLIED).toList();
-      case ENROLLED -> sortedApplicants.stream().filter(applicant -> applicant.status() == Status.ENROLLED).toList();
-      case CANCELLED -> sortedApplicants.stream().filter(applicant -> applicant.status() == Status.CANCELLED).toList();
-      case WITHDRAWN -> sortedApplicants.stream().filter(applicant -> applicant.status() == Status.WITHDRAWN).toList();
-      case NONE -> sortedApplicants;
-      case null -> sortedApplicants;
-    };
-    return new SortApplicantTable.Success(filteredApplicants, program);
+    return new SortApplicantTable.Success(applicants, program);
   }
 
   public sealed interface DeleteProgram permits
@@ -168,17 +161,18 @@ public record AdminProgramInfoService(
     }
 
   }
-
-  private Applicant applicant(Student student, Application application) {
-    return new Applicant(
-      student.username(),
-      student.displayName(),
-      student.email(),
-      application.major(),
-      application.gpa(),
-      application.dateOfBirth(),
-      application.status()
-    );
+  private Stream<Applicant> applicants(Stream<Student> students, Application application) {
+    return students.filter(student -> student.username().equals(application.student()))
+      .map(student -> new Applicant(
+        student.username(),
+        student.displayName(),
+        student.email(),
+        application.major(),
+        application.gpa(),
+        application.dateOfBirth(),
+        application.status(),
+        application.id()
+      ));
   }
 
   public enum Column {
@@ -186,7 +180,7 @@ public record AdminProgramInfoService(
   }
 
   public record Applicant(String username, String displayName, String email, String major,
-                          Double gpa, LocalDate dob, Application.Status status) {
+                          Double gpa, LocalDate dob, Application.Status status, String applicationId) {
   }
 
 }

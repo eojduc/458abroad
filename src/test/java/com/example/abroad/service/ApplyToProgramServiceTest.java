@@ -14,6 +14,7 @@ import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
 import com.example.abroad.service.ApplyToProgramService.GetApplyPageData;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +83,8 @@ public class ApplyToProgramServiceTest {
     when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.empty());
 
     var response = service.getPageData(PROGRAM.id(), request);
-    assertThat(response).isEqualTo(new GetApplyPageData.Success(PROGRAM, STUDENT, Question.QUESTIONS));
+    var maxDayOfBirth = LocalDate.now().minusYears(10).toString();
+    assertThat(response).isEqualTo(new GetApplyPageData.Success(PROGRAM, STUDENT, Question.QUESTIONS, maxDayOfBirth));
   }
 
   @Test
@@ -110,11 +112,11 @@ public class ApplyToProgramServiceTest {
       APPLICATION.answer4(), APPLICATION.answer5()
     );
     verify(applicationRepository).save(new Application(
-      null, STUDENT.username(), APPLICATION.programId(), APPLICATION.dateOfBirth(),
-      APPLICATION.gpa(), APPLICATION.major(), APPLICATION.answer1(), APPLICATION.answer2(),
-      APPLICATION.answer3(), APPLICATION.answer4(), APPLICATION.answer5(), Application.Status.APPLIED
+      APPLICATION.id(), STUDENT.username(), APPLICATION.programId(), APPLICATION.dateOfBirth(),
+      APPLICATION.gpa(), APPLICATION.major(), APPLICATION.answer1(),
+      APPLICATION.answer2(), APPLICATION.answer3(), APPLICATION.answer4(), APPLICATION.answer5(), Application.Status.APPLIED
     ));
-    assertThat(response).isEqualTo(new ApplyToProgram.Success());
+    assertThat(response).isEqualTo(new ApplyToProgram.Success(APPLICATION.id()));
   }
 
 

@@ -48,7 +48,7 @@
           <div class="flex flex-row-reverse">
             <a th:if="${applicationStatus == 'NOT_APPLIED'}"
               class="btn btn-primary w-1/4"
-              th:href="@{/apply/{programId}(programId=${program.id})}">Apply</a>
+              th:href="@{/programs/{programId}/apply(programId=${program.id})}">Apply</a>
             <a th:unless = "${applicationStatus == 'NOT_APPLIED'}"
               class="btn btn-primary w-1/4"
               th:href="@{/applications/{applicationId}(applicationId=${program.id + '_' + user.username})}">View Application</a>

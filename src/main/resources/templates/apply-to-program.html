@@ -1,17 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, user, alerts, questions)">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, user, alerts, questions, maxDayOfBirth)">
 <head th:replace="~{components :: head('Apply to ' + ${program.title})}"></head>
 
 <body>
-  <div th:replace="~{components :: navbar(${program.title}, ${user.displayName})}"></div>
+  <div th:replace="~{components :: student-navbar(${program.title}, ${user.displayName})}"></div>
   <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
     <div th:replace="~{components :: alerts(${alerts})}"></div>
+
     <div class="card card-normal min-w-1/2 bg-base-200 m-10">
       <div class="card-body flex flex-col gap-4">
-        <div class="flex flex-row justify-between">
-          <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
-          <a class="btn btn-primary" th:href="@{/programs/{programId}(programId=${program.id})}">Program Info</a>
-        </div>
+        <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
         <form th:replace="~{this :: apply-form(${program}, ${user}, ${questions})}"></form>
       </div>
     </div>
@@ -23,34 +21,34 @@
 
 
 <form xmlns:th="http://www.thymeleaf.org"
-    class="contents" th:action="@{/apply/{programId}(programId=${program.id})}" method="post"
+    class="contents" th:action="@{/programs/{programId}/apply(programId=${program.id})}" method="post"
       th:fragment="apply-form(program, user, questions)"
       onsubmit="return confirm('Are you sure you want to submit this application?')">
 
-  <div class="form-control">
+  <label class="form-control">
     <div class="label">
       <span class="label-text">Major</span>
     </div>
     <input class="input" type="text" name="major" required />
-  </div>
-  <div class="form-control">
+  </label>
+  <label class="form-control">
     <div class="label">
       <span class="label-text">Date of Birth</span>
     </div>
-    <input class="input" type="date" name="dob" required />
-  </div>
-  <div class="form-control">
+    <input class="input" type="date" name="dob" required th:max="${maxDayOfBirth}" />
+  </label>
+  <label class="form-control">
     <div class="label">
       <span class="label-text">GPA</span>
     </div>
     <input class="input" type="number" name="gpa" min="0" max="4" step="0.01" required />
-  </div>
-  <div class="form-control" th:each="question : ${questions}">
+  </label>
+  <label class="form-control" th:each="question : ${questions}">
     <div class="label">
       <span class="label-text" th:text="${question.text}"></span>
     </div>
     <textarea th:name="${question.field}" class="textarea" required></textarea>
-  </div>
+  </label>
   <div class="flex flex-row-reverse">
     <button class="btn btn-primary w-1/4" type="submit">Submit</button>
   </div>

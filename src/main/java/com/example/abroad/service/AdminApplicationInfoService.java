@@ -24,7 +24,7 @@ public record AdminApplicationInfoService(
     if (user == null) {
       return new GetApplicationInfo.NotLoggedIn();
     }
-    if (!(user instanceof Admin)) {
+    if (!(user instanceof Admin admin)) {
       return new GetApplicationInfo.UserNotAdmin();
     }
     var application = applicationRepository.findById(applicationId).orElse(null);
@@ -36,7 +36,7 @@ public record AdminApplicationInfoService(
     if (program == null || student == null) {
       return new GetApplicationInfo.ApplicationNotFound();
     }
-    return new GetApplicationInfo.Success(program, student, application);
+    return new GetApplicationInfo.Success(program, student, application, admin);
   }
 
   public UpdateApplicationStatus updateApplicationStatus(
@@ -60,7 +60,7 @@ public record AdminApplicationInfoService(
   public sealed interface GetApplicationInfo permits GetApplicationInfo.Success,
     GetApplicationInfo.UserNotAdmin, GetApplicationInfo.NotLoggedIn, GetApplicationInfo.ApplicationNotFound {
 
-    record Success(Program program, Student student, Application application) implements GetApplicationInfo {
+    record Success(Program program, Student student, Application application, Admin user) implements GetApplicationInfo {
 
     }
 
