@@ -22,7 +22,7 @@ public class UserService {
 
   private final AdminRepository adminRepository;
   private final StudentRepository studentRepository;
-  private final PasswordEncoder passwordEncoder;  // Using Spring's PasswordEncoder instead of direct BCrypt
+  private final PasswordEncoder passwordEncoder;  //
 
   public UserService(AdminRepository adminRepository,
                      StudentRepository studentRepository,
@@ -31,6 +31,8 @@ public class UserService {
     this.studentRepository = studentRepository;
     this.passwordEncoder = passwordEncoder;
   }
+
+
 
   public void setUser(HttpServletRequest request, User user) {
     request.getSession().setAttribute(USER_SESSION_ATTRIBUTE, user);
@@ -49,7 +51,8 @@ public class UserService {
     checkUsernameAndEmailAvailability(username, email);
 
     String hashedPassword = passwordEncoder.encode(password);
-    Student student = new Student(username, email, hashedPassword, username);
+    System.out.println("Encoded password during registration: " + hashedPassword);
+    Student student = new Student(username, hashedPassword, email, username);
     return studentRepository.save(student);
   }
 
@@ -62,7 +65,7 @@ public class UserService {
     checkUsernameAndEmailAvailability(username, email);
 
     String hashedPassword = passwordEncoder.encode(password);
-    Admin admin = new Admin(username, email, hashedPassword, username);
+    Admin admin = new Admin(username, hashedPassword, email, username);
     return adminRepository.save(admin);
   }
 
@@ -82,6 +85,9 @@ public class UserService {
   public User authenticateUser(String username, String password) {
     User user = findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+    System.out.println("Stored password hash: " + user.password());
+    System.out.println("Password match result: " + passwordEncoder.matches(password, user.password()));
 
     if (!passwordEncoder.matches(password, user.password())) {
       throw new IncorrectPasswordException("Incorrect password");

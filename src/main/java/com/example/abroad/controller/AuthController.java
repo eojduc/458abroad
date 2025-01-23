@@ -54,21 +54,26 @@ public class AuthController {
             // Create session and set user
             User user = userService.authenticateUser(username, password);
             userService.setUser(request, user);
+            System.out.println("Setting username in session: " + username);
             request.getSession().setAttribute("username", username); //need this in dashboard controller
             //Question for Group: ask if there is a fixed amount of attributes that can be set, and what is the list of these attributes
 
 
+            System.out.println("login successful");
             // Redirect based on role
             if (user.isAdmin()) {
                 return "redirect:/admin/dashboard";
             }
             return "redirect:/dashboard";
 
+
         } catch (UsernameNotFoundException e) {
             model.addAttribute("error", "Username not found");
+            System.out.println("login failed, Username not found");
             return "auth/login";
         } catch (IncorrectPasswordException | BadCredentialsException e) {
             model.addAttribute("error", "Incorrect password");
+            System.out.println("login failed, Incorrect password");
             return "auth/login";
         }
     }

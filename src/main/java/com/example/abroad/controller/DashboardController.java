@@ -11,14 +11,12 @@ import java.util.Optional;
 public class DashboardController {
 
     @GetMapping("/dashboard")
-    public String studentDashboard(HttpServletRequest request, Model model) {
-        var username = Optional.ofNullable(request.getSession().getAttribute("username"))
-                .filter(obj -> obj instanceof String)
-                .map(obj -> (String) obj)
-                .orElse("student"); // Default fallback
-
+    public String showDashboard(HttpServletRequest request, Model model) {
+        String username = (String) request.getSession().getAttribute("username");
+        System.out.println("Getting username from session: " + request.getSession().getAttribute("username"));
         model.addAttribute("username", username);
-        return "dashboard/student-dashboard :: page";  // Note the :: page suffix
+        model.addAttribute("student", username); // Add this for navbar
+        return "dashboard/student-dashboard :: page";
     }
 
     @GetMapping("/admin/dashboard")
