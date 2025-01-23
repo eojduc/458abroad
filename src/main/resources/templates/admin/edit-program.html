@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, applicants, user, formatter)">
+
+<head th:replace="~{components :: head(${program.title})}"></head>
+
+<body>
+<div th:replace="~{components :: admin-navbar(${program.title}, ${user.displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="card card-normal min-w-1/2 bg-base-200">
+    <div class="card-body">
+      <div class="flex flex-row justify-between">
+        <h2 class="card-title">Edit Program</h2>
+        <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="btn btn-primary">Back</a>
+      </div>
+      <form class="contents" method="post" th:action="@{/admin/programs/{id}/edit(id=${program.id})}">
+        <table class="table">
+          <tbody>
+          <tr>
+            <td>Title</td>
+            <td>
+              <input type="text" class="input" th:value="${program.title}" name="title" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td>
+              <textarea class="textarea" th:text="${program.description}" name="description" required></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>Faculty Lead</td>
+            <td>
+              <input type="text" class="input" th:value="${program.facultyLead}" name="facultyLead" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Semester</td>
+            <td>
+              <select class="select" th:value="${program.semester}" name="semester" required>
+                <option value="SPRING">Spring</option>
+                <option value="SUMMER">Summer</option>
+                <option value="FALL">Fall</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td>Year</td>
+            <td>
+              <input type="number" class="input" th:value="${program.year}" name="year" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Start Date</td>
+            <td>
+              <input type="date" class="input" th:value="${program.startDate}" name="startDate" required>
+            </td>
+          </tr>
+          <tr>
+            <td>End Date</td>
+            <td>
+              <input type="date" class="input" th:value="${program.endDate}" name="endDate" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Application Open</td>
+            <td>
+              <input type="datetime-local" class="input" th:value="${formatter.formatInstant(program.applicationOpen)}" name="applicationOpen" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Application Deadline</td>
+            <td>
+              <input type="datetime-local" class="input" th:value="${formatter.formatInstant(program.applicationClose)}" name="applicationClose" required>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <div class="flex flex-row-reverse">
+          <button class="btn btn-primary w-1/4" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>
