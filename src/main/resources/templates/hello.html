@@ -31,7 +31,7 @@
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="htmx-page(name)">
   <head th:replace="~{components :: head('Hello World')}"></head>
   <body>
-    <div th:replace="~{components :: navbar('Hello World', unknown)}"></div>
+    <div th:replace="~{components :: student-navbar('Hello World', unknown)}"></div>
     <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
       <div th:replace="~{this :: htmx-hello-card(${name})}"></div>
     </div>
