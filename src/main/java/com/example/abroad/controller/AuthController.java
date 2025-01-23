@@ -36,6 +36,7 @@ public class AuthController {
         return "auth/login";
     }
 
+    /*
     @PostMapping("/login")
     public String loginUser(@RequestParam String username,
                             @RequestParam String password,
@@ -82,6 +83,8 @@ public class AuthController {
     }
 
 
+     */
+
 
 
     @GetMapping("/register")
@@ -108,5 +111,4 @@ public class AuthController {
         }
     }
 
-    // We don't need the /logout POST mapping anymore as Spring Security handles it
 }

@@ -57,8 +57,24 @@ public class UserService {
   }
 
   @Transactional
-  public Admin createAdmin(String username, String email, String password, User creator) {
-    if (creator == null || !creator.isAdmin()) {
+  public Admin createAdmin(String username, String email, String password, HttpServletRequest request) {
+
+    String creatorUsername = (String) request.getSession().getAttribute("username");
+    System.out.println("creator's username: " + creatorUsername);
+    Optional<Admin> optionalCreator = adminRepository.findByUsername(creatorUsername);
+    User creator = null;
+    if (optionalCreator.isPresent()) {
+      creator = optionalCreator.get();
+    }
+
+    if (creator == null) {
+      throw new IllegalStateException("Admin not found in session");
+    }
+    System.out.println("Creator username: " + creatorUsername);
+    System.out.println("Creator role: " + creator.role());
+    System.out.println("Is creator an admin? " + creator.isAdmin());
+
+    if (!creator.isAdmin()) {
       throw new IllegalStateException("Only admins can create other admins");
     }
 

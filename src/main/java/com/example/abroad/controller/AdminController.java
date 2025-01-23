@@ -29,7 +29,7 @@ public class AdminController {
                               Model model) {
         var user = userService.getUser(request).orElse(null);
         try {
-            userService.createAdmin(username, email, password, user);
+            userService.createAdmin(username, email, password, request);
             return "redirect:/admin/dashboard";
         } catch (IllegalStateException e) {
             model.addAttribute("title", "Admin Creation Error");
