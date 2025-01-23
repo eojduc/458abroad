@@ -32,6 +32,7 @@ public class AuthController {
 
     @GetMapping("/login")
     public String showLoginForm() {
+        System.out.println("get mapping /login geting called");
         return "auth/login";
     }
 
@@ -40,7 +41,9 @@ public class AuthController {
                             @RequestParam String password,
                             HttpServletRequest request,
                             Model model) {
+        System.out.println("post mapping /login geting called");
         try {
+
             // Create authentication token
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(username, password);
@@ -83,6 +86,7 @@ public class AuthController {
 
     @GetMapping("/register")
     public String showRegistrationForm() {
+        System.out.println("get mapping /register geting called");
         return "auth/register";
     }
 
@@ -91,6 +95,7 @@ public class AuthController {
                                @RequestParam String email,
                                @RequestParam String password,
                                Model model) {
+        System.out.println("post mapping /register geting called");
         try {
             userService.registerStudent(username, email, password);  // Note: changed to registerStudent
             return "redirect:/login?registered=true";
