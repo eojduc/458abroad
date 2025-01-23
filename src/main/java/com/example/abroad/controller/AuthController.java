@@ -6,6 +6,8 @@ import com.example.abroad.exception.UsernameAlreadyInUseException;
 import com.example.abroad.model.User;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,9 +22,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AuthController {
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthController(UserService userService) {
+    @Autowired
+    public AuthController(UserService userService, AuthenticationManager authenticationManager) {
         this.userService = userService;
+        this.authenticationManager = authenticationManager;
     }
 
     @GetMapping("/login")
@@ -49,6 +54,9 @@ public class AuthController {
             // Create session and set user
             User user = userService.authenticateUser(username, password);
             userService.setUser(request, user);
+            request.getSession().setAttribute("username", username); //need this in dashboard controller
+            //Question for Group: ask if there is a fixed amount of attributes that can be set, and what is the list of these attributes
+
 
             // Redirect based on role
             if (user.isAdmin()) {

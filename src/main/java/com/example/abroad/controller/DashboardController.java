@@ -1,28 +1,34 @@
 package com.example.abroad.controller;
 
-import com.example.abroad.service.UserService;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Optional;
+
 
 @Controller
 public class DashboardController {
-    private final UserService userService;
-
-    public DashboardController(UserService userService) {
-        this.userService = userService;
-    }
 
     @GetMapping("/dashboard")
-    public String showDashboard(@AuthenticationPrincipal UserDetails userDetails,
-                                Model model) {
-        model.addAttribute("username", userDetails.getUsername());
-        model.addAttribute("isAdmin", userDetails.getAuthorities()
-                .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
+    public String studentDashboard(HttpServletRequest request, Model model) {
+        var username = Optional.ofNullable(request.getSession().getAttribute("username"))
+                .filter(obj -> obj instanceof String)
+                .map(obj -> (String) obj)
+                .orElse("student"); // Default fallback
 
-        return "dashboard";
+        model.addAttribute("username", username);
+        return "dashboard/student-dashboard :: page";  // Note the :: page suffix
+    }
+
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard(HttpServletRequest request, Model model) {
+        var username = Optional.ofNullable(request.getSession().getAttribute("username"))
+                .filter(obj -> obj instanceof String)
+                .map(obj -> (String) obj)
+                .orElse("admin"); // Default fallback
+
+        model.addAttribute("username", username);
+        return "dashboard/admin-dashboard :: page";  // Note the :: page suffix
     }
 }

@@ -67,13 +67,11 @@ public class UserService {
   }
 
   private void checkUsernameAndEmailAvailability(String username, String email) {
-    // Check both repositories for existing username
     if (adminRepository.existsByUsername(username) ||
             studentRepository.existsByUsername(username)) {
       throw new UsernameAlreadyInUseException("Username already taken: " + username);
     }
 
-    // Check both repositories for existing email
     if (adminRepository.existsByEmail(email) ||
             studentRepository.existsByEmail(email)) {
       throw new EmailAlreadyInUseException("Email already registered: " + email);
@@ -103,26 +101,4 @@ public class UserService {
     return student.map(s -> s);
   }
 
-  @Transactional(readOnly = true)
-  public Optional<User> findByEmail(String email) {
-    Optional<Admin> admin = adminRepository.findByEmail(email);
-    if (admin.isPresent()) {
-      return Optional.of(admin.get());
-    }
-
-    Optional<Student> student = studentRepository.findByEmail(email);
-    return student.map(s -> s);
-  }
-
-  @Transactional(readOnly = true)
-  public boolean isEmailTaken(String email) {
-    return adminRepository.existsByEmail(email) ||
-            studentRepository.existsByEmail(email);
-  }
-
-  @Transactional(readOnly = true)
-  public boolean isUsernameTaken(String username) {
-    return adminRepository.existsByUsername(username) ||
-            studentRepository.existsByUsername(username);
-  }
 }
