@@ -25,8 +25,8 @@ public record HelloController(StudentRepository studentRepository, UserService u
     var students = studentRepository.findAll();
     var admins = adminRepository.findAll();
     // here until auth is set up, we'll just set the first student as the user
-//  students.stream().findFirst().ifPresent(student -> userService.setUser(request, student));
-    admins.stream().findFirst().ifPresent(admin -> userService.setUser(request, admin));
+  students.stream().findFirst().ifPresent(student -> userService.setUser(request, student));
+//    admins.stream().findFirst().ifPresent(admin -> userService.setUser(request, admin));
     var name = Optional.ofNullable(request.getSession().getAttribute("name"))
       .filter(obj -> obj instanceof String)
       .map(obj -> (String) obj)

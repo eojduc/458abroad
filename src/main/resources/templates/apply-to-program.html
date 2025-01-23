@@ -25,30 +25,30 @@
       th:fragment="apply-form(program, user, questions)"
       onsubmit="return confirm('Are you sure you want to submit this application?')">
 
-  <div class="form-control">
+  <label class="form-control">
     <div class="label">
       <span class="label-text">Major</span>
     </div>
     <input class="input" type="text" name="major" required />
-  </div>
-  <div class="form-control">
+  </label>
+  <label class="form-control">
     <div class="label">
       <span class="label-text">Date of Birth</span>
     </div>
     <input class="input" type="date" name="dob" required th:max="${maxDayOfBirth}" />
-  </div>
-  <div class="form-control">
+  </label>
+  <label class="form-control">
     <div class="label">
       <span class="label-text">GPA</span>
     </div>
     <input class="input" type="number" name="gpa" min="0" max="4" step="0.01" required />
-  </div>
-  <div class="form-control" th:each="question : ${questions}">
+  </label>
+  <label class="form-control" th:each="question : ${questions}">
     <div class="label">
       <span class="label-text" th:text="${question.text}"></span>
     </div>
     <textarea th:name="${question.field}" class="textarea" required></textarea>
-  </div>
+  </label>
   <div class="flex flex-row-reverse">
     <button class="btn btn-primary w-1/4" type="submit">Submit</button>
   </div>
