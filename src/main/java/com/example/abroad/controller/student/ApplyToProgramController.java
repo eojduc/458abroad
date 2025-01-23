@@ -20,14 +20,17 @@ public record ApplyToProgramController(ApplyToProgramService service) {
 
   @GetMapping("/programs/{programId}/apply")
   public String applyToProgram(@PathVariable Integer programId, HttpServletRequest request,
-    Model model, @RequestParam Optional<String> error) {
+    Model model, @RequestParam Optional<String> error,
+    @RequestParam Optional<String> success, @RequestParam Optional<String> warning,
+    @RequestParam Optional<String> info) {
     switch (service.getPageData(programId, request)) {
-      case GetApplyPageData.Success(var program, var user, var questions) -> {
+      case GetApplyPageData.Success(var program, var user, var questions, var maxDayOfBirth) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "user", user,
-          "alerts", new Alerts(error, Optional.empty(), Optional.empty(), Optional.empty()),
-          "questions", questions
+          "alerts", new Alerts(error, success, warning, info),
+          "questions", questions,
+          "maxDayOfBirth", maxDayOfBirth
         ));
         return "apply-to-program :: page";
       }
@@ -41,6 +44,9 @@ public record ApplyToProgramController(ApplyToProgramService service) {
         return String.format("redirect:/applications/%s?error=You have already applied to this program",
           applicationId);
       }
+      case GetApplyPageData.UserNotStudent() -> {
+        return String.format("redirect:/admin/programs/%d?error=You are not a student", programId);
+      }
     }
   }
 
@@ -52,7 +58,7 @@ public record ApplyToProgramController(ApplyToProgramService service) {
   ) {
     return switch (service.applyToProgram(programId, request, major, gpa, dob, answer1, answer2, answer3,
       answer4, answer5)) {
-      case ApplyToProgram.Success() -> "redirect:/applications/" + programId;
+      case ApplyToProgram.Success(var id) -> "redirect:/applications/" + id;
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
     };
   }

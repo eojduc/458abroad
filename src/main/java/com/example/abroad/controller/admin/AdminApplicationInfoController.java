@@ -1,6 +1,7 @@
 package com.example.abroad.controller.admin;
 
 
+import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Question;
 import com.example.abroad.service.AdminApplicationInfoService;
@@ -9,6 +10,7 @@ import com.example.abroad.service.AdminApplicationInfoService.UpdateApplicationS
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public record AdminApplicationInfoController(AdminApplicationInfoService service, FormatService formatter) {
 
   @GetMapping("/admin/applications/{applicationId}")
-  public String getApplicationInfo(@PathVariable String applicationId, HttpServletRequest request, Model model) {
+  public String getApplicationInfo(@PathVariable String applicationId, HttpServletRequest request, Model model,
+    @RequestParam Optional<String> error, @RequestParam Optional<String> success, @RequestParam Optional<String> warning,
+    @RequestParam Optional<String> info) {
     switch (service.getApplicationInfo(applicationId, request)) {
       case GetApplicationInfo.Success(var program, var student, var application, var user) -> {
         model.addAllAttributes(Map.of(
@@ -29,7 +33,8 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
           "_application", application, // _application is used to avoid conflict with the application variable
           "formatter", formatter,
           "questions", Question.QUESTIONS,
-          "user", user
+          "user", user,
+          "alerts", new Alerts(error, success, warning, info)
         ));
         return "admin/application-info :: page";
       }

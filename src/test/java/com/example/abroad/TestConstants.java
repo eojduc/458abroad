@@ -47,7 +47,7 @@ public class TestConstants {
   );
 
   public static final Application APPLICATION = new Application(
-    "1_testUser",
+    "1-testUser",
     "testUser",
     1,
     LocalDate.parse("2021-09-01"),
@@ -62,7 +62,7 @@ public class TestConstants {
   );
 
   public static final Application APPLICATION_2 = new Application(
-    "1_testUser2",
+    "1-testUser2",
     "testUser2",
     1,
     LocalDate.parse("2021-09-01"),
@@ -76,7 +76,7 @@ public class TestConstants {
     Status.ENROLLED
   );
   public static final Application APPLICATION_3 = new Application(
-    "1_testUser3",
+    "1-testUser3",
     "testUser3",
     1,
     LocalDate.parse("2021-09-01"),

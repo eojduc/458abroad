@@ -24,5 +24,5 @@ VALUES
 -- Populate applications table
 INSERT INTO applications (id, student, program_id, date_of_birth, gpa, major, answer1, answer2, answer3, answer4, answer5, status)
 VALUES
-    ('1_student1', 'student1', 1, '2000-05-14', 3.8, 'Computer Science', 'Answer to question 1', 'Answer to question 2', 'Answer to question 3', 'Answer to question 4', 'Answer to question 5', 'APPLIED'),
-('1_student2', 'student2', 1, '2001-09-21', 3.5, 'History', 'Answer to question 1', 'Answer to question 2', 'Answer to question 3', 'Answer to question 4', 'Answer to question 5', 'ENROLLED');
+    ('1-student1', 'student1', 1, '2000-05-14', 3.8, 'Computer Science', 'Answer to question 1', 'Answer to question 2', 'Answer to question 3', 'Answer to question 4', 'Answer to question 5', 'APPLIED'),
+('1-student2', 'student2', 1, '2001-09-21', 3.5, 'History', 'Answer to question 1', 'Answer to question 2', 'Answer to question 3', 'Answer to question 4', 'Answer to question 5', 'ENROLLED');

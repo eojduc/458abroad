@@ -9,6 +9,7 @@ import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,9 @@ public record ApplyToProgramService(
     if (user == null) {
       return new GetApplyPageData.UserNotFound();
     }
+    if (user.isAdmin()) {
+      return new GetApplyPageData.UserNotStudent();
+    }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
       return new GetApplyPageData.ProgramNotFound();
@@ -33,7 +37,8 @@ public record ApplyToProgramService(
     if (existingApplication.isPresent()) {
       return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().id());
     }
-    return new GetApplyPageData.Success(program, user, Question.QUESTIONS);
+    var maxDayOfBirth = LocalDate.now().minusYears(10).format(DateTimeFormatter.ISO_DATE);
+    return new GetApplyPageData.Success(program, user, Question.QUESTIONS, maxDayOfBirth);
   }
 
   public ApplyToProgram applyToProgram(
@@ -46,19 +51,20 @@ public record ApplyToProgramService(
     if (user == null) {
       return new ApplyToProgram.UserNotFound();
     }
-    var application = new Application(
-      null, user.username(), programId, dob, gpa, major, answer1,
+    var application = new Application(programId + "-" + user.username(), user.username(),
+      programId, dob, gpa, major, answer1,
       answer2, answer3, answer4, answer5, Status.APPLIED
     );
     applicationRepository.save(application);
 
-    return new ApplyToProgram.Success();
+    return new ApplyToProgram.Success(application.id());
   }
 
   public sealed interface GetApplyPageData permits
     GetApplyPageData.Success, GetApplyPageData.UserNotFound, GetApplyPageData.ProgramNotFound,
-    GetApplyPageData.StudentAlreadyApplied {
-    record Success(Program program, User user, List<Question> questions) implements
+    GetApplyPageData.StudentAlreadyApplied,
+    GetApplyPageData.UserNotStudent {
+    record Success(Program program, User user, List<Question> questions, String maxDateOfBirth) implements
       GetApplyPageData {
     }
     record UserNotFound() implements GetApplyPageData {
@@ -67,16 +73,19 @@ public record ApplyToProgramService(
     }
     record StudentAlreadyApplied(String applicationId) implements GetApplyPageData {
     }
+    record UserNotStudent() implements GetApplyPageData {
+    }
 
   }
 
   public sealed interface ApplyToProgram permits ApplyToProgram.Success,
     ApplyToProgram.UserNotFound {
-    record Success() implements ApplyToProgram {
+    record Success(String applicationId) implements ApplyToProgram {
     }
 
     record UserNotFound() implements ApplyToProgram {
     }
+
 
   }
 

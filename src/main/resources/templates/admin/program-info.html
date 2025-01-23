@@ -166,7 +166,7 @@
         <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
         <td>
           <form class="contents"
-                th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${program.id} + '_' + ${applicant.username})}"
+                th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${applicant.applicationId})}"
                 hx-trigger="change"
                 th:hx-target="'#status-badge-' + ${applicant.username}">
             <select name="status" class="select">
@@ -178,7 +178,7 @@
           </form>
         </td>
         <td>
-          <a th:href="@{/admin/applications/{applicationId}(applicationId=${program.id} + '_' + ${applicant.username})}">
+          <a th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}">
             <div th:id="'status-badge-' + ${applicant.username}">
               <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
             </div>

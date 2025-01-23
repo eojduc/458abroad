@@ -170,7 +170,8 @@ public record AdminProgramInfoService(
         application.major(),
         application.gpa(),
         application.dateOfBirth(),
-        application.status()
+        application.status(),
+        application.id()
       ));
   }
 
@@ -179,7 +180,7 @@ public record AdminProgramInfoService(
   }
 
   public record Applicant(String username, String displayName, String email, String major,
-                          Double gpa, LocalDate dob, Application.Status status) {
+                          Double gpa, LocalDate dob, Application.Status status, String applicationId) {
   }
 
 }
