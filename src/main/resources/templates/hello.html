@@ -1,58 +1,21 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name)">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<head th:replace="~{components :: head('Home')}"></head>
+<body>
+<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen p-4">
+  <div class="card bg-base-200 w-96 shadow-xl">
+    <div class="card-body items-center text-center">
+      <img src="/static/logo.jpeg" alt="HCC Logo" class="w-32 h-32 mb-4"/>
+      <h1 class="text-3xl font-bold mb-2">Welcome to HCC</h1>
+      <p class="text-xl mb-6">Study Abroad Logistics Management System</p>
 
-<head th:replace="~{components :: head('Hello World')}"></head>
-  <body>
-    <div th:replace="~{components :: student-navbar('Hello World', unknown)}"></div>
-    <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-      <div th:replace="~{this :: hello-card(${name})}" ></div>
-    </div>
-    <div th:replace="~{components :: footer}"></div>
-  </body>
-</html>
-
-
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="hello-card(name)" class="bg-base-200 card card-normal w-1/2 m-10">
-  <div class="card-body">
-    <h1 class="card-title" th:text="'Hello ' + ${name}"></h1>
-    <form class="contents" action="/" method="post">
-      <input class="input" placeholder="Name" type="text" name="name"/>
-      <div class="flex flex-row-reverse">
-        <button class="btn btn-primary w-1/4">Submit</button>
+      <div class="flex gap-4">
+        <a href="/login" class="btn btn-primary bg-[#6610F2] hover:bg-[#520dc2]">Login</a>
+        <a href="/register" class="btn btn-secondary bg-[#FF1AA3] hover:bg-[#d1147f]">Register</a>
       </div>
-    </form>
+    </div>
   </div>
 </div>
-
-
-
-
-
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="htmx-page(name)">
-  <head th:replace="~{components :: head('Hello World')}"></head>
-  <body>
-    <div th:replace="~{components :: student-navbar('Hello World', unknown)}"></div>
-    <div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-      <div th:replace="~{this :: htmx-hello-card(${name})}"></div>
-    </div>
-    <div th:replace="~{components :: footer}"></div>
-  </body>
+<div th:replace="~{components :: footer}"></div>
+</body>
 </html>
-
-
-<div
-  xmlns:th="http://www.thymeleaf.org"
-  th:fragment="htmx-hello-card(name)"
-  class="bg-base-200 card card-normal w-1/2 m-10"
-  id="hello-card">
-  <div class="card-body">
-    <h1 class="card-title" th:text="'Hello ' + ${name}"></h1>
-    <form class="contents" hx-post="/hello" hx-target="#hello-card" hx-trigger="submit" hx-swap="outerHTML">
-      <input class="input" placeholder="Name" type="text" name="name"/>
-      <div class="flex flex-row-reverse">
-        <button class="btn btn-primary w-1/4">Submit</button>
-      </div>
-    </form>
-  </div>
-</div>
-
