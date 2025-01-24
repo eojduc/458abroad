@@ -20,7 +20,7 @@ public record HelloController(StudentRepository studentRepository, UserService u
 
 
   //sessions are storage for each user, stored server side.
-  @GetMapping("/")
+  //@GetMapping("/")
   public String helloWorld(HttpServletRequest request, Model model) {
     var students = studentRepository.findAll();
     var admins = adminRepository.findAll();
@@ -36,7 +36,7 @@ public record HelloController(StudentRepository studentRepository, UserService u
   }
 
 
-  @PostMapping("/")
+  //@PostMapping("/")
   public String helloWorldPost(@RequestParam String name, Model model, HttpServletRequest request) {
     request.getSession().setAttribute("name", name);
     model.addAttribute("name", name);
