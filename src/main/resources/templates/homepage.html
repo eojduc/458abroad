@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<head th:replace="~{components :: head('Home')}"></head>
+<body>
+<div th:replace="~{components :: navbar('HCC Study Abroad', '')}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="card bg-base-200 w-[32rem] shadow-2xl">
+        <div class="card-body items-center text-center p-6">
+            <img src="/images/logo.jpeg" alt="HCC Logo"
+                 class="w-48 h-48 mb-4 rounded-full shadow-lg"
+                 onerror="this.style.border='2px solid red'; this.alt='Image failed to load'"/>
+            <h1 class="text-4xl font-bold mb-2">Welcome to HCC</h1>
+            <p class="text-xl mb-4 text-gray-600">Study Abroad Logistics Management System</p>
+
+            <div class="flex gap-6 mb-2">
+                <a href="/login" class="btn btn-primary btn-lg bg-[#6610F2] hover:bg-[#520dc2]">Login</a>
+                <a href="/register" class="btn btn-secondary btn-lg bg-[#FF1AA3] hover:bg-[#d1147f]">Register</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+</html>
