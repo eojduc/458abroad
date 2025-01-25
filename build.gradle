@@ -53,13 +53,17 @@ tasks.register("start") {
 	group = "build"
 	description = "Runs tests, SpotBugs, Checkstyle, and builds the Spring Boot jar"
 
-	dependsOn 'test', 'fillDb', 'bootJar'
+	dependsOn 'clean', 'test', 'fillDb', 'bootJar'
 
 	doLast {
 		println "Custom build completed successfully!"
 	}
 }
 
+// Ensure clean runs first when using the `start` task
+tasks.named("bootJar") {
+	mustRunAfter "clean"
+}
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
