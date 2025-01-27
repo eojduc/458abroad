@@ -39,7 +39,7 @@ public class AdminInitializer implements CommandLineRunner {
     public void run(String... args) {
         System.out.println("Initializing admin user");
         try {
-            if (adminRepository.count() == 1) {
+            if (!adminRepository.existsByUsername(initialAdminUsername)) {
                 Admin firstAdmin = new Admin(
                         initialAdminUsername,
                         passwordEncoder.encode(initialAdminPassword),
