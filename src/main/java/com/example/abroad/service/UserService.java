@@ -57,7 +57,7 @@ public class UserService {
   }
 
   @Transactional
-  public Admin createAdmin(String username, String email, String password, HttpServletRequest request) {
+  public Admin createAdmin(String username, String email, String password, String displayName, HttpServletRequest request) {
 
     String creatorUsername = (String) request.getSession().getAttribute("username");
     System.out.println("creator's username: " + creatorUsername);
@@ -81,7 +81,7 @@ public class UserService {
     checkUsernameAndEmailAvailability(username, email);
 
     String hashedPassword = passwordEncoder.encode(password);
-    Admin admin = new Admin(username, hashedPassword, email, username);
+    Admin admin = new Admin(username, hashedPassword, email, displayName);
     return adminRepository.save(admin);
   }
 

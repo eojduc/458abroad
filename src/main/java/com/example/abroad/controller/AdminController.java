@@ -25,11 +25,11 @@ public class AdminController {
     public String createAdmin(@RequestParam String username,
                               @RequestParam String email,
                               @RequestParam String password,
+                              @RequestParam String displayName,
                               HttpServletRequest request,
                               Model model) {
-        var user = userService.getUser(request).orElse(null);
         try {
-            userService.createAdmin(username, email, password, request);
+            userService.createAdmin(username, email, password, displayName, request);
             return "redirect:/admin/dashboard";
         } catch (IllegalStateException e) {
             model.addAttribute("title", "Admin Creation Error");

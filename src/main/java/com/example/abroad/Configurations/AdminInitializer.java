@@ -44,7 +44,7 @@ public class AdminInitializer implements CommandLineRunner {
                         initialAdminUsername,
                         passwordEncoder.encode(initialAdminPassword),
                         initialAdminEmail,
-                        "Super Admin"
+                        "Administrator"
                 );
 
                 adminRepository.save(firstAdmin);
