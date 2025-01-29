@@ -1,5 +1,5 @@
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="footer" class="footer bg-base-200 p-20">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="footer" class="footer bg-base-200 p-20 footer-center">
   <h1 class="footer-title">&copy; 2025 Hypothetical Community College. All rights reserved.</h1>
 </div>
 
@@ -39,6 +39,7 @@
     <div class="navbar">
       <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
       <a href="/admin/programs" class="btn btn-ghost">Programs</a>
+      <a href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
       <a href="/programs" class="btn btn-ghost">Student View</a>
     </div>
     <span th:text="'Welcome ' + ${name}" class="btn btn-ghost"></span>

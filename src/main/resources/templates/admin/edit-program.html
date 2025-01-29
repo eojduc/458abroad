@@ -5,78 +5,78 @@
 
 <body>
 <div th:replace="~{components :: admin-navbar(${program.title}, ${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10">
+<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
-  <div class="card card-normal min-w-1/2 bg-base-200">
+  <div class="card card-normal w-3/4 bg-base-200 m-10">
     <div class="card-body">
       <div class="flex flex-row justify-between">
-        <h2 class="card-title">Edit Program</h2>
+        <h2 class="card-title" th:text="'Edit Program #' + ${program.id}"></h2>
         <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="btn btn-primary">Back</a>
       </div>
       <form class="contents" method="post" th:action="@{/admin/programs/{id}/edit(id=${program.id})}">
         <table class="table">
           <tbody>
-          <tr>
+          <tr class="bg-base-300">
             <td>Title</td>
             <td>
-              <input type="text" class="input" th:value="${program.title}" name="title" required>
+              <input type="text" class="input w-full" th:value="${program.title}" name="title" required>
             </td>
           </tr>
           <tr>
             <td>Description</td>
             <td>
-              <textarea class="textarea" th:text="${program.description}" name="description" required></textarea>
+              <textarea class="textarea w-full" th:text="${program.description}" name="description" required></textarea>
             </td>
           </tr>
-          <tr>
+          <tr class="bg-base-300">
             <td>Faculty Lead</td>
             <td>
-              <input type="text" class="input" th:value="${program.facultyLead}" name="facultyLead" required>
+              <input type="text" class="input w-full" th:value="${program.facultyLead}" name="facultyLead" required>
             </td>
           </tr>
           <tr>
             <td>Semester</td>
             <td>
-              <select class="select" th:value="${program.semester}" name="semester" required>
+              <select class="select w-full" th:value="${program.semester}" name="semester" required>
                 <option value="SPRING">Spring</option>
                 <option value="SUMMER">Summer</option>
                 <option value="FALL">Fall</option>
               </select>
             </td>
           </tr>
-          <tr>
+          <tr class="bg-base-300">
             <td>Year</td>
             <td>
-              <input type="number" class="input" th:value="${program.year}" name="year" required>
+              <input type="number" class="input w-full" th:value="${program.year}" name="year" required>
             </td>
           </tr>
           <tr>
             <td>Start Date</td>
             <td>
-              <input type="date" class="input" th:value="${program.startDate}" name="startDate" required>
+              <input type="date" class="input w-full" th:value="${program.startDate}" name="startDate" required>
             </td>
           </tr>
-          <tr>
+          <tr class="bg-base-300">
             <td>End Date</td>
             <td>
-              <input type="date" class="input" th:value="${program.endDate}" name="endDate" required>
+              <input type="date" class="input w-full" th:value="${program.endDate}" name="endDate" required>
             </td>
           </tr>
           <tr>
             <td>Application Open</td>
             <td>
-              <input type="datetime-local" class="input" th:value="${formatter.formatInstant(program.applicationOpen)}" name="applicationOpen" required>
+              <input type="datetime-local" class="input w-full" th:value="${formatter.formatInstant(program.applicationOpen)}" name="applicationOpen" required>
             </td>
           </tr>
-          <tr>
+          <tr class="bg-base-300">
             <td>Application Deadline</td>
             <td>
-              <input type="datetime-local" class="input" th:value="${formatter.formatInstant(program.applicationClose)}" name="applicationClose" required>
+              <input type="datetime-local" class="input w-full" th:value="${formatter.formatInstant(program.applicationClose)}" name="applicationClose" required>
             </td>
           </tr>
           </tbody>
         </table>
-        <div class="flex flex-row-reverse">
+        <div class="flex flex-row-reverse card-actions mt-5">
           <button class="btn btn-primary w-1/4" type="submit">Save</button>
         </div>
       </form>

@@ -41,7 +41,7 @@
         </tbody>
       </table>
       <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE)}"></div>
-      <div class="card-actions">
+      <div class="card-actions mt-5">
         <a class="btn btn-primary w-1/4" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
         <form th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post"
               class="contents"
@@ -110,7 +110,7 @@
     </div>
   </div>
   <table
-      class="table table-sm table-zebra">
+      class="table table-sm">
     <thead>
     <tr>
       <th>
@@ -181,19 +181,21 @@
     </tr>
     </thead>
     <tbody>
-      <tr th:each="applicant : ${applicants}">
-        <td th:text="${applicant.displayName}"></td>
+      <tr th:each="applicant, stat : ${applicants}" th:class="${stat.index % 2 == 0} ? 'bg-base-300'">
+        <td>
+          <a class="link link-primary"
+              th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}"
+              th:text="${applicant.displayName}"></a>
+        </td>
         <td th:text="${applicant.username}"></td>
         <td th:text="${applicant.email}"></td>
         <td th:text="${applicant.major}"></td>
         <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 3)}"></td>
         <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
         <td>
-          <a th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}">
-            <div th:id="'status-badge-' + ${applicant.username}">
-              <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
-            </div>
-          </a>
+          <div th:id="'status-badge-' + ${applicant.username}">
+            <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
+          </div>
         </td>
         <td>
           <form class="contents"
