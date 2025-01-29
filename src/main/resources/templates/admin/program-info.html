@@ -11,11 +11,13 @@
     <div class="card-body">
       <h1 class="card-title" th:text="${program.title}"></h1>
       <p th:text="${program.description}"></p>
-      <h2 class="text-lg mt-5">Faculty Lead</h2>
-      <p  th:text="${program.facultyLead}"></p>
       <h2 class="text-lg mt-5">Program Details</h2>
       <table class="table table-sm">
         <tbody>
+        <tr>
+          <td>Faculty Lead</td>
+          <td th:text="${program.facultyLead}"></td>
+        </tr>
         <tr>
           <td>Term</td>
           <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
@@ -73,30 +75,41 @@
               th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='NONE')}"
               hx-swap="outerHTML"
               hx-target="#applicant-table">
-        <span class="badge badge-neutral">ALL</span>
+        <span th:class="${sortFilter == 'NONE'} ? 'badge badge-neutral' : 'badge badge-neutral badge-outline'">
+          ALL
+        </span>
+      </button>
       <button class="contents"
               th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='APPLIED')}"
               hx-swap="outerHTML"
               hx-target="#applicant-table">
-        <div th:replace="~{components :: statusBadge('APPLIED')}"></div>
+        <span th:class="${sortFilter == 'APPLIED'} ? 'badge badge-info' : 'badge badge-info badge-outline'">
+          APPLIED
+        </span>
       </button>
       <button class="contents"
               th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='ENROLLED')}"
               hx-swap="outerHTML"
               hx-target="#applicant-table">
-        <div th:replace="~{components :: statusBadge('ENROLLED')}"></div>
+        <span th:class="${sortFilter == 'ENROLLED'} ? 'badge badge-success' : 'badge badge-success badge-outline'">
+          ENROLLED
+        </span>
       </button>
       <button class="contents"
               th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='WITHDRAWN')}"
               hx-swap="outerHTML"
               hx-target="#applicant-table">
-        <div th:replace="~{components :: statusBadge('WITHDRAWN')}"></div>
+        <span th:class="${sortFilter == 'WITHDRAWN'} ? 'badge badge-warning' : 'badge badge-warning badge-outline'">
+          WITHDRAWN
+        </span>
       </button>
       <button class="contents"
               th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='CANCELLED')}"
               hx-swap="outerHTML"
               hx-target="#applicant-table">
-        <div th:replace="~{components :: statusBadge('CANCELLED')}"></div>
+        <span th:class="${sortFilter == 'CANCELLED'} ? 'badge badge-error' : 'badge badge-error badge-outline'">
+          CANCELLED
+        </span>
       </button>
     </div>
   </div>
@@ -109,51 +122,66 @@
             th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='DISPLAY_NAME', filter=${sortFilter})}"
             hx-swap="outerHTML"
             hx-target="#applicant-table"
-            class="contents"> name</button>
+            class="contents"
+            th:text="${sortColumn == 'DISPLAY_NAME' ? '▼ name' : 'name'}"
+        ></button>
+      </th>
       </th>
       <th>
         <button
             th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='USERNAME', filter=${sortFilter})}"
             hx-swap="outerHTML"
             hx-target="#applicant-table"
-            class="contents">username</button>
+            class="contents"
+            th:text="${sortColumn == 'USERNAME' ? '▼ username' : 'username'}"
+        ></button>
       </th>
       <th>
         <button
             th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='EMAIL', filter=${sortFilter})}"
             hx-swap="outerHTML"
             hx-target="#applicant-table"
-            class="contents">email</button>
+            class="contents"
+            th:text="${sortColumn == 'EMAIL' ? '▼ email' : 'email'}"
+        ></button>
       </th>
       <th>
         <button
             th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='MAJOR', filter=${sortFilter})}"
             hx-swap="outerHTML"
             hx-target="#applicant-table"
-            class="contents">major</button>
+            class="contents"
+            th:text="${sortColumn == 'MAJOR' ? '▼ major' : 'major'}"
+        ></button>
       </th>
       <th>
         <button
             th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='GPA', filter=${sortFilter})}"
             hx-swap="outerHTML"
             hx-target="#applicant-table"
-            class="contents">gpa</button>
+            class="contents"
+            th:text="${sortColumn == 'GPA' ? '▼ gpa' : 'gpa'}"
+        ></button>
       </th>
       <th>
         <button
             th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='DOB', filter=${sortFilter})}"
             hx-swap="outerHTML"
             hx-target="#applicant-table"
-            class="contents">date of birth</button>
+            class="contents"
+            th:text="${sortColumn == 'DOB' ? '▼ date of birth' : 'date of birth'}"
+        ></button>
       </th>
       <th>
       <button
           th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='STATUS', filter=${sortFilter})}"
           hx-swap="outerHTML"
           hx-target="#applicant-table"
-          class="contents">status</button>
+          class="contents"
+          th:text="${sortColumn == 'STATUS' ? '▼ status' : 'status'}"
+      ></button>
       </th>
-      <th>application</th>
+      <th>update</th>
     </tr>
     </thead>
     <tbody>
@@ -164,6 +192,13 @@
         <td th:text="${applicant.major}"></td>
         <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 3)}"></td>
         <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
+        <td>
+          <a th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}">
+            <div th:id="'status-badge-' + ${applicant.username}">
+              <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
+            </div>
+          </a>
+        </td>
         <td>
           <form class="contents"
                 th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${applicant.applicationId})}"
@@ -176,13 +211,6 @@
               <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
             </select>
           </form>
-        </td>
-        <td>
-          <a th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}">
-            <div th:id="'status-badge-' + ${applicant.username}">
-              <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
-            </div>
-          </a>
         </td>
       </tr>
     </tbody>
