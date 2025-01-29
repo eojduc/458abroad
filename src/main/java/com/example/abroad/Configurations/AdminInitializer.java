@@ -7,12 +7,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class AdminInitializer implements CommandLineRunner {
     private final UserService userService;
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(AdminInitializer.class);
 
     @org.springframework.beans.factory.annotation.Autowired
     public AdminInitializer(
@@ -37,7 +40,7 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        System.out.println("Initializing admin user");
+        logger.info("Initializing admin user");
         try {
             if (!adminRepository.existsByUsername(initialAdminUsername)) {
                 Admin firstAdmin = new Admin(
@@ -49,10 +52,12 @@ public class AdminInitializer implements CommandLineRunner {
 
                 adminRepository.save(firstAdmin);
 
-                System.out.println("Initial admin created successfully");
+                logger.info("Initial admin created successfully");
+            } else {
+                logger.warn("Failed to create admin");
             }
         } catch (Exception e) {
-            System.out.println("Failed to create initial admin");
+            logger.error("Failed to create initial admin");
             throw new RuntimeException("Could not initialize admin user", e);
         }
     }
