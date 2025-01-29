@@ -1,9 +1,9 @@
 package com.example.abroad.service;
 
+import static com.example.abroad.TestConstants.STUDENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.example.abroad.TestConstants;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
@@ -18,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootTest
 public class UserServiceTest {
-  private static final User USER = TestConstants.STUDENT;
+  private static final User USER = STUDENT;
 
   //mock should be deep stubs
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)

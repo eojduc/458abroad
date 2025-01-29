@@ -1,14 +1,15 @@
 package com.example.abroad.service;
 
+import static com.example.abroad.TestConstants.ADMIN;
+import static com.example.abroad.TestConstants.APPLICATION;
+import static com.example.abroad.TestConstants.PROGRAM;
+import static com.example.abroad.TestConstants.STUDENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.abroad.TestConstants;
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Program;
 import com.example.abroad.model.Question;
-import com.example.abroad.model.Student;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
@@ -23,10 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 public class ApplyToProgramServiceTest {
-  private static final Program PROGRAM = TestConstants.PROGRAM;
-
-  private static final Student STUDENT = TestConstants.STUDENT;
-  private static final Application APPLICATION = TestConstants.APPLICATION;
 
 
   @Mock
@@ -67,7 +64,7 @@ public class ApplyToProgramServiceTest {
 
   @Test
   void testGetPageDataUserNotStudent() {
-    when(userService.getUser(request)).thenReturn(Optional.of(TestConstants.ADMIN));
+    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
 
     var response = service.getPageData(PROGRAM.id(), request);
     assertThat(response).isEqualTo(new GetApplyPageData.UserNotStudent());
