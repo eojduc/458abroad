@@ -3,6 +3,8 @@ package com.example.abroad.Configurations;
 import com.example.abroad.model.Admin;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +16,8 @@ public class AdminInitializer implements CommandLineRunner {
   private final UserService userService;
   private final AdminRepository adminRepository;
   private final PasswordEncoder passwordEncoder;
+  private static final Logger logger = LoggerFactory.getLogger(AdminInitializer.class);
+
   @Value("${app.initial-admin.username:superadmin}")
   private String initialAdminUsername;
   @Value("${app.initial-admin.email:admin@mycompany.com}")
@@ -24,9 +28,9 @@ public class AdminInitializer implements CommandLineRunner {
   @org.springframework.beans.factory.annotation.Autowired
   public AdminInitializer(
 
-    UserService userService,
-    AdminRepository adminRepository,
-    PasswordEncoder passwordEncoder
+      UserService userService,
+      AdminRepository adminRepository,
+      PasswordEncoder passwordEncoder
   ) {
     this.userService = userService;
     this.adminRepository = adminRepository;
@@ -39,10 +43,10 @@ public class AdminInitializer implements CommandLineRunner {
     try {
       if (!adminRepository.existsByUsername(initialAdminUsername)) {
         Admin firstAdmin = new Admin(
-          initialAdminUsername,
-          passwordEncoder.encode(initialAdminPassword),
-          initialAdminEmail,
-          "Super Admin"
+            initialAdminUsername,
+            passwordEncoder.encode(initialAdminPassword),
+            initialAdminEmail,
+            "Super Admin"
         );
 
         adminRepository.save(firstAdmin);
