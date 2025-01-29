@@ -25,15 +25,15 @@ public class Application {
   private Double gpa;
   @Column(nullable = false)
   private String major;
-  @Column(nullable = false)
+  @Column(nullable = false, length = 10000)
   private String answer1;
-  @Column(nullable = false)
+  @Column(nullable = false, length= 10000)
   private String answer2;
-  @Column(nullable = false)
+  @Column(nullable = false, length = 10000)
   private String answer3;
-  @Column(nullable = false)
+  @Column(nullable = false, length = 10000)
   private String answer4;
-  @Column(nullable = false)
+  @Column(nullable = false, length = 10000)
   private String answer5;
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)

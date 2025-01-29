@@ -17,7 +17,7 @@
       <h2 class="text-lg mt-5">Program Details</h2>
       <table class="table table-sm">
         <tbody>
-        <tr>
+        <tr class="bg-base-300">
           <td>Title</td>
           <td th:text="${program.title}"></td>
         </tr>
@@ -25,7 +25,7 @@
           <td>Description</td>
           <td th:text="${program.description}"></td>
         </tr>
-        <tr>
+        <tr class="bg-base-300">
           <td>Faculty Lead</td>
           <td th:text="${program.facultyLead}"></td>
         </tr>
@@ -33,7 +33,7 @@
           <td>Term</td>
           <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
         </tr>
-        <tr>
+        <tr class="bg-base-300">
           <td>Start Date</td>
           <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
         </tr>
@@ -41,7 +41,7 @@
           <td>End Date</td>
           <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
         </tr>
-        <tr>
+        <tr class="bg-base-300">
           <td>Application Open</td>
           <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
         </tr>
@@ -51,11 +51,11 @@
         </tr>
         </tbody>
       </table>
-      <h2 class="text-lg mt-5">Application Info</h2>
+      <h2 class="text-lg mt-5">Application Details</h2>
 
       <table class="table table-sm">
         <tbody>
-        <tr>
+        <tr class="bg-base-300">
           <td>Status</td>
           <td>
             <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${_application.id})}"
@@ -82,7 +82,7 @@
           <td>Username</td>
           <td th:text="${student.username}"></td>
         </tr>
-        <tr>
+        <tr class="bg-base-300">
           <td>Email</td>
           <td th:text="${student.email}"></td>
         </tr>
@@ -90,7 +90,7 @@
           <td>Major</td>
           <td th:text="${_application.major}"></td>
         </tr>
-        <tr>
+        <tr class="bg-base-300">
           <td>GPA</td>
           <td th:text="${_application.gpa}"></td>
         </tr>
@@ -100,9 +100,9 @@
         </tr>
         </tbody>
       </table>
-      <h1 class="text-lg mt-5">Questions</h1>
-      <div class="p-2">
-        <div th:each="question : ${questions}" class="mb-4" >
+      <h1 class="text-lg mt-5">Responses</h1>
+      <div class="ml-4">
+        <div th:each="question : ${questions}" class="my-4" >
           <h2 th:text="${question.text}"></h2>
           <p class="text-sm mt-2" th:text="${_application[question.field]}"></p>
         </div>

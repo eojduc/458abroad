@@ -14,7 +14,7 @@
       <h2 class="text-lg mt-5">Program Details</h2>
       <table class="table table-sm">
         <tbody>
-        <tr>
+        <tr class="bg-base-300">
           <td>Faculty Lead</td>
           <td th:text="${program.facultyLead}"></td>
         </tr>
@@ -22,7 +22,7 @@
           <td>Term</td>
           <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
         </tr>
-        <tr>
+        <tr class="bg-base-300">
           <td>Start Date</td>
           <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
         </tr>
@@ -30,7 +30,7 @@
           <td>End Date</td>
           <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
         </tr>
-        <tr>
+        <tr class="bg-base-300">
           <td>Application Open</td>
           <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
         </tr>
@@ -42,17 +42,13 @@
       </table>
       <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE)}"></div>
       <div class="card-actions">
-        <a class="btn btn-primary" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
-        <form th:if="${applicants.size() > 0}"
-              th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post"
-              th:onsubmit="return confirm('Are you really sure you want to delete this program? This will delete the data of [[${applicants.size()}]] applicants.\n THIS CANNOT BE UNDONE')">
-          <button class="btn btn-secondary" type="submit">Delete</button>
-        </form>
-        <form
-              th:unless="${applicants.size() > 0}"
-          onsubmit="return confirm('Are you sure you want to delete this program?')"
-          th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post">
-          <button class="btn btn-secondary" type="submit">Delete</button>
+        <a class="btn btn-primary w-1/4" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
+        <form th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post"
+              class="contents"
+              th:attr="onsubmit=${applicants.size() > 0} ?
+                'return confirm(\'Are you really sure you want to delete this program? This will delete the data of ' + ${applicants.size()} + ' applicants.\\n THIS CANNOT BE UNDONE\')'
+                : 'return confirm(\'Are you sure you want to delete this program?\')'">
+          <button class="btn btn-secondary w-1/4" type="submit">Delete</button>
         </form>
       </div>
     </div>
@@ -114,7 +110,7 @@
     </div>
   </div>
   <table
-      class="table table-sm">
+      class="table table-sm table-zebra">
     <thead>
     <tr>
       <th>
