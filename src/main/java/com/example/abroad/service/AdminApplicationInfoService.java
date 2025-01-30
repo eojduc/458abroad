@@ -58,19 +58,24 @@ public record AdminApplicationInfoService(
   }
 
   public sealed interface GetApplicationInfo permits GetApplicationInfo.Success,
-    GetApplicationInfo.UserNotAdmin, GetApplicationInfo.NotLoggedIn, GetApplicationInfo.ApplicationNotFound {
+    GetApplicationInfo.UserNotAdmin, GetApplicationInfo.NotLoggedIn,
+    GetApplicationInfo.ApplicationNotFound {
 
-    record Success(Program program, Student student, Application application, Admin user) implements GetApplicationInfo {
+    record Success(Program program, Student student, Application application, Admin user) implements
+      GetApplicationInfo {
 
     }
 
     record UserNotAdmin() implements GetApplicationInfo {
+
     }
 
     record NotLoggedIn() implements GetApplicationInfo {
+
     }
 
     record ApplicationNotFound() implements GetApplicationInfo {
+
     }
 
   }
@@ -80,15 +85,19 @@ public record AdminApplicationInfoService(
     UpdateApplicationStatus.NotLoggedIn {
 
     record Success(Application.Status status) implements UpdateApplicationStatus {
+
     }
 
     record ApplicationNotFound() implements UpdateApplicationStatus {
+
     }
 
     record UserNotAdmin() implements UpdateApplicationStatus {
+
     }
 
     record NotLoggedIn() implements UpdateApplicationStatus {
+
     }
 
   }

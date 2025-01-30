@@ -1,7 +1,6 @@
 package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.AdminProgramInfoService;
 import com.example.abroad.service.AdminProgramInfoService.Column;
 import com.example.abroad.service.AdminProgramInfoService.DeleteProgram;
@@ -10,7 +9,6 @@ import com.example.abroad.service.AdminProgramInfoService.Filter;
 import com.example.abroad.service.AdminProgramInfoService.GetProgramInfo;
 import com.example.abroad.service.AdminProgramInfoService.SortApplicantTable;
 import com.example.abroad.service.FormatService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.Optional;
@@ -59,21 +57,18 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
   @PostMapping("/admin/programs/{programId}/delete")
   public String deleteProgram(@PathVariable Integer programId, HttpSession session) {
     return switch (service.deleteProgram(programId, session)) {
-      case DeleteProgram.Success() ->
-        "redirect:/admin/programs?success=Program deleted";
-      case DeleteProgram.UserNotFound() ->
-        "redirect:/login?error=You are not logged in";
+      case DeleteProgram.Success() -> "redirect:/admin/programs?success=Program deleted";
+      case DeleteProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case DeleteProgram.UserNotAdmin() ->
         String.format("redirect:/programs/%s?error=You are not an admin", programId);
-      case ProgramNotFound() ->
-        "redirect:/admin/programs?error=That program does not exist";
+      case ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
     };
   }
 
   @GetMapping("/admin/programs/{programId}/applicants")
   public String getApplicantTable(@PathVariable Integer programId, HttpSession session,
     Model model,
-  @RequestParam Optional<Column> column, @RequestParam Optional<Filter> filter) {
+    @RequestParam Optional<Column> column, @RequestParam Optional<Filter> filter) {
     switch (service.sortApplicantTable(column, filter, programId, session)) {
       case SortApplicantTable.Success(var applicants, var program) -> {
         model.addAllAttributes(Map.of(

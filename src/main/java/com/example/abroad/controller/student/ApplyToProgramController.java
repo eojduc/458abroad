@@ -4,7 +4,6 @@ import com.example.abroad.model.Alerts;
 import com.example.abroad.service.ApplyToProgramService;
 import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
 import com.example.abroad.service.ApplyToProgramService.GetApplyPageData;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Map;
@@ -42,7 +41,8 @@ public record ApplyToProgramController(ApplyToProgramService service) {
         return "redirect:/programs?error=That program does not exist";
       }
       case GetApplyPageData.StudentAlreadyApplied(String applicationId) -> {
-        return String.format("redirect:/applications/%s?error=You have already applied to this program",
+        return String.format(
+          "redirect:/applications/%s?error=You have already applied to this program",
           applicationId);
       }
       case GetApplyPageData.UserNotStudent() -> {
@@ -57,7 +57,8 @@ public record ApplyToProgramController(ApplyToProgramService service) {
     @RequestParam String answer1, @RequestParam String answer2, @RequestParam String answer3,
     @RequestParam String answer4, @RequestParam String answer5
   ) {
-    return switch (service.applyToProgram(programId, session, major, gpa, dob, answer1, answer2, answer3,
+    return switch (service.applyToProgram(programId, session, major, gpa, dob, answer1, answer2,
+      answer3,
       answer4, answer5)) {
       case ApplyToProgram.Success(var id) -> "redirect:/applications/" + id;
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";

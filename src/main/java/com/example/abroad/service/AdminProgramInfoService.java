@@ -63,9 +63,6 @@ public record AdminProgramInfoService(
     return new GetProgramInfo.Success(program, applicants, user);
   }
 
-  public enum Filter {
-    APPLIED, ENROLLED, CANCELLED, WITHDRAWN, NONE
-  }
   public SortApplicantTable sortApplicantTable(Optional<Column> column,
     Optional<Filter> filter,
     Integer programId, HttpSession session) {
@@ -82,7 +79,7 @@ public record AdminProgramInfoService(
     }
     var students = studentRepository.findAll();
 
-    var sorter = switch(column.orElse(Column.NONE)) {
+    var sorter = switch (column.orElse(Column.NONE)) {
       case USERNAME, NONE -> Comparator.comparing(Applicant::username);
       case DISPLAY_NAME -> Comparator.comparing(Applicant::displayName);
       case EMAIL -> Comparator.comparing(Applicant::email);
@@ -104,6 +101,28 @@ public record AdminProgramInfoService(
       .filter(filterer)
       .toList();
     return new SortApplicantTable.Success(applicants, program);
+  }
+
+  private Stream<Applicant> applicants(Stream<Student> students, Application application) {
+    return students.filter(student -> student.username().equals(application.student()))
+      .map(student -> new Applicant(
+        student.username(),
+        student.displayName(),
+        student.email(),
+        application.major(),
+        application.gpa(),
+        application.dateOfBirth(),
+        application.status(),
+        application.id()
+      ));
+  }
+
+  public enum Filter {
+    APPLIED, ENROLLED, CANCELLED, WITHDRAWN, NONE
+  }
+
+  public enum Column {
+    USERNAME, DISPLAY_NAME, EMAIL, MAJOR, GPA, DOB, STATUS, NONE
   }
 
   public sealed interface DeleteProgram permits
@@ -153,32 +172,21 @@ public record AdminProgramInfoService(
 
   public sealed interface SortApplicantTable permits SortApplicantTable.Success,
     SortApplicantTable.Failure {
+
     record Success(List<Applicant> applicants, Program program) implements SortApplicantTable {
+
     }
+
     record Failure() implements SortApplicantTable {
+
     }
 
-  }
-  private Stream<Applicant> applicants(Stream<Student> students, Application application) {
-    return students.filter(student -> student.username().equals(application.student()))
-      .map(student -> new Applicant(
-        student.username(),
-        student.displayName(),
-        student.email(),
-        application.major(),
-        application.gpa(),
-        application.dateOfBirth(),
-        application.status(),
-        application.id()
-      ));
-  }
-
-  public enum Column {
-    USERNAME, DISPLAY_NAME, EMAIL, MAJOR, GPA, DOB, STATUS, NONE
   }
 
   public record Applicant(String username, String displayName, String email, String major,
-                          Double gpa, LocalDate dob, Application.Status status, String applicationId) {
+                          Double gpa, LocalDate dob, Application.Status status,
+                          String applicationId) {
+
   }
 
 }

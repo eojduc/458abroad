@@ -33,7 +33,8 @@ public record ApplyToProgramService(
     if (program == null) {
       return new GetApplyPageData.ProgramNotFound();
     }
-    var existingApplication = applicationRepository.findByProgramIdAndStudent(programId, user.username());
+    var existingApplication = applicationRepository.findByProgramIdAndStudent(programId,
+      user.username());
     if (existingApplication.isPresent()) {
       return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().id());
     }
@@ -64,26 +65,40 @@ public record ApplyToProgramService(
     GetApplyPageData.Success, GetApplyPageData.UserNotFound, GetApplyPageData.ProgramNotFound,
     GetApplyPageData.StudentAlreadyApplied,
     GetApplyPageData.UserNotStudent {
-    record Success(Program program, User user, List<Question> questions, String maxDateOfBirth) implements
+
+    record Success(Program program, User user, List<Question> questions,
+                   String maxDateOfBirth) implements
       GetApplyPageData {
+
     }
+
     record UserNotFound() implements GetApplyPageData {
+
     }
+
     record ProgramNotFound() implements GetApplyPageData {
+
     }
+
     record StudentAlreadyApplied(String applicationId) implements GetApplyPageData {
+
     }
+
     record UserNotStudent() implements GetApplyPageData {
+
     }
 
   }
 
   public sealed interface ApplyToProgram permits ApplyToProgram.Success,
     ApplyToProgram.UserNotFound {
+
     record Success(String applicationId) implements ApplyToProgram {
+
     }
 
     record UserNotFound() implements ApplyToProgram {
+
     }
 
 

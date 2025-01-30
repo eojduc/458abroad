@@ -27,7 +27,7 @@ public final class Application {
   private String major;
   @Column(nullable = false, length = 10000)
   private String answer1;
-  @Column(nullable = false, length= 10000)
+  @Column(nullable = false, length = 10000)
   private String answer2;
   @Column(nullable = false, length = 10000)
   private String answer3;
@@ -168,13 +168,6 @@ public final class Application {
     return status == that.status;
   }
 
-  public enum Status {
-    APPLIED,
-    ENROLLED,
-    CANCELLED,
-    WITHDRAWN
-  }
-
   @Override
   public String toString() {
     return "Application{" +
@@ -191,6 +184,13 @@ public final class Application {
       ", answer5='" + answer5 + '\'' +
       ", status=" + status +
       '}';
+  }
+
+  public enum Status {
+    APPLIED,
+    ENROLLED,
+    CANCELLED,
+    WITHDRAWN
   }
 
 

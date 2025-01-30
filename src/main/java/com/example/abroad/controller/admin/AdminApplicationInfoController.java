@@ -8,7 +8,6 @@ import com.example.abroad.service.AdminApplicationInfoService;
 import com.example.abroad.service.AdminApplicationInfoService.GetApplicationInfo;
 import com.example.abroad.service.AdminApplicationInfoService.UpdateApplicationStatus;
 import com.example.abroad.service.FormatService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.Optional;
@@ -20,18 +19,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record AdminApplicationInfoController(AdminApplicationInfoService service, FormatService formatter) {
+public record AdminApplicationInfoController(AdminApplicationInfoService service,
+                                             FormatService formatter) {
 
   @GetMapping("/admin/applications/{applicationId}")
-  public String getApplicationInfo(@PathVariable String applicationId, HttpSession session, Model model,
-    @RequestParam Optional<String> error, @RequestParam Optional<String> success, @RequestParam Optional<String> warning,
+  public String getApplicationInfo(@PathVariable String applicationId, HttpSession session,
+    Model model,
+    @RequestParam Optional<String> error, @RequestParam Optional<String> success,
+    @RequestParam Optional<String> warning,
     @RequestParam Optional<String> info) {
     switch (service.getApplicationInfo(applicationId, session)) {
       case GetApplicationInfo.Success(var program, var student, var application, var user) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "student", student,
-          "_application", application, // _application is used to avoid conflict with the application variable in Thymeleaf
+          "_application", application,
+          // _application is used to avoid conflict with the application variable in Thymeleaf
           "formatter", formatter,
           "questions", Question.QUESTIONS,
           "user", user,

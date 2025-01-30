@@ -9,11 +9,10 @@ import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
 import jakarta.servlet.http.HttpSession;
+import java.util.Optional;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public record UserService(
@@ -21,6 +20,7 @@ public record UserService(
   StudentRepository studentRepository,
   PasswordEncoder passwordEncoder
 ) {
+
   private static final String USER_SESSION_ATTRIBUTE = "user";
 
 
@@ -77,22 +77,23 @@ public record UserService(
 
   private void checkUsernameAndEmailAvailability(String username, String email) {
     if (adminRepository.existsByUsername(username) ||
-            studentRepository.existsByUsername(username)) {
+      studentRepository.existsByUsername(username)) {
       throw new UsernameAlreadyInUseException("Username already taken: " + username);
     }
 
     if (adminRepository.existsByEmail(email) ||
-            studentRepository.existsByEmail(email)) {
+      studentRepository.existsByEmail(email)) {
       throw new EmailAlreadyInUseException("Email already registered: " + email);
     }
   }
 
   public User authenticateUser(String username, String password) {
     User user = findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+      .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
     System.out.println("Stored password hash: " + user.password());
-    System.out.println("Password match result: " + passwordEncoder.matches(password, user.password()));
+    System.out.println(
+      "Password match result: " + passwordEncoder.matches(password, user.password()));
 
     if (!passwordEncoder.matches(password, user.password())) {
       throw new IncorrectPasswordException("Incorrect password");

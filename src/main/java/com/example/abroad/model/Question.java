@@ -3,6 +3,7 @@ package com.example.abroad.model;
 import java.util.List;
 
 public record Question(String field, String text) {
+
   public static List<Question> QUESTIONS = List.of(
     new Question("answer1", "Why do you want to participate in this study abroad program?"),
     new Question("answer2", "How does this program align with your academic or career goals?"),
