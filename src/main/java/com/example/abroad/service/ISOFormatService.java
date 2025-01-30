@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ISOFormatService {
+public record ISOFormatService() {
 
   public String formatInstant(Instant instant) {
     return instant.atZone(Config.ZONE_ID) // iso string

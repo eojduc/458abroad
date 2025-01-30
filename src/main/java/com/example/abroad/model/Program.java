@@ -14,7 +14,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "programs")
-public class Program {
+public final class Program {
 
   @Id
   @GeneratedValue

@@ -11,7 +11,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "applications")
-public class Application {
+public final class Application {
 
   @Id
   private String id;
