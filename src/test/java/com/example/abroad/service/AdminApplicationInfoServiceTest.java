@@ -7,11 +7,11 @@ import static com.example.abroad.TestConstants.STUDENT;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.StudentRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,7 +82,8 @@ class AdminApplicationInfoServiceTest {
 
     var result = service.getApplicationInfo(APPLICATION.id(), session);
 
-    assertThat(result).isEqualTo(new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
+    assertThat(result).isEqualTo(
+      new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
   }
 
   @Test
@@ -94,7 +95,8 @@ class AdminApplicationInfoServiceTest {
 
     var result = service.getApplicationInfo(APPLICATION.id(), session);
 
-    assertThat(result).isEqualTo(new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
+    assertThat(result).isEqualTo(
+      new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
   }
 
   @Test
@@ -107,7 +109,8 @@ class AdminApplicationInfoServiceTest {
 
     var result = service.getApplicationInfo(APPLICATION.id(), session);
 
-    assertThat(result).isEqualTo(new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
+    assertThat(result).isEqualTo(
+      new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
   }
 
   @Test
@@ -121,7 +124,8 @@ class AdminApplicationInfoServiceTest {
     var result = service.getApplicationInfo(APPLICATION.id(), session);
 
     assertThat(result).isEqualTo(
-      new AdminApplicationInfoService.GetApplicationInfo.Success(PROGRAM, STUDENT, APPLICATION, ADMIN)
+      new AdminApplicationInfoService.GetApplicationInfo.Success(PROGRAM, STUDENT, APPLICATION,
+        ADMIN)
     );
   }
 
@@ -136,7 +140,8 @@ class AdminApplicationInfoServiceTest {
 
     var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, session);
 
-    assertThat(result).isEqualTo(new AdminApplicationInfoService.UpdateApplicationStatus.NotLoggedIn());
+    assertThat(result).isEqualTo(
+      new AdminApplicationInfoService.UpdateApplicationStatus.NotLoggedIn());
   }
 
   @Test
@@ -146,7 +151,8 @@ class AdminApplicationInfoServiceTest {
 
     var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, session);
 
-    assertThat(result).isEqualTo(new AdminApplicationInfoService.UpdateApplicationStatus.UserNotAdmin());
+    assertThat(result).isEqualTo(
+      new AdminApplicationInfoService.UpdateApplicationStatus.UserNotAdmin());
   }
 
   @Test
@@ -157,7 +163,8 @@ class AdminApplicationInfoServiceTest {
 
     var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, session);
 
-    assertThat(result).isEqualTo(new AdminApplicationInfoService.UpdateApplicationStatus.ApplicationNotFound());
+    assertThat(result).isEqualTo(
+      new AdminApplicationInfoService.UpdateApplicationStatus.ApplicationNotFound());
   }
 
   @Test

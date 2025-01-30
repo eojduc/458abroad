@@ -14,7 +14,6 @@ import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
 import com.example.abroad.service.ApplyToProgramService.GetApplyPageData;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -76,7 +75,9 @@ public class ApplyToProgramServiceTest {
   void testGetPageDataStudentAlreadyApplied() {
     when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
-    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.of(APPLICATION));
+    when(
+      applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(
+      Optional.of(APPLICATION));
 
     var response = service.getPageData(PROGRAM.id(), session);
     assertThat(response).isEqualTo(new GetApplyPageData.StudentAlreadyApplied(APPLICATION.id()));
@@ -86,11 +87,14 @@ public class ApplyToProgramServiceTest {
   void testGetPageData() {
     when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
-    when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.empty());
+    when(
+      applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(
+      Optional.empty());
 
     var response = service.getPageData(PROGRAM.id(), session);
     var maxDayOfBirth = LocalDate.now().minusYears(10).toString();
-    assertThat(response).isEqualTo(new GetApplyPageData.Success(PROGRAM, STUDENT, Question.QUESTIONS, maxDayOfBirth));
+    assertThat(response).isEqualTo(
+      new GetApplyPageData.Success(PROGRAM, STUDENT, Question.QUESTIONS, maxDayOfBirth));
   }
 
   @Test
@@ -120,7 +124,8 @@ public class ApplyToProgramServiceTest {
     verify(applicationRepository).save(new Application(
       APPLICATION.id(), STUDENT.username(), APPLICATION.programId(), APPLICATION.dateOfBirth(),
       APPLICATION.gpa(), APPLICATION.major(), APPLICATION.answer1(),
-      APPLICATION.answer2(), APPLICATION.answer3(), APPLICATION.answer4(), APPLICATION.answer5(), Application.Status.APPLIED
+      APPLICATION.answer2(), APPLICATION.answer3(), APPLICATION.answer4(), APPLICATION.answer5(),
+      Application.Status.APPLIED
     ));
     assertThat(response).isEqualTo(new ApplyToProgram.Success(APPLICATION.id()));
   }

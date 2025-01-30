@@ -24,7 +24,8 @@ public class FormatServiceTest {
 
   @Test
   void testFormatInstant() {
-    var instant = LocalDateTime.parse("2021-09-01T00:00:00").atZone(ZoneId.of("America/New_York")).toInstant();
+    var instant = LocalDateTime.parse("2021-09-01T00:00:00").atZone(ZoneId.of("America/New_York"))
+      .toInstant();
     var formatted = service.formatInstant(instant);
     assertThat(formatted).isEqualTo("September 01, 2021 at 12:00 AM");
   }

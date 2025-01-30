@@ -24,7 +24,6 @@ import com.example.abroad.service.AdminProgramInfoService.DeleteProgram;
 import com.example.abroad.service.AdminProgramInfoService.Filter;
 import com.example.abroad.service.AdminProgramInfoService.GetProgramInfo;
 import com.example.abroad.service.AdminProgramInfoService.SortApplicantTable;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Comparator;
 import java.util.List;
@@ -37,6 +36,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 public class AdminProgramInfoServiceTest {
+
   @Mock
   private ProgramRepository programRepository;
   @Mock
@@ -52,14 +52,29 @@ public class AdminProgramInfoServiceTest {
 
   private AdminProgramInfoService service;
 
-  @BeforeEach
-  public void setUp() {
-    service = new AdminProgramInfoService(programRepository, applicationRepository, userService, studentRepository, adminRepository);
+  // Helper for getProgramInfo tests
+  private static Applicant applicant(Student student, Application application) {
+    return new Applicant(
+      student.username(),
+      student.displayName(),
+      student.email(),
+      application.major(),
+      application.gpa(),
+      application.dateOfBirth(),
+      application.status(),
+      application.id()
+    );
   }
 
   // ----------------------------------------------------------
   // Tests for getProgramInfo
   // ----------------------------------------------------------
+
+  @BeforeEach
+  public void setUp() {
+    service = new AdminProgramInfoService(programRepository, applicationRepository, userService,
+      studentRepository, adminRepository);
+  }
 
   @Test
   public void testGetProgramInfoNotFound() {
@@ -75,7 +90,8 @@ public class AdminProgramInfoServiceTest {
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2));
-    when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(List.of(APPLICATION, APPLICATION_2));
+    when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(
+      List.of(APPLICATION, APPLICATION_2));
     var result = service.getProgramInfo(PROGRAM.id(), session);
     assertThat(result).isEqualTo(
       new GetProgramInfo.Success(
@@ -103,6 +119,10 @@ public class AdminProgramInfoServiceTest {
     assertThat(result).isEqualTo(new GetProgramInfo.ProgramNotFound());
   }
 
+  // ----------------------------------------------------------
+  // Tests for deleteProgram
+  // ----------------------------------------------------------
+
   @Test
   public void testGetProgramInfo() {
     when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
@@ -119,10 +139,6 @@ public class AdminProgramInfoServiceTest {
       )
     );
   }
-
-  // ----------------------------------------------------------
-  // Tests for deleteProgram
-  // ----------------------------------------------------------
 
   @Test
   public void testDeleteProgramUserNotFound() {
@@ -221,7 +237,8 @@ public class AdminProgramInfoServiceTest {
     );
 
     assertThat(result).isEqualTo(
-      new SortApplicantTable.Success(List.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2)), PROGRAM
+      new SortApplicantTable.Success(
+        List.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2)), PROGRAM
       )
     );
   }
@@ -236,7 +253,8 @@ public class AdminProgramInfoServiceTest {
     when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2, STUDENT_3));
     when(applicationRepository.findByProgramId(PROGRAM.id()))
       .thenReturn(List.of(APPLICATION, APPLICATION_2, APPLICATION_3));
-    var applicants = Stream.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2), applicant(STUDENT_3, APPLICATION_3)).toList();
+    var applicants = Stream.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2),
+      applicant(STUDENT_3, APPLICATION_3)).toList();
     var result1 = service.sortApplicantTable(
       Optional.of(Column.USERNAME),
       Optional.of(Filter.NONE),
@@ -359,7 +377,6 @@ public class AdminProgramInfoServiceTest {
       )
     );
 
-
     var result10 = service.sortApplicantTable(
       Optional.empty(),
       Optional.of(Filter.NONE),
@@ -383,7 +400,8 @@ public class AdminProgramInfoServiceTest {
 
     assertThat(result11).isEqualTo(
       new SortApplicantTable.Success(
-        applicants.stream().filter(applicant -> applicant.status().equals(Application.Status.APPLIED)).toList(),
+        applicants.stream()
+          .filter(applicant -> applicant.status().equals(Application.Status.APPLIED)).toList(),
         PROGRAM
       )
     );
@@ -397,7 +415,8 @@ public class AdminProgramInfoServiceTest {
 
     assertThat(result12).isEqualTo(
       new SortApplicantTable.Success(
-        applicants.stream().filter(applicant -> applicant.status().equals(Application.Status.ENROLLED)).toList(),
+        applicants.stream()
+          .filter(applicant -> applicant.status().equals(Application.Status.ENROLLED)).toList(),
         PROGRAM
       )
     );
@@ -411,7 +430,8 @@ public class AdminProgramInfoServiceTest {
 
     assertThat(result13).isEqualTo(
       new SortApplicantTable.Success(
-        applicants.stream().filter(applicant -> applicant.status().equals(Application.Status.CANCELLED)).toList(),
+        applicants.stream()
+          .filter(applicant -> applicant.status().equals(Application.Status.CANCELLED)).toList(),
         PROGRAM
       )
     );
@@ -425,7 +445,8 @@ public class AdminProgramInfoServiceTest {
 
     assertThat(result14).isEqualTo(
       new SortApplicantTable.Success(
-        applicants.stream().filter(applicant -> applicant.status().equals(Application.Status.WITHDRAWN)).toList(),
+        applicants.stream()
+          .filter(applicant -> applicant.status().equals(Application.Status.WITHDRAWN)).toList(),
         PROGRAM
       )
     );
@@ -445,20 +466,5 @@ public class AdminProgramInfoServiceTest {
     );
 
 
-
-  }
-
-  // Helper for getProgramInfo tests
-  private static Applicant applicant(Student student, Application application) {
-    return new Applicant(
-      student.username(),
-      student.displayName(),
-      student.email(),
-      application.major(),
-      application.gpa(),
-      application.dateOfBirth(),
-      application.status(),
-      application.id()
-    );
   }
 }

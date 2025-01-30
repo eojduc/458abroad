@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class ISOFormatServiceTest {
 
-  private ISOFormatService isoFormatService = new ISOFormatService();
+  private final ISOFormatService isoFormatService = new ISOFormatService();
 
   @Test
   void testFormatInstant() {

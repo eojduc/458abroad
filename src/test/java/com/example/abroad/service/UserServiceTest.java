@@ -2,23 +2,23 @@ package com.example.abroad.service;
 
 import static com.example.abroad.TestConstants.STUDENT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootTest
 public class UserServiceTest {
+
   private static final User USER = STUDENT;
 
   //mock should be deep stubs
@@ -58,7 +58,6 @@ public class UserServiceTest {
     var result = service.getUser(session);
     assertThat(result).isEqualTo(Optional.empty());
   }
-
 
 
 }

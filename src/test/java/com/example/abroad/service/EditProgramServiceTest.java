@@ -11,7 +11,6 @@ import com.example.abroad.Config;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.respository.ProgramRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
