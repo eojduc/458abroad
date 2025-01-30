@@ -5,43 +5,49 @@
 
 <body>
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10">
+<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10 gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
-  <div class="card card-normal min-w-1/2 bg-base-200">
-    <div class="card-body">
-      <h1 class="card-title" th:text="${program.title}"></h1>
-      <p th:text="${program.description}"></p>
-      <h2 class="text-lg mt-5">Program Details</h2>
-      <table class="table table-sm border-collapse">
-        <tbody>
-        <tr class="border-base-300">
-          <td>Faculty Lead</td>
-          <td th:text="${program.facultyLead}"></td>
-        </tr>
-        <tr class="border-base-300">
-          <td>Term</td>
-          <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
-        </tr>
-        <tr class="border-base-300">
-          <td>Start Date</td>
-          <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
-        </tr>
-        <tr class="border-base-300">
-          <td>End Date</td>
-          <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
-        </tr>
-        <tr class="border-base-300">
-          <td>Application Open</td>
-          <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
-        </tr>
-        <tr class="border-base-300">
-          <td>Application Deadline</td>
-          <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
-        </tr>
-        </tbody>
-      </table>
-      <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE)}"></div>
-      <div class="card-actions mt-5">
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body gap-10">
+      <div class="flex flex-col gap-5">
+        <h1 class="card-title" th:text="${program.title}"></h1>
+        <p th:text="${program.description}"></p>
+      </div>
+      <div class="flex flex-col gap-2">
+        <h2 class="text-lg">Program Details</h2>
+        <table class="table table-sm border-collapse">
+          <tbody>
+          <tr class="border-base-300">
+            <td>Faculty Lead</td>
+            <td th:text="${program.facultyLead}"></td>
+          </tr>
+          <tr class="border-base-300">
+            <td>Term</td>
+            <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
+          </tr>
+          <tr class="border-base-300">
+            <td>Start Date</td>
+            <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
+          </tr>
+          <tr class="border-base-300">
+            <td>End Date</td>
+            <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
+          </tr>
+          <tr class="border-base-300">
+            <td>Application Open</td>
+            <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+          </tr>
+          <tr class="border-base-300">
+            <td>Application Deadline</td>
+            <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE)}"></div>
+      </div>
+      <div class="card-actions">
         <a class="btn btn-primary w-1/4" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
         <form th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post"
               class="contents"
@@ -63,10 +69,9 @@
     xmlns:th="http://www.thymeleaf.org"
     th:fragment="applicant-table(applicants, program, formatter, sortColumn, sortFilter)"
     id="applicant-table"
-    class="contents">
-  <div class="flex flex-row mt-5">
-    <h2 class="text-lg mr-4">Applicants</h2>
-    <div class="flex flex-row gap-6 items-center">
+    class="flex flex-col gap-5">
+  <div class="flex flex-row gap-6 items-center">
+      <h2 class="text-lg">Applicants</h2>
       <button class="contents"
               th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${sortColumn}, filter='NONE')}"
               hx-swap="outerHTML"
@@ -108,7 +113,6 @@
         </span>
       </button>
     </div>
-  </div>
   <table
       class="table table-sm border-collapse">
     <thead>

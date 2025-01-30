@@ -14,42 +14,91 @@
 
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="alerts(alerts)" class="contents">
-  <div th:if="${alerts.error.isPresent()}" th:text="${alerts.error.get()}" class="alert alert-error w-1/2 m-4"></div>
-  <div th:if="${alerts.success.isPresent()}" th:text="${alerts.success.get()}" class="alert alert-success w-1/2 m-4"></div>
-  <div th:if="${alerts.warning.isPresent()}" th:text="${alerts.warning.get()}" class="alert alert-warning w-1/2 m-4"></div>
-  <div th:if="${alerts.info.isPresent()}" th:text="${alerts.info.get()}" class="alert alert-info w-1/2 m-4"></div>
-</div>
-
-
-
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="student-navbar(name)" class="bg-base-100">
-  <div class="flex flex-row justify-between">
-    <div class="navbar">
-      <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
-      <a href="/programs" class="btn btn-ghost">Browse Programs</a>
-      <a href="/applications" class="btn btn-ghost">My Programs</a>
-    </div>
-    <span th:text="'Welcome ' + ${name}" class="btn btn-ghost"></span>
+  <div th:if="${alerts.error.isPresent()}" role="alert" class="alert alert-error w-full">
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 shrink-0 stroke-current"
+        fill="none"
+        viewBox="0 0 24 24">
+      <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span th:text="${alerts.error.get()}"></span>
+  </div>
+  <div th:if="${alerts.success.isPresent()}" role="alert" class="alert alert-success w-full">
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 shrink-0 stroke-current"
+        fill="none"
+        viewBox="0 0 24 24">
+      <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 13l4 4L19 7" />
+    </svg>
+    <span th:text="${alerts.success.get()}"></span>
+  </div>
+  <div th:if="${alerts.warning.isPresent()}" role="alert" class="alert alert-warning w-full">
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 shrink-0 stroke-current"
+        fill="none"
+        viewBox="0 0 24 24">
+      <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <span th:text="${alerts.warning.get()}"></span>
+  </div>
+  <div th:if="${alerts.info.isPresent()}" role="alert" class="alert alert-info w-full">
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        class="h-6 w-6 shrink-0 stroke-current">
+      <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span th:text="${alerts.info.get()}"></span>
   </div>
 </div>
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name)" class="bg-base-100">
-  <div class="flex flex-row justify-between">
-    <div class="navbar">
-      <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
-      <a href="/admin/programs" class="btn btn-ghost">Programs</a>
-      <a href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
-      <a href="/programs" class="btn btn-ghost">Student View</a>
-    </div>
-    <span th:text="'Welcome ' + ${name}" class="btn btn-ghost"></span>
-  </div>
-</div>
 
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="logged-out-navbar" class="bg-base-100">
-  <div class="navbar">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="student-navbar(name)" class="bg-base-100 navbar">
+  <div class="flex-1">
     <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
+    <a href="/programs" class="btn btn-ghost">Browse Programs</a>
+    <a href="/applications" class="btn btn-ghost">My Programs</a>
   </div>
+  <div class="flex-none">
+    <span th:text="'Welcome ' + ${name}"></span>
+  </div>
+</div>
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name)" class="bg-base-100 navbar">
+  <div class="flex-1">
+    <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
+    <a href="/admin/programs" class="btn btn-ghost">Programs</a>
+    <a href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
+    <a href="/programs" class="btn btn-ghost">Student View</a>
+  </div>
+  <div class="flex-none">
+    <span th:text="'Welcome ' + ${name}"></span>
+  </div>
+</div>
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="logged-out-navbar" class="bg-base-100 navbar">
+  <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
 </div>
 
 

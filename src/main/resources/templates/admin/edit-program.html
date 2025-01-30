@@ -5,20 +5,15 @@
 <head th:replace="~{components :: head(${program.title})}"></head>
 <body>
 
-<!-- Admin Navbar -->
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
 
-<!-- Main Container -->
 <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10 gap-5">
 
-  <!-- Alerts -->
   <div th:replace="~{components :: alerts(${alerts})}"></div>
 
-  <!-- Card -->
-  <div class="card card-normal w-3/4 bg-base-200">
+  <div class="card card-normal w-full bg-base-200">
     <div class="card-body flex flex-col gap-4">
 
-      <!-- Title + Back Button Row -->
       <div class="flex flex-row justify-between">
         <h1 class="card-title" th:text="'Edit Program (ID: ' + ${program.id} + ')'"></h1>
         <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="btn btn-primary">
@@ -26,12 +21,10 @@
         </a>
       </div>
 
-      <!-- Form -->
       <form class="contents"
             method="post"
             th:action="@{/admin/programs/{id}/edit(id=${program.id})}">
 
-        <!-- Title -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">Title</span>
@@ -43,7 +36,6 @@
                  required />
         </label>
 
-        <!-- Description -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">Description</span>
@@ -54,7 +46,6 @@
                     th:text="${program.description}"></textarea>
         </label>
 
-        <!-- Faculty Lead -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">Faculty Lead</span>
@@ -66,7 +57,6 @@
                  required />
         </label>
 
-        <!-- Semester -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">Semester</span>
@@ -81,7 +71,6 @@
           </select>
         </label>
 
-        <!-- Year -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">Year</span>
@@ -93,7 +82,6 @@
                  required />
         </label>
 
-        <!-- Start Date -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">Start Date</span>
@@ -104,8 +92,6 @@
                  th:value="${program.startDate}"
                  required />
         </label>
-
-        <!-- End Date -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">End Date</span>
@@ -117,7 +103,6 @@
                  required />
         </label>
 
-        <!-- Application Open -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">Application Open</span>
@@ -129,7 +114,6 @@
                  required />
         </label>
 
-        <!-- Application Deadline -->
         <label class="form-control">
           <div class="label">
             <span class="label-text">Application Deadline</span>
@@ -141,7 +125,6 @@
                  required />
         </label>
 
-        <!-- Save Button -->
         <div class="card-actions justify-end">
           <button class="btn btn-primary w-1/4" type="submit">Save</button>
         </div>

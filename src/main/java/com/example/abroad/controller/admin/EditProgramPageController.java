@@ -41,7 +41,7 @@ public record EditProgramPageController(EditProgramService service, ISOFormatSer
         return "redirect:/login?error=You are not logged in";
       }
       case GetEditProgramInfo.UserNotAdmin() -> {
-        return "redirect:/admin/programs?error=You are not an admin";
+        return "redirect:/programs?error=You are not an admin";
       }
       case GetEditProgramInfo.ProgramNotFound() -> {
         return "redirect:/admin/programs?error=That program does not exist";
