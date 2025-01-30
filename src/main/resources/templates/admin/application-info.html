@@ -15,50 +15,51 @@
         </div>
       </div>
       <h2 class="text-lg mt-5">Program Details</h2>
-      <table class="table table-sm">
+      <table class="table table-sm border-collapse">
         <tbody>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Title</td>
           <td>
             <a class="link link-primary"
-                th:href="@{/admin/programs/{id}(id=${program.id})}" th:text="${program.title}"></a>
+               th:href="@{/admin/programs/{id}(id=${program.id})}" th:text="${program.title}"></a>
           </td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>Description</td>
           <td th:text="${program.description}"></td>
         </tr>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Faculty Lead</td>
           <td th:text="${program.facultyLead}"></td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>Term</td>
           <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
         </tr>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Start Date</td>
           <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>End Date</td>
           <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
         </tr>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Application Open</td>
           <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>Application Deadline</td>
           <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
         </tr>
         </tbody>
       </table>
+
       <h2 class="text-lg mt-5">Application Details</h2>
 
-      <table class="table table-sm">
+      <table class="table table-sm border-collapse">
         <tbody>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Status</td>
           <td>
             <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${_application.id})}"
@@ -81,23 +82,23 @@
             </form>
           </td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>Username</td>
           <td th:text="${student.username}"></td>
         </tr>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Email</td>
           <td th:text="${student.email}"></td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>Major</td>
           <td th:text="${_application.major}"></td>
         </tr>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>GPA</td>
           <td th:text="${_application.gpa}"></td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>Date of Birth</td>
           <td th:text="${formatter.formatLocalDate(_application.dateOfBirth)}"></td>
         </tr>

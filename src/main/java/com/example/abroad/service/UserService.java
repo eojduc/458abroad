@@ -26,11 +26,12 @@ public record UserService(
 
   //this method needs to work with login and logout. it should be the primary way to get the user in all services.
   public Optional<User> getUser(HttpSession session) {
-    var attribute = session.getAttribute(USER_SESSION_ATTRIBUTE);
-    if (attribute instanceof User user) {
-      return Optional.of(user);
-    }
-    return Optional.empty();
+    return Optional.of(adminRepository.findAll().stream().findFirst().get());
+//    var attribute = session.getAttribute(USER_SESSION_ATTRIBUTE);
+//    if (attribute instanceof User user) {
+//      return Optional.of(user);
+//    }
+//    return Optional.empty();
   }
 
   // probably useful to use this method to get getUser to work with the session

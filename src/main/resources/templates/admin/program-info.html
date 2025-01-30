@@ -12,29 +12,29 @@
       <h1 class="card-title" th:text="${program.title}"></h1>
       <p th:text="${program.description}"></p>
       <h2 class="text-lg mt-5">Program Details</h2>
-      <table class="table table-sm">
+      <table class="table table-sm border-collapse">
         <tbody>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Faculty Lead</td>
           <td th:text="${program.facultyLead}"></td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>Term</td>
           <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
         </tr>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Start Date</td>
           <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>End Date</td>
           <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
         </tr>
-        <tr class="bg-base-300">
+        <tr class="border-base-300">
           <td>Application Open</td>
           <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
         </tr>
-        <tr>
+        <tr class="border-base-300">
           <td>Application Deadline</td>
           <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
         </tr>
@@ -110,9 +110,9 @@
     </div>
   </div>
   <table
-      class="table table-sm">
+      class="table table-sm border-collapse">
     <thead>
-    <tr>
+    <tr class="border-base-300">
       <th>
         <button
             th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column='DISPLAY_NAME', filter=${sortFilter})}"
@@ -181,7 +181,7 @@
     </tr>
     </thead>
     <tbody>
-      <tr th:each="applicant, stat : ${applicants}" th:class="${stat.index % 2 == 0} ? 'bg-base-300'">
+      <tr th:each="applicant : ${applicants}" class="border-base-300">
         <td>
           <a class="link link-primary"
               th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}"
