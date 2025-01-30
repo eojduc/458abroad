@@ -25,6 +25,7 @@ public record UserService(
 
 
   //this method needs to work with login and logout. it should be the primary way to get the user in all services.
+  // at the moment it is short circuiting and returning the first admin in the database
   public Optional<User> getUser(HttpSession session) {
     return Optional.of(adminRepository.findAll().stream().findFirst().get());
 //    var attribute = session.getAttribute(USER_SESSION_ATTRIBUTE);

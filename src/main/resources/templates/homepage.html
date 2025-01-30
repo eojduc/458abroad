@@ -4,21 +4,21 @@
 <body>
 <div th:replace="~{components :: logged-out-navbar}"></div>
 <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen p-4">
-    <div class="card bg-base-200">
-        <figure>
-            <img src="/images/logo.jpeg" alt="HCC Logo"/>
-        </figure>
-        <div class="card-body items-center text-center">
-            <h1 class="text-4xl font-bold mb-2">Welcome to HCC</h1>
-            <p class="text-xl mb-4">Study Abroad Logistics Management System</p>
+  <div class="card bg-base-200">
+    <figure>
+      <img src="/images/logo.jpeg" alt="HCC Logo"/>
+    </figure>
+    <div class="card-body items-center text-center">
+      <h1 class="card-title">Welcome to HCC</h1>
+      <p>Study Abroad Logistics Management System</p>
 
-            <div class="card-actions">
-                <a href="/login" class="btn btn-primary btn-lg">Login</a>
-                <a href="/register" class="btn btn-secondary btn-lg">Register</a>
-            </div>
+      <div class="card-actions">
+        <a href="/login" class="btn btn-primary btn-lg">Login</a>
+        <a href="/register" class="btn btn-secondary btn-lg">Register</a>
+      </div>
 
-        </div>
     </div>
+  </div>
 </div>
 <div th:replace="~{components :: footer}"></div>
 </body>

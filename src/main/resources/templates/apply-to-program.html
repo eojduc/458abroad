@@ -7,7 +7,7 @@
   <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10 gap-5">
     <div th:replace="~{components :: alerts(${alerts})}"></div>
 
-    <div class="card card-normal w-3/4 bg-base-200">
+    <div class="card card-normal w-full bg-base-200">
       <div class="card-body flex flex-col gap-4">
         <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
         <form th:replace="~{this :: apply-form(${program}, ${user}, ${questions})}"></form>
