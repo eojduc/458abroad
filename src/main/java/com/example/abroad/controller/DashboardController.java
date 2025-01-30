@@ -9,25 +9,26 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class DashboardController {
-
   @GetMapping("/dashboard")
   public String showDashboard(HttpServletRequest request, Model model) {
+    String displayName = (String) request.getSession().getAttribute("displayName");
     String username = (String) request.getSession().getAttribute("username");
     System.out.println(
       "Getting username from session: " + request.getSession().getAttribute("username"));
-    model.addAttribute("username", username);
+    model.addAttribute("displayName", displayName);
     model.addAttribute("student", username); // Add this for navbar
     return "dashboard/student-dashboard :: page";
   }
 
   @GetMapping("/admin/dashboard")
   public String adminDashboard(HttpServletRequest request, Model model) {
-    var username = Optional.ofNullable(request.getSession().getAttribute("username"))
+    var displayName = Optional.ofNullable(request.getSession().getAttribute("displayName"))
       .filter(obj -> obj instanceof String)
       .map(obj -> (String) obj)
-      .orElse("admin"); // Default fallback
+      .orElse("Admin"); // Default fallback
 
-    model.addAttribute("username", username);
+    model.addAttribute("displayName", displayName);
+
     return "dashboard/admin-dashboard :: page";  // Note the :: page suffix
   }
 }

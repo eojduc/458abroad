@@ -40,12 +40,12 @@ public record UserService(
     session.setAttribute(USER_SESSION_ATTRIBUTE, user);
   }
 
-  public Student registerStudent(String username, String email, String password) {
+  public Student registerStudent(String username, String displayName, String email, String password) {
     checkUsernameAndEmailAvailability(username, email);
 
     String hashedPassword = passwordEncoder.encode(password);
     System.out.println("Encoded password during registration: " + hashedPassword);
-    Student student = new Student(username, hashedPassword, email, username);
+    Student student = new Student(username, hashedPassword, email, displayName);
     return studentRepository.save(student);
   }
 

@@ -50,6 +50,7 @@ public final class Admin implements User {
     return displayName;
   }
 
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

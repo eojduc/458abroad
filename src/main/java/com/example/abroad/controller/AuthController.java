@@ -3,6 +3,7 @@ package com.example.abroad.controller;
 import com.example.abroad.exception.EmailAlreadyInUseException;
 import com.example.abroad.exception.UsernameAlreadyInUseException;
 import com.example.abroad.model.Role;
+import com.example.abroad.respository.StudentRepository;
 import com.example.abroad.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +26,7 @@ public class AuthController {
   private final UserService userService;
   private final AuthenticationManager authenticationManager;
 
+
   @Autowired
   public AuthController(UserService userService, AuthenticationManager authenticationManager) {
     this.userService = userService;
@@ -45,12 +47,13 @@ public class AuthController {
 
   @PostMapping("/register")
   public String registerUser(@RequestParam String username,
+                             @RequestParam String displayName,
                              @RequestParam String email,
                              @RequestParam String password,
                              HttpServletRequest request,
                              Model model) {
     try {
-      userService.registerStudent(username, email, password);
+      userService.registerStudent(username, displayName, email, password);
 
       // Create authentication token
       UsernamePasswordAuthenticationToken authToken =
@@ -66,7 +69,8 @@ public class AuthController {
       // Explicitly create the session and store the security context
       HttpSession session = request.getSession(true); //session persist throuhg all http requests
       session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
-
+      session.setAttribute("username", username);
+      session.setAttribute("displayName", displayName);
       return "redirect:/dashboard";
 
     } catch (UsernameAlreadyInUseException e) {
