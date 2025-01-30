@@ -15,6 +15,7 @@ import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
 import com.example.abroad.service.ApplyToProgramService.GetApplyPageData;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +34,7 @@ public class ApplyToProgramServiceTest {
   @Mock
   private ProgramRepository programRepository;
   @Mock
-  private HttpServletRequest request;
+  private HttpSession session;
 
   private ApplyToProgramService service;
 
@@ -46,59 +47,59 @@ public class ApplyToProgramServiceTest {
 
   @Test
   void testGetPageDataUserNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.empty());
+    when(userService.getUser(session)).thenReturn(Optional.empty());
 
-    var response = service.getPageData(PROGRAM.id(), request);
+    var response = service.getPageData(PROGRAM.id(), session);
     assertThat(response).isEqualTo(new GetApplyPageData.UserNotFound());
   }
 
 
   @Test
   void testGetPageDataProgramNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
-    var response = service.getPageData(PROGRAM.id(), request);
+    var response = service.getPageData(PROGRAM.id(), session);
     assertThat(response).isEqualTo(new GetApplyPageData.ProgramNotFound());
   }
 
   @Test
   void testGetPageDataUserNotStudent() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
 
-    var response = service.getPageData(PROGRAM.id(), request);
+    var response = service.getPageData(PROGRAM.id(), session);
     assertThat(response).isEqualTo(new GetApplyPageData.UserNotStudent());
   }
 
 
   @Test
   void testGetPageDataStudentAlreadyApplied() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.of(APPLICATION));
 
-    var response = service.getPageData(PROGRAM.id(), request);
+    var response = service.getPageData(PROGRAM.id(), session);
     assertThat(response).isEqualTo(new GetApplyPageData.StudentAlreadyApplied(APPLICATION.id()));
   }
 
   @Test
   void testGetPageData() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(applicationRepository.findByProgramIdAndStudent(PROGRAM.id(), STUDENT.username())).thenReturn(Optional.empty());
 
-    var response = service.getPageData(PROGRAM.id(), request);
+    var response = service.getPageData(PROGRAM.id(), session);
     var maxDayOfBirth = LocalDate.now().minusYears(10).toString();
     assertThat(response).isEqualTo(new GetApplyPageData.Success(PROGRAM, STUDENT, Question.QUESTIONS, maxDayOfBirth));
   }
 
   @Test
   void testApplyToProgramUserNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.empty());
+    when(userService.getUser(session)).thenReturn(Optional.empty());
 
     var response = service.applyToProgram(
       APPLICATION.programId(),
-      request, APPLICATION.major(), APPLICATION.gpa(), APPLICATION.dateOfBirth(),
+      session, APPLICATION.major(), APPLICATION.gpa(), APPLICATION.dateOfBirth(),
       APPLICATION.answer1(), APPLICATION.answer2(), APPLICATION.answer3(),
       APPLICATION.answer4(), APPLICATION.answer5()
     );
@@ -108,11 +109,11 @@ public class ApplyToProgramServiceTest {
 
   @Test
   void testApplyToProgram() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
 
     var response = service.applyToProgram(
       APPLICATION.programId(),
-      request, APPLICATION.major(), APPLICATION.gpa(), APPLICATION.dateOfBirth(),
+      session, APPLICATION.major(), APPLICATION.gpa(), APPLICATION.dateOfBirth(),
       APPLICATION.answer1(), APPLICATION.answer2(), APPLICATION.answer3(),
       APPLICATION.answer4(), APPLICATION.answer5()
     );

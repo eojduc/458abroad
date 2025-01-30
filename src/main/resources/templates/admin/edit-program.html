@@ -4,7 +4,7 @@
 <head th:replace="~{components :: head(${program.title})}"></head>
 
 <body>
-<div th:replace="~{components :: admin-navbar(${program.title}, ${user.displayName})}"></div>
+<div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
 <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-3/4 bg-base-200 m-10">

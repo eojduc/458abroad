@@ -10,6 +10,7 @@ import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.StudentRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -29,8 +30,8 @@ public record AdminProgramInfoService(
   AdminRepository adminRepository
 ) {
 
-  public DeleteProgram deleteProgram(Integer programId, HttpServletRequest request) {
-    var user = userService.getUser(request).orElse(null);
+  public DeleteProgram deleteProgram(Integer programId, HttpSession session) {
+    var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new DeleteProgram.UserNotFound();
     }
@@ -45,8 +46,8 @@ public record AdminProgramInfoService(
     return new DeleteProgram.Success();
   }
 
-  public GetProgramInfo getProgramInfo(Integer programId, HttpServletRequest request) {
-    var user = userService.getUser(request).orElse(null);
+  public GetProgramInfo getProgramInfo(Integer programId, HttpSession session) {
+    var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new GetProgramInfo.UserNotFound();
     }
@@ -70,8 +71,8 @@ public record AdminProgramInfoService(
   }
   public SortApplicantTable sortApplicantTable(Optional<Column> column,
     Optional<Filter> filter,
-    Integer programId, HttpServletRequest request) {
-    var user = userService.getUser(request).orElse(null);
+    Integer programId, HttpSession session) {
+    var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new SortApplicantTable.Failure();
     }

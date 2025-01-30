@@ -25,6 +25,7 @@ import com.example.abroad.service.AdminProgramInfoService.Filter;
 import com.example.abroad.service.AdminProgramInfoService.GetProgramInfo;
 import com.example.abroad.service.AdminProgramInfoService.SortApplicantTable;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -46,8 +47,8 @@ public class AdminProgramInfoServiceTest {
   private StudentRepository studentRepository;
   @Mock
   private AdminRepository adminRepository;
-
-  private HttpServletRequest request;
+  @Mock
+  private HttpSession session;
 
   private AdminProgramInfoService service;
 
@@ -62,20 +63,20 @@ public class AdminProgramInfoServiceTest {
 
   @Test
   public void testGetProgramInfoNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.empty());
-    var result = service.getProgramInfo(PROGRAM.id(), request);
-    verify(userService).getUser(request);
+    when(userService.getUser(session)).thenReturn(Optional.empty());
+    var result = service.getProgramInfo(PROGRAM.id(), session);
+    verify(userService).getUser(session);
     assertThat(result).isEqualTo(new GetProgramInfo.UserNotFound());
   }
 
   @Test
   public void testGetProgramInfoWorksForTwoApplicants() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2));
     when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(List.of(APPLICATION, APPLICATION_2));
-    var result = service.getProgramInfo(PROGRAM.id(), request);
+    var result = service.getProgramInfo(PROGRAM.id(), session);
     assertThat(result).isEqualTo(
       new GetProgramInfo.Success(
         PROGRAM,
@@ -87,29 +88,29 @@ public class AdminProgramInfoServiceTest {
 
   @Test
   public void testGetProgramInfoNotAdmin() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(adminRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
-    var result = service.getProgramInfo(PROGRAM.id(), request);
+    var result = service.getProgramInfo(PROGRAM.id(), session);
     assertThat(result).isEqualTo(new GetProgramInfo.UserNotAdmin());
   }
 
   @Test
   public void testGetProgramInfoProgramNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
-    var result = service.getProgramInfo(PROGRAM.id(), request);
+    var result = service.getProgramInfo(PROGRAM.id(), session);
     assertThat(result).isEqualTo(new GetProgramInfo.ProgramNotFound());
   }
 
   @Test
   public void testGetProgramInfo() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(studentRepository.findAll()).thenReturn(List.of(STUDENT));
     when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(List.of(APPLICATION));
-    var result = service.getProgramInfo(PROGRAM.id(), request);
+    var result = service.getProgramInfo(PROGRAM.id(), session);
     assertThat(result).isEqualTo(
       new GetProgramInfo.Success(
         PROGRAM,
@@ -125,36 +126,36 @@ public class AdminProgramInfoServiceTest {
 
   @Test
   public void testDeleteProgramUserNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.empty());
-    var result = service.deleteProgram(PROGRAM.id(), request);
-    verify(userService).getUser(request);
+    when(userService.getUser(session)).thenReturn(Optional.empty());
+    var result = service.deleteProgram(PROGRAM.id(), session);
+    verify(userService).getUser(session);
     assertThat(result).isEqualTo(new DeleteProgram.UserNotFound());
   }
 
   @Test
   public void testDeleteProgramNotAdmin() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(adminRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
-    var result = service.deleteProgram(PROGRAM.id(), request);
+    var result = service.deleteProgram(PROGRAM.id(), session);
     assertThat(result).isEqualTo(new DeleteProgram.UserNotAdmin());
   }
 
   @Test
   public void testDeleteProgramProgramNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
-    var result = service.deleteProgram(PROGRAM.id(), request);
+    var result = service.deleteProgram(PROGRAM.id(), session);
     assertThat(result).isEqualTo(new DeleteProgram.ProgramNotFound());
   }
 
   @Test
   public void testDeleteProgramSuccess() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
 
-    var result = service.deleteProgram(PROGRAM.id(), request);
+    var result = service.deleteProgram(PROGRAM.id(), session);
 
     verify(programRepository).deleteById(PROGRAM.id());
     assertThat(result).isEqualTo(new DeleteProgram.Success());
@@ -162,34 +163,34 @@ public class AdminProgramInfoServiceTest {
 
   @Test
   public void testSortApplicantTableUserNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.empty());
+    when(userService.getUser(session)).thenReturn(Optional.empty());
 
     var result = service.sortApplicantTable(
       Optional.of(Column.USERNAME),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
     assertThat(result).isEqualTo(new SortApplicantTable.Failure());
   }
 
   @Test
   public void testSortApplicantTableUserNotAdmin() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(adminRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
 
     var result = service.sortApplicantTable(
       Optional.of(Column.USERNAME),
       Optional.of(Filter.APPLIED),
       PROGRAM.id(),
-      request
+      session
     );
     assertThat(result).isEqualTo(new SortApplicantTable.Failure());
   }
 
   @Test
   public void testSortApplicantTableProgramNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
@@ -197,14 +198,14 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.USERNAME),
       Optional.of(Filter.APPLIED),
       PROGRAM.id(),
-      request
+      session
     );
     assertThat(result).isEqualTo(new SortApplicantTable.Failure());
   }
 
   @Test
   public void testSortApplicantTableSuccess() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username()))
       .thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
@@ -216,7 +217,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.USERNAME),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result).isEqualTo(
@@ -228,7 +229,7 @@ public class AdminProgramInfoServiceTest {
   @Test
   public void testSorApplicantTableBySorters() {
 
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username()))
       .thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
@@ -240,7 +241,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.USERNAME),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result1).isEqualTo(
@@ -255,7 +256,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.DOB),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
     assertThat(result2).isEqualTo(
       new SortApplicantTable.Success(
@@ -268,7 +269,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.GPA),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result3).isEqualTo(
@@ -281,7 +282,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.STATUS),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
     assertThat(result4).isEqualTo(
       new SortApplicantTable.Success(
@@ -294,7 +295,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.MAJOR),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
     assertThat(result5).isEqualTo(
       new SortApplicantTable.Success(
@@ -307,7 +308,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.EMAIL),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
     assertThat(result6).isEqualTo(
       new SortApplicantTable.Success(
@@ -320,7 +321,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.DISPLAY_NAME),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result7).isEqualTo(
@@ -334,7 +335,7 @@ public class AdminProgramInfoServiceTest {
       Optional.of(Column.NONE),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result8).isEqualTo(
@@ -348,7 +349,7 @@ public class AdminProgramInfoServiceTest {
       Optional.empty(),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result9).isEqualTo(
@@ -363,7 +364,7 @@ public class AdminProgramInfoServiceTest {
       Optional.empty(),
       Optional.of(Filter.NONE),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result10).isEqualTo(
@@ -377,7 +378,7 @@ public class AdminProgramInfoServiceTest {
       Optional.empty(),
       Optional.of(Filter.APPLIED),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result11).isEqualTo(
@@ -391,7 +392,7 @@ public class AdminProgramInfoServiceTest {
       Optional.empty(),
       Optional.of(Filter.ENROLLED),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result12).isEqualTo(
@@ -405,7 +406,7 @@ public class AdminProgramInfoServiceTest {
       Optional.empty(),
       Optional.of(Filter.CANCELLED),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result13).isEqualTo(
@@ -419,7 +420,7 @@ public class AdminProgramInfoServiceTest {
       Optional.empty(),
       Optional.of(Filter.WITHDRAWN),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result14).isEqualTo(
@@ -433,7 +434,7 @@ public class AdminProgramInfoServiceTest {
       Optional.empty(),
       Optional.empty(),
       PROGRAM.id(),
-      request
+      session
     );
 
     assertThat(result15).isEqualTo(

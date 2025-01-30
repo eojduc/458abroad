@@ -6,6 +6,7 @@ import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.respository.ProgramRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -14,8 +15,8 @@ import org.springframework.stereotype.Service;
 @Service
 public record EditProgramService(UserService userService, ProgramRepository programRepository) {
 
-  public GetEditProgramInfo getEditProgramInfo(Integer programId, HttpServletRequest request) {
-    var user = userService.getUser(request).orElse(null);
+  public GetEditProgramInfo getEditProgramInfo(Integer programId, HttpSession session) {
+    var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new GetEditProgramInfo.NotLoggedIn();
     }
@@ -33,9 +34,10 @@ public record EditProgramService(UserService userService, ProgramRepository prog
      String title,  String description,
      Integer year,  LocalDate startDate, LocalDate endDate,
      String facultyLead,
-     Semester semester,  LocalDateTime applicationOpen,  LocalDateTime applicationClose, HttpServletRequest request
+     Semester semester,  LocalDateTime applicationOpen,  LocalDateTime applicationClose,
+    HttpSession session
     ) {
-    var user = userService.getUser(request).orElse(null);
+    var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new UpdateProgramInfo.NotLoggedIn();
     }

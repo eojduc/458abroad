@@ -8,6 +8,7 @@ import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,12 +22,15 @@ public class UserServiceTest {
   private static final User USER = STUDENT;
 
   //mock should be deep stubs
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-  private HttpServletRequest request;
+  @Mock
+  private HttpSession session;
 
-  private AdminRepository adminRepository = mock(AdminRepository.class);
-  private StudentRepository studentRepository = mock(StudentRepository.class);
-  private PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+  @Mock
+  private AdminRepository adminRepository;
+  @Mock
+  private StudentRepository studentRepository;
+  @Mock
+  private PasswordEncoder passwordEncoder;
 
   private UserService service;
 
@@ -37,21 +41,21 @@ public class UserServiceTest {
 
   @Test
   void testSetUser() {
-    service.setUser(request, USER);
-    verify(request.getSession()).setAttribute("user", USER);
+    service.setUser(session, USER);
+    verify(session).setAttribute("user", USER);
   }
 
   @Test
   void testGetUser() {
-    when(request.getSession().getAttribute("user")).thenReturn(USER);
-    var result = service.getUser(request);
+    when(session.getAttribute("user")).thenReturn(USER);
+    var result = service.getUser(session);
     assertThat(result).isEqualTo(Optional.of(USER));
   }
 
   @Test
   void testGetUserNotPresent() {
-    when(request.getSession().getAttribute("user")).thenReturn(null);
-    var result = service.getUser(request);
+    when(session.getAttribute("user")).thenReturn(null);
+    var result = service.getUser(session);
     assertThat(result).isEqualTo(Optional.empty());
   }
 

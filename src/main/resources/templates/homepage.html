@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
 <head th:replace="~{components :: head('Home')}"></head>
 <body>
-<div th:replace="~{components :: navbar('HCC Study Abroad', '')}"></div>
+<div th:replace="~{components :: logged-out-navbar}"></div>
 <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen p-4">
     <div class="card bg-base-200 w-1/2">
         <div class="card-body items-center text-center p-6">

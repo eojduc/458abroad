@@ -5,6 +5,7 @@ import com.example.abroad.service.ApplyToProgramService;
 import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
 import com.example.abroad.service.ApplyToProgramService.GetApplyPageData;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
@@ -19,11 +20,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public record ApplyToProgramController(ApplyToProgramService service) {
 
   @GetMapping("/programs/{programId}/apply")
-  public String applyToProgram(@PathVariable Integer programId, HttpServletRequest request,
+  public String applyToProgram(@PathVariable Integer programId, HttpSession session,
     Model model, @RequestParam Optional<String> error,
     @RequestParam Optional<String> success, @RequestParam Optional<String> warning,
     @RequestParam Optional<String> info) {
-    switch (service.getPageData(programId, request)) {
+    switch (service.getPageData(programId, session)) {
       case GetApplyPageData.Success(var program, var user, var questions, var maxDayOfBirth) -> {
         model.addAllAttributes(Map.of(
           "program", program,
@@ -51,12 +52,12 @@ public record ApplyToProgramController(ApplyToProgramService service) {
   }
 
   @PostMapping("/programs/{programId}/apply")
-  public String applyToProgramPost(@PathVariable Integer programId, HttpServletRequest request,
+  public String applyToProgramPost(@PathVariable Integer programId, HttpSession session,
     @RequestParam String major, @RequestParam Double gpa, @RequestParam LocalDate dob,
     @RequestParam String answer1, @RequestParam String answer2, @RequestParam String answer3,
     @RequestParam String answer4, @RequestParam String answer5
   ) {
-    return switch (service.applyToProgram(programId, request, major, gpa, dob, answer1, answer2, answer3,
+    return switch (service.applyToProgram(programId, session, major, gpa, dob, answer1, answer2, answer3,
       answer4, answer5)) {
       case ApplyToProgram.Success(var id) -> "redirect:/applications/" + id;
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";

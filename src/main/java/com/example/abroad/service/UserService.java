@@ -8,45 +8,36 @@ import com.example.abroad.model.Student;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Service
-public class UserService {
+public record UserService(
+  AdminRepository adminRepository,
+  StudentRepository studentRepository,
+  PasswordEncoder passwordEncoder
+) {
   private static final String USER_SESSION_ATTRIBUTE = "user";
 
-  private final AdminRepository adminRepository;
-  private final StudentRepository studentRepository;
-  private final PasswordEncoder passwordEncoder;  //
 
-  public UserService(AdminRepository adminRepository,
-                     StudentRepository studentRepository,
-                     PasswordEncoder passwordEncoder) {
-    this.adminRepository = adminRepository;
-    this.studentRepository = studentRepository;
-    this.passwordEncoder = passwordEncoder;
-  }
-
-
-
-  public void setUser(HttpServletRequest request, User user) {
-    request.getSession().setAttribute(USER_SESSION_ATTRIBUTE, user);
-  }
-
-  public Optional<User> getUser(HttpServletRequest request) {
-    var attribute = request.getSession().getAttribute(USER_SESSION_ATTRIBUTE);
+  //this method needs to work with login and logout. it should be the primary way to get the user in all services.
+  public Optional<User> getUser(HttpSession session) {
+    var attribute = session.getAttribute(USER_SESSION_ATTRIBUTE);
     if (attribute instanceof User user) {
       return Optional.of(user);
     }
     return Optional.empty();
   }
 
-  @Transactional
+  // probably useful to use this method to get getUser to work with the session
+  public void setUser(HttpSession session, User user) {
+    session.setAttribute(USER_SESSION_ATTRIBUTE, user);
+  }
+
   public Student registerStudent(String username, String email, String password) {
     checkUsernameAndEmailAvailability(username, email);
 
@@ -56,10 +47,9 @@ public class UserService {
     return studentRepository.save(student);
   }
 
-  @Transactional
-  public Admin createAdmin(String username, String email, String password, HttpServletRequest request) {
+  public Admin createAdmin(String username, String email, String password, HttpSession session) {
 
-    String creatorUsername = (String) request.getSession().getAttribute("username");
+    String creatorUsername = (String) session.getAttribute("username");
     System.out.println("creator's username: " + creatorUsername);
     Optional<Admin> optionalCreator = adminRepository.findByUsername(creatorUsername);
     User creator = null;
@@ -97,7 +87,6 @@ public class UserService {
     }
   }
 
-  @Transactional(readOnly = true)
   public User authenticateUser(String username, String password) {
     User user = findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
@@ -112,7 +101,6 @@ public class UserService {
     return user;
   }
 
-  @Transactional(readOnly = true)
   public Optional<User> findByUsername(String username) {
     Optional<Admin> admin = adminRepository.findByUsername(username);
     if (admin.isPresent()) {

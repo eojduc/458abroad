@@ -12,6 +12,7 @@ import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.StudentRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class AdminApplicationInfoServiceTest {
   @Mock
   private StudentRepository studentRepository;
   @Mock
-  private HttpServletRequest request;
+  private HttpSession session;
 
   private AdminApplicationInfoService service;
 
@@ -56,9 +57,9 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testGetApplicationInfoNotLoggedIn() {
     // userService returns no user => NotLoggedIn
-    when(userService.getUser(request)).thenReturn(Optional.empty());
+    when(userService.getUser(session)).thenReturn(Optional.empty());
 
-    var result = service.getApplicationInfo(APPLICATION.id(), request);
+    var result = service.getApplicationInfo(APPLICATION.id(), session);
 
     assertThat(result).isEqualTo(new AdminApplicationInfoService.GetApplicationInfo.NotLoggedIn());
   }
@@ -66,9 +67,9 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testGetApplicationInfoUserNotAdmin() {
     // userService returns a valid user, but it's not an Admin
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
 
-    var result = service.getApplicationInfo(APPLICATION.id(), request);
+    var result = service.getApplicationInfo(APPLICATION.id(), session);
 
     assertThat(result).isEqualTo(new AdminApplicationInfoService.GetApplicationInfo.UserNotAdmin());
   }
@@ -76,10 +77,10 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testGetApplicationInfoApplicationNotFound() {
     // user is Admin but application doesn't exist
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(applicationRepository.findById(APPLICATION.id())).thenReturn(Optional.empty());
 
-    var result = service.getApplicationInfo(APPLICATION.id(), request);
+    var result = service.getApplicationInfo(APPLICATION.id(), session);
 
     assertThat(result).isEqualTo(new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
   }
@@ -87,11 +88,11 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testGetApplicationInfoProgramNotFound() {
     // user is Admin, application is found, but program is missing => ApplicationNotFound
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(applicationRepository.findById(APPLICATION.id())).thenReturn(Optional.of(APPLICATION));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
-    var result = service.getApplicationInfo(APPLICATION.id(), request);
+    var result = service.getApplicationInfo(APPLICATION.id(), session);
 
     assertThat(result).isEqualTo(new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
   }
@@ -99,12 +100,12 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testGetApplicationInfoStudentNotFound() {
     // user is Admin, application + program found, but student is missing => ApplicationNotFound
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(applicationRepository.findById(APPLICATION.id())).thenReturn(Optional.of(APPLICATION));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(studentRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
 
-    var result = service.getApplicationInfo(APPLICATION.id(), request);
+    var result = service.getApplicationInfo(APPLICATION.id(), session);
 
     assertThat(result).isEqualTo(new AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound());
   }
@@ -112,12 +113,12 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testGetApplicationInfoSuccess() {
     // user is Admin, everything is found => Success
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(applicationRepository.findById(APPLICATION.id())).thenReturn(Optional.of(APPLICATION));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(studentRepository.findByUsername(STUDENT.username())).thenReturn(Optional.of(STUDENT));
 
-    var result = service.getApplicationInfo(APPLICATION.id(), request);
+    var result = service.getApplicationInfo(APPLICATION.id(), session);
 
     assertThat(result).isEqualTo(
       new AdminApplicationInfoService.GetApplicationInfo.Success(PROGRAM, STUDENT, APPLICATION, ADMIN)
@@ -131,9 +132,9 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testUpdateApplicationStatusNotLoggedIn() {
     // userService returns no user => NotLoggedIn
-    when(userService.getUser(request)).thenReturn(Optional.empty());
+    when(userService.getUser(session)).thenReturn(Optional.empty());
 
-    var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, request);
+    var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, session);
 
     assertThat(result).isEqualTo(new AdminApplicationInfoService.UpdateApplicationStatus.NotLoggedIn());
   }
@@ -141,9 +142,9 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testUpdateApplicationStatusUserNotAdmin() {
     // userService returns a user who is not an Admin
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
 
-    var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, request);
+    var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, session);
 
     assertThat(result).isEqualTo(new AdminApplicationInfoService.UpdateApplicationStatus.UserNotAdmin());
   }
@@ -151,10 +152,10 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testUpdateApplicationStatusApplicationNotFound() {
     // user is Admin, but the application doesn't exist in the repo
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(applicationRepository.findById(APPLICATION.id())).thenReturn(Optional.empty());
 
-    var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, request);
+    var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, session);
 
     assertThat(result).isEqualTo(new AdminApplicationInfoService.UpdateApplicationStatus.ApplicationNotFound());
   }
@@ -162,10 +163,10 @@ class AdminApplicationInfoServiceTest {
   @Test
   void testUpdateApplicationStatusSuccess() {
     // user is Admin, application is found => success
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(applicationRepository.findById(APPLICATION.id())).thenReturn(Optional.of(APPLICATION));
 
-    var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, request);
+    var result = service.updateApplicationStatus(APPLICATION.id(), Status.APPLIED, session);
 
     // Verify the repo call to update status
     verify(applicationRepository).updateStatus(APPLICATION.id(), Status.APPLIED);

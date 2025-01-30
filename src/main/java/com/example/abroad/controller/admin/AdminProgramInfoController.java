@@ -11,6 +11,7 @@ import com.example.abroad.service.AdminProgramInfoService.GetProgramInfo;
 import com.example.abroad.service.AdminProgramInfoService.SortApplicantTable;
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
@@ -25,10 +26,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 public record AdminProgramInfoController(AdminProgramInfoService service, FormatService formatter) {
 
   @GetMapping("/admin/programs/{programId}")
-  public String getProgramInfo(@PathVariable Integer programId, HttpServletRequest request, Model model,
+  public String getProgramInfo(@PathVariable Integer programId, HttpSession session, Model model,
     @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
-    switch (service.getProgramInfo(programId, request)) {
+    switch (service.getProgramInfo(programId, session)) {
       case GetProgramInfo.UserNotFound() -> {
         return "redirect:/login?error=You are not logged in";
       }
@@ -56,8 +57,8 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
   }
 
   @PostMapping("/admin/programs/{programId}/delete")
-  public String deleteProgram(@PathVariable Integer programId, HttpServletRequest request) {
-    return switch (service.deleteProgram(programId, request)) {
+  public String deleteProgram(@PathVariable Integer programId, HttpSession session) {
+    return switch (service.deleteProgram(programId, session)) {
       case DeleteProgram.Success() ->
         "redirect:/admin/programs?success=Program deleted";
       case DeleteProgram.UserNotFound() ->
@@ -70,10 +71,10 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
   }
 
   @GetMapping("/admin/programs/{programId}/applicants")
-  public String getApplicantTable(@PathVariable Integer programId, HttpServletRequest request,
+  public String getApplicantTable(@PathVariable Integer programId, HttpSession session,
     Model model,
   @RequestParam Optional<Column> column, @RequestParam Optional<Filter> filter) {
-    switch (service.sortApplicantTable(column, filter, programId, request)) {
+    switch (service.sortApplicantTable(column, filter, programId, session)) {
       case SortApplicantTable.Success(var applicants, var program) -> {
         model.addAllAttributes(Map.of(
           "program", program,

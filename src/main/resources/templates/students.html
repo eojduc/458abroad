@@ -3,7 +3,7 @@
 
   <head th:replace="~{components :: head(Students)}"></head>
   <body>
-    <div th:replace="~{components :: student-navbar(Students, unknown)}"></div>
+    <div th:replace="~{components :: logged-out-navbar}"></div>
     <div class="flex justify-center bg-base-100 h-screen">
       <div class="bg-base-200 card card-normal w-1/2 m-10">
         <div class="card-body">

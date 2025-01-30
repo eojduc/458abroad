@@ -9,6 +9,7 @@ import com.example.abroad.service.AdminApplicationInfoService.GetApplicationInfo
 import com.example.abroad.service.AdminApplicationInfoService.UpdateApplicationStatus;
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
@@ -22,15 +23,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 public record AdminApplicationInfoController(AdminApplicationInfoService service, FormatService formatter) {
 
   @GetMapping("/admin/applications/{applicationId}")
-  public String getApplicationInfo(@PathVariable String applicationId, HttpServletRequest request, Model model,
+  public String getApplicationInfo(@PathVariable String applicationId, HttpSession session, Model model,
     @RequestParam Optional<String> error, @RequestParam Optional<String> success, @RequestParam Optional<String> warning,
     @RequestParam Optional<String> info) {
-    switch (service.getApplicationInfo(applicationId, request)) {
+    switch (service.getApplicationInfo(applicationId, session)) {
       case GetApplicationInfo.Success(var program, var student, var application, var user) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "student", student,
-          "_application", application, // _application is used to avoid conflict with the application variable
+          "_application", application, // _application is used to avoid conflict with the application variable in Thymeleaf
           "formatter", formatter,
           "questions", Question.QUESTIONS,
           "user", user,
@@ -53,9 +54,9 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
 
   @PostMapping("/admin/applications/{applicationId}/status")
   public String updateApplicationStatus(@PathVariable String applicationId,
-    HttpServletRequest request, Model model,
+    HttpSession session, Model model,
     @RequestParam Application.Status status) {
-    switch (service.updateApplicationStatus(applicationId, status, request)) {
+    switch (service.updateApplicationStatus(applicationId, status, session)) {
       case UpdateApplicationStatus.Success(var newStatus) -> {
         model.addAttribute("status", newStatus.name());
         return "components :: statusBadge";

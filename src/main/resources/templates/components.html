@@ -22,19 +22,20 @@
 
 
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="student-navbar(title, name)" class="bg-base-100">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="student-navbar(name)" class="bg-base-100">
   <div class="flex flex-row justify-between">
     <div class="navbar">
-      <a th:text="${title}" class="btn btn-ghost text-xl"></a>
-      <a href="/" class="btn btn-ghost">Home</a>
+      <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
       <a href="/programs" class="btn btn-ghost">Browse Programs</a>
       <a href="/applications" class="btn btn-ghost">My Programs</a>
+      <a href="/students" class="btn btn-ghost">Students</a>
+<!--      students is temporary, delete before code freeze-->
     </div>
     <span th:text="'Welcome ' + ${name}" class="btn btn-ghost"></span>
   </div>
 </div>
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(title, name)" class="bg-base-100">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name)" class="bg-base-100">
   <div class="flex flex-row justify-between">
     <div class="navbar">
       <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
@@ -46,9 +47,10 @@
   </div>
 </div>
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="navbar(title, name)" class="bg-base-100">
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="logged-out-navbar" class="bg-base-100">
   <div class="navbar">
-    <a th:text="${title}" class="btn btn-ghost text-xl"></a>
+    <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
   </div>
 </div>
 

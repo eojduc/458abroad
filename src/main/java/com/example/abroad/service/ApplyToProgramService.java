@@ -7,7 +7,7 @@ import com.example.abroad.model.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,8 +21,8 @@ public record ApplyToProgramService(
 ) {
 
 
-  public GetApplyPageData getPageData(Integer programId, HttpServletRequest request) {
-    var user = userService.getUser(request).orElse(null);
+  public GetApplyPageData getPageData(Integer programId, HttpSession session) {
+    var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new GetApplyPageData.UserNotFound();
     }
@@ -43,10 +43,10 @@ public record ApplyToProgramService(
 
   public ApplyToProgram applyToProgram(
     Integer programId,
-    HttpServletRequest request, String major, Double gpa, LocalDate dob,
+    HttpSession session, String major, Double gpa, LocalDate dob,
     String answer1, String answer2, String answer3, String answer4, String answer5
   ) {
-    var user = userService.getUser(request).orElse(null);
+    var user = userService.getUser(session).orElse(null);
 
     if (user == null) {
       return new ApplyToProgram.UserNotFound();

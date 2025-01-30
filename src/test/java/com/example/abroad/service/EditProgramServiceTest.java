@@ -12,6 +12,7 @@ import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.respository.ProgramRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -29,7 +30,7 @@ class EditProgramServiceTest {
   @Mock
   private ProgramRepository programRepository;
   @Mock
-  private HttpServletRequest request;
+  private HttpSession session;
 
   private EditProgramService service;
 
@@ -44,38 +45,38 @@ class EditProgramServiceTest {
 
   @Test
   void testGetEditProgramInfoNotLoggedIn() {
-    when(userService.getUser(request)).thenReturn(Optional.empty());
+    when(userService.getUser(session)).thenReturn(Optional.empty());
 
-    var result = service.getEditProgramInfo(PROGRAM.id(), request);
+    var result = service.getEditProgramInfo(PROGRAM.id(), session);
 
     assertThat(result).isEqualTo(new EditProgramService.GetEditProgramInfo.NotLoggedIn());
   }
 
   @Test
   void testGetEditProgramInfoUserNotAdmin() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
 
-    var result = service.getEditProgramInfo(PROGRAM.id(), request);
+    var result = service.getEditProgramInfo(PROGRAM.id(), session);
 
     assertThat(result).isEqualTo(new EditProgramService.GetEditProgramInfo.UserNotAdmin());
   }
 
   @Test
   void testGetEditProgramInfoProgramNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
-    var result = service.getEditProgramInfo(PROGRAM.id(), request);
+    var result = service.getEditProgramInfo(PROGRAM.id(), session);
 
     assertThat(result).isEqualTo(new EditProgramService.GetEditProgramInfo.ProgramNotFound());
   }
 
   @Test
   void testGetEditProgramInfoSuccess() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
 
-    var result = service.getEditProgramInfo(PROGRAM.id(), request);
+    var result = service.getEditProgramInfo(PROGRAM.id(), session);
 
     assertThat(result).isEqualTo(new EditProgramService.GetEditProgramInfo.Success(PROGRAM, ADMIN));
   }
@@ -86,46 +87,46 @@ class EditProgramServiceTest {
 
   @Test
   void testUpdateProgramInfoNotLoggedIn() {
-    when(userService.getUser(request)).thenReturn(Optional.empty());
+    when(userService.getUser(session)).thenReturn(Optional.empty());
 
     var result = service.updateProgramInfo(PROGRAM.id(), "New Title", "New Description",
       Year.now().getValue(), LocalDate.now(), LocalDate.now().plusDays(30),
-      "New Faculty", Semester.FALL, LocalDateTime.now(), LocalDateTime.now().plusDays(10), request);
+      "New Faculty", Semester.FALL, LocalDateTime.now(), LocalDateTime.now().plusDays(10), session);
 
     assertThat(result).isEqualTo(new EditProgramService.UpdateProgramInfo.NotLoggedIn());
   }
 
   @Test
   void testUpdateProgramInfoUserNotAdmin() {
-    when(userService.getUser(request)).thenReturn(Optional.of(STUDENT));
+    when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
 
     var result = service.updateProgramInfo(PROGRAM.id(), "New Title", "New Description",
       Year.now().getValue(), LocalDate.now(), LocalDate.now().plusDays(30),
-      "New Faculty", Semester.FALL, LocalDateTime.now(), LocalDateTime.now().plusDays(10), request);
+      "New Faculty", Semester.FALL, LocalDateTime.now(), LocalDateTime.now().plusDays(10), session);
 
     assertThat(result).isEqualTo(new EditProgramService.UpdateProgramInfo.UserNotAdmin());
   }
 
   @Test
   void testUpdateProgramInfoProgramNotFound() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
     var result = service.updateProgramInfo(PROGRAM.id(), "New Title", "New Description",
       Year.now().getValue(), LocalDate.now(), LocalDate.now().plusDays(30),
-      "New Faculty", Semester.FALL, LocalDateTime.now(), LocalDateTime.now().plusDays(10), request);
+      "New Faculty", Semester.FALL, LocalDateTime.now(), LocalDateTime.now().plusDays(10), session);
 
     assertThat(result).isEqualTo(new EditProgramService.UpdateProgramInfo.ProgramNotFound());
   }
 
   @Test
   void testUpdateProgramInfoSuccess() {
-    when(userService.getUser(request)).thenReturn(Optional.of(ADMIN));
+    when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     var open = LocalDateTime.now();
     var result = service.updateProgramInfo(PROGRAM.id(), "New Title", "New Description",
       Year.now().getValue(), LocalDate.now(), LocalDate.now().plusDays(30),
-      "New Faculty", Semester.FALL, open, open.plusDays(10), request);
+      "New Faculty", Semester.FALL, open, open.plusDays(10), session);
     verify(programRepository).save(new Program(PROGRAM.id(), "New Title", Year.now(), Semester.FALL,
       open.atZone(Config.ZONE_ID).toInstant(),
       open.plusDays(10).atZone(Config.ZONE_ID).toInstant(),

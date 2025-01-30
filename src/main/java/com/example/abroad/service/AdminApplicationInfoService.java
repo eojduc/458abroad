@@ -7,7 +7,7 @@ import com.example.abroad.model.Student;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.StudentRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,8 +19,8 @@ public record AdminApplicationInfoService(
   StudentRepository studentRepository) {
 
 
-  public GetApplicationInfo getApplicationInfo(String applicationId, HttpServletRequest request) {
-    var user = userService.getUser(request).orElse(null);
+  public GetApplicationInfo getApplicationInfo(String applicationId, HttpSession session) {
+    var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new GetApplicationInfo.NotLoggedIn();
     }
@@ -41,8 +41,8 @@ public record AdminApplicationInfoService(
 
   public UpdateApplicationStatus updateApplicationStatus(
     String applicationId, Application.Status status,
-    HttpServletRequest request) {
-    var user = userService.getUser(request).orElse(null);
+    HttpSession session) {
+    var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new UpdateApplicationStatus.NotLoggedIn();
     }
