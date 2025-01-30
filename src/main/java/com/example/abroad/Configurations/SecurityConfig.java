@@ -45,17 +45,15 @@ public class SecurityConfig {
       .cors(cors -> cors.disable())
       .csrf(csrf -> csrf.disable())
       .authorizeHttpRequests(auth -> auth
-//        .requestMatchers("/", "/register", "/login", "/logout", "/images/**", "/public/**")
-//        .permitAll()
-//        .requestMatchers("/admin/**").hasRole("ADMIN")
-//        .anyRequest()
-//        .authenticated()
-          .anyRequest()
-          .permitAll()
+        .requestMatchers("/", "/register", "/login", "/logout", "/images/**", "/public/**")
+        .permitAll()
+        .requestMatchers("/admin/**").hasRole("ADMIN")
+        .anyRequest()
+        .authenticated()
       )
       .formLogin(form -> form
-        .loginPage("/login")
-        .loginProcessingUrl("/login")
+        .loginPage("/login")  // Where users SEE the login form, my defined page
+        .loginProcessingUrl("/login")  // Where the form SUBMITS to, spring security intercepts POST requests to /logi
         .successHandler(authSuccessHandler) // my custom authentication success handler
         .failureUrl("/login?error=true")
         .permitAll()
@@ -70,3 +68,19 @@ public class SecurityConfig {
 
 
 }
+
+/*
+* Comment on how this works:
+* .loginPage("/login")  Where users SEE the login form, my defined page
+* .loginProcessingUrl("/login")  Where the form SUBMITS to, spring security filter intercepts POST requests to /login
+* The filter creates an Authentication object containing:
+* Username from the form
+* Password from the form
+* List of authorities (initially empty)
+* This Authentication object is passed to the AuthenticationManager which:
+
+*Uses my CustomUserDetailsService to load the user by username
+*Uses my configured PasswordEncoder to verify the submitted password
+* If successful, creates a fully populated Authentication object with the user's authorities/roles
+* .successHandler(authSuccessHandler) my custom authentication success handler
+*/

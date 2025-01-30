@@ -23,7 +23,7 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     System.out.println(
       "userName in onAuthenticationSuccess is " + request.getSession().getAttribute("username"));
     Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-    request.getSession().setAttribute("role", authentication.getAuthorities().stream()
+    request.getSession().setAttribute("role", authorities.stream()
       .findFirst()
       .map(GrantedAuthority::getAuthority)
       .map(role -> Role.valueOf(role)) // Convert string to Role enum

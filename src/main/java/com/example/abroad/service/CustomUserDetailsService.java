@@ -28,6 +28,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    System.out.println("loading use by Username");
     Optional<Admin> admin = adminRepository.findByUsername(username);
     if (admin.isPresent()) {
       return createUserDetails(admin.get());
