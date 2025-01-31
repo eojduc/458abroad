@@ -17,11 +17,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthSuccessHandler implements AuthenticationSuccessHandler {
-  @Autowired
-  private static StudentRepository studentRepository;
 
+  private final StudentRepository studentRepository;
+
+  private final AdminRepository adminRepository;
   @Autowired
-  private static AdminRepository adminRepository;
+  public AuthSuccessHandler(StudentRepository studentRepository, AdminRepository adminRepository) {
+    this.studentRepository = studentRepository;
+    this.adminRepository = adminRepository;
+  }
 
   //controls what is done after successfuly login
   @Override
@@ -31,8 +35,6 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     String userName = authentication.getName();
     String displayName = "";
     request.getSession().setAttribute("username", authentication.getName());
-    System.out.println(
-      "userName in onAuthenticationSuccess is " + request.getSession().getAttribute("username"));
     Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
     request.getSession().setAttribute("role", authorities.stream()
       .findFirst()
@@ -46,12 +48,14 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
       case ROLE_ADMIN:
         displayName = adminRepository.findByUsername(userName).get().displayName();
         request.getSession().setAttribute("displayName", displayName);
-        response.sendRedirect("/admin/dashboard");
+        request.getSession().setAttribute("user", adminRepository.findByUsername(userName).get());
+        response.sendRedirect("/");
         break;
       case ROLE_STUDENT:
         displayName = studentRepository.findByUsername(userName).get().displayName();
         request.getSession().setAttribute("displayName", displayName);
-        response.sendRedirect("/dashboard");
+        request.getSession().setAttribute("user", studentRepository.findByUsername(userName).get());
+        response.sendRedirect("/");
         break;
       default:
         response.sendRedirect("/login");

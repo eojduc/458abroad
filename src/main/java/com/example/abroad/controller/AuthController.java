@@ -71,7 +71,8 @@ public class AuthController {
       session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
       session.setAttribute("username", username);
       session.setAttribute("displayName", displayName);
-      return "redirect:/dashboard";
+      session.setAttribute("user", userService.findByUsername(username).orElse(null));
+      return "redirect:/";
 
     } catch (UsernameAlreadyInUseException e) {
       model.addAttribute("error", "Username is already taken");
