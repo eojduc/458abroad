@@ -5,6 +5,7 @@ import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.EditProgramService;
 import com.example.abroad.service.EditProgramService.GetEditProgramInfo;
 import com.example.abroad.service.EditProgramService.UpdateProgramInfo;
+import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ISOFormatService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record EditProgramPageController(EditProgramService service, ISOFormatService formatter) {
+public record EditProgramPageController(EditProgramService service, FormatService formatter) {
 
 
   @GetMapping("/admin/programs/{programId}/edit")

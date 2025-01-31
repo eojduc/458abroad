@@ -27,19 +27,15 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
   public String getProgramInfo(@PathVariable Integer programId, HttpSession session, Model model,
     @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
-    switch (service.getProgramInfo(programId, session)) {
-      case GetProgramInfo.UserNotFound() -> {
-        return "redirect:/login?error=You are not logged in";
-      }
-      case GetProgramInfo.UserNotAdmin() -> {
-        return String.format("redirect:/programs/%s?error=You are not an admin", programId);
-      }
+    return switch (service.getProgramInfo(programId, session)) {
+      case GetProgramInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
+      case GetProgramInfo.UserNotAdmin() -> String.format("redirect:/programs/%s?error=You are not an admin", programId);
       case GetProgramInfo.ProgramNotFound() -> {
         model.addAllAttributes(Map.of(
           "title", "Program not found",
           "message", "That program does not exist"
         ));
-        return "error :: page";
+        yield "error :: page";
       }
       case GetProgramInfo.Success(var program, var applicants, var user) -> {
         model.addAllAttributes(Map.of(
@@ -49,9 +45,9 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "formatter", formatter,
           "alerts", new Alerts(error, success, warning, info)
         ));
-        return "admin/program-info :: page";
+        yield "admin/program-info :: page";
       }
-    }
+    };
   }
 
   @PostMapping("/admin/programs/{programId}/delete")
@@ -67,9 +63,8 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
 
   @GetMapping("/admin/programs/{programId}/applicants")
   public String getApplicantTable(@PathVariable Integer programId, HttpSession session,
-    Model model,
-    @RequestParam Optional<Column> column, @RequestParam Optional<Filter> filter) {
-    switch (service.sortApplicantTable(column, filter, programId, session)) {
+    Model model, @RequestParam Optional<Column> column, @RequestParam Optional<Filter> filter) {
+    return switch (service.sortApplicantTable(column, filter, programId, session)) {
       case SortApplicantTable.Success(var applicants, var program) -> {
         model.addAllAttributes(Map.of(
           "program", program,
@@ -78,12 +73,11 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "sortColumn", column.map(Column::name).orElse("NONE"),
           "sortFilter", filter.map(Filter::name).orElse("NONE")
         ));
-        return "admin/program-info :: applicant-table";
+        yield "admin/program-info :: applicant-table";
       }
-      case SortApplicantTable.Failure() -> {
-        return "redirect:/admin/programs/" + programId + "?error=Failed to sort applicants";
-      }
-    }
+      case SortApplicantTable.Failure() ->
+        "redirect:/admin/programs/" + programId + "?error=Failed to sort applicants";
+    };
   }
 
 }

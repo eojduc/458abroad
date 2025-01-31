@@ -24,11 +24,9 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
 
   @GetMapping("/admin/applications/{applicationId}")
   public String getApplicationInfo(@PathVariable String applicationId, HttpSession session,
-    Model model,
-    @RequestParam Optional<String> error, @RequestParam Optional<String> success,
-    @RequestParam Optional<String> warning,
-    @RequestParam Optional<String> info) {
-    switch (service.getApplicationInfo(applicationId, session)) {
+    Model model, @RequestParam Optional<String> error, @RequestParam Optional<String> success,
+    @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
+    return switch (service.getApplicationInfo(applicationId, session)) {
       case GetApplicationInfo.Success(var program, var student, var application, var user) -> {
         model.addAllAttributes(Map.of(
           "program", program,
@@ -40,18 +38,13 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
           "user", user,
           "alerts", new Alerts(error, success, warning, info)
         ));
-        return "admin/application-info :: page";
+        yield "admin/application-info :: page";
       }
-      case GetApplicationInfo.ApplicationNotFound() -> {
-        return "redirect:/error";
-      }
-      case GetApplicationInfo.UserNotAdmin() -> {
-        return "redirect:/error";
-      }
-      case GetApplicationInfo.NotLoggedIn() -> {
-        return "redirect:/login?error=You must be logged in to view this page";
-      }
-    }
+      case GetApplicationInfo.ApplicationNotFound() -> "redirect:/admin/programs?error=That application does not exist";
+      case GetApplicationInfo.UserNotAdmin() -> "redirect:/applications?error=You are not an admin";
+      case GetApplicationInfo.NotLoggedIn() ->
+        "redirect:/login?error=You must be logged in to view this page";
+    };
   }
 
 
