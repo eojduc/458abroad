@@ -1,44 +1,72 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name)">
 
-<head th:replace="~{components :: head('Hello World')}"></head>
+<head th:replace="~{components :: head('Admin Programs')}"></head>
 <body>
-<div th:replace="~{components :: admin-navbar('Admin Programs,PROGRESS', unknown)}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-  <div th:replace="~{this :: hello-card(${name})}" ></div>
-</div>
-<div th:replace="~{components :: footer}"></div>
-</body>
-</html>
+<div th:replace="~{components :: admin-navbar(${name})}"></div>
 
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Program List</h1>
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="hello-card(name)" class="bg-base-200 card card-normal w-1/2 m-10">
-  <div class="card-body">
-    <h1 class="card-title" th:text="'Admin ' + ${name}"></h1>
-    <form class="contents" action="/" method="post">
-      <input class="input" placeholder="Name" type="text" name="name"/>
-      <div class="flex flex-row-reverse">
-        <button class="btn btn-primary w-1/4">Submit</button>
-      </div>
-    </form>
+  <!-- Table Container with horizontal scroll for small screens -->
+  <div class="overflow-x-auto shadow-md rounded-lg">
+    <table class="min-w-full bg-white">
+      <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Title
+        </th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Year & Semester
+        </th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Faculty Lead
+        </th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Important Dates
+        </th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Description
+        </th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Application Status
+        </th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Total Active
+        </th>
+      </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+      <tr th:each="program : ${programs}">
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm font-medium text-gray-900" th:text="${program.title}">Program Title</div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm text-gray-900">
+            <span th:text="${program.year}"></span>
+            <span th:text="${program.semester}"></span>
+            <span th:text="${program.facultyLead}"></span>
+          </div>
+        </td>
+        <td>
+          <div class="text-sm text-gray-900" th:text="${program.facultyLead}"></div>
+        </td>
+        <td>
+          <div class="text-sm text-gray-900">
+            <!-- Format the start and end dates -->
+            <span th:text="${program.startDate}"></span> to
+            <span th:text="${program.endDate}"></span>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
-
-
-
-
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="htmx-page(name)">
-<head th:replace="~{components :: head('Hello World')}"></head>
-<body>
-<div th:replace="~{components :: student-navbar('Hello World', unknown)}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-  <div th:replace="~{this :: htmx-hello-card(${name})}"></div>
-</div>
 <div th:replace="~{components :: footer}"></div>
 </body>
 </html>
-
 
 <div
     xmlns:th="http://www.thymeleaf.org"
@@ -56,3 +84,14 @@
   </div>
 </div>
 
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="hello-card(name)" class="bg-base-200 card card-normal w-1/2 m-10">
+  <div class="card-body">
+    <h1 class="card-title" th:text="'Admin ' + ${name}"></h1>
+    <form class="contents" action="/" method="post">
+      <input class="input" placeholder="Name" type="text" name="name"/>
+      <div class="flex flex-row-reverse">
+        <button class="btn btn-primary w-1/4">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
