@@ -48,7 +48,7 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new GetProgramInfo.UserNotFound();
     }
-    if (adminRepository.findByUsername(user.username()).isEmpty()) {
+    if (!user.isAdmin()) {
       return new GetProgramInfo.UserNotAdmin();
     }
     var program = programRepository.findById(programId).orElse(null);
