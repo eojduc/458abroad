@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Profile')}">
+</head>
+<body class="min-h-screen flex flex-col">
+<!-- Choose navbar based on user role -->
+<div th:replace="~{fragments :: admin-navbar(${user.displayName()})}" th:if="${user.isAdmin()}"></div>
+<div th:replace="~{fragments :: student-navbar(${user.displayName()})}" th:unless="${user.isAdmin()}"></div>
+
+<div class="container mx-auto p-8 flex-1">
+    <div th:replace="~{fragments :: alerts(${alerts})}"></div>
+
+    <div class="max-w-2xl mx-auto space-y-8">
+        <h1 class="text-3xl font-bold mb-6">Profile Settings</h1>
+
+        <!-- Profile Information -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Profile Information</h2>
+                <form th:action="@{/profile/updateProfile}" method="POST" class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Username</span>
+                        </label>
+                        <input type="text" th:value="${user.username()}" class="input input-bordered" readonly />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Display Name</span>
+                        </label>
+                        <input type="text" name="displayName" th:value="${user.displayName()}" class="input input-bordered" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Email</span>
+                        </label>
+                        <input type="email" name="email" th:value="${user.email()}" class="input input-bordered" />
+                    </div>
+
+                    <div class="form-control mt-6">
+                        <button class="btn btn-primary">Update Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Change Password</h2>
+                <form th:action="@{/profile/changePassword}" method="POST" class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Current Password</span>
+                        </label>
+                        <input type="password" name="currentPassword" class="input input-bordered" required />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">New Password</span>
+                        </label>
+                        <input type="password" name="newPassword" class="input input-bordered" required />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Confirm New Password</span>
+                        </label>
+                        <input type="password" name="confirmPassword" class="input input-bordered" required />
+                    </div>
+
+                    <div class="form-control mt-6">
+                        <button class="btn btn-primary">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

@@ -1,10 +1,15 @@
 package com.example.abroad.model;
 
 import java.io.Serializable;
+import jakarta.persistence.Id;
+
 
 public sealed interface User extends Serializable permits Admin, Student {
 
+  @Id
   String username();
+
+
 
   String password();
 
