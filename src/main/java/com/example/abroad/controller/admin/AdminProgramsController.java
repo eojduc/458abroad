@@ -1,21 +1,17 @@
 package com.example.abroad.controller.admin;
 
-import com.example.abroad.model.Program;
-import com.example.abroad.service.AdminProgramInfoService;
 import com.example.abroad.service.AdminProgramsService;
 import com.example.abroad.service.AdminProgramsService.GetAllProgramsInfo;
-import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpSession;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import java.util.Random;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -25,11 +21,16 @@ public record AdminProgramsController(AdminProgramsService service) {
   private static final Random random = new Random();
 
   @GetMapping("/admin/programs")
-  public String getProgramsInfo(HttpSession session, Model model, @RequestParam(required = false) String sort
-  ) {
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, Optional.ofNullable(sort));
+  public String getProgramsInfo(HttpSession session, Model model,
+      @RequestParam(required = false) String sort,
+      @RequestParam(required = false) String nameFilter,
+      @RequestParam(required = false) String timeFilter
+      ) {
+    logger.info("Optional Sort/Filter Parameters: sort={}, nameFilter={}, timeFilter={}", sort, nameFilter, timeFilter);
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter);
     int randomActive = random.nextInt(101);
     int randomStatus = random.nextInt(101);
+    boolean noSortOrFilter = sort == null && nameFilter == null && timeFilter == null;
 
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
@@ -40,10 +41,11 @@ public record AdminProgramsController(AdminProgramsService service) {
                 "name", user.displayName(),
                 "programs", programs,
                 "programActive", randomActive,
-                "programStatus", randomStatus
+                "programStatus", randomStatus,
+                "sort", Objects.toString(session.getAttribute("lastSort"), "")
             )
         );
-        yield "admin/programs :: " + (sort != null ? "programTable" : "page");
+        yield "admin/programs :: " + ( noSortOrFilter ? "page" : "programTable");
       }
     };
   }

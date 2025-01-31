@@ -1,8 +1,7 @@
-
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="footer" class="footer bg-base-200 p-20 footer-center">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="footer"
+     class="footer bg-base-200 p-20 footer-center">
   <h1 class="footer-title">&copy; 2025 Hypothetical Community College. All rights reserved.</h1>
 </div>
-
 
 
 <head xmlns:th="http://www.thymeleaf.org" th:fragment="head(title)">
@@ -24,7 +23,7 @@
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="2"
-          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
     </svg>
     <span th:text="${alerts.error.get()}"></span>
   </div>
@@ -38,7 +37,7 @@
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="2"
-          d="M5 13l4 4L19 7" />
+          d="M5 13l4 4L19 7"/>
     </svg>
     <span th:text="${alerts.success.get()}"></span>
   </div>
@@ -52,7 +51,7 @@
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="2"
-          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
     </svg>
     <span th:text="${alerts.warning.get()}"></span>
   </div>
@@ -73,8 +72,8 @@
 </div>
 
 
-
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="student-navbar(name)" class="bg-base-100 navbar">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="student-navbar(name)"
+     class="bg-base-100 navbar">
   <div class="flex-1">
     <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
     <a href="/programs" class="btn btn-ghost">Browse Programs</a>
@@ -85,7 +84,8 @@
   </div>
 </div>
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name)" class="bg-base-100 navbar">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name)"
+     class="bg-base-100 navbar">
   <div class="flex-1">
     <a href="/" class="btn btn-ghost text-xl">HCC Study Abroad</a>
     <a href="/admin/programs" class="btn btn-ghost">Programs</a>
@@ -97,19 +97,57 @@
   </div>
 </div>
 
-
-<div xmlns:th="http://www.thymeleaf.org"  th:fragment="sortableHeader(name, label)">
-  <th class="bg-base-200">
-    <div class="flex items-center gap-2 cursor-pointer"
-         th:hx-get="@{'/admin/programs?sort=' + ${name}}"
-         hx-target="table"
+<!-- Sortable Column w/ HTMX Actions -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, activeSort)">
+  <th th:classappend="${activeSort == #strings.substringAfter(path, 'sort=') ? 'bg-info-content' : 'bg-base-200'}">
+  <div class="flex items-center gap-2 cursor-pointer"
+         th:hx-get="@{${path}}"
+         hx-target="#programTable"
          hx-swap="outerHTML">
       <span th:text="${label}"></span>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
       </svg>
     </div>
   </th>
+</div>
+
+<!-- Filter Form -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="filterForm(path)">
+  <div class="flex gap-4">
+    <!-- Keyword search -->
+    <input
+        type="text"
+        name="nameFilter"
+        placeholder="Filter programs..."
+        class="input"
+        th:value="${keyword}"
+        th:hx-get="@{${path}}"
+        hx-target="#programTable"
+        hx-swap="outerHTML"
+        hx-trigger="input delay:300ms"
+    />
+
+    <!-- Time filter -->
+    <select
+        name="timeFilter"
+        class="select"
+        th:value="${timeFilter}"
+        th:hx-get="@{${path}}"
+        hx-target="#programTable"
+        hx-swap="outerHTML"
+        hx-trigger="change"
+    >
+      <option value="future" th:selected="${timeFilter == 'future'}">Current & Future Programs
+      </option>
+      <option value="open" th:selected="${timeFilter == 'open'}">Programs Open to Applications
+      </option>
+      <option value="review" th:selected="${timeFilter == 'review'}">Programs in Review</option>
+      <option value="running" th:selected="${timeFilter == 'running'}">Programs Running Now</option>
+      <option value="all" th:selected="${timeFilter == 'all'}">All Programs</option>
+    </select>
+  </div>
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="logged-out-navbar" class="bg-base-100 navbar">
@@ -117,7 +155,8 @@
 </div>
 
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="statusBadge(status)" th:switch="${status}" class="contents">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="statusBadge(status)" th:switch="${status}"
+     class="contents">
   <span th:case="APPLIED" class="badge badge-info">Applied</span>
   <span th:case="ENROLLED" class="badge badge-success">Enrolled</span>
   <span th:case="CANCELLED" class="badge badge-error">Cancelled</span>
