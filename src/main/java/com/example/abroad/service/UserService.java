@@ -24,18 +24,12 @@ public record UserService(
   private static final String USER_SESSION_ATTRIBUTE = "user";
 
 
-  //this method needs to work with login and logout. it should be the primary way to get the user in all services.
-  // at the moment it is short circuiting and returning the first admin in the database
-  public Optional<User> getUser(HttpSession session) {
-    return Optional.of(adminRepository.findAll().stream().findFirst().get());
-//    var attribute = session.getAttribute(USER_SESSION_ATTRIBUTE);
-//    if (attribute instanceof User user) {
-//      return Optional.of(user);
-//    }
-//    return Optional.empty();
+
+  public Optional<User> getUser(HttpSession session){
+    return Optional.ofNullable((User) session.getAttribute(USER_SESSION_ATTRIBUTE));
   }
 
-  // probably useful to use this method to get getUser to work with the session
+  //
   public void setUser(HttpSession session, User user) {
     session.setAttribute(USER_SESSION_ATTRIBUTE, user);
   }
@@ -89,29 +83,26 @@ public record UserService(
     }
   }
 
-  public User authenticateUser(String username, String password) {
-    User user = findByUsername(username)
-      .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+//  public User authenticateUser(String username, String password) {
+//    User user = findByUsername(username)
+//      .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+//
+//    System.out.println("Stored password hash: " + user.password());
+//    System.out.println(
+//      "Password match result: " + passwordEncoder.matches(password, user.password()));
+//
+//    if (!passwordEncoder.matches(password, user.password())) {
+//      throw new IncorrectPasswordException("Incorrect password");
+//    }
+//
+//    return user;
+//  }
 
-    System.out.println("Stored password hash: " + user.password());
-    System.out.println(
-      "Password match result: " + passwordEncoder.matches(password, user.password()));
-
-    if (!passwordEncoder.matches(password, user.password())) {
-      throw new IncorrectPasswordException("Incorrect password");
-    }
-
-    return user;
-  }
-
-  public Optional<User> findByUsername(String username) {
-    Optional<Admin> admin = adminRepository.findByUsername(username);
-    if (admin.isPresent()) {
-      return Optional.of(admin.get());
-    }
+  public Optional<Student> findByUsername(String username) {
 
     Optional<Student> student = studentRepository.findByUsername(username);
-    return student.map(s -> s);
+    return student;
+
   }
 
 }

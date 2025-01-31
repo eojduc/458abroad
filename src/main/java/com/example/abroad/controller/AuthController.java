@@ -5,6 +5,7 @@ import com.example.abroad.exception.UsernameAlreadyInUseException;
 import com.example.abroad.model.Role;
 import com.example.abroad.respository.StudentRepository;
 import com.example.abroad.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,14 +35,22 @@ public class AuthController {
   }
 
   @GetMapping("/login")
-  public String showLoginForm() {
+  public String showLoginForm(HttpSession session, HttpServletResponse response) {
     System.out.println("get mapping /login geting called");
+    if (session.getAttribute("user") != null) {
+      System.out.println("session attribute user is not null");
+      return "redirect:/";
+    }
     return "auth/login";
   }
 
   @GetMapping("/register")
-  public String showRegistrationForm() {
+  public String showRegistrationForm(HttpSession session, HttpServletResponse response) {
     System.out.println("get mapping /register geting called");
+    if (session.getAttribute("user") != null) {
+      System.out.println("session attribute user is not null");
+      return "redirect:/";
+    }
     return "auth/register";
   }
 
@@ -71,7 +80,8 @@ public class AuthController {
       session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
       session.setAttribute("username", username);
       session.setAttribute("displayName", displayName);
-      return "redirect:/dashboard";
+      session.setAttribute("user", userService.findByUsername(username).orElse(null));
+      return "redirect:/";
 
     } catch (UsernameAlreadyInUseException e) {
       model.addAttribute("error", "Username is already taken");

@@ -1,5 +1,6 @@
 package com.example.abroad.controller;
 
+import com.example.abroad.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
@@ -10,7 +11,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class DashboardController {
-  @GetMapping("/dashboard")
+  @GetMapping("/")
+  public String home(HttpSession session, Model model) {
+    String username = (String) session.getAttribute("username");
+    if (username == null) {
+      return "homepage";
+    }
+    User user = (User) session.getAttribute("user");
+    if(user.isAdmin()) {
+      return adminDashboard(session, model);
+    }
+    return showDashboard(session, model);
+  }
   public String showDashboard(HttpSession session, Model model) {
     String displayName = (String) session.getAttribute("displayName");
     String username = (String) session.getAttribute("username");
@@ -21,9 +33,8 @@ public class DashboardController {
     return "dashboard/student-dashboard :: page";
   }
 
-  @GetMapping("/admin/dashboard")
-  public String adminDashboard(HttpServletRequest request, Model model) {
-    var displayName = Optional.ofNullable(request.getSession().getAttribute("displayName"))
+  public String adminDashboard(HttpSession session, Model model) {
+    var displayName = Optional.ofNullable(session.getAttribute("displayName"))
       .filter(obj -> obj instanceof String)
       .map(obj -> (String) obj)
       .orElse("Admin"); // Default fallback
@@ -31,5 +42,10 @@ public class DashboardController {
     model.addAttribute("displayName", displayName);
 
     return "dashboard/admin-dashboard :: page";  // Note the :: page suffix
+  }
+
+  @GetMapping("/welcome")
+  public String welcome() {
+    return "welcome";
   }
 }

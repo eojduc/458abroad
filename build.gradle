@@ -31,6 +31,10 @@ tasks.test {
 }
 
 
+// Ensure clean runs first when using the `start` task
+tasks.named("bootJar") {
+	mustRunAfter "clean"
+}
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'

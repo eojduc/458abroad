@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name)">
+<head th:replace="~{components :: head('Admin Programs')}"></head>
+<body>
+<div th:replace="~{components :: admin-navbar(${name})}"></div>
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Program List</h1>
+  <div class="overflow-x-auto rounded-lg">
+    <!-- Add fragment identifier to the table -->
+    <table class="table table-zebra w-full" th:fragment="programTable">
+      <thead>
+      <tr>
+        <th th:replace="~{components :: sortableHeader('title', 'Title')}"></th>
+        <th th:replace="~{components :: sortableHeader('semDate', 'Year & Semester')}"></th>
+        <th th:replace="~{components :: sortableHeader('facultyLead', 'Faculty Lead')}"></th>
+        <th th:replace="~{components :: sortableHeader('startDate', 'Start Date')}"></th>
+        <th th:replace="~{components :: sortableHeader('endDate', 'End Date')}"></th>
+        <th class="bg-base-200">Application Status</th>
+        <th th:replace="~{components :: sortableHeader('totalActive', 'Total Active')}"></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="program : ${programs}">
+        <td>
+          <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="font-medium hover:text-info underline" th:text="${program.title}">Program Title</a>
+        </td>
+        <td>
+          <div>
+            <span th:text="${program.year}"></span>
+            <span th:text="${program.semester}"></span>
+          </div>
+        </td>
+        <td>
+          <div th:text="${program.facultyLead}"></div>
+        </td>
+        <td>
+          <div th:text="${program.startDate}"></div>
+        </td>
+        <td>
+          <div th:text="${program.endDate}"></div>
+        </td>
+        <td>
+          <div th:text="${programActive}"></div>
+        </td>
+        <td>
+          <div th:text="${programStatus}"></div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div th:replace="~{components :: footer}"></div>
+</body>
+</html>
