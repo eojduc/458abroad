@@ -4,22 +4,26 @@
 <body>
 <div th:replace="~{components :: admin-navbar(${name})}"></div>
 <div class="container mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-6">Program List</h1>
+  <h1 class="text-2xl font-bold mb-6">All Programs</h1>
+
+  <!-- Filter Form -->
+  <div th:replace="~{components :: filterForm('/admin/programs')}"></div>
+
   <div class="overflow-x-auto rounded-lg">
     <!-- Add fragment identifier to the table -->
-    <table class="table table-zebra w-full" th:fragment="programTable">
+    <table class="table table-zebra w-full" th:fragment="programTable(sort)" id="programTable">
       <thead>
       <tr>
-        <th th:replace="~{components :: sortableHeader('title', 'Title')}"></th>
-        <th th:replace="~{components :: sortableHeader('semDate', 'Year & Semester')}"></th>
-        <th th:replace="~{components :: sortableHeader('facultyLead', 'Faculty Lead')}"></th>
-        <th th:replace="~{components :: sortableHeader('startDate', 'Start Date')}"></th>
-        <th th:replace="~{components :: sortableHeader('endDate', 'End Date')}"></th>
+        <th th:replace="~{components :: sortableHeader('Title', '/admin/programs?sort=title', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('Year & Semester', '/admin/programs?sort=semDate', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('Faculty Lead', '/admin/programs?sort=facultyLead', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('Start Date', '/admin/programs?sort=startDate', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('End Date', '/admin/programs?sort=endDate', ${sort})}"></th>
         <th class="bg-base-200">Application Status</th>
-        <th th:replace="~{components :: sortableHeader('totalActive', 'Total Active')}"></th>
+        <th th:replace="~{components :: sortableHeader('Total Active', '/admin/programs?sort=totalActive', ${sort})}"></th>
       </tr>
       </thead>
-      <tbody>
+      <tbody th:fragment="programTableBody" id="programTableBody">
       <tr th:each="program : ${programs}">
         <td>
           <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="font-medium hover:text-info underline" th:text="${program.title}">Program Title</a>
