@@ -7,8 +7,8 @@ import com.example.abroad.service.admin.AdminProgramInfoService.DeleteProgram;
 import com.example.abroad.service.admin.AdminProgramInfoService.DeleteProgram.ProgramNotFound;
 import com.example.abroad.service.admin.AdminProgramInfoService.Filter;
 import com.example.abroad.service.admin.AdminProgramInfoService.GetProgramInfo;
-import com.example.abroad.service.admin.AdminProgramInfoService.SortApplicantTable;
 import com.example.abroad.service.FormatService;
+import com.example.abroad.service.admin.AdminProgramInfoService.Sort;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.Optional;
@@ -27,7 +27,7 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
   public String getProgramInfo(@PathVariable Integer programId, HttpSession session, Model model,
     @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
-    return switch (service.getProgramInfo(programId, session)) {
+    return switch (service.getProgramInfo(programId, session, Optional.empty(), Optional.empty(), Optional.empty())) {
       case GetProgramInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetProgramInfo.UserNotAdmin() -> String.format("redirect:/programs/%s?error=You are not an admin", programId);
       case GetProgramInfo.ProgramNotFound() -> {
@@ -43,7 +43,9 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "applicants", applicants,
           "user", user,
           "formatter", formatter,
-          "alerts", new Alerts(error, success, warning, info)
+          "alerts", new Alerts(error, success, warning, info),
+          "column", Column.NONE.name(),
+          "filter", Filter.NONE.name()
         ));
         yield "admin/program-info :: page";
       }
@@ -63,20 +65,23 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
 
   @GetMapping("/admin/programs/{programId}/applicants")
   public String getApplicantTable(@PathVariable Integer programId, HttpSession session,
-    Model model, @RequestParam Optional<Column> column, @RequestParam Optional<Filter> filter) {
-    return switch (service.sortApplicantTable(column, filter, programId, session)) {
-      case SortApplicantTable.Success(var applicants, var program) -> {
+    Model model, @RequestParam Optional<Column> column, @RequestParam Optional<Filter> filter,
+    @RequestParam Optional<Sort> sort) {
+    return switch (service.getProgramInfo(programId, session, column, filter, sort)) {
+      case GetProgramInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
+      case GetProgramInfo.UserNotAdmin() -> String.format("redirect:/programs/%s?error=You are not an admin", programId);
+      case GetProgramInfo.ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
+      case GetProgramInfo.Success(var program, var applicants, var user) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "applicants", applicants,
           "formatter", formatter,
-          "sortColumn", column.map(Column::name).orElse("NONE"),
-          "sortFilter", filter.map(Filter::name).orElse("NONE")
+          "column", column.orElse(Column.NONE).name(),
+          "filter", filter.orElse(Filter.NONE).name(),
+          "sort", sort.orElse(Sort.ASCENDING).name()
         ));
         yield "admin/program-info :: applicant-table";
       }
-      case SortApplicantTable.Failure() ->
-        "redirect:/admin/programs/" + programId + "?error=Failed to sort applicants";
     };
   }
 

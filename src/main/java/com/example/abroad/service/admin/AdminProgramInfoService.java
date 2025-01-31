@@ -43,40 +43,42 @@ public record AdminProgramInfoService(
     programRepository.deleteById(programId);
     return new DeleteProgram.Success();
   }
+  public sealed interface GetProgramInfo permits GetProgramInfo.Success,
+    GetProgramInfo.ProgramNotFound, GetProgramInfo.UserNotFound,
+    GetProgramInfo.UserNotAdmin {
 
-  public GetProgramInfo getProgramInfo(Integer programId, HttpSession session) {
+    record Success(Program program, List<Applicant> applicants, User user) implements
+      GetProgramInfo {
+
+    }
+
+    record ProgramNotFound() implements GetProgramInfo {
+
+    }
+
+    record UserNotFound() implements GetProgramInfo {
+
+    }
+
+    record UserNotAdmin() implements GetProgramInfo {
+
+    }
+  }
+
+  public GetProgramInfo getProgramInfo(Integer programId, HttpSession session,
+    Optional<Column> column,
+    Optional<Filter> filter,
+    Optional<Sort> sort) {
     var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new GetProgramInfo.UserNotFound();
     }
-    if (!user.isAdmin()) {
+    if (adminRepository.findByUsername(user.username()).isEmpty()) {
       return new GetProgramInfo.UserNotAdmin();
     }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
       return new GetProgramInfo.ProgramNotFound();
-    }
-    var students = studentRepository.findAll();
-
-    var applicants = applicationRepository.findByProgramId(programId).stream()
-      .flatMap(application -> applicants(students.stream(), application))
-      .toList();
-    return new GetProgramInfo.Success(program, applicants, user);
-  }
-
-  public SortApplicantTable sortApplicantTable(Optional<Column> column,
-    Optional<Filter> filter,
-    Integer programId, HttpSession session) {
-    var user = userService.getUser(session).orElse(null);
-    if (user == null) {
-      return new SortApplicantTable.Failure();
-    }
-    if (adminRepository.findByUsername(user.username()).isEmpty()) {
-      return new SortApplicantTable.Failure();
-    }
-    var program = programRepository.findById(programId).orElse(null);
-    if (program == null) {
-      return new SortApplicantTable.Failure();
     }
     var students = studentRepository.findAll();
 
@@ -89,6 +91,7 @@ public record AdminProgramInfoService(
       case DOB -> Comparator.comparing(Applicant::dob);
       case STATUS -> Comparator.comparing(Applicant::status);
     };
+    var reversed = sort.orElse(Sort.ASCENDING) == Sort.DESCENDING;
     Predicate<Applicant> filterer = switch (filter.orElse(Filter.NONE)) {
       case APPLIED -> applicant -> applicant.status() == Status.APPLIED;
       case ENROLLED -> applicant -> applicant.status() == Status.ENROLLED;
@@ -98,10 +101,11 @@ public record AdminProgramInfoService(
     };
     var applicants = applicationRepository.findByProgramId(programId).stream()
       .flatMap(application -> applicants(students.stream(), application))
-      .sorted(sorter)
+      .sorted(reversed ? sorter.reversed() : sorter)
       .filter(filterer)
       .toList();
-    return new SortApplicantTable.Success(applicants, program);
+    return new GetProgramInfo.Success(program, applicants, user);
+
   }
 
   private Stream<Applicant> applicants(Stream<Student> students, Application application) {
@@ -125,6 +129,9 @@ public record AdminProgramInfoService(
   public enum Column {
     USERNAME, DISPLAY_NAME, EMAIL, MAJOR, GPA, DOB, STATUS, NONE
   }
+  public enum Sort {
+    ASCENDING, DESCENDING
+  }
 
   public sealed interface DeleteProgram permits
     DeleteProgram.ProgramNotFound,
@@ -147,41 +154,6 @@ public record AdminProgramInfoService(
     record UserNotAdmin() implements DeleteProgram {
 
     }
-  }
-
-  public sealed interface GetProgramInfo permits
-    GetProgramInfo.Success, GetProgramInfo.ProgramNotFound,
-    GetProgramInfo.UserNotFound, GetProgramInfo.UserNotAdmin {
-
-    record Success(Program program, List<Applicant> applicants, User user) implements
-      GetProgramInfo {
-
-    }
-
-    record ProgramNotFound() implements GetProgramInfo {
-
-    }
-
-    record UserNotFound() implements GetProgramInfo {
-
-    }
-
-    record UserNotAdmin() implements GetProgramInfo {
-
-    }
-  }
-
-  public sealed interface SortApplicantTable permits SortApplicantTable.Success,
-    SortApplicantTable.Failure {
-
-    record Success(List<Applicant> applicants, Program program) implements SortApplicantTable {
-
-    }
-
-    record Failure() implements SortApplicantTable {
-
-    }
-
   }
 
   public record Applicant(String username, String displayName, String email, String major,
