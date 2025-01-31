@@ -1,13 +1,13 @@
 package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.service.AdminProgramInfoService;
-import com.example.abroad.service.AdminProgramInfoService.Column;
-import com.example.abroad.service.AdminProgramInfoService.DeleteProgram;
-import com.example.abroad.service.AdminProgramInfoService.DeleteProgram.ProgramNotFound;
-import com.example.abroad.service.AdminProgramInfoService.Filter;
-import com.example.abroad.service.AdminProgramInfoService.GetProgramInfo;
-import com.example.abroad.service.AdminProgramInfoService.SortApplicantTable;
+import com.example.abroad.service.admin.AdminProgramInfoService;
+import com.example.abroad.service.admin.AdminProgramInfoService.Column;
+import com.example.abroad.service.admin.AdminProgramInfoService.DeleteProgram;
+import com.example.abroad.service.admin.AdminProgramInfoService.DeleteProgram.ProgramNotFound;
+import com.example.abroad.service.admin.AdminProgramInfoService.Filter;
+import com.example.abroad.service.admin.AdminProgramInfoService.GetProgramInfo;
+import com.example.abroad.service.admin.AdminProgramInfoService.SortApplicantTable;
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;

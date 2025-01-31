@@ -1,7 +1,6 @@
 package com.example.abroad.service;
 
 import com.example.abroad.exception.EmailAlreadyInUseException;
-import com.example.abroad.exception.IncorrectPasswordException;
 import com.example.abroad.exception.UsernameAlreadyInUseException;
 import com.example.abroad.model.Admin;
 import com.example.abroad.model.Student;
@@ -10,7 +9,6 @@ import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,11 +25,6 @@ public record UserService(
 
   public Optional<User> getUser(HttpSession session){
     return Optional.ofNullable((User) session.getAttribute(USER_SESSION_ATTRIBUTE));
-  }
-
-  //
-  public void setUser(HttpSession session, User user) {
-    session.setAttribute(USER_SESSION_ATTRIBUTE, user);
   }
 
   public Student registerStudent(String username, String displayName, String email, String password) {

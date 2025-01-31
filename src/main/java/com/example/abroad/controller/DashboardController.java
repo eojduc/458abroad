@@ -1,7 +1,6 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.User;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;

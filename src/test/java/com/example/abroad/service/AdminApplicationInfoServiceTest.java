@@ -12,6 +12,7 @@ import com.example.abroad.model.Application.Status;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.StudentRepository;
+import com.example.abroad.service.admin.AdminApplicationInfoService;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

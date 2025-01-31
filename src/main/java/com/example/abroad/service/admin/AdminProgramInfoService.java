@@ -1,4 +1,4 @@
-package com.example.abroad.service;
+package com.example.abroad.service.admin;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Status;
@@ -9,6 +9,7 @@ import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.StudentRepository;
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Comparator;
