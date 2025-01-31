@@ -4,11 +4,11 @@
 
 <body>
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10 gap-5">
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
-      <div class="flex flex-row justify-between">
+      <div class="card-actions justify-between">
         <h1 class="card-title" th:text="${student.displayName}"></h1>
         <div id="status-badge">
           <div th:replace="~{components :: statusBadge(${_application.status.name()})}"></div>
@@ -61,53 +61,52 @@
         <h2 class="text-lg">Application Details</h2>
         <table class="table table-sm border-collapse">
           <tbody>
-          <tr class="border-base-300">
-            <td>Status</td>
-            <td>
-              <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${_application.id})}"
-                    hx-trigger="change"
-                    hx-target="#status-badge">
-                <select name="status" class="select select-sm">
-                  <option value="APPLIED"
-                          th:selected="${_application.status.name() == 'APPLIED'}"
-                  >Applied</option>
-                  <option value="ENROLLED"
-                          th:selected="${_application.status.name() == 'ENROLLED'}"
-                  >Enrolled</option>
-                  <option value="CANCELLED"
-                          th:selected="${_application.status.name() == 'CANCELLED'}"
-                  >Cancelled</option>
-                  <option value="WITHDRAWN"
-                          th:selected="${_application.status.name() == 'WITHDRAWN'}"
-                  >Withdrawn</option>
-                </select>
-              </form>
-            </td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Username</td>
-            <td th:text="${student.username}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Email</td>
-            <td th:text="${student.email}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Major</td>
-            <td th:text="${_application.major}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>GPA</td>
-            <td th:text="${#numbers.formatDecimal(_application.gpa, 1, 3)}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Date of Birth</td>
-            <td th:text="${formatter.formatLocalDate(_application.dateOfBirth)}"></td>
-          </tr>
+            <tr class="border-base-300">
+              <td>Status</td>
+              <td>
+                <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${_application.id})}"
+                      hx-trigger="change"
+                      hx-target="#status-badge">
+                  <select name="status" class="select select-sm">
+                    <option value="APPLIED"
+                            th:selected="${_application.status.name() == 'APPLIED'}"
+                    >Applied</option>
+                    <option value="ENROLLED"
+                            th:selected="${_application.status.name() == 'ENROLLED'}"
+                    >Enrolled</option>
+                    <option value="CANCELLED"
+                            th:selected="${_application.status.name() == 'CANCELLED'}"
+                    >Cancelled</option>
+                    <option value="WITHDRAWN"
+                            th:selected="${_application.status.name() == 'WITHDRAWN'}"
+                    >Withdrawn</option>
+                  </select>
+                </form>
+              </td>
+            </tr>
+            <tr class="border-base-300">
+              <td>Username</td>
+              <td th:text="${student.username}"></td>
+            </tr>
+            <tr class="border-base-300">
+              <td>Email</td>
+              <td th:text="${student.email}"></td>
+            </tr>
+            <tr class="border-base-300">
+              <td>Major</td>
+              <td th:text="${_application.major}"></td>
+            </tr>
+            <tr class="border-base-300">
+              <td>GPA</td>
+              <td th:text="${#numbers.formatDecimal(_application.gpa, 1, 3)}"></td>
+            </tr>
+            <tr class="border-base-300">
+              <td>Date of Birth</td>
+              <td th:text="${formatter.formatLocalDate(_application.dateOfBirth)}"></td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div>
         <h1 class="text-lg">Responses</h1>
         <div class="m-4 flex flex-col gap-5">
           <div th:each="question : ${questions}" class="flex flex-col gap-2">

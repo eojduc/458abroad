@@ -32,4 +32,10 @@ public record FormatService() {
     };
   }
 
+  public String formatInstantToIso(Instant instant) {
+    return instant.atZone(ZoneId.systemDefault())
+      .toLocalDateTime()
+      .format(DateTimeFormatter.ISO_DATE_TIME);
+  }
+
 }

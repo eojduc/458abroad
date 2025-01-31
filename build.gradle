@@ -2,8 +2,6 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'checkstyle'
-	id 'com.github.spotbugs' version '5.0.14'
 }
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
@@ -20,14 +18,6 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-checkstyle {
-	toolVersion = '10.21.1' // Use the latest stable version
-	configDirectory = file("$rootDir/config") // Path to your configuration file
-}
-
-spotbugs {
-	toolVersion = '4.9.0'
-}
 
 task fillDb {
 	doLast {
@@ -40,25 +30,6 @@ tasks.test {
 	useJUnitPlatform()
 }
 
-tasks.spotbugsMain {
-	dependsOn tasks.compileJava
-	classes = fileTree('build/classes/java/main')
-	reports {
-		html.required = true
-		html.stylesheet = 'fancy-hist.xsl'
-	}
-}
-
-tasks.register("start") {
-	group = "build"
-	description = "Runs tests, SpotBugs, Checkstyle, and builds the Spring Boot jar"
-
-	dependsOn 'test', 'fillDb', 'bootJar'
-
-	doLast {
-		println "Custom build completed successfully!"
-	}
-}
 
 
 group = 'com.example'

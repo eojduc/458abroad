@@ -3,18 +3,22 @@ package com.example.abroad.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.abroad.model.Program;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.ZoneId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 public class FormatServiceTest {
 
   private FormatService service;
+  @Autowired
+  private FormatService formatService;
 
 
   @BeforeEach
@@ -52,5 +56,11 @@ public class FormatServiceTest {
     assertThat(service.formatSemester(fall)).isEqualTo("Fall");
     assertThat(service.formatSemester(spring)).isEqualTo("Spring");
     assertThat(service.formatSemester(summer)).isEqualTo("Summer");
+  }
+  @Test
+  void testFormatInstantToIso() {
+    var instant = Instant.parse("2021-08-01T12:34:56-04:00");
+    var formatted = formatService.formatInstantToIso(instant);
+    assertThat(formatted).isEqualTo("2021-08-01T12:34:56");
   }
 }

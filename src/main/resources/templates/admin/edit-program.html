@@ -7,14 +7,14 @@
 
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
 
-<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10 gap-5">
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
 
   <div th:replace="~{components :: alerts(${alerts})}"></div>
 
   <div class="card card-normal w-full bg-base-200">
-    <div class="card-body flex flex-col gap-4">
+    <div class="card-body gap-4">
 
-      <div class="flex flex-row justify-between">
+      <div class="card-actions justify-between">
         <h1 class="card-title" th:text="'Edit Program (ID: ' + ${program.id} + ')'"></h1>
         <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="btn btn-primary">
           Back
@@ -110,7 +110,7 @@
           <input class="input w-full"
                  type="datetime-local"
                  name="applicationOpen"
-                 th:value="${formatter.formatInstant(program.applicationOpen)}"
+                 th:value="${formatter.formatInstantToIso(program.applicationOpen)}"
                  required />
         </label>
 
@@ -121,7 +121,7 @@
           <input class="input w-full"
                  type="datetime-local"
                  name="applicationClose"
-                 th:value="${formatter.formatInstant(program.applicationClose)}"
+                 th:value="${formatter.formatInstantToIso(program.applicationClose)}"
                  required />
         </label>
 

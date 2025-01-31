@@ -5,7 +5,7 @@
 
 <body>
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen m-10 gap-5">
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
