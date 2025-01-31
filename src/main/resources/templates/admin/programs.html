@@ -1,62 +1,49 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name)">
-
 <head th:replace="~{components :: head('Admin Programs')}"></head>
 <body>
 <div th:replace="~{components :: admin-navbar(${name})}"></div>
-
 <div class="container mx-auto px-4 py-8">
   <h1 class="text-2xl font-bold mb-6">Program List</h1>
-
-  <!-- Table Container with horizontal scroll for small screens -->
-  <div class="overflow-x-auto shadow-md rounded-lg">
-    <table class="min-w-full bg-white">
-      <thead class="bg-gray-50">
+  <div class="overflow-x-auto rounded-lg">
+    <!-- Add fragment identifier to the table -->
+    <table class="table table-zebra w-full" th:fragment="programTable">
+      <thead>
       <tr>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Title
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Year & Semester
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Faculty Lead
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Important Dates
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Description
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Application Status
-        </th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Total Active
-        </th>
+        <th th:replace="~{components :: sortableHeader('title', 'Title')}"></th>
+        <th th:replace="~{components :: sortableHeader('semDate', 'Year & Semester')}"></th>
+        <th th:replace="~{components :: sortableHeader('facultyLead', 'Faculty Lead')}"></th>
+        <th th:replace="~{components :: sortableHeader('startDate', 'Start Date')}"></th>
+        <th th:replace="~{components :: sortableHeader('endDate', 'End Date')}"></th>
+        <th class="bg-base-200">Application Status</th>
+        <th th:replace="~{components :: sortableHeader('totalActive', 'Total Active')}"></th>
       </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody>
       <tr th:each="program : ${programs}">
-        <td class="px-6 py-4 whitespace-nowrap">
-          <div class="text-sm font-medium text-gray-900" th:text="${program.title}">Program Title</div>
+        <td>
+          <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="font-medium hover:text-info underline" th:text="${program.title}">Program Title</a>
         </td>
-        <td class="px-6 py-4 whitespace-nowrap">
-          <div class="text-sm text-gray-900">
+        <td>
+          <div>
             <span th:text="${program.year}"></span>
             <span th:text="${program.semester}"></span>
-            <span th:text="${program.facultyLead}"></span>
           </div>
         </td>
         <td>
-          <div class="text-sm text-gray-900" th:text="${program.facultyLead}"></div>
+          <div th:text="${program.facultyLead}"></div>
         </td>
         <td>
-          <div class="text-sm text-gray-900">
-            <!-- Format the start and end dates -->
-            <span th:text="${program.startDate}"></span> to
-            <span th:text="${program.endDate}"></span>
-          </div>
+          <div th:text="${program.startDate}"></div>
+        </td>
+        <td>
+          <div th:text="${program.endDate}"></div>
+        </td>
+        <td>
+          <div th:text="${programActive}"></div>
+        </td>
+        <td>
+          <div th:text="${programStatus}"></div>
         </td>
       </tr>
       </tbody>
@@ -67,31 +54,3 @@
 <div th:replace="~{components :: footer}"></div>
 </body>
 </html>
-
-<div
-    xmlns:th="http://www.thymeleaf.org"
-    th:fragment="htmx-hello-card(name)"
-    class="bg-base-200 card card-normal w-1/2 m-10"
-    id="hello-card">
-  <div class="card-body">
-    <h1 class="card-title" th:text="'Hello ' + ${name}"></h1>
-    <form class="contents" hx-post="/hello" hx-target="#hello-card" hx-trigger="submit" hx-swap="outerHTML">
-      <input class="input" placeholder="Name" type="text" name="name"/>
-      <div class="flex flex-row-reverse">
-        <button class="btn btn-primary w-1/4">Submit</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="hello-card(name)" class="bg-base-200 card card-normal w-1/2 m-10">
-  <div class="card-body">
-    <h1 class="card-title" th:text="'Admin ' + ${name}"></h1>
-    <form class="contents" action="/" method="post">
-      <input class="input" placeholder="Name" type="text" name="name"/>
-      <div class="flex flex-row-reverse">
-        <button class="btn btn-primary w-1/4">Submit</button>
-      </div>
-    </form>
-  </div>
-</div>
