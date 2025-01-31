@@ -34,14 +34,20 @@ public class AuthController {
   }
 
   @GetMapping("/login")
-  public String showLoginForm() {
+  public String showLoginForm(HttpSession session) {
     System.out.println("get mapping /login geting called");
+    if (session.getAttribute("user") != null) {
+      return "redirect:/";
+    }
     return "auth/login";
   }
 
   @GetMapping("/register")
-  public String showRegistrationForm() {
+  public String showRegistrationForm(HttpSession session) {
     System.out.println("get mapping /register geting called");
+    if (session.getAttribute("user") != null) {
+      return "redirect:/";
+    }
     return "auth/register";
   }
 
