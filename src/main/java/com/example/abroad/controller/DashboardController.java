@@ -43,4 +43,9 @@ public class DashboardController {
 
     return "dashboard/admin-dashboard :: page";  // Note the :: page suffix
   }
+
+  @GetMapping("/welcome")
+  public String welcome() {
+    return "welcome";
+  }
 }
