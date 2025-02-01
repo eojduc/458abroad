@@ -1,5 +1,7 @@
 package com.example.abroad.controller.admin;
 
+import com.example.abroad.model.Alerts;
+import com.example.abroad.service.FormatService;
 import com.example.abroad.service.admin.AdminProgramsService;
 import com.example.abroad.service.admin.AdminProgramsService.GetAllProgramsInfo;
 import jakarta.servlet.http.HttpSession;
@@ -15,7 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record AdminProgramsController(AdminProgramsService service) {
+public record AdminProgramsController(AdminProgramsService service, FormatService formatter) {
 
   private static final Logger logger = LoggerFactory.getLogger(AdminProgramsController.class);
   private static final Random random = new Random();
@@ -24,7 +26,11 @@ public record AdminProgramsController(AdminProgramsService service) {
   public String getProgramsInfo(HttpSession session, Model model,
       @RequestParam(required = false) String sort,
       @RequestParam(required = false) String nameFilter,
-      @RequestParam(required = false) String timeFilter
+      @RequestParam(required = false) String timeFilter,
+      @RequestParam Optional<String> error,
+      @RequestParam Optional<String> success,
+      @RequestParam Optional<String> warning,
+      @RequestParam Optional<String> info
       ) {
     logger.info("Optional Sort/Filter Parameters: sort={}, nameFilter={}, timeFilter={}", sort, nameFilter, timeFilter);
     GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter);
@@ -42,7 +48,9 @@ public record AdminProgramsController(AdminProgramsService service) {
                 "programs", programs,
                 "programActive", randomActive,
                 "programStatus", randomStatus,
-                "sort", Objects.toString(session.getAttribute("lastSort"), "")
+                "sort", Objects.toString(session.getAttribute("lastSort"), ""),
+              "alerts", new Alerts(error, success, warning, info),
+              "formatter", formatter
             )
         );
         yield "admin/programs :: " + ( noSortOrFilter ? "page" : "programTable");

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, applicants, user, formatter)">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, applicants, user, formatter, alerts)">
 
 <head th:replace="~{components :: head(${program.title})}"></head>
 
@@ -51,7 +51,7 @@
         <a class="btn btn-primary w-1/4" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
         <button class="btn btn-secondary w-1/4" onclick="delete_modal.showModal()">Delete</button>
         <dialog id="delete_modal" class="modal">
-          <div class="modal-box">
+          <div class="modal-box bg-base-200">
             <div class="alert alert-error"
                  th:if="${applicants.size() > 0}"
                  th:text="'This program has ' + ${applicants.size()} + ' applicants. Deleting this program will delete the data of all these applicants. This action cannot be undone.'">
@@ -61,8 +61,7 @@
               <form method="dialog" class="contents">
                 <button class="btn btn-primary w-1/4">Cancel</button>
               </form>
-              <form th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post"
-                    class="contents">
+              <form th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post" class="contents">
                 <button class="btn btn-secondary w-1/4" type="submit">Delete</button>
               </form>
             </div>
@@ -80,109 +79,134 @@
 
 </html>
 
+<th
+    xmlns:th="http://www.thymeleaf.org"
+    th:fragment="sortableHeader(path, text, target, sort, column, filter, thisColumn)"
+    th:class="${column == thisColumn} ? 'bg-base-300 cursor-pointer' : 'cursor-pointer'"
+    th:hx-get="@{${path}(sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'}, column=${thisColumn}, filter=${filter})}"
+    hx-swap="outerHTML"
+    th:hx-target="${target}"
+    th:text="${column == thisColumn} ? (${text} + ' ' + (${sort} == 'ASCENDING' ? '▼' : '▲')) : ${text}">
+</th>
+
+<!-- Applicant table fragment -->
 <div
     xmlns:th="http://www.thymeleaf.org"
     th:fragment="applicant-table(applicants, program, formatter, column, filter, sort)"
     id="applicant-table"
-    class="flex flex-col gap-5">
+    class="flex flex-col gap-5 overflow-x-auto">
   <div class="flex flex-row gap-6 items-center">
-      <h2 class="text-lg">Applicants</h2>
-      <button class="contents"
-              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${column}, filter='NONE')}"
-              hx-swap="outerHTML"
-              hx-target="#applicant-table">
+    <h2 class="text-lg">Applicants</h2>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='NONE')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
         <span th:class="${filter == 'NONE'} ? 'badge badge-neutral' : 'badge badge-neutral badge-outline'">
           ALL
         </span>
-      </button>
-      <button class="contents"
-              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${column}, filter='APPLIED')}"
-              hx-swap="outerHTML"
-              hx-target="#applicant-table">
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='APPLIED')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
         <span th:class="${filter == 'APPLIED'} ? 'badge badge-info' : 'badge badge-info badge-outline'">
           APPLIED
         </span>
-      </button>
-      <button class="contents"
-              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${column}, filter='ENROLLED')}"
-              hx-swap="outerHTML"
-              hx-target="#applicant-table">
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='ENROLLED')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
         <span th:class="${filter == 'ENROLLED'} ? 'badge badge-success' : 'badge badge-success badge-outline'">
           ENROLLED
         </span>
-      </button>
-      <button class="contents"
-              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${column}, filter='WITHDRAWN')}"
-              hx-swap="outerHTML"
-              hx-target="#applicant-table">
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='WITHDRAWN')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
         <span th:class="${filter == 'WITHDRAWN'} ? 'badge badge-warning' : 'badge badge-warning badge-outline'">
           WITHDRAWN
         </span>
-      </button>
-      <button class="contents"
-              th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}(programId=${program.id}, column=${column}, filter='CANCELLED')}"
-              hx-swap="outerHTML"
-              hx-target="#applicant-table">
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='CANCELLED')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
         <span th:class="${filter == 'CANCELLED'} ? 'badge badge-error' : 'badge badge-error badge-outline'">
           CANCELLED
         </span>
-      </button>
-    </div>
-  <table
-      class="table table-sm border-collapse">
+    </button>
+  </div>
+  <table class="table table-sm border-collapse">
     <thead>
     <tr>
-      <th th:class="${column == 'DISPLAY_NAME'} ? 'bg-base-300' : ''"
-          th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}&sort={sort}(programId=${program.id}, column='DISPLAY_NAME', filter=${filter}, sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'})}"
-          hx-swap="outerHTML"
-          hx-target="#applicant-table"
-          style="cursor: pointer;">
-        <span th:text="${column == 'DISPLAY_NAME' ? ('name ' + (sort == 'ASCENDING' ? '▼' : '▲')) : 'name'}"></span>
-      </th>
-      <th th:class="${column == 'USERNAME'} ? 'bg-base-300' : ''"
-          th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}&sort={sort}(programId=${program.id}, column='USERNAME', filter=${filter}, sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'})}"
-          hx-swap="outerHTML"
-          hx-target="#applicant-table"
-          style="cursor: pointer;">
-        <span th:text="${column == 'USERNAME' ? ('username ' + (sort == 'ASCENDING' ? '▼' : '▲')) : 'username'}"></span>
-      </th>
-      <th th:class="${column == 'EMAIL'} ? 'bg-base-300' : ''"
-          th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}&sort={sort}(programId=${program.id}, column='EMAIL', filter=${filter}, sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'})}"
-          hx-swap="outerHTML"
-          hx-target="#applicant-table"
-          style="cursor: pointer;">
-        <span th:text="${column == 'EMAIL' ? ('email ' + (sort == 'ASCENDING' ? '▼' : '▲')) : 'email'}"></span>
-      </th>
-      <th th:class="${column == 'MAJOR'} ? 'bg-base-300' : ''"
-          th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}&sort={sort}(programId=${program.id}, column='MAJOR', filter=${filter}, sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'})}"
-          hx-swap="outerHTML"
-          hx-target="#applicant-table"
-          style="cursor: pointer;">
-        <span th:text="${column == 'MAJOR' ? ('major ' + (sort == 'ASCENDING' ? '▼' : '▲')) : 'major'}"></span>
-      </th>
-      <th th:class="${column == 'GPA'} ? 'bg-base-300' : ''"
-          th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}&sort={sort}(programId=${program.id}, column='GPA', filter=${filter}, sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'})}"
-          hx-swap="outerHTML"
-          hx-target="#applicant-table"
-          style="cursor: pointer;">
-        <span th:text="${column == 'GPA' ? ('gpa ' + (sort == 'ASCENDING' ? '▼' : '▲')) : 'gpa'}"></span>
-      </th>
-      <th th:class="${column == 'DOB'} ? 'bg-base-300' : ''"
-          th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}&sort={sort}(programId=${program.id}, column='DOB', filter=${filter}, sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'})}"
-          hx-swap="outerHTML"
-          hx-target="#applicant-table"
-          style="cursor: pointer;">
-        <span th:text="${column == 'DOB' ? ('dob ' + (sort == 'ASCENDING' ? '▼' : '▲')) : 'dob'}"></span>
-      </th>
-      <th th:class="${column == 'STATUS'} ? 'bg-base-300' : ''"
-          th:hx-get="@{/admin/programs/{programId}/applicants?column={column}&filter={filter}&sort={sort}(programId=${program.id}, column='STATUS', filter=${filter}, sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'})}"
-          hx-swap="outerHTML"
-          hx-target="#applicant-table"
-          style="cursor: pointer;">
-        <span th:text="${column == 'STATUS' ? ('status ' + (sort == 'ASCENDING' ? '▼' : '▲')) : 'status'}"></span>
-      </th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'name',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'DISPLAY_NAME'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'username',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'USERNAME'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'email',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'EMAIL'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'major',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'MAJOR'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'gpa',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'GPA'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'date of birth',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'DOB'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'status',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'STATUS'
+      )}"></th>
       <th>update</th>
     </tr>
+
     </thead>
 
     <tbody>
@@ -219,4 +243,5 @@
     </tbody>
 
   </table>
+
 </div>
