@@ -19,6 +19,9 @@ public record FormatService() {
   public String formatLocalDate(LocalDate localDate) {
     return localDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
   }
+  public String formatTerm(Semester semester, Year year) {
+    return formatSemester(semester) + " " + formatYear(year);
+  }
 
   public String formatYear(Year year) {
     return year.toString();

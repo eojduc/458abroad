@@ -1,14 +1,8 @@
 
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="footer"
-     class="footer bg-base-200 p-20 footer-center">
-  <div class="flex flex-col gap-4">
-    <h1 class="footer-title">&copy; 2025 Hypothetical Community College. All rights reserved.</h1>
-    <div class="flex gap-4">
-      <a href="/getProfile" class="btn btn-ghost">Profile</a>
-      <a href="/logout" class="btn btn-ghost">Logout</a>
-    </div>
-  </div>
+     class="footer bg-base-300 p-20 footer-center">
+  <h1 class="footer-title">&copy; 2025 Hypothetical Community College. All rights reserved.</h1>
 </div>
 
 
@@ -157,18 +151,19 @@
     <a href="/programs" class="btn btn-ghost">Student View</a>
   </div>
   <div class="flex-none gap-2">
-    <div class="avatar placeholder">
+    <a href="/profile/getProfile"
+        class="avatar placeholder">
       <div class="bg-neutral text-neutral-content w-8 rounded-full">
         <span class="text-sm" th:text="${name.substring(0, 1)}"></span>
       </div>
-    </div>
+    </a>
     <a href="/logout" class="btn btn-ghost">Logout</a>
   </div>
 </div>
 
 <!-- Sortable Column w/ HTMX Actions -->
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, activeSort)">
-  <th th:classappend="${activeSort == #strings.substringAfter(path, 'sort=') ? 'bg-info-content' : 'bg-base-200'}">
+  <th th:classappend="${activeSort == #strings.substringAfter(path, 'sort=') ? 'bg-base-300' : 'bg-base-200'}">
   <div class="flex items-center gap-2 cursor-pointer"
          th:hx-get="@{${path}}"
          hx-target="#programTable"
