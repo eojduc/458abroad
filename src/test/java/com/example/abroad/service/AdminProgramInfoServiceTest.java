@@ -24,7 +24,7 @@ import com.example.abroad.service.admin.AdminProgramInfoService.Column;
 import com.example.abroad.service.admin.AdminProgramInfoService.DeleteProgram;
 import com.example.abroad.service.admin.AdminProgramInfoService.Filter;
 import com.example.abroad.service.admin.AdminProgramInfoService.GetProgramInfo;
-import com.example.abroad.service.admin.AdminProgramInfoService.SortApplicantTable;
+import com.example.abroad.service.admin.AdminProgramInfoService.Sort;
 import jakarta.servlet.http.HttpSession;
 import java.util.Comparator;
 import java.util.List;
@@ -68,19 +68,30 @@ public class AdminProgramInfoServiceTest {
   }
 
   // ----------------------------------------------------------
-  // Tests for getProgramInfo
+  // Tests for getProgramInfo (with new fifth parameter for sort order)
   // ----------------------------------------------------------
 
   @BeforeEach
   public void setUp() {
-    service = new AdminProgramInfoService(programRepository, applicationRepository, userService,
-      studentRepository, adminRepository);
+    service = new AdminProgramInfoService(
+      programRepository,
+      applicationRepository,
+      userService,
+      studentRepository,
+      adminRepository
+    );
   }
 
   @Test
   public void testGetProgramInfoNotFound() {
     when(userService.getUser(session)).thenReturn(Optional.empty());
-    var result = service.getProgramInfo(PROGRAM.id(), session);
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
+      Optional.empty(),
+      Optional.empty(),
+      Optional.of(Sort.ASCENDING)
+    );
     verify(userService).getUser(session);
     assertThat(result).isEqualTo(new GetProgramInfo.UserNotFound());
   }
@@ -91,9 +102,16 @@ public class AdminProgramInfoServiceTest {
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2));
-    when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(
-      List.of(APPLICATION, APPLICATION_2));
-    var result = service.getProgramInfo(PROGRAM.id(), session);
+    when(applicationRepository.findByProgramId(PROGRAM.id()))
+      .thenReturn(List.of(APPLICATION, APPLICATION_2));
+
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
+      Optional.empty(),
+      Optional.empty(),
+      Optional.of(Sort.ASCENDING)
+    );
     assertThat(result).isEqualTo(
       new GetProgramInfo.Success(
         PROGRAM,
@@ -107,7 +125,13 @@ public class AdminProgramInfoServiceTest {
   public void testGetProgramInfoNotAdmin() {
     when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(adminRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
-    var result = service.getProgramInfo(PROGRAM.id(), session);
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
+      Optional.empty(),
+      Optional.empty(),
+      Optional.of(Sort.ASCENDING)
+    );
     assertThat(result).isEqualTo(new GetProgramInfo.UserNotAdmin());
   }
 
@@ -116,22 +140,31 @@ public class AdminProgramInfoServiceTest {
     when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
-    var result = service.getProgramInfo(PROGRAM.id(), session);
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
+      Optional.empty(),
+      Optional.empty(),
+      Optional.of(Sort.ASCENDING)
+    );
     assertThat(result).isEqualTo(new GetProgramInfo.ProgramNotFound());
   }
 
-  // ----------------------------------------------------------
-  // Tests for deleteProgram
-  // ----------------------------------------------------------
-
   @Test
-  public void testGetProgramInfo() {
+  public void testGetProgramInfoSuccess() {
     when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(studentRepository.findAll()).thenReturn(List.of(STUDENT));
     when(applicationRepository.findByProgramId(PROGRAM.id())).thenReturn(List.of(APPLICATION));
-    var result = service.getProgramInfo(PROGRAM.id(), session);
+
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
+      Optional.empty(),
+      Optional.empty(),
+      Optional.of(Sort.ASCENDING)
+    );
     assertThat(result).isEqualTo(
       new GetProgramInfo.Success(
         PROGRAM,
@@ -140,6 +173,10 @@ public class AdminProgramInfoServiceTest {
       )
     );
   }
+
+  // ----------------------------------------------------------
+  // Tests for deleteProgram
+  // ----------------------------------------------------------
 
   @Test
   public void testDeleteProgramUserNotFound() {
@@ -173,22 +210,26 @@ public class AdminProgramInfoServiceTest {
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
 
     var result = service.deleteProgram(PROGRAM.id(), session);
-
     verify(programRepository).deleteById(PROGRAM.id());
     assertThat(result).isEqualTo(new DeleteProgram.Success());
   }
+
+  // ----------------------------------------------------------
+  // Tests for sorting and filtering (formerly using sortApplicantTable)
+  // ----------------------------------------------------------
 
   @Test
   public void testSortApplicantTableUserNotFound() {
     when(userService.getUser(session)).thenReturn(Optional.empty());
 
-    var result = service.sortApplicantTable(
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.USERNAME),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-    assertThat(result).isEqualTo(new SortApplicantTable.Failure());
+    assertThat(result).isEqualTo(new GetProgramInfo.UserNotFound());
   }
 
   @Test
@@ -196,13 +237,14 @@ public class AdminProgramInfoServiceTest {
     when(userService.getUser(session)).thenReturn(Optional.of(STUDENT));
     when(adminRepository.findByUsername(STUDENT.username())).thenReturn(Optional.empty());
 
-    var result = service.sortApplicantTable(
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.USERNAME),
       Optional.of(Filter.APPLIED),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-    assertThat(result).isEqualTo(new SortApplicantTable.Failure());
+    assertThat(result).isEqualTo(new GetProgramInfo.UserNotAdmin());
   }
 
   @Test
@@ -211,261 +253,294 @@ public class AdminProgramInfoServiceTest {
     when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.empty());
 
-    var result = service.sortApplicantTable(
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.USERNAME),
       Optional.of(Filter.APPLIED),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-    assertThat(result).isEqualTo(new SortApplicantTable.Failure());
+    assertThat(result).isEqualTo(new GetProgramInfo.ProgramNotFound());
   }
 
   @Test
   public void testSortApplicantTableSuccess() {
     when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
-    when(adminRepository.findByUsername(ADMIN.username()))
-      .thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
+    // Three students but only two applications exist
     when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2, STUDENT_3));
     when(applicationRepository.findByProgramId(PROGRAM.id()))
       .thenReturn(List.of(APPLICATION, APPLICATION_2));
 
-    var result = service.sortApplicantTable(
+    var result = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.USERNAME),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
 
     assertThat(result).isEqualTo(
-      new SortApplicantTable.Success(
-        List.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2)), PROGRAM
+      new GetProgramInfo.Success(
+        PROGRAM,
+        List.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2)),
+        ADMIN
       )
     );
   }
 
   @Test
-  public void testSorApplicantTableBySorters() {
-
+  public void testSortApplicantTableBySorters() {
     when(userService.getUser(session)).thenReturn(Optional.of(ADMIN));
-    when(adminRepository.findByUsername(ADMIN.username()))
-      .thenReturn(Optional.of(ADMIN));
+    when(adminRepository.findByUsername(ADMIN.username())).thenReturn(Optional.of(ADMIN));
     when(programRepository.findById(PROGRAM.id())).thenReturn(Optional.of(PROGRAM));
     when(studentRepository.findAll()).thenReturn(List.of(STUDENT, STUDENT_2, STUDENT_3));
     when(applicationRepository.findByProgramId(PROGRAM.id()))
       .thenReturn(List.of(APPLICATION, APPLICATION_2, APPLICATION_3));
-    var applicants = Stream.of(applicant(STUDENT, APPLICATION), applicant(STUDENT_2, APPLICATION_2),
-      applicant(STUDENT_3, APPLICATION_3)).toList();
-    var result1 = service.sortApplicantTable(
+
+    var applicants = Stream.of(
+      applicant(STUDENT, APPLICATION),
+      applicant(STUDENT_2, APPLICATION_2),
+      applicant(STUDENT_3, APPLICATION_3)
+    ).toList();
+
+    var result1 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.USERNAME),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result1).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream()
-          .sorted(Comparator.comparing(Applicant::username)).toList(),
-        PROGRAM
+          .sorted(Comparator.comparing(Applicant::username))
+          .toList(),
+        ADMIN
       )
     );
 
-    var result2 = service.sortApplicantTable(
+    var result2 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.DOB),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
     assertThat(result2).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::dob)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
 
-    var result3 = service.sortApplicantTable(
+    var result3 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.GPA),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result3).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::gpa)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
-    var result4 = service.sortApplicantTable(
+
+    var result4 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.STATUS),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
     assertThat(result4).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::status)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
 
-    var result5 = service.sortApplicantTable(
+    var result5 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.MAJOR),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
     assertThat(result5).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::major)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
 
-    var result6 = service.sortApplicantTable(
+    var result6 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.EMAIL),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
     assertThat(result6).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::email)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
 
-    var result7 = service.sortApplicantTable(
+    var result7 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.DISPLAY_NAME),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result7).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::displayName)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
 
-    var result8 = service.sortApplicantTable(
+    // When no sort column is provided, default to sorting by username.
+    var result8 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.of(Column.NONE),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result8).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::username)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
 
-    var result9 = service.sortApplicantTable(
+    var result9 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.empty(),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result9).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::username)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
 
-    var result10 = service.sortApplicantTable(
+    // Repeating the same call for consistency.
+    var result10 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.empty(),
       Optional.of(Filter.NONE),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result10).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream().sorted(Comparator.comparing(Applicant::username)).toList(),
-        PROGRAM
+        ADMIN
       )
     );
 
-    var result11 = service.sortApplicantTable(
+    var result11 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.empty(),
       Optional.of(Filter.APPLIED),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result11).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream()
-          .filter(applicant -> applicant.status().equals(Application.Status.APPLIED)).toList(),
-        PROGRAM
+          .filter(app -> app.status().equals(Application.Status.APPLIED))
+          .toList(),
+        ADMIN
       )
     );
 
-    var result12 = service.sortApplicantTable(
+    var result12 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.empty(),
       Optional.of(Filter.ENROLLED),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result12).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream()
-          .filter(applicant -> applicant.status().equals(Application.Status.ENROLLED)).toList(),
-        PROGRAM
+          .filter(app -> app.status().equals(Application.Status.ENROLLED))
+          .toList(),
+        ADMIN
       )
     );
 
-    var result13 = service.sortApplicantTable(
+    var result13 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.empty(),
       Optional.of(Filter.CANCELLED),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result13).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream()
-          .filter(applicant -> applicant.status().equals(Application.Status.CANCELLED)).toList(),
-        PROGRAM
+          .filter(app -> app.status().equals(Application.Status.CANCELLED))
+          .toList(),
+        ADMIN
       )
     );
 
-    var result14 = service.sortApplicantTable(
+    var result14 = service.getProgramInfo(
+      PROGRAM.id(),
+      session,
       Optional.empty(),
       Optional.of(Filter.WITHDRAWN),
-      PROGRAM.id(),
-      session
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result14).isEqualTo(
-      new SortApplicantTable.Success(
+      new GetProgramInfo.Success(
+        PROGRAM,
         applicants.stream()
-          .filter(applicant -> applicant.status().equals(Application.Status.WITHDRAWN)).toList(),
-        PROGRAM
+          .filter(app -> app.status().equals(Application.Status.WITHDRAWN))
+          .toList(),
+        ADMIN
       )
     );
 
-    var result15 = service.sortApplicantTable(
-      Optional.empty(),
-      Optional.empty(),
+    // With no sort column and Filter.NONE, expect the unsorted list.
+    var result15 = service.getProgramInfo(
       PROGRAM.id(),
-      session
+      session,
+      Optional.empty(),
+      Optional.of(Filter.NONE),
+      Optional.of(Sort.ASCENDING)
     );
-
     assertThat(result15).isEqualTo(
-      new SortApplicantTable.Success(
-        applicants.stream().toList(),
-        PROGRAM
+      new GetProgramInfo.Success(
+        PROGRAM,
+        applicants,
+        ADMIN
       )
     );
-
-
   }
 }

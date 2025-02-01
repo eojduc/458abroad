@@ -4,9 +4,9 @@
 <body>
 <div th:replace="~{components :: logged-out-navbar}"></div>
 <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen p-4">
-  <div class="card bg-base-200">
-    <figure>
-      <img src="/images/logo.jpeg" alt="HCC Logo"/>
+  <div class="card bg-base-200 items-center">
+    <figure class="w-full">
+      <svg th:replace="~{components :: logo}"></svg>
     </figure>
     <div class="card-body items-center text-center">
       <h1 class="card-title">Welcome to HCC</h1>
