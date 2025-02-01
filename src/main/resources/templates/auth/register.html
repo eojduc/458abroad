@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
 
-<head th:replace="~{components :: head('Register')}"></head>
+<head th:replace="~{components :: head('Register')}">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<!-- The meta tags should be added to your components.html head fragment -->
 
 <body>
 <div th:replace="~{components :: logged-out-navbar}"></div>
@@ -43,6 +48,18 @@
     </div>
 </div>
 <div th:replace="~{components :: footer}"></div>
+<script>
+    if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+        window.location.reload(true);
+    }
+
+    // Disable browser back button cache
+    window.onpageshow = function(event) {
+        if (event.persisted) {
+            window.location.reload(true);
+        }
+    };
+</script>
 </body>
 
 </html>

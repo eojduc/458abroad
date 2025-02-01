@@ -1,5 +1,6 @@
 package com.example.abroad.controller;
 
+import com.example.abroad.Configurations.AuthSuccessHandler;
 import com.example.abroad.exception.EmailAlreadyInUseException;
 import com.example.abroad.exception.UsernameAlreadyInUseException;
 import com.example.abroad.model.Role;
@@ -7,6 +8,7 @@ import com.example.abroad.respository.StudentRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,36 +23,43 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
+
 @Controller
 public class AuthController {
 
   private final UserService userService;
   private final AuthenticationManager authenticationManager;
+  private final AuthSuccessHandler authSuccessHandler;
 
 
   @Autowired
-  public AuthController(UserService userService, AuthenticationManager authenticationManager) {
+  public AuthController(UserService userService, AuthenticationManager authenticationManager, AuthSuccessHandler authSuccessHandler) {
     this.userService = userService;
     this.authenticationManager = authenticationManager;
+    this.authSuccessHandler = authSuccessHandler;
   }
 
   @GetMapping("/login")
-  public String showLoginForm(HttpSession session, HttpServletResponse response) {
-    System.out.println("get mapping /login geting called");
-    if (session.getAttribute("user") != null) {
-      System.out.println("session attribute user is not null");
+  public String showLoginForm(HttpServletRequest request, HttpSession session) {
+    // Check if user is already authenticated
+    if(session.getAttribute("user") != null) {
+      System.out.println("in /LOGIN, User is already authenticated, redirecting to home");
       return "redirect:/";
     }
+    System.out.println("get mapping /login getting called");
     return "auth/login";
   }
 
   @GetMapping("/register")
-  public String showRegistrationForm(HttpSession session, HttpServletResponse response) {
-    System.out.println("get mapping /register geting called");
-    if (session.getAttribute("user") != null) {
-      System.out.println("session attribute user is not null");
+  public String showRegistrationForm(HttpServletRequest request, HttpSession session, HttpServletResponse response) {
+    // Check if user is already authenticated
+    if(session.getAttribute("user") != null) {
+      System.out.println("in /REGISTER, User is already authenticated, redirecting to home");
       return "redirect:/";
     }
+
+    System.out.println("get mapping /register getting called. user not authenticated");
     return "auth/register";
   }
 
@@ -60,8 +69,12 @@ public class AuthController {
                              @RequestParam String email,
                              @RequestParam String password,
                              HttpServletRequest request,
+                             HttpServletResponse response,  // Add this parameter
                              Model model) {
     try {
+      // Save the new student first
+      // Add no-cache headers here too
+
       userService.registerStudent(username, displayName, email, password);
 
       // Create authentication token
@@ -71,17 +84,15 @@ public class AuthController {
       // Authenticate the user
       Authentication authentication = authenticationManager.authenticate(authToken);
 
-      // Set the authentication in the security context
-      SecurityContext securityContext = SecurityContextHolder.getContext();
-      securityContext.setAuthentication(authentication);
-
-      // Explicitly create the session and store the security context
-      HttpSession session = request.getSession(true); //session persist throuhg all http requests
-      session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
-      session.setAttribute("username", username);
-      session.setAttribute("displayName", displayName);
-      session.setAttribute("user", userService.findByUsername(username).orElse(null));
-      return "redirect:/";
+      // Call the authentication success handler directly
+      try {
+        authSuccessHandler.onAuthenticationSuccess(request, response, authentication);
+        return null; // The redirect is handled by onAuthenticationSuccess
+      } catch (IOException e) {
+        // Handle any IOExceptions from the redirect
+        e.printStackTrace();
+        return "redirect:/login";
+      }
 
     } catch (UsernameAlreadyInUseException e) {
       model.addAttribute("error", "Username is already taken");
