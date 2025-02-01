@@ -72,8 +72,6 @@ public class AuthController {
                              HttpServletResponse response,  // Add this parameter
                              Model model) {
     try {
-      // Save the new student first
-      // Add no-cache headers here too
 
       userService.registerStudent(username, displayName, email, password);
 
@@ -83,6 +81,12 @@ public class AuthController {
 
       // Authenticate the user
       Authentication authentication = authenticationManager.authenticate(authToken);
+      SecurityContextHolder.getContext().setAuthentication(authentication);
+
+      //save the session
+      HttpSession session = request.getSession(true);
+      SecurityContext sc = SecurityContextHolder.getContext();
+      session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, sc);
 
       // Call the authentication success handler directly
       try {
