@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Controller
+@RequestMapping("/profile")
 public class AccountController {
 
     private final AdminRepository adminRepository;
@@ -24,20 +25,22 @@ public class AccountController {
         this.studentRepository = studentRepository;
     }
 
+
     @GetMapping("/getProfile")
     public String getProfile(HttpSession session, Model model) {
-        System.out.println("DEBUG: Hitting getProfile endpoint");
-        System.out.println("DEBUG: Session ID: " + session.getId());
-        User user = (User) session.getAttribute("user");
-        System.out.println("DEBUG: User from session: " + (user != null ? user.username() : "null"));
-        System.out.println("calling /getProfle");
-        if (user == null) {
-            System.out.println("user is null");
-            return "redirect:/login";
-        }
-        System.out.println("User found: " + user.username());
-        model.addAttribute("user", user);
-        return "profile";
+//        System.out.println("DEBUG: Hitting getProfile endpoint");
+//        System.out.println("DEBUG: Session ID: " + session.getId());
+//        User user = (User) session.getAttribute("user");
+//        System.out.println("DEBUG: User from session: " + (user != null ? user.username() : "null"));
+//        System.out.println("calling /getProfle");
+//        if (user == null) {
+//            System.out.println("user is null");
+//            return "redirect:/login";
+//        }
+//        System.out.println("User found: " + user.username());
+//        model.addAttribute("user", user);
+//        return "profile";
+        return "welcome";
     }
     @PostMapping("/updateProfile")
     public String updateProfile(
