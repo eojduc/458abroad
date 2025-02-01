@@ -32,7 +32,6 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info
       ) {
-    logger.info("Optional Sort/Filter Parameters: sort={}, nameFilter={}, timeFilter={}", sort, nameFilter, timeFilter);
     GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter);
     int randomActive = random.nextInt(101);
     int randomStatus = random.nextInt(101);
