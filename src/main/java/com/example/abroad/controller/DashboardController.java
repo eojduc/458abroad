@@ -1,6 +1,7 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.User;
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
@@ -9,36 +10,29 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @Controller
-public class DashboardController {
+public record DashboardController(UserService userService) {
   @GetMapping("/")
   public String home(HttpSession session, Model model) {
-    String username = (String) session.getAttribute("username");
-    if (username == null) {
+    var user = userService.getUser(session).orElse(null);
+    if (user == null) {
       return "homepage";
     }
-    User user = (User) session.getAttribute("user");
     if(user.isAdmin()) {
-      return adminDashboard(session, model);
+      return adminDashboard(model, user);
     }
-    return showDashboard(session, model);
+    return showDashboard(model, user);
   }
-  public String showDashboard(HttpSession session, Model model) {
-    String displayName = (String) session.getAttribute("displayName");
-    String username = (String) session.getAttribute("username");
+  public String showDashboard(Model model, User user) {
     System.out.println(
-      "Getting username from session: " + session.getAttribute("username"));
-    model.addAttribute("displayName", displayName);
-    model.addAttribute("student", username); // Add this for navbar
+      "Getting username from session: " + user.username());
+    model.addAttribute("displayName", user.displayName());
+    model.addAttribute("student", user.username()); // Add this for navbar
     return "dashboard/student-dashboard :: page";
   }
 
-  public String adminDashboard(HttpSession session, Model model) {
-    var displayName = Optional.ofNullable(session.getAttribute("displayName"))
-      .filter(obj -> obj instanceof String)
-      .map(obj -> (String) obj)
-      .orElse("Admin"); // Default fallback
+  public String adminDashboard(Model model, User user) {
 
-    model.addAttribute("displayName", displayName);
+    model.addAttribute("displayName", user.displayName());
 
     return "dashboard/admin-dashboard :: page";  // Note the :: page suffix
   }
