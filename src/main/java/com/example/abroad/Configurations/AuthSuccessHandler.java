@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -34,27 +35,36 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     Authentication authentication) throws IOException {
     String userName = authentication.getName();
     String displayName = "";
-    request.getSession().setAttribute("username", authentication.getName());
+
+    HttpSession session = request.getSession(true);
+
+    // Invalidate any existing session
+    if (!session.isNew()) {
+      session.invalidate();
+      session = request.getSession(true);
+    }
+
+    session.setAttribute("username", authentication.getName());
     Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-    request.getSession().setAttribute("role", authorities.stream()
+    session.setAttribute("role", authorities.stream()
       .findFirst()
       .map(GrantedAuthority::getAuthority)
       .map(role -> Role.valueOf(role)) // Convert string to Role enum
       .orElse(null));
-    Role userRole = (Role) request.getSession().getAttribute("role");
+    Role userRole = (Role) session.getAttribute("role");
     System.out.println("Role from session: " + userRole);
 
     switch (userRole) {
       case ROLE_ADMIN:
         displayName = adminRepository.findByUsername(userName).get().displayName();
-        request.getSession().setAttribute("displayName", displayName);
-        request.getSession().setAttribute("user", adminRepository.findByUsername(userName).get());
+        session.setAttribute("displayName", displayName);
+        session.setAttribute("user", adminRepository.findByUsername(userName).get());
         response.sendRedirect("/");
         break;
       case ROLE_STUDENT:
         displayName = studentRepository.findByUsername(userName).get().displayName();
-        request.getSession().setAttribute("displayName", displayName);
-        request.getSession().setAttribute("user", studentRepository.findByUsername(userName).get());
+        session.setAttribute("displayName", displayName);
+        session.setAttribute("user", studentRepository.findByUsername(userName).get());
         response.sendRedirect("/");
         break;
       default:
