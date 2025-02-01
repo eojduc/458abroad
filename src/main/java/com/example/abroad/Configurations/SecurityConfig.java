@@ -50,8 +50,6 @@ public class SecurityConfig {
         .requestMatchers("/admin/**").hasRole("ADMIN")
         .anyRequest()
         .authenticated()
-//          .anyRequest()
-//          .permitAll()
       )
       .formLogin(form -> form
         .loginPage("/login")  // Where users SEE the login form, my defined page

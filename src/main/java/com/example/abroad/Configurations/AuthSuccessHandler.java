@@ -59,12 +59,14 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         displayName = adminRepository.findByUsername(userName).get().displayName();
         session.setAttribute("displayName", displayName);
         session.setAttribute("user", adminRepository.findByUsername(userName).get());
+        System.out.println("DEBUG: Admin user set in session: " + userName);
         response.sendRedirect("/");
         break;
       case ROLE_STUDENT:
         displayName = studentRepository.findByUsername(userName).get().displayName();
         session.setAttribute("displayName", displayName);
         session.setAttribute("user", studentRepository.findByUsername(userName).get());
+        System.out.println("DEBUG: Student user set in session: " + userName);
         response.sendRedirect("/");
         break;
       default:
