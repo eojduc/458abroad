@@ -19,6 +19,7 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
+        System.out.println("AuthSuccessHandler called");  // Add this line
         request.getSession().setAttribute("username", authentication.getName());
         System.out.println("userName in onAuthenticationSuccess is " + request.getSession().getAttribute("username"));
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();

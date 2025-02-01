@@ -1,5 +1,6 @@
 package com.example.abroad.controller;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,5 +29,28 @@ public class DashboardController {
 
         model.addAttribute("username", username);
         return "dashboard/admin-dashboard :: page";  // Note the :: page suffix
+    }
+
+    @GetMapping("/hello")
+    public String hello(Authentication authentication) {
+        if (authentication != null) {
+            System.out.println("User is authenticated as: " + authentication.getName());
+        } else {
+            System.out.println("No authentication found");
+        }
+        return "hello";
+    }
+
+    @GetMapping("/test-auth")
+    public String testAuth(Authentication authentication, Model model) {
+        System.out.println("Test Auth endpoint called");
+        if (authentication != null) {
+            System.out.println("User is authenticated as: " + authentication.getName());
+            model.addAttribute("username", authentication.getName());
+            model.addAttribute("roles", authentication.getAuthorities());
+        } else {
+            System.out.println("No authentication found in /test-auth");
+        }
+        return "test-auth";
     }
 }
