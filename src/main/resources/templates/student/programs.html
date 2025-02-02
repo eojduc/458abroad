@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name, alerts, formatter)">
+<head th:replace="~{components :: head('Browse Programs')}"></head>
+<body>
+<div th:replace="~{components :: student-navbar(${name})}"></div>
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body gap-10">
+      <h1 class="card-title">All Programs</h1>
+      <!-- Filter Form -->
+      <div th:replace="~{components :: filterForm('/programs', false)}"></div>
+
+      <div class="overflow-x-auto">
+        <!-- Add fragment identifier to the table -->
+        <table class="table w-full" th:fragment="programTable" id="programTable">
+          <thead>
+          <tr>
+            <th class="bg-base-200">Title</th>
+            <th class="bg-base-200">Term</th>
+            <th class="bg-base-200">Description</th>
+            <th class="bg-base-200">Faculty Lead</th>
+            <th class="bg-base-200">App Opens</th>
+            <th class="bg-base-200">App Closes</th>
+            <th class="bg-base-200">Start Date</th>
+            <th class="bg-base-200">End Date</th>
+            <th class="bg-base-200">Application Status</th>
+          </tr>
+          </thead>
+          <tbody th:fragment="programTableBody" id="programTableBody">
+          <tr th:each="program, iterStat : ${programs}" class="border-base-300 border-y-2">
+            <td>
+              <a th:href="@{/programs/{id}/apply(id=${program.id})}" class="link link-primary" th:text="${program.title}">Program Title</a>
+            </td>
+            <td>
+              <div th:text="${formatter.formatTerm(program.semester, program.year)}">
+              </div>
+            </td>
+            <td>
+              <div th:text="${program.description}"></div>
+            </td>
+            <td>
+              <div th:text="${program.facultyLead}"></div>
+            </td>
+            <td>
+              <div th:text="${formatter.formatInstant(program.applicationOpen)}"></div>
+            </td>
+            <td>
+              <div th:text="${formatter.formatInstant(program.applicationClose)}"></div>
+            </td>
+            <td>
+              <div th:text="${formatter.formatLocalDate(program.startDate)}"></div>
+            </td>
+            <td>
+              <div th:text="${formatter.formatLocalDate(program.endDate)}"></div>
+            </td>
+            <td>
+              <div th:with="status=${programStatus[iterStat.index]}">
+                <div th:switch="${status}">
+                  <!-- If the application has not opened yet -->
+                  <div th:case="NotOpen" th:text="'NOT OPEN'"></div>
+
+                  <!-- If there's no application but deadline passed -->
+                  <div th:case="DeadPass" th:text="'DEADLINE PASSED'"></div>
+
+                  <!-- If there's no application and the deadline has NOT passed -->
+                  <div th:case="Open" th:text="'OPEN'"></div>
+
+                  <!-- If the user has an application -->
+                  <div th:case="*" th:text="${status}"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:replace="~{components :: footer}"></div>
+</body>
+</html>

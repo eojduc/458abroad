@@ -16,6 +16,10 @@ public interface ApplicationRepository extends JpaRepository<Application, String
 
   List<Application> findByProgramId(Integer programId);
 
+  // This method will return a list of Optionals, where each Optional corresponds to a student's application for a program
+  @Query("SELECT a FROM Application a WHERE a.student = :studentId")
+  List<Optional<Application>> findProgramApplicationsByStudent(String studentId);
+
   @Modifying
   @Transactional
   @Query("update Application a set a.status = ?2 where a.id = ?1")

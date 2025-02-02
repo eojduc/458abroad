@@ -31,7 +31,7 @@ public record ApplyToProgramController(ApplyToProgramService service) {
           "questions", questions,
           "maxDayOfBirth", maxDayOfBirth
         ));
-        yield "apply-to-program :: page";
+        yield "student/apply-to-program :: page";
       }
       case GetApplyPageData.UserNotFound() ->
         "redirect:/login?error=You are not logged in";
