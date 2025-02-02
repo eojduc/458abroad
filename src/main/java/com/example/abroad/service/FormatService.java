@@ -41,4 +41,13 @@ public record FormatService() {
       .format(DateTimeFormatter.ISO_DATE_TIME);
   }
 
+  public String abbreviateName(String name) {
+    String[] names = name.split(" ");
+    StringBuilder sb = new StringBuilder();
+    for (String n : names) {
+      sb.append(n.charAt(0));
+    }
+    return sb.toString().trim();
+  }
+
 }

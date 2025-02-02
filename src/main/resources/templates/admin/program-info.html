@@ -86,7 +86,9 @@
     th:hx-get="@{${path}(sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'}, column=${thisColumn}, filter=${filter})}"
     hx-swap="outerHTML"
     th:hx-target="${target}"
-    th:text="${column == thisColumn} ? (${text} + ' ' + (${sort} == 'ASCENDING' ? '▼' : '▲')) : ${text}">
+  <span th:text="${text} "></span>
+  <span th:if="${column != thisColumn}" class="invisible">▼</span>
+  <span th:if="${column == thisColumn}" th:text="${sort} == 'ASCENDING' ? '▼' : '▲'"></span>
 </th>
 
 <!-- Applicant table fragment -->

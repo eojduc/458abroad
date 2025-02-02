@@ -130,7 +130,7 @@
   <div class="flex-none gap-2">
     <div class="avatar placeholder">
       <div class="bg-neutral text-neutral-content w-8 rounded-full">
-        <span class="text-sm" th:text="${name.substring(0, 1)}"></span>
+        <span class="text-sm" th:text="${formatter.abbreviateName(name)}"></span>
       </div>
     </div>
     <a href="/logout" class="btn btn-ghost">Logout</a>
@@ -151,10 +151,9 @@
     <a href="/programs" class="btn btn-ghost">Student View</a>
   </div>
   <div class="flex-none gap-2">
-    <a href="/profile/getProfile"
-        class="avatar placeholder">
+    <a href="/profile/getProfile"  class="avatar placeholder">
       <div class="bg-neutral text-neutral-content w-8 rounded-full">
-        <span class="text-sm" th:text="${name.substring(0, 1)}"></span>
+        <span class="text-sm" th:text="${formatter.abbreviateName(name)}"></span>
       </div>
     </a>
     <a href="/logout" class="btn btn-ghost">Logout</a>

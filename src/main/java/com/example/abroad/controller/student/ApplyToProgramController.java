@@ -4,6 +4,7 @@ import com.example.abroad.model.Alerts;
 import com.example.abroad.service.ApplyToProgramService;
 import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
 import com.example.abroad.service.ApplyToProgramService.GetApplyPageData;
+import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Map;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record ApplyToProgramController(ApplyToProgramService service) {
+public record ApplyToProgramController(ApplyToProgramService service, FormatService formatter) {
 
   @GetMapping("/programs/{programId}/apply")
   public String applyToProgram(@PathVariable Integer programId, HttpSession session,
@@ -29,7 +30,8 @@ public record ApplyToProgramController(ApplyToProgramService service) {
           "user", user,
           "alerts", new Alerts(error, success, warning, info),
           "questions", questions,
-          "maxDayOfBirth", maxDayOfBirth
+          "maxDayOfBirth", maxDayOfBirth,
+          "formatter", formatter
         ));
         yield "apply-to-program :: page";
       }

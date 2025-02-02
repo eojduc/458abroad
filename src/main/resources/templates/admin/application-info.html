@@ -64,7 +64,7 @@
             <tr class="border-base-300">
               <td>Status</td>
               <td>
-                <form class="contents" th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${_application.id})}"
+                <form class="contents" th:hx-post="@{/admin/applications/{id}/status(id=${_application.id})}"
                       hx-trigger="change"
                       hx-target="#status-badge">
                   <select name="status" class="select select-sm">
@@ -107,12 +107,11 @@
           </tbody>
         </table>
       </div>
-        <h1 class="text-lg">Responses</h1>
-        <div class="m-4 flex flex-col gap-5">
-          <div th:each="question : ${questions}" class="flex flex-col gap-2">
-            <h2 th:text="${question.text}"></h2>
-            <p class="text-sm" th:text="${_application[question.field]}"></p>
-          </div>
+      <h1 class="text-lg">Responses</h1>
+      <div class="m-4 flex flex-col gap-5">
+        <div th:each="question : ${questions}" class="flex flex-col gap-2">
+          <h2 th:text="${question.text}"></h2>
+          <p class="text-sm" th:text="${_application[question.field]}"></p>
         </div>
       </div>
     </div>
