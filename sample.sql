@@ -7,7 +7,7 @@ delete from applications;
 
 INSERT INTO admins (username, password, email, display_name)
 VALUES
-    ('admin', '$2a$12$5IsO9NAz7Qw3HS8HpLH2zupiwFMOghToiEWaEjhBdTmG2r7UCrKyK', 'admin@example.com', 'Administrator');
+    ('admin', '$2a$12$5IsO9NAz7Qw3HS8HpLH2zupiwFMOghToiEWaEjhBdTmG2r7UCrKyK', 'admin@example.com', 'Administrator Surname');
 
 -- Populate students table
 INSERT INTO students (username, password, email, display_name)

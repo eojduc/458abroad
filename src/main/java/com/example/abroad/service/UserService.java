@@ -23,9 +23,9 @@ public record UserService(
 
 
 
-  public Optional<? extends User> getUser(HttpSession session){
+  public Optional<User> getUser(HttpSession session){
 //    return Optional.ofNullable((User) session.getAttribute(USER_SESSION_ATTRIBUTE));
-    return adminRepository.findAll().stream().findFirst();
+    return adminRepository.findAll().stream().findFirst().map(user -> user);
   }
 
   public Student registerStudent(String username, String displayName, String email, String password) {

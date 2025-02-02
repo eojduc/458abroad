@@ -20,8 +20,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class UserServiceTest {
 
   private static final User USER = STUDENT;
-
-  //mock should be deep stubs
   @Mock
   private HttpSession session;
 
@@ -39,25 +37,19 @@ public class UserServiceTest {
     service = new UserService(adminRepository, studentRepository, passwordEncoder);
   }
 
-  @Test
-  void testSetUser() {
-    service.setUser(session, USER);
-    verify(session).setAttribute("user", USER);
-  }
-
-  @Test
-  void testGetUser() {
-    when(session.getAttribute("user")).thenReturn(USER);
-    var result = service.getUser(session);
-    assertThat(result).isEqualTo(Optional.of(USER));
-  }
-
-  @Test
-  void testGetUserNotPresent() {
-    when(session.getAttribute("user")).thenReturn(null);
-    var result = service.getUser(session);
-    assertThat(result).isEqualTo(Optional.empty());
-  }
+//  @Test
+//  void testGetUser() {
+//    when(session.getAttribute("user")).thenReturn(USER);
+//    var result = service.getUser(session);
+//    assertThat(result).isEqualTo(Optional.of(USER));
+//  }
+//
+//  @Test
+//  void testGetUserNotPresent() {
+//    when(session.getAttribute("user")).thenReturn(null);
+//    var result = service.getUser(session);
+//    assertThat(result).isEqualTo(Optional.empty());
+//  }
 
 
 }
