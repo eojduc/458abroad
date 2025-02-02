@@ -1,6 +1,8 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.User;
+import com.example.abroad.service.FormatService;
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 
@@ -11,21 +13,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @Controller
-public class DashboardController {
+public record DashboardController(FormatService formatter, UserService userService) {
   @GetMapping("/")
   public String home(HttpSession session, Model model) {
-    User user = (User) session.getAttribute("user");
-    String username = user.username();
-    if (username == null) {
+    User user = userService.getUser(session).orElse(null);
+    if (user == null) {
       return "homepage";
     }
+    model.addAttribute("formatter", formatter);
     if(user.isAdmin()) {
-      return adminDashboard(session, model);
+      return adminDashboard(model, user);
     }
-    return showDashboard(session, model);
+    return showDashboard(model, user);
   }
-  public String showDashboard(HttpSession session, Model model) {
-    User user = (User) session.getAttribute("user");
+  public String showDashboard(Model model, User user) {
     String displayName = user.displayName();
     String username = user.username();
     System.out.println(
@@ -35,14 +36,9 @@ public class DashboardController {
     return "dashboard/student-dashboard :: page";
   }
 
-  public String adminDashboard(HttpSession session, Model model) {
-    User user = (User) session.getAttribute("user");
-    var displayName = Optional.ofNullable(user.displayName())
-      .filter(obj -> obj instanceof String)
-      .map(obj -> (String) obj)
-      .orElse("Admin"); // Default fallback
+  public String adminDashboard(Model model, User user) {
 
-    model.addAttribute("displayName", displayName);
+    model.addAttribute("displayName", user.displayName());
 
     return "dashboard/admin-dashboard :: page";  // Note the :: page suffix
   }
