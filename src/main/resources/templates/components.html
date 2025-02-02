@@ -128,11 +128,12 @@
     <a href="/applications" class="btn btn-ghost">My Programs</a>
   </div>
   <div class="flex-none gap-2">
-    <div class="avatar placeholder">
+    <a href="/profile/getProfile"
+       class="avatar placeholder">
       <div class="bg-neutral text-neutral-content w-8 rounded-full">
         <span class="text-sm" th:text="${formatter.abbreviateName(name)}"></span>
       </div>
-    </div>
+    </a>
     <a href="/logout" class="btn btn-ghost">Logout</a>
   </div>
 </div>
@@ -177,39 +178,46 @@
 </div>
 
 <!-- Filter Form -->
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="filterForm(path)">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="filterForm(path, showTimeFilter)">
   <div class="flex gap-4">
     <!-- Keyword search -->
-    <input
-        type="text"
-        name="nameFilter"
-        placeholder="Filter programs..."
-        class="input"
-        th:value="${keyword}"
-        th:hx-get="@{${path}}"
-        hx-target="#programTable"
-        hx-swap="outerHTML"
-        hx-trigger="input delay:300ms"
-    />
+    <label>
+      <input
+          type="text"
+          name="nameFilter"
+          placeholder="Filter programs..."
+          class="input"
+          th:value="${keyword}"
+          th:hx-get="@{${path}}"
+          hx-target="#programTable"
+          hx-swap="outerHTML"
+          hx-trigger="input delay:300ms"
+          autocomplete="off"
+      />
+    </label>
 
     <!-- Time filter -->
-    <select
-        name="timeFilter"
-        class="select"
-        th:value="${timeFilter}"
-        th:hx-get="@{${path}}"
-        hx-target="#programTable"
-        hx-swap="outerHTML"
-        hx-trigger="change"
-    >
-      <option value="future" th:selected="${timeFilter == 'future'}">Current & Future Programs
-      </option>
-      <option value="open" th:selected="${timeFilter == 'open'}">Programs Open to Applications
-      </option>
-      <option value="review" th:selected="${timeFilter == 'review'}">Programs in Review</option>
-      <option value="running" th:selected="${timeFilter == 'running'}">Programs Running Now</option>
-      <option value="all" th:selected="${timeFilter == 'all'}">All Programs</option>
-    </select>
+    <label>
+      <select
+          th:if="${showTimeFilter}"
+          name="timeFilter"
+          class="select"
+          th:value="${timeFilter}"
+          th:hx-get="@{${path}}"
+          hx-target="#programTable"
+          hx-swap="outerHTML"
+          hx-trigger="change"
+          autocomplete="off"
+      >
+        <option value="future" th:selected="${timeFilter == 'future'}">Current & Future Programs
+        </option>
+        <option value="open" th:selected="${timeFilter == 'open'}">Programs Open to Applications
+        </option>
+        <option value="review" th:selected="${timeFilter == 'review'}">Programs in Review</option>
+        <option value="running" th:selected="${timeFilter == 'running'}">Programs Running Now</option>
+        <option value="all" th:selected="${timeFilter == 'all'}">All Programs</option>
+      </select>
+    </label>
   </div>
 </div>
 

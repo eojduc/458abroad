@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Profile')}">
+<head th:replace="~{components :: head('Profile')}">
 </head>
 <body class="min-h-screen flex flex-col">
 <!-- Choose navbar based on user role -->
-<div th:replace="~{fragments :: admin-navbar(${user.displayName()})}" th:if="${user.isAdmin()}"></div>
-<div th:replace="~{fragments :: student-navbar(${user.displayName()})}" th:unless="${user.isAdmin()}"></div>
+<div th:replace="~{components :: ${user.isAdmin() ? 'admin-navbar' : 'student-navbar'}(${user.displayName()})}"></div>
 
 <div class="container mx-auto p-8 flex-1">
-    <div th:replace="~{fragments :: alerts(${alerts})}"></div>
-
+    <div th:if="${alerts != null}" th:replace="~{components :: alerts(${alerts})}"></div>
     <div class="max-w-2xl mx-auto space-y-8">
         <h1 class="text-3xl font-bold mb-6">Profile Settings</h1>
 
@@ -81,6 +79,6 @@
     </div>
 </div>
 
-<div th:replace="~{fragments :: footer}"></div>
+<div th:replace="~{components :: footer}"></div>
 </body>
 </html>

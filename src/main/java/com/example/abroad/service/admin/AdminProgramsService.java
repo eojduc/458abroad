@@ -2,6 +2,7 @@
 package com.example.abroad.service.admin;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
@@ -36,11 +37,26 @@ public record AdminProgramsService(
       HttpSession session,
       String sort,
       String nameFilter,
-      String timeFilter
+      String timeFilter,
+      boolean studentMode
   ) {
     return userService.getUser(session)
-        .map(user -> processAuthorizedRequest(session, sort, nameFilter, timeFilter, user))
+        .map(user -> processAuthorizedRequest(session, sort, nameFilter, timeFilter, user, studentMode))
         .orElse(new GetAllProgramsInfo.UserNotFound());
+  }
+
+  public void clearSessionData(HttpSession session) {
+    session.removeAttribute("nameFilter");
+    session.removeAttribute("timeFilter");
+    session.removeAttribute("lastSort");
+    session.removeAttribute("title");
+    session.removeAttribute("appOpens");
+    session.removeAttribute("appCloses");
+    session.removeAttribute("semDate");
+    session.removeAttribute("startDate");
+    session.removeAttribute("endDate");
+    session.removeAttribute("facultyLead");
+    session.removeAttribute("totalActive");
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
@@ -48,19 +64,26 @@ public record AdminProgramsService(
       String sort,
       String nameFilter,
       String timeFilter,
-      User user
+      User user,
+      boolean studentMode
   ) {
-    if (!user.isAdmin()) {
+    if (!studentMode && !user.isAdmin()) {
       return new GetAllProgramsInfo.UserNotAdmin();
     }
 
     List<Program> programs = programRepository.findAll();
+    List<Application> applications = applicationRepository.findProgramApplicationsByStudent(user.username())
+        .stream()
+        .map(opt -> opt.orElseGet(Application::new)) // Replace empty optionals with a new Application
+        .toList();
+
+
     applyFilters(session, programs, nameFilter, timeFilter);
-    applySorting(session, programs, sort);
+    applySorting(session, programs, sort, studentMode);
 
     return new GetAllProgramsInfo.Success(
         programs,
-        applicationRepository.findAll(),
+        studentMode ? applications : applicationRepository.findAll(),
         user
     );
   }
@@ -121,13 +144,13 @@ public record AdminProgramsService(
     };
   }
 
-  private void applySorting(HttpSession session, List<Program> programs, String newSort) {
+  private void applySorting(HttpSession session, List<Program> programs, String newSort, boolean studentMode) {
     String storedSort = (String) session.getAttribute("lastSort");
     String effectiveSort = Optional.ofNullable(newSort).orElse(storedSort);
 
     if (effectiveSort != null) {
       session.setAttribute("lastSort", effectiveSort);
-      sortPrograms(session, programs, effectiveSort, newSort != null);
+      sortPrograms(session, programs, effectiveSort, newSort != null && !studentMode);
     }
   }
 
@@ -160,6 +183,8 @@ public record AdminProgramsService(
       case "title" -> Comparator.comparing(Program::title);
       case "semDate" -> Comparator.comparing(Program::year)
           .thenComparing(Program::semester);
+      case "appOpens" -> Comparator.comparing(Program::applicationOpen);
+      case "appCloses" -> Comparator.comparing(Program::applicationClose);
       case "startDate" -> Comparator.comparing(Program::startDate);
       case "endDate" -> Comparator.comparing(Program::endDate);
       case "facultyLead" -> Comparator.comparing(Program::facultyLead);

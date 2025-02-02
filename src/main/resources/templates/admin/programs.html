@@ -9,7 +9,7 @@
     <div class="card-body gap-10">
       <h1 class="card-title">All Programs</h1>
   <!-- Filter Form -->
-  <div th:replace="~{components :: filterForm('/admin/programs')}"></div>
+  <div th:replace="~{components :: filterForm('/admin/programs', true)}"></div>
 
   <div class="overflow-x-auto">
     <!-- Add fragment identifier to the table -->
@@ -19,6 +19,8 @@
         <th th:replace="~{components :: sortableHeader('Title', '/admin/programs?sort=title', ${sort})}"></th>
         <th th:replace="~{components :: sortableHeader('Term', '/admin/programs?sort=semDate', ${sort})}"></th>
         <th th:replace="~{components :: sortableHeader('Faculty Lead', '/admin/programs?sort=facultyLead', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('App Opens', '/admin/programs?sort=appOpens', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('App Closes', '/admin/programs?sort=appCloses', ${sort})}"></th>
         <th th:replace="~{components :: sortableHeader('Start Date', '/admin/programs?sort=startDate', ${sort})}"></th>
         <th th:replace="~{components :: sortableHeader('End Date', '/admin/programs?sort=endDate', ${sort})}"></th>
         <th class="bg-base-200">Application Status</th>
@@ -36,6 +38,12 @@
           </td>
           <td>
             <div th:text="${program.facultyLead}"></div>
+          </td>
+          <td>
+            <div th:text="${formatter.formatInstant(program.applicationOpen)}"></div>
+          </td>
+          <td>
+            <div th:text="${formatter.formatInstant(program.applicationClose)}"></div>
           </td>
           <td>
             <div th:text="${formatter.formatLocalDate(program.startDate)}"></div>

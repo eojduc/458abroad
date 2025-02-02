@@ -38,8 +38,8 @@ public record UserService(
   }
 
   public Admin createAdmin(String username, String email, String password, HttpSession session) {
-
-    String creatorUsername = (String) session.getAttribute("username");
+    User user = (User) session.getAttribute("user");
+    String creatorUsername = user.username();
     System.out.println("creator's username: " + creatorUsername);
     Optional<Admin> optionalCreator = adminRepository.findByUsername(creatorUsername);
     User creator = null;

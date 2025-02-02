@@ -32,11 +32,15 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info
       ) {
-    logger.info("Optional Sort/Filter Parameters: sort={}, nameFilter={}, timeFilter={}", sort, nameFilter, timeFilter);
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter);
+    boolean noSortOrFilter = sort == null && nameFilter == null && timeFilter == null;
+    if (noSortOrFilter) {
+      service.clearSessionData(session);
+    }
+
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false);
     int randomActive = random.nextInt(101);
     int randomStatus = random.nextInt(101);
-    boolean noSortOrFilter = sort == null && nameFilter == null && timeFilter == null;
+
 
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";

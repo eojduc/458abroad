@@ -15,6 +15,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 @Component
 public class AuthSuccessHandler implements AuthenticationSuccessHandler {
@@ -33,20 +36,24 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
   public void onAuthenticationSuccess(HttpServletRequest request,
     HttpServletResponse response,
     Authentication authentication) throws IOException {
+    System.out.println("AuthSuccessHandler called");
     String userName = authentication.getName();
     String displayName = "";
 
-    HttpSession session = request.getSession(true);
+    HttpSession session = request.getSession(false); //check if a session exist, if not return null instead of creating a new one
 
-    // Invalidate any existing session
-    if (!session.isNew()) {
-      session.invalidate();
+  // If no session exists, create a new one
+    if (session == null) {
       session = request.getSession(true);
+      System.out.println("Created new session");
+    } else {
+      System.out.println("Using existing session");
     }
 
     session.setAttribute("username", authentication.getName());
+
     Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-    session.setAttribute("role", authorities.stream()
+    session.setAttribute("role", authentication.getAuthorities().stream()
       .findFirst()
       .map(GrantedAuthority::getAuthority)
       .map(role -> Role.valueOf(role)) // Convert string to Role enum
@@ -59,12 +66,15 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         displayName = adminRepository.findByUsername(userName).get().displayName();
         session.setAttribute("displayName", displayName);
         session.setAttribute("user", adminRepository.findByUsername(userName).get());
+        System.out.println("DEBUG: Admin user set in session: " + userName);
         response.sendRedirect("/");
         break;
       case ROLE_STUDENT:
+        System.out.println("IN ROLE STUDENT");
         displayName = studentRepository.findByUsername(userName).get().displayName();
         session.setAttribute("displayName", displayName);
         session.setAttribute("user", studentRepository.findByUsername(userName).get());
+        System.out.println("DEBUG: Student user set in session: " + userName);
         response.sendRedirect("/");
         break;
       default:
