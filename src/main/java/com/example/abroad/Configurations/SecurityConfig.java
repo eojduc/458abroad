@@ -46,13 +46,13 @@ public class SecurityConfig {
       .cors(cors -> cors.disable())
       .csrf(csrf -> csrf.disable())
       .authorizeHttpRequests(auth -> auth
-//        .requestMatchers("/", "/register", "/login", "/logout", "/images/**", "/public/**")
-//        .permitAll()
-//        .requestMatchers("/admin/**").hasRole("ADMIN")
-//        .anyRequest()
-//        .authenticated()
-          .anyRequest()
-          .permitAll()
+        .requestMatchers("/", "/register", "/login", "/logout", "/images/**", "/public/**")
+        .permitAll()
+        .requestMatchers("/admin/**").hasRole("ADMIN")
+        .anyRequest()
+        .authenticated()
+//          .anyRequest()
+//          .permitAll()
       )
       .formLogin(form -> form
         .loginPage("/login")  // Where users SEE the login form, my defined page

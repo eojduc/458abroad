@@ -37,19 +37,19 @@ public class UserServiceTest {
     service = new UserService(adminRepository, studentRepository, passwordEncoder);
   }
 
-//  @Test
-//  void testGetUser() {
-//    when(session.getAttribute("user")).thenReturn(USER);
-//    var result = service.getUser(session);
-//    assertThat(result).isEqualTo(Optional.of(USER));
-//  }
-//
-//  @Test
-//  void testGetUserNotPresent() {
-//    when(session.getAttribute("user")).thenReturn(null);
-//    var result = service.getUser(session);
-//    assertThat(result).isEqualTo(Optional.empty());
-//  }
+  @Test
+  void testGetUser() {
+    when(session.getAttribute("user")).thenReturn(USER);
+    var result = service.getUser(session);
+    assertThat(result).isEqualTo(Optional.of(USER));
+  }
+
+  @Test
+  void testGetUserNotPresent() {
+    when(session.getAttribute("user")).thenReturn(null);
+    var result = service.getUser(session);
+    assertThat(result).isEqualTo(Optional.empty());
+  }
 
 
 }
