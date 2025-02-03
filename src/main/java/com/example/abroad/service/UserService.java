@@ -8,6 +8,7 @@ import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
 import jakarta.servlet.http.HttpSession;
+import java.util.Arrays;
 import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,64 @@ public record UserService(
     }
   }
 
+  enum DaisyTheme {
+    LIGHT,
+    DARK,
+    CUPCAKE,
+    BUMBLEBEE,
+    EMERALD,
+    CORPORATE,
+    SYNTHWAVE,
+    RETRO,
+    CYBERPUNK,
+    VALENTINE,
+    HALLOWEEN,
+    GARDEN,
+    FOREST,
+    AQUA,
+    LOFI,
+    PASTEL,
+    FANTASY,
+    WIREFRAME,
+    BLACK,
+    LUXURY,
+    DRACULA,
+    CMYK,
+    AUTUMN,
+    BUSINESS,
+    ACID,
+    LEMONADE,
+    NIGHT,
+    COFFEE,
+    WINTER,
+    DIM,
+    NORD,
+    SUNSET,
+    DEFAULT
+  }
+
+  public void setTheme(String theme , HttpSession session) {
+    if (theme.equals(DaisyTheme.DEFAULT)) {
+      session.setAttribute("theme", "");
+    }
+    else if (Arrays.stream(DaisyTheme.values()).map(Enum::name).anyMatch(theme::equals)) { // Check if theme is a valid DaisyTheme
+      session.setAttribute("theme", theme);
+    }
+    else {
+      session.setAttribute("theme", "");
+    }
+  }
+  public String getTheme(HttpSession session) {
+    if (session.getAttribute("theme") == null) {
+      return "";
+    }
+    else if (session.getAttribute("theme") instanceof String string) {
+      return string.toLowerCase();
+    }
+    else {
+      return "";
+    }
+  }
 //  public User authenticateUser(String username, String password) {
 //    User user = findByUsername(username)
 //      .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));

@@ -1,14 +1,11 @@
 package com.example.abroad.controller;
 
-import com.example.abroad.Configurations.AuthSuccessHandler;
+import com.example.abroad.configuration.AuthSuccessHandler;
 import com.example.abroad.exception.EmailAlreadyInUseException;
 import com.example.abroad.exception.UsernameAlreadyInUseException;
-import com.example.abroad.model.Role;
-import com.example.abroad.respository.StudentRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
