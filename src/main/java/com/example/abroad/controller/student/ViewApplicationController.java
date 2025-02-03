@@ -1,4 +1,4 @@
-package com.example.abroad.controller;
+package com.example.abroad.controller.student;
 
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ViewApplicationService;
@@ -25,7 +25,7 @@ public record ViewApplicationController(ViewApplicationService applicationServic
           "user", user,
           "formatter", formatter
         ));
-        yield "student/applications :: page";
+        yield "student/view-application :: page";
       }
       case GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
       case GetApplicationResult.ApplicationNotFound() -> "redirect:/dashboard?error=Application not found";
