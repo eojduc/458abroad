@@ -18,9 +18,10 @@ public record ListApplicationsController(ListApplicationsService listApplication
   public String listApplications(HttpSession session, Model model) {
     GetApplicationsResult result = listApplicationsService.getApplications(session);
     return switch(result) {
-      case GetApplicationsResult.Success(var apps, var user) -> {
+      case GetApplicationsResult.Success(var apps, var programs, var user) -> {
         model.addAllAttributes(Map.of(
-          "applications", apps,
+          "apps", apps,
+          "programs", programs,
           "user", user,
           "formatter", formatter,
           "theme", userService.getTheme(session)
