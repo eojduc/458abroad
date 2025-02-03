@@ -34,6 +34,16 @@ public record FormatService() {
       case SUMMER -> "Summer";
     };
   }
+  public String formatDateRange(LocalDate start, LocalDate end) {
+    DateTimeFormatter sameMonthFormatter = DateTimeFormatter.ofPattern("MMM d");
+    DateTimeFormatter differentMonthFormatter = DateTimeFormatter.ofPattern("MMM d");
+
+    if (start.getMonth() == end.getMonth()) {
+      return start.format(sameMonthFormatter) + " - " + end.format(DateTimeFormatter.ofPattern("d"));
+    } else {
+      return start.format(differentMonthFormatter) + " - " + end.format(differentMonthFormatter);
+    }
+  }
 
   public String formatInstantToIso(Instant instant) {
     return instant.atZone(ZoneId.systemDefault())

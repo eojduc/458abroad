@@ -7,73 +7,52 @@
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
-      <h1 class="card-title">All Programs</h1>
+      <h1 class="card-title">Browse Programs</h1>
       <!-- Filter Form -->
       <div th:replace="~{components :: filterForm('/programs', false)}"></div>
-
-      <div class="overflow-x-auto">
-        <!-- Add fragment identifier to the table -->
-        <table class="table w-full" th:fragment="programTable" id="programTable">
-          <thead>
-          <tr>
-            <th class="bg-base-200">Title</th>
-            <th class="bg-base-200">Term</th>
-            <th class="bg-base-200">Description</th>
-            <th class="bg-base-200">Faculty Lead</th>
-            <th class="bg-base-200">App Opens</th>
-            <th class="bg-base-200">App Closes</th>
-            <th class="bg-base-200">Start Date</th>
-            <th class="bg-base-200">End Date</th>
-            <th class="bg-base-200">Application Status</th>
-          </tr>
-          </thead>
-          <tbody th:fragment="programTableBody" id="programTableBody">
-          <tr th:each="program, iterStat : ${programs}" class="border-base-300 border-y-2">
-            <td>
-              <a th:href="@{/programs/{id}/apply(id=${program.id})}" class="link link-primary" th:text="${program.title}">Program Title</a>
-            </td>
-            <td>
-              <div th:text="${formatter.formatTerm(program.semester, program.year)}">
-              </div>
-            </td>
-            <td>
-              <div th:text="${program.description}"></div>
-            </td>
-            <td>
-              <div th:text="${program.facultyLead}"></div>
-            </td>
-            <td>
-              <div th:text="${formatter.formatInstant(program.applicationOpen)}"></div>
-            </td>
-            <td>
-              <div th:text="${formatter.formatInstant(program.applicationClose)}"></div>
-            </td>
-            <td>
-              <div th:text="${formatter.formatLocalDate(program.startDate)}"></div>
-            </td>
-            <td>
-              <div th:text="${formatter.formatLocalDate(program.endDate)}"></div>
-            </td>
-            <td>
-              <div th:with="status=${programStatus[iterStat.index]}">
-                <div th:switch="${status}">
-                  <!-- If the application has not opened yet -->
-                  <div th:case="NotOpen" th:text="'NOT OPEN'"></div>
-
-                  <!-- If there's no application but deadline passed -->
-                  <div th:case="DeadPass" th:text="'DEADLINE PASSED'"></div>
-
-                  <!-- If there's no application and the deadline has NOT passed -->
-                  <div th:case="Open" th:text="'OPEN'"></div>
-
-                  <!-- If the user has an application -->
-                  <div th:case="*" th:text="${status}"></div>
+      <div th:fragment="programTable" id="programTable" class="contents">
+        <div class="flex flex-col gap-4" th:each="program, iterStat : ${programs}">
+          <div class="card card-normal w-full bg-base-300">
+            <div class="card-body gap-2 collapse collapse-arrow">
+              <input type="radio" name="programs-accordian" />
+              <div class="collapse-title gap-4">
+                <div class="card-actions justify-between">
+                  <h1 class="card-title" th:text=" ${program.title} + ': ' + ${formatter.formatTerm(program.semester, program.year)}"></h1>
+                  <div th:replace="~{this :: statusBadge(${programStatus[iterStat.index]})}"></div>
                 </div>
+                <p th:text="${formatter.formatDateRange(program.startDate, program.endDate)}"></p>
               </div>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+              <div class="collapse-content flex flex-col gap-4">
+                <p class="text-sm" th:text="${program.description}"></p>
+                <table class="table table-compact">
+                  <tbody>
+                  <tr class="border-base-200 border-y-2">
+                    <td>Faculty Lead</td>
+                    <td th:text="${program.facultyLead}"></td>
+                  </tr>
+                  <tr class="border-base-200 border-y-2">
+                    <td>Application Opens</td>
+                    <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+                  </tr>
+                  <tr class="border-base-200 border-y-2">
+                    <td>Application Closes</td>
+                    <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+                  </tr>
+                  </tbody>
+                </table>
+                <div class="card-actions justify-end">
+                  <a th:if = "${programStatus[iterStat.index] == 'Open'}"
+                     th:href="@{/programs/{id}/apply(id=${program.id})}"
+                     class="btn btn-primary">Apply</a>
+                  <a th:if = "${programStatus[iterStat.index] == 'APPLIED' || programStatus[iterStat.index] == 'ENROLLED'
+                    || programStatus[iterStat.index] == 'WITHDRAWN' || programStatus[iterStat.index] == 'CANCELLED'}"
+                     th:href="@{/applications/{id}(id=${program.id})}"
+                     class="btn btn-primary">View Application</a>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -82,3 +61,21 @@
 <div th:replace="~{components :: footer}"></div>
 </body>
 </html>
+
+<div
+    th:fragment="statusBadge(status)">
+  <div th:switch="${status}">
+    <!-- If the application has not opened yet -->
+    <div th:case="NotOpen" class="badge badge-neutral">
+      Upcoming
+    </div>
+    <div th:case="DeadPass" class="badge badge-secondary">
+      Closed
+    </div>
+    <div th:case="Open" class="badge badge-primary">
+      Open
+    </div>
+    <div th:case="*"
+         th:replace="~{components :: statusBadge(${status})}"></div>
+  </div>
+</div>

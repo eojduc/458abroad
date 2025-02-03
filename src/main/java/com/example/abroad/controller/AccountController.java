@@ -6,6 +6,7 @@ import com.example.abroad.model.Student;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
+import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,29 +21,16 @@ import java.util.Optional;
 
 
 @Controller
-@RequestMapping("/profile")
-public class AccountController {
-
-    private final AdminRepository adminRepository;
-    private final StudentRepository studentRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    @Autowired
-    public AccountController(AdminRepository adminRepository, StudentRepository studentRepository, PasswordEncoder passwordEncoder) {
-        this.adminRepository = adminRepository;
-        this.studentRepository = studentRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-    Alerts alerts = new Alerts(
-            Optional.empty(),  // error
-            Optional.empty(),  // success
-            Optional.empty(),  // warning
-            Optional.empty()   // info
-    );
-
-
-    @GetMapping("/getProfile")
-    public String getProfile(HttpSession session, Model model) {
+public record AccountController(
+        AdminRepository adminRepository,
+        StudentRepository studentRepository,
+        PasswordEncoder passwordEncoder,
+        FormatService formatter
+) {
+    @GetMapping("/profile")
+    public String getProfile(HttpSession session, Model model, @RequestParam Optional<String> error,
+                             @RequestParam Optional<String> success, @RequestParam Optional<String> warning,
+                             @RequestParam Optional<String> info) {
         System.out.println("DEBUG: Hitting getProfile endpoint");
         System.out.println("DEBUG: Session ID: " + session.getId());
         User user = (User) session.getAttribute("user");
@@ -57,17 +45,19 @@ public class AccountController {
 
         // Create an Alerts object with no messages
 
-        model.addAttribute("alerts", alerts);
+        model.addAttribute("alerts", new Alerts(error, success, warning, info));
+        model.addAttribute("formatter", formatter);
 
         return "profile";
     }
-    @PostMapping("/updateProfile")
+    @PostMapping("/profile/update")
     public String updateProfile(
             @RequestParam String displayName,
             @RequestParam String email,
             HttpSession session,
             Model model) {
 
+        model.addAttribute("formatter", formatter);
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
@@ -98,25 +88,15 @@ public class AccountController {
             model.addAttribute("user", updatedStudent);
             session.setAttribute("user", updatedStudent);
         }
-        Alerts alerts = new Alerts(
-                Optional.empty(),
-                Optional.of("Profile updated successfully"),
-                Optional.empty(),
-                Optional.empty()
-        );
-        model.addAttribute("alerts", alerts);
-
-        model.addAttribute("success", "Profile updated successfully");
-        return "profile";
+        return "redirect:/profile?success=Profile updated successfully";
     }
 
-    @PostMapping("/changePassword")
+    @PostMapping("/profile/change-password")
     public String changePassword(
             @RequestParam String currentPassword,
             @RequestParam String newPassword,
             @RequestParam String confirmPassword,
-            HttpSession session,
-            Model model) {
+            HttpSession session) {
 
         User user = (User) session.getAttribute("user");
         if (user == null) {
@@ -125,27 +105,11 @@ public class AccountController {
 
         // Verify current password using BCrypt
         if (!passwordEncoder.matches(currentPassword, user.password())) {
-            Alerts alerts = new Alerts(
-                    Optional.of("Current password is incorrect"),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty()
-            );
-            model.addAttribute("alerts", alerts);
-            model.addAttribute("user", user);
-            return "profile";
+            return "redirect:/profile?error=Current password is incorrect";
         }
 
         if (!newPassword.equals(confirmPassword)) {
-            Alerts alerts = new Alerts(
-                    Optional.of("New passwords do not match"),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty()
-            );
-            model.addAttribute("alerts", alerts);
-            model.addAttribute("user", user);
-            return "profile";
+            return "redirect:/profile?error=New passwords do not match";
         }
 
         // Hash the new password
@@ -160,7 +124,6 @@ public class AccountController {
                     admin.displayName()
             );
             adminRepository.save(updatedAdmin);
-            model.addAttribute("user", updatedAdmin);
             session.setAttribute("user", updatedAdmin);
         } else {
             Student student = (Student) user;
@@ -171,17 +134,8 @@ public class AccountController {
                     student.displayName()
             );
             studentRepository.save(updatedStudent);
-            model.addAttribute("user", updatedStudent);
             session.setAttribute("user", updatedStudent);
         }
-
-        Alerts alerts = new Alerts(
-                Optional.empty(),
-                Optional.of("Password updated successfully"),
-                Optional.empty(),
-                Optional.empty()
-        );
-        model.addAttribute("alerts", alerts);
-        return "profile";
+        return "redirect:/profile?success=Password updated successfully";
     }
 }
