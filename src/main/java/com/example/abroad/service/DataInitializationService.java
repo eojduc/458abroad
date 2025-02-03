@@ -41,7 +41,7 @@ public class DataInitializationService {
   private static final Logger logger = LoggerFactory.getLogger(DataInitializationService.class);
   private static final String STUDENT_CSV_FILE_PATH = "data/students.csv";
   private static final String ADMIN_CSV_FILE_PATH = "data/admins.csv";
-  private static final String APPLICATION_CSV_FILE_PATH = "applications.csv";
+  private static final String APPLICATION_CSV_FILE_PATH = "data/applications.csv";
   private static final String PROGRAM_CSV_FILE_PATH = "data/programs.csv";
 
   @Transactional
