@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
@@ -39,7 +40,6 @@ public final class Program {
   @Column(nullable = false, length = 10000)
   private String description;
 
-
   public Program() {
     this.id = null;
     this.title = null;
@@ -54,10 +54,9 @@ public final class Program {
   }
 
 
-  public Program(Integer id, String title, Year year, Semester semester, Instant applicationOpen,
+  public Program(String title, Year year, Semester semester, Instant applicationOpen,
     Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
     String description) {
-    this.id = id;
     this.title = title;
     this.year = year;
     this.semester = semester;

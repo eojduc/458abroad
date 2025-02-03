@@ -11,21 +11,30 @@ dependencies {
 	implementation 'org.postgresql:postgresql'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.security:spring-security-config'
-
-
+	implementation 'org.apache.commons:commons-csv:1.10.0'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-
 task fillDb {
-	doLast {
+	doFirst {
+		// First make the script executable
+		file('resetdb.sh').setExecutable(true)
+
+		// Then run it
 		exec {
-			commandLine 'psql', '-U', 'postgres', '-d', 'abroad', '-f', 'sample.sql'
+			workingDir '.'
+			if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+				commandLine 'cmd', '/c', 'resetDb.sh'
+			} else {
+				commandLine 'sh', './resetDb.sh'
+			}
 		}
 	}
+
 }
+
 tasks.test {
 	useJUnitPlatform()
 }
@@ -44,6 +53,15 @@ java {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
+
+sourceSets {
+	main {
+		resources {
+			srcDirs = ['src/main/resources']
+		}
+	}
+}
+
 
 repositories {
 	mavenCentral()

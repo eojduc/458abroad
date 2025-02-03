@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public record AdminProgramsController(AdminProgramsService service, FormatService formatter) {
 
-  private static final Logger logger = LoggerFactory.getLogger(AdminProgramsController.class);
   private static final Random random = new Random();
 
   @GetMapping("/admin/programs")

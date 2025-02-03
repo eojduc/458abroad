@@ -47,7 +47,7 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     if (program == null) {
       return new UpdateProgramInfo.ProgramNotFound();
     }
-    var newProgram = new Program(programId, title, Year.of(year), semester,
+    var newProgram = new Program(title, Year.of(year), semester,
       applicationOpen.atZone(Config.ZONE_ID).toInstant(),
       applicationClose.atZone(Config.ZONE_ID).toInstant(),
       startDate, endDate, facultyLead, description);
