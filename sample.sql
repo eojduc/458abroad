@@ -13,6 +13,7 @@ VALUES
 INSERT INTO students (username, password, email, display_name)
 VALUES
     ('delali', '$2a$10$EJKVcHN7yA.CvCJktVuDkuJ6in5rLgfu32hmaWVIoGAMf8aQGAstG', 'delali@example.com', 'Delali Cudjoe'),
+    ('delali', '$2a$10$EJKVcHN7yA.CvCJktVuDkuJ6in5rLgfu32hmaWVIoGAMf8aQGAstG', 'delali@example.com', 'Delali Cudjoe'),
     ('student2', 'password101', 'student2@example.com', 'Student Two');
 ALTER TABLE programs
 ALTER COLUMN description TYPE VARCHAR(10000);
