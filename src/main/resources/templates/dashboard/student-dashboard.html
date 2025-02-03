@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
   <head th:replace="~{components :: head('Student Dashboard')}"></head>
   <body>
@@ -16,6 +16,50 @@
           <a href="/applications" class="btn btn-secondary btn-lg w-full">
             My Applications
           </a>
+        </div>
+      </div>
+    </div>
+    <div th:replace="~{components :: footer}"></div>
+  </body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+  <head th:replace="~{components :: head('Student Dashboard')}"></head>
+  <body>
+    <div th:replace="~{components :: student-navbar(${displayName})}"></div>
+    <div class="bg-base-100 flex flex-col items-center justify-center min-h-screen p-6">
+      <div class="card bg-base-200 shadow-xl p-8 w-full max-w-3xl">
+        <div class="card-body">
+          <h1 class="card-title text-center mb-6">
+            Welcome, <span th:text="${displayName}">Student</span>
+          </h1>
+          <p class="text-center mb-8">
+            Explore available study abroad programs or check the status of your applications below.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Browse Programs Section -->
+            <div class="flex flex-col items-center text-center">
+              <h2 class="font-bold text-lg">Browse Programs</h2>
+              <p class="text-sm mb-2">
+                Discover a variety of study abroad opportunities that match your interests and academic goals.
+              </p>
+              <a href="/programs" class="btn btn-primary btn-sm">
+                View Programs
+              </a>
+            </div>
+            <!-- My Applications Section -->
+            <div class="flex flex-col items-center text-center">
+              <h2 class="font-bold text-lg">My Applications</h2>
+              <p class="text-sm mb-2">
+                Review your applications, check their status, and manage your study abroad journey.
+              </p>
+              <a href="/applications" class="btn btn-secondary btn-sm">
+                View Applications
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
