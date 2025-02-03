@@ -35,14 +35,14 @@ public record DashboardController(FormatService formatter, UserService userServi
       "Getting username from session: " + user.username());
     model.addAttribute("displayName", displayName);
     model.addAttribute("student", username); // Add this for navbar
-    return "dashboard/student-dashboard :: page";
+    return "student/student-dashboard :: page";
   }
 
   public String adminDashboard(Model model, User user) {
 
     model.addAttribute("displayName", user.displayName());
 
-    return "dashboard/admin-dashboard :: page";  // Note the :: page suffix
+    return "admin/admin-dashboard :: page";  // Note the :: page suffix
   }
 
   @GetMapping("/hello")
