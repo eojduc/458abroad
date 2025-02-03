@@ -17,7 +17,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-task fillDb {
+task resetDb {
 	doFirst {
 		// First make the script executable
 		file('resetdb.sh').setExecutable(true)

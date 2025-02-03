@@ -13,8 +13,8 @@ public class DataInitializerService {
   private final DataInitializationService dataInitializationService;
   private static final Logger logger = LoggerFactory.getLogger(DataInitializerService.class);
 
-  @Value("${fillData:false}")
-  private boolean fillData;
+  @Value("${fillDb:false}")
+  private boolean fillDb;
 
   @Autowired
   public DataInitializerService(DataInitializationService dataInitializationService) {
@@ -23,7 +23,7 @@ public class DataInitializerService {
 
   @PostConstruct
   public void initData() {
-    if (fillData) {
+    if (fillDb) {
       dataInitializationService.initializeStudents();
       dataInitializationService.initializeAdmins();
       dataInitializationService.initializeApplications();
