@@ -3,6 +3,7 @@ package com.example.abroad.controller.student;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ListApplicationsService;
 import com.example.abroad.service.ListApplicationsService.GetApplicationsResult;
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,7 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.util.Map;
 
 @Controller
-public record ListApplicationsController(ListApplicationsService listApplicationsService, FormatService formatter) {
+public record ListApplicationsController(ListApplicationsService listApplicationsService, FormatService formatter,
+                                         UserService userService) {
 
   @GetMapping("/applications")
   public String listApplications(HttpSession session, Model model) {
@@ -20,7 +22,8 @@ public record ListApplicationsController(ListApplicationsService listApplication
         model.addAllAttributes(Map.of(
           "applications", apps,
           "user", user,
-          "formatter", formatter
+          "formatter", formatter,
+          "theme", userService.getTheme(session)
         ));
         yield "student/list-application :: page";
       }

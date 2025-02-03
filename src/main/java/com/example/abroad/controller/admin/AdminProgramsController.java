@@ -2,6 +2,7 @@ package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.FormatService;
+import com.example.abroad.service.UserService;
 import com.example.abroad.service.admin.AdminProgramsService;
 import com.example.abroad.service.admin.AdminProgramsService.GetAllProgramsInfo;
 import jakarta.servlet.http.HttpSession;
@@ -17,7 +18,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record AdminProgramsController(AdminProgramsService service, FormatService formatter) {
+public record AdminProgramsController(AdminProgramsService service, FormatService formatter,
+                                      UserService userService) {
 
   private static final Random random = new Random();
 
@@ -53,7 +55,8 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
                 "programStatus", randomStatus,
                 "sort", Objects.toString(session.getAttribute("lastSort"), ""),
               "alerts", new Alerts(error, success, warning, info),
-              "formatter", formatter
+              "formatter", formatter,
+              "theme", userService.getTheme(session)
             )
         );
         yield "admin/programs :: " + ( noSortOrFilter ? "page" : "programTable");

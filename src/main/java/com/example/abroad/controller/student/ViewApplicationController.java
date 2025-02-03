@@ -1,6 +1,7 @@
 package com.example.abroad.controller.student;
 
 import com.example.abroad.service.FormatService;
+import com.example.abroad.service.UserService;
 import com.example.abroad.service.ViewApplicationService;
 import com.example.abroad.service.ViewApplicationService.GetApplicationResult;
 
@@ -13,7 +14,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
-public record ViewApplicationController(ViewApplicationService applicationService, FormatService formatter) {
+public record ViewApplicationController(ViewApplicationService applicationService, FormatService formatter,
+                                        UserService userService) {
 
   @GetMapping("/applications/{applicationId}")
   public String viewApplication(@PathVariable String applicationId, HttpSession session, Model model) {
@@ -23,7 +25,8 @@ public record ViewApplicationController(ViewApplicationService applicationServic
         model.addAllAttributes(Map.of(
           "app", app,
           "user", user,
-          "formatter", formatter
+          "formatter", formatter,
+          "theme", userService.getTheme(session)
         ));
         yield "student/view-application :: page";
       }

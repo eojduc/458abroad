@@ -6,6 +6,7 @@ import com.example.abroad.service.EditProgramService;
 import com.example.abroad.service.EditProgramService.GetEditProgramInfo;
 import com.example.abroad.service.EditProgramService.UpdateProgramInfo;
 import com.example.abroad.service.FormatService;
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,7 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record EditProgramPageController(EditProgramService service, FormatService formatter) {
+public record EditProgramPageController(EditProgramService service, FormatService formatter,
+                                        UserService userService) {
 
 
   @GetMapping("/admin/programs/{programId}/edit")
@@ -33,7 +35,8 @@ public record EditProgramPageController(EditProgramService service, FormatServic
           "program", program,
           "user", user,
           "alerts", new Alerts(error, success, warning, info),
-          "formatter", formatter
+          "formatter", formatter,
+          "theme", userService.getTheme(session)
         ));
         return "admin/edit-program :: page";
       }

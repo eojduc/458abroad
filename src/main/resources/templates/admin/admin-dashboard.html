@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${theme}">
 <head th:replace="~{components :: head('Admin Dashboard')}"></head>
 <body>
 <div th:replace="~{components :: admin-navbar(admin)}"></div>
@@ -14,6 +14,7 @@
                     <button class="btn btn-secondary">View Reports</button>
                     <!-- Add button to open modal -->
                     <button class="btn btn-accent" onclick="document.getElementById('createAdminModal').showModal()">Create New Admin</button>
+                    <form th:replace="~{components :: theme-form(${theme})}"></form>
                 </div>
             </div>
         </div>

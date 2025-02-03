@@ -1,6 +1,7 @@
 package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
+import com.example.abroad.service.UserService;
 import com.example.abroad.service.admin.AdminProgramInfoService;
 import com.example.abroad.service.admin.AdminProgramInfoService.Column;
 import com.example.abroad.service.admin.AdminProgramInfoService.DeleteProgram;
@@ -21,7 +22,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Controller
-public record AdminProgramInfoController(AdminProgramInfoService service, FormatService formatter) {
+public record AdminProgramInfoController(AdminProgramInfoService service, FormatService formatter,
+                                         UserService userService) {
 
   @GetMapping("/admin/programs/{programId}")
   public String getProgramInfo(@PathVariable Integer programId, HttpSession session, Model model,
@@ -45,7 +47,8 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "formatter", formatter,
           "alerts", new Alerts(error, success, warning, info),
           "column", Column.NONE.name(),
-          "filter", Filter.NONE.name()
+          "filter", Filter.NONE.name(),
+          "theme", userService.getTheme(session)
         ));
         yield "admin/program-info :: page";
       }

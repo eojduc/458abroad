@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${theme}">
   <head th:replace="~{components :: head('Student Dashboard')}"></head>
   <body>
     <div th:replace="~{components :: student-navbar(${displayName})}"></div>
@@ -38,6 +38,7 @@
               </div>
             </div>
           </div>
+          <form th:replace="~{components :: theme-form(${theme})}"></form>
         </div>
       </div>
     </div>

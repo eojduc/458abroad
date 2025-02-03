@@ -7,6 +7,7 @@ import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.StudentRepository;
 import com.example.abroad.service.FormatService;
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +26,8 @@ public record AccountController(
         AdminRepository adminRepository,
         StudentRepository studentRepository,
         PasswordEncoder passwordEncoder,
-        FormatService formatter
+        FormatService formatter,
+        UserService userService
 ) {
     @GetMapping("/profile")
     public String getProfile(HttpSession session, Model model, @RequestParam Optional<String> error,
@@ -47,8 +49,9 @@ public record AccountController(
 
         model.addAttribute("alerts", new Alerts(error, success, warning, info));
         model.addAttribute("formatter", formatter);
+        model.addAttribute("theme", userService.getTheme(session));
 
-        return "profile";
+        return "profile :: page";
     }
     @PostMapping("/profile/update")
     public String updateProfile(

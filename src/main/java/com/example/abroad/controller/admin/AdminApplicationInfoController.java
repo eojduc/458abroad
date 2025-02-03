@@ -4,6 +4,7 @@ package com.example.abroad.controller.admin;
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Question;
+import com.example.abroad.service.UserService;
 import com.example.abroad.service.admin.AdminApplicationInfoService;
 import com.example.abroad.service.admin.AdminApplicationInfoService.GetApplicationInfo;
 import com.example.abroad.service.admin.AdminApplicationInfoService.UpdateApplicationStatus;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public record AdminApplicationInfoController(AdminApplicationInfoService service,
-                                             FormatService formatter) {
+                                             FormatService formatter, UserService userService) {
 
   @GetMapping("/admin/applications/{applicationId}")
   public String getApplicationInfo(@PathVariable String applicationId, HttpSession session,
@@ -36,7 +37,8 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
           "formatter", formatter,
           "questions", Question.QUESTIONS,
           "user", user,
-          "alerts", new Alerts(error, success, warning, info)
+          "alerts", new Alerts(error, success, warning, info),
+          "theme", userService.getTheme(session)
         ));
         yield "admin/application-info :: page";
       }

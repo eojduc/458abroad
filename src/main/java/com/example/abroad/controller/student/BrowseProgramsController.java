@@ -4,6 +4,7 @@ import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.service.FormatService;
+import com.example.abroad.service.UserService;
 import com.example.abroad.service.admin.AdminProgramsService;
 import com.example.abroad.service.admin.AdminProgramsService.GetAllProgramsInfo;
 import com.example.abroad.service.admin.AdminProgramsService.GetAllProgramsInfo.Success;
@@ -25,7 +26,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record BrowseProgramsController(AdminProgramsService service, FormatService formatter) {
+public record BrowseProgramsController(AdminProgramsService service, FormatService formatter,
+                                       UserService userService) {
 
   private static final Logger logger = LoggerFactory.getLogger(BrowseProgramsController.class);
 
@@ -88,7 +90,8 @@ public record BrowseProgramsController(AdminProgramsService service, FormatServi
                 "programs", programs,
                 "programStatus", programStatus,
                 "alerts", new Alerts(error, success, warning, info),
-                "formatter", formatter
+                "formatter", formatter,
+              "theme", userService.getTheme(session)
             )
         );
         yield "student/programs :: " + (noFilter ? "page" : "programTable");

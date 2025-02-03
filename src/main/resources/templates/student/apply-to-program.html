@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, user, alerts, questions, maxDayOfBirth)">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, user, alerts, questions, maxDayOfBirth)" th:data-theme="${theme}">
 <head th:replace="~{components :: head('Apply to ' + ${program.title})}"></head>
 
 <body>

@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
@@ -23,6 +24,7 @@ public record DashboardController(FormatService formatter, UserService userServi
       return "homepage";
     }
     model.addAttribute("formatter", formatter);
+    model.addAttribute("theme", userService.getTheme(session));
     if(user.isAdmin()) {
       return adminDashboard(model, user);
     }
@@ -67,5 +69,11 @@ public record DashboardController(FormatService formatter, UserService userServi
       System.out.println("No authentication found in /test-auth");
     }
     return "test-auth";
+  }
+
+  @PostMapping("/theme")
+  public String setTheme(@RequestParam String theme, HttpSession session) {
+    userService.setTheme(theme, session);
+    return "redirect:/";
   }
 }

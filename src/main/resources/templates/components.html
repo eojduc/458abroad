@@ -240,5 +240,44 @@
   <span th:case="NOT_APPLIED" class="badge badge-neutral">Not Applied</span>
 </div>
 
+<form action="/theme" method="post" class="flex flex-row gap-2" th:fragment="theme-form(theme)">
+  <select class="select" name="theme">
+    <option value="DEFAULT" th:selected="${theme == 'default'}">Default</option>
+    <option value="LIGHT" th:selected="${theme == 'light'}">Light</option>
+    <option value="DARK" th:selected="${theme == 'dark'}">Dark</option>
+    <option value="CUPCAKE" th:selected="${theme == 'cupcake'}">Cupcake</option>
+    <option value="BUMBLEBEE" th:selected="${theme == 'bumblebee'}">Bumblebee</option>
+    <option value="EMERALD" th:selected="${theme == 'emerald'}">Emerald</option>
+    <option value="CORPORATE" th:selected="${theme == 'corporate'}">Corporate</option>
+    <option value="SYNTHWAVE" th:selected="${theme == 'synthwave'}">Synthwave</option>
+    <option value="RETRO" th:selected="${theme == 'retro'}">Retro</option>
+    <option value="CYBERPUNK" th:selected="${theme == 'cyberpunk'}">Cyberpunk</option>
+    <option value="VALENTINE" th:selected="${theme == 'valentine'}">Valentine</option>
+    <option value="HALLOWEEN" th:selected="${theme == 'halloween'}">Halloween</option>
+    <option value="GARDEN" th:selected="${theme == 'garden'}">Garden</option>
+    <option value="FOREST" th:selected="${theme == 'forest'}">Forest</option>
+    <option value="AQUA" th:selected="${theme == 'aqua'}">Aqua</option>
+    <option value="LOFI" th:selected="${theme == 'lofi'}">Lofi</option>
+    <option value="PASTEL" th:selected="${theme == 'pastel'}">Pastel</option>
+    <option value="FANTASY" th:selected="${theme == 'fantasy'}">Fantasy</option>
+    <option value="WIREFRAME" th:selected="${theme == 'wireframe'}">Wireframe</option>
+    <option value="BLACK" th:selected="${theme == 'black'}">Black</option>
+    <option value="LUXURY" th:selected="${theme == 'luxury'}">Luxury</option>
+    <option value="DRACULA" th:selected="${theme == 'dracula'}">Dracula</option>
+    <option value="CMYK" th:selected="${theme == 'cmyk'}">CMYK</option>
+    <option value="AUTUMN" th:selected="${theme == 'autumn'}">Autumn</option>
+    <option value="BUSINESS" th:selected="${theme == 'business'}">Business</option>
+    <option value="ACID" th:selected="${theme == 'acid'}">Acid</option>
+    <option value="LEMONADE" th:selected="${theme == 'lemonade'}">Lemonade</option>
+    <option value="NIGHT" th:selected="${theme == 'night'}">Night</option>
+    <option value="COFFEE" th:selected="${theme == 'coffee'}">Coffee</option>
+    <option value="WINTER" th:selected="${theme == 'winter'}">Winter</option>
+    <option value="DIM" th:selected="${theme == 'dim'}">Dim</option>
+    <option value="NORD" th:selected="${theme == 'nord'}">Nord</option>
+    <option value="SUNSET" th:selected="${theme == 'sunset'}">Sunset</option>
+  </select>
+  <button class="btn btn-primary" type="submit">Change Theme</button>
+</form>
+
 
 
