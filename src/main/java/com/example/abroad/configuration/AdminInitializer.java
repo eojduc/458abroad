@@ -1,4 +1,4 @@
-package com.example.abroad.Configurations;
+package com.example.abroad.configuration;
 
 import com.example.abroad.model.Admin;
 import com.example.abroad.respository.AdminRepository;

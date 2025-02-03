@@ -1,4 +1,4 @@
-package com.example.abroad.Configurations;
+package com.example.abroad.configuration;
 
 
 import com.example.abroad.model.Role;
@@ -15,9 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 @Component
 public class AuthSuccessHandler implements AuthenticationSuccessHandler {
