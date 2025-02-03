@@ -13,6 +13,18 @@ public class DataInitializerService {
   private final DataInitializationService dataInitializationService;
   private static final Logger logger = LoggerFactory.getLogger(DataInitializerService.class);
 
+  @Value("${data.students.path}")
+  private String studentCsvFilePath;
+
+  @Value("${data.admins.path}")
+  private String adminCsvFilePath;
+
+  @Value("${data.applications.path}")
+  private String applicationCsvFilePath;
+
+  @Value("${data.programs.path}")
+  private String programCsvFilePath;
+
   @Value("${fillDb:false}")
   private boolean fillDb;
 
@@ -24,10 +36,10 @@ public class DataInitializerService {
   @PostConstruct
   public void initData() {
     if (fillDb) {
-      dataInitializationService.initializeStudents();
-      dataInitializationService.initializeAdmins();
-      dataInitializationService.initializeApplications();
-      dataInitializationService.initializePrograms();
+      dataInitializationService.initializeStudents(studentCsvFilePath);
+      dataInitializationService.initializeAdmins(adminCsvFilePath);
+      dataInitializationService.initializeApplications(applicationCsvFilePath);
+      dataInitializationService.initializePrograms(programCsvFilePath);
     } else {
       logger.info("Skipping data initialization.");
     }

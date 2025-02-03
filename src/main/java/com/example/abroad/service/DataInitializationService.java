@@ -1,18 +1,8 @@
 package com.example.abroad.service;
 
-import com.example.abroad.model.Admin;
-import com.example.abroad.model.Application;
-import com.example.abroad.model.Program;
-import com.example.abroad.model.Student;
-import com.example.abroad.respository.AdminRepository;
-import com.example.abroad.respository.ApplicationRepository;
-import com.example.abroad.respository.ProgramRepository;
-import com.example.abroad.respository.StudentRepository;
+import com.example.abroad.model.*;
+import com.example.abroad.respository.*;
 import jakarta.transaction.Transactional;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
@@ -22,105 +12,102 @@ import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.function.Function;
+
 @Service
 public class DataInitializationService {
-
-  @Autowired
-  private StudentRepository studentRepository;
-  @Autowired
-  private AdminRepository adminRepository;
-  @Autowired
-  private ApplicationRepository applicationRepository;
-  @Autowired
-  private ProgramRepository programRepository;
-
-  private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
   private static final Logger logger = LoggerFactory.getLogger(DataInitializationService.class);
-  private static final String STUDENT_CSV_FILE_PATH = "data/students.csv";
-  private static final String ADMIN_CSV_FILE_PATH = "data/admins.csv";
-  private static final String APPLICATION_CSV_FILE_PATH = "data/applications.csv";
-  private static final String PROGRAM_CSV_FILE_PATH = "data/programs.csv";
+  private final BCryptPasswordEncoder passwordEncoder;
+  private final StudentRepository studentRepository;
+  private final AdminRepository adminRepository;
+  private final ApplicationRepository applicationRepository;
+  private final ProgramRepository programRepository;
+  private final CSVFormat csvFormat;
 
-  @Transactional
-  protected void initializeStudents() {
-    try (InputStream inputStream = getClass().getClassLoader()
-        .getResourceAsStream(STUDENT_CSV_FILE_PATH)) {
+  @Autowired
+  public DataInitializationService(
+      StudentRepository studentRepository,
+      AdminRepository adminRepository,
+      ApplicationRepository applicationRepository,
+      ProgramRepository programRepository) {
+    this.studentRepository = studentRepository;
+    this.adminRepository = adminRepository;
+    this.applicationRepository = applicationRepository;
+    this.programRepository = programRepository;
+    this.passwordEncoder = new BCryptPasswordEncoder();
+    this.csvFormat = CSVFormat.DEFAULT.builder()
+        .setHeader()
+        .setSkipHeaderRecord(true)
+        .build();
+  }
 
+  protected <T> void initializeData(String path, Function<CSVRecord, T> recordMapper, JpaRepository<T, ?> repository) {
+    try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(path)) {
       if (inputStream == null) {
-        logger.error("Resource not found: {}", STUDENT_CSV_FILE_PATH);
+        logger.error("Resource not found: {}", path);
         return;
       }
-      Reader reader = new InputStreamReader(inputStream);
-      CSVParser parser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build()
-          .parse(reader);
 
-      for (CSVRecord record : parser) {
-        String encryptedPassword = passwordEncoder.encode(record.get("password"));
+      try (Reader reader = new InputStreamReader(inputStream);
+          CSVParser parser = csvFormat.parse(reader)) {
 
-        Student student = new Student(
-            record.get("username"),
-            encryptedPassword,
-            record.get("email"),
-            record.get("displayName")
-        );
+        parser.forEach(record -> {
+          try {
+            T entity = recordMapper.apply(record);
+            repository.save(entity);
+          } catch (Exception e) {
+            logger.error("Error processing record: {}", e.getMessage());
+          }
+        });
 
-        studentRepository.save(student);
+        logger.info("Data initialized successfully for {}", path);
       }
-      logger.info("Student data initialized successfully");
     } catch (IOException e) {
-      logger.error("Error reading student data from CSV file: {}", e.getMessage());
+      logger.error("Error reading data from CSV file {}: {}", path, e.getMessage());
     }
   }
 
   @Transactional
-  protected void initializeAdmins() {
-    try (InputStream inputStream = getClass().getClassLoader()
-        .getResourceAsStream(ADMIN_CSV_FILE_PATH)) {
-
-      if (inputStream == null) {
-        logger.error("Resource not found: {}", ADMIN_CSV_FILE_PATH);
-        return;
-      }
-      Reader reader = new InputStreamReader(inputStream);
-
-      CSVParser parser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build()
-          .parse(reader);
-
-      for (CSVRecord record : parser) {
-        String encryptedPassword = passwordEncoder.encode(record.get("password"));
-
-        Admin admin = new Admin(
+  protected void initializeStudents(String path) {
+    initializeData(
+        path,
+        record -> new Student(
             record.get("username"),
-            encryptedPassword,
+            passwordEncoder.encode(record.get("password")),
             record.get("email"),
             record.get("displayName")
-        );
-
-        adminRepository.save(admin);
-      }
-      logger.info("Admin data initialized successfully");
-    } catch (IOException e) {
-      logger.error("Error reading admin data from CSV file: {}", e.getMessage());
-    }
+        ),
+        studentRepository
+    );
   }
 
   @Transactional
-  protected void initializeApplications() {
-    try (InputStream inputStream = getClass().getClassLoader()
-        .getResourceAsStream(APPLICATION_CSV_FILE_PATH)) {
+  protected void initializeAdmins(String path) {
+    initializeData(
+        path,
+        record -> new Admin(
+            record.get("username"),
+            passwordEncoder.encode(record.get("password")),
+            record.get("email"),
+            record.get("displayName")
+        ),
+        adminRepository
+    );
+  }
 
-      if (inputStream == null) {
-        logger.error("Resource not found: {}", APPLICATION_CSV_FILE_PATH);
-        return;
-      }
-      Reader reader = new InputStreamReader(inputStream);
-      CSVParser parser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build()
-          .parse(reader);
-      for (CSVRecord record : parser) {
-        Application application = new Application(
+  @Transactional
+  protected void initializeApplications(String path) {
+    initializeData(
+        path,
+        record -> new Application(
             record.get("id"),
             record.get("student"),
             Integer.parseInt(record.get("programId")),
@@ -133,32 +120,16 @@ public class DataInitializationService {
             record.get("answer4"),
             record.get("answer5"),
             Application.Status.valueOf(record.get("status").toUpperCase())
-        );
-
-        applicationRepository.save(application);
-      }
-      logger.info("Application data initialized successfully");
-    } catch (IOException e) {
-      logger.error("Error reading application data from CSV file: {}", e.getMessage());
-    }
+        ),
+        applicationRepository
+    );
   }
 
   @Transactional
-  protected void initializePrograms() {
-    try (InputStream inputStream = getClass().getClassLoader()
-        .getResourceAsStream(PROGRAM_CSV_FILE_PATH)) {
-
-      if (inputStream == null) {
-        logger.error("Resource not found: {}", PROGRAM_CSV_FILE_PATH);
-        return;
-      }
-      Reader reader = new InputStreamReader(inputStream);
-
-      CSVParser parser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build()
-          .parse(reader);
-
-      for (CSVRecord record : parser) {
-        Program program = new Program(
+  protected void initializePrograms(String path) {
+    initializeData(
+        path,
+        record -> new Program(
             record.get("title"),
             Year.parse(record.get("year")),
             Program.Semester.valueOf(record.get("semester").toUpperCase()),
@@ -168,14 +139,8 @@ public class DataInitializationService {
             LocalDate.parse(record.get("endDate")),
             record.get("facultyLead"),
             record.get("description")
-        );
-
-        programRepository.save(program);
-      }
-      logger.info("Program data initialized successfully");
-    } catch (IOException e) {
-      logger.error("Error reading program data from CSV file: {}", e.getMessage());
-    }
+        ),
+        programRepository
+    );
   }
 }
-
