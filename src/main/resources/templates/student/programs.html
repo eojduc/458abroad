@@ -18,7 +18,20 @@
               <div class="collapse-title gap-4">
                 <div class="card-actions justify-between">
                   <h1 class="card-title" th:text=" ${program.title} + ': ' + ${formatter.formatTerm(program.semester, program.year)}"></h1>
-                  <div th:replace="~{this :: statusBadge(${programStatus[iterStat.index]})}"></div>
+                  <div th:switch="${programStatus[iterStat.index]}">
+                    <!-- If the application has not opened yet -->
+                    <div th:case="NotOpen" class="badge badge-neutral">
+                      Upcoming
+                    </div>
+                    <div th:case="DeadPass" class="badge badge-secondary">
+                      Closed
+                    </div>
+                    <div th:case="Open" class="badge badge-primary">
+                      Open
+                    </div>
+                    <div th:case="*"
+                         th:replace="~{components :: statusBadge(${programStatus[iterStat.index]})}"></div>
+                  </div>
                 </div>
                 <p th:text="${formatter.formatDateRange(program.startDate, program.endDate)}"></p>
               </div>
@@ -62,20 +75,3 @@
 </body>
 </html>
 
-<div
-    th:fragment="statusBadge(status)">
-  <div th:switch="${status}">
-    <!-- If the application has not opened yet -->
-    <div th:case="NotOpen" class="badge badge-neutral">
-      Upcoming
-    </div>
-    <div th:case="DeadPass" class="badge badge-secondary">
-      Closed
-    </div>
-    <div th:case="Open" class="badge badge-primary">
-      Open
-    </div>
-    <div th:case="*"
-         th:replace="~{components :: statusBadge(${status})}"></div>
-  </div>
-</div>
