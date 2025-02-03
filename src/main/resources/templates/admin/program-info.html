@@ -10,7 +10,10 @@
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
       <div class="flex flex-col gap-5">
-        <h1 class="card-title" th:text="${program.title}"></h1>
+        <div class="card-actions justify-between">
+          <h1 class="card-title" th:text="${program.title}"></h1>
+          <a href="/admin/programs" class="btn btn-secondary">Back to Programs</a>
+        </div>
         <p th:text="${program.description}"></p>
       </div>
       <div class="flex flex-col gap-2">
@@ -85,7 +88,7 @@
     th:class="${column == thisColumn} ? 'bg-base-300 cursor-pointer' : 'cursor-pointer'"
     th:hx-get="@{${path}(sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'}, column=${thisColumn}, filter=${filter})}"
     hx-swap="outerHTML"
-    th:hx-target="${target}"
+    th:hx-target="${target}">
   <span th:text="${text} "></span>
   <span th:if="${column != thisColumn}" class="invisible">▼</span>
   <span th:if="${column == thisColumn}" th:text="${sort} == 'ASCENDING' ? '▼' : '▲'"></span>
