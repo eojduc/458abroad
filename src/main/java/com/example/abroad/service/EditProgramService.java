@@ -47,11 +47,17 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     if (program == null) {
       return new UpdateProgramInfo.ProgramNotFound();
     }
-    var newProgram = new Program(title, Year.of(year), semester,
-      applicationOpen.atZone(Config.ZONE_ID).toInstant(),
-      applicationClose.atZone(Config.ZONE_ID).toInstant(),
-      startDate, endDate, facultyLead, description);
-    programRepository.save(newProgram);
+    program.setTitle(title);
+    program.setYear(Year.of(year));
+    program.setSemester(semester);
+    program.setApplicationOpen(applicationOpen.atZone(Config.ZONE_ID).toInstant());
+    program.setApplicationClose(applicationClose.atZone(Config.ZONE_ID).toInstant());
+    program.setStartDate(startDate);
+    program.setEndDate(endDate);
+    program.setFacultyLead(facultyLead);
+    program.setDescription(description);
+
+    programRepository.save(program);
     return new UpdateProgramInfo.Success();
   }
 

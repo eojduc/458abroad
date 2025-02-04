@@ -28,6 +28,9 @@ public class DataInitializerService {
   @Value("${fillDb:false}")
   private boolean fillDb;
 
+  @Value("${resetDb:false}")
+  private boolean resetDb;
+
   @Autowired
   public DataInitializerService(DataInitializationService dataInitializationService) {
     this.dataInitializationService = dataInitializationService;
@@ -36,6 +39,10 @@ public class DataInitializerService {
   @PostConstruct
   public void initData() {
     if (fillDb) {
+      if (resetDb) {
+        logger.info("Resetting database.");
+        dataInitializationService.resetDatabase();
+      }
       dataInitializationService.initializeStudents(studentCsvFilePath);
       dataInitializationService.initializeAdmins(adminCsvFilePath);
       dataInitializationService.initializeApplications(applicationCsvFilePath);
