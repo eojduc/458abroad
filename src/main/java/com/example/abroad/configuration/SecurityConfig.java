@@ -52,7 +52,7 @@ public class SecurityConfig {
         .loginPage("/login")  // Where users SEE the login form, my defined page
         .loginProcessingUrl("/login")  // Where the form SUBMITS to, spring security intercepts POST requests to /logi
         .successHandler(authSuccessHandler) // my custom authentication success handler
-        .failureUrl("/login?error=true")
+        .failureUrl("/login?error=failed to login")
         .permitAll()
       )
       .logout(AbstractHttpConfigurer::disable);
