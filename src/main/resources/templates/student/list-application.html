@@ -21,7 +21,6 @@
             </tr>
           </thead>
           <tbody>
-            <!-- Existing tbody content remains the same -->
             <tr th:each="app, iterStat : ${apps}">
               <td>
                 <a th:href="@{'/applications/' + ${app.id()}}" class="link">

@@ -33,8 +33,8 @@ public record ListApplicationsController(ListApplicationsService listApplication
             "apps", apps,
             "programs", programs,
             "user", user,
-            "formatter", formatter,
             "sort", sort,
+            "formatter", formatter,
             "theme", userService.getTheme(session)));
 
         if (request.getHeader("HX-Request") != null) {
