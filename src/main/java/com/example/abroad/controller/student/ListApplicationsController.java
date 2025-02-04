@@ -28,10 +28,9 @@ public record ListApplicationsController(ListApplicationsService listApplication
     GetApplicationsResult result = listApplicationsService.getApplications(session, sort);
 
     return switch (result) {
-      case GetApplicationsResult.Success(var apps, var programs, var user) -> {
+      case GetApplicationsResult.Success(var pairs, var user) -> {
         model.addAllAttributes(Map.of(
-            "apps", apps,
-            "programs", programs,
+            "pairs", pairs,
             "user", user,
             "sort", sort,
             "formatter", formatter,
