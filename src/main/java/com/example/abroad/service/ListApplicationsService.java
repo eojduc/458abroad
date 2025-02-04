@@ -24,8 +24,6 @@ public record ListApplicationsService(
     ApplicationRepository applicationRepository,
     ProgramRepository programRepository,
     UserService userService) {
-    
-  private static final Logger logger = LoggerFactory.getLogger(BrowseProgramsController.class);
 
   public GetApplicationsResult getApplications(HttpSession session, String sort) {
     var user = userService.getUser(session).orElse(null);
@@ -87,10 +85,6 @@ public record ListApplicationsService(
     List<Program> sortedPrograms = combined.stream()
         .map(Pair::prog)
         .collect(Collectors.toList());
-
-    logger.info("SORTED APP SIZE: " + sortedApps.size());
-    logger.info("SORTED PROG SIZE: " + sortedPrograms.size());
-
     return new GetApplicationsResult.Success(sortedApps, sortedPrograms, user);
   }
 

@@ -7,44 +7,50 @@
   <head th:replace="~{components :: head('My Applications')}"></head>
   <body class="min-h-screen flex flex-col">
     <div th:replace="~{components :: student-navbar(${user.displayName()})}"></div>
-    <main class="flex-grow container mx-auto p-4">
-      <h1 class="text-2xl font-bold mb-4">My Applications</h1>
-      <div class="overflow-x-auto">
-        <table id="programTable" class="table table-zebra w-full text-lg" th:fragment="programTable">
-          <thead>
-            <tr>
-              <th th:replace="~{components :: sortableHeader('Title', '/applications?sort=title', ${sort})}"></th>
-              <th th:replace="~{components :: sortableHeader('Year & Semester', '/applications?sort=yearSemester', ${sort})}"></th>
-              <th th:replace="~{components :: sortableHeader('Faculty Lead(s)', '/applications?sort=faculty', ${sort})}"></th>
-              <th th:replace="~{components :: sortableHeader('Dates', '/applications?sort=dates', ${sort})}"></th>
-              <th th:replace="~{components :: sortableHeader('Status', '/applications?sort=status', ${sort})}"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr th:each="app, iterStat : ${apps}">
-              <td>
-                <a th:href="@{'/applications/' + ${app.id()}}" class="link">
-                  <span th:text="${programs[iterStat.index].title()}">Program Title</span>
-                </a>
-              </td>
-              <td th:text="${programs[iterStat.index].year()} + ' ' + ${programs[iterStat.index].semester()}">
-                2025 Fall
-              </td>
-              <td th:text="${programs[iterStat.index].facultyLead()}">
-                Dr. Smith, Dr. Jones
-              </td>
-              <td>
-                <span th:text="'Start: ' + ${programs[iterStat.index].startDate()}"></span><br>
-                <span th:text="'End: ' + ${programs[iterStat.index].endDate()}"></span>
-              </td>
-              <td>
-                <span class="badge badge-primary" th:text="${app.status()}">Applied</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+      <div class="card card-normal w-full bg-base-200">
+        <div class="card-body gap-10">
+          <h1 class="card-title">My Applications</h1>
+          <div th:fragment="programTable" id="programTable" class="contents">
+            <div class="overflow-x-auto">
+              <table class="table table-zebra w-full text-lg">
+                <thead>
+                  <tr>
+                    <th th:replace="~{components :: sortableHeader('Title', '/applications?sort=title', ${sort})}"></th>
+                    <th th:replace="~{components :: sortableHeader('Year & Semester', '/applications?sort=yearSemester', ${sort})}"></th>
+                    <th th:replace="~{components :: sortableHeader('Faculty Lead(s)', '/applications?sort=faculty', ${sort})}"></th>
+                    <th th:replace="~{components :: sortableHeader('Dates', '/applications?sort=dates', ${sort})}"></th>
+                    <th th:replace="~{components :: sortableHeader('Status', '/applications?sort=status', ${sort})}"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="app, iterStat : ${apps}">
+                    <td>
+                      <a th:href="@{'/applications/' + ${app.id()}}" class="link">
+                        <span th:text="${programs[iterStat.index].title()}">Program Title</span>
+                      </a>
+                    </td>
+                    <td th:text="${programs[iterStat.index].year()} + ' ' + ${programs[iterStat.index].semester()}">
+                      2025 Fall
+                    </td>
+                    <td th:text="${programs[iterStat.index].facultyLead()}">
+                      Dr. Smith, Dr. Jones
+                    </td>
+                    <td>
+                      <span th:text="'Start: ' + ${programs[iterStat.index].startDate()}"></span><br>
+                      <span th:text="'End: ' + ${programs[iterStat.index].endDate()}"></span>
+                    </td>
+                    <td>
+                      <span class="badge badge-primary" th:text="${app.status()}">Applied</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
     <div th:replace="~{components :: footer}"></div>
   </body>
 </html>
