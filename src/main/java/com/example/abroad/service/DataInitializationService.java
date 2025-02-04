@@ -75,6 +75,8 @@ public class DataInitializationService {
     }
   }
 
+
+
   @Transactional
   protected void initializeStudents(String path) {
     initializeData(
@@ -130,6 +132,7 @@ public class DataInitializationService {
     initializeData(
         path,
         record -> new Program(
+            Integer.parseInt(record.get("id")),
             record.get("title"),
             Year.parse(record.get("year")),
             Program.Semester.valueOf(record.get("semester").toUpperCase()),
@@ -142,5 +145,13 @@ public class DataInitializationService {
         ),
         programRepository
     );
+  }
+
+  @Transactional
+  protected void resetDatabase() {
+    studentRepository.deleteAll();
+    adminRepository.deleteAll();
+    applicationRepository.deleteAll();
+    programRepository.deleteAll();
   }
 }

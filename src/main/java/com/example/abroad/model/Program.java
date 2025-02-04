@@ -18,7 +18,6 @@ import java.util.Objects;
 public final class Program {
 
   @Id
-  @GeneratedValue
   private Integer id;
   @Column(nullable = false)
   private String title;
@@ -54,9 +53,10 @@ public final class Program {
   }
 
 
-  public Program(String title, Year year, Semester semester, Instant applicationOpen,
+  public Program(Integer id, String title, Year year, Semester semester, Instant applicationOpen,
     Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
     String description) {
+    this.id = id;
     this.title = title;
     this.year = year;
     this.semester = semester;
@@ -164,6 +164,42 @@ public final class Program {
       return false;
     }
     return Objects.equals(description, program.description);
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public void setYear(Year of) {
+    this.year = of;
+  }
+
+  public void setSemester(Semester semester) {
+    this.semester = semester;
+  }
+
+  public void setApplicationOpen(Instant applicationOpen) {
+    this.applicationOpen = applicationOpen;
+  }
+
+  public void setApplicationClose(Instant applicationClose) {
+    this.applicationClose = applicationClose;
+  }
+
+  public void setStartDate(LocalDate startDate) {
+    this.startDate = startDate;
+  }
+
+  public void setEndDate(LocalDate endDate) {
+    this.endDate = endDate;
+  }
+
+  public void setFacultyLead(String facultyLead) {
+    this.facultyLead = facultyLead;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public enum Semester {
