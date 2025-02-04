@@ -1,5 +1,6 @@
 package com.example.abroad.controller;
 
+import com.example.abroad.model.Alerts;
 import com.example.abroad.model.User;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public record DashboardController(FormatService formatter, UserService userService) {
   @GetMapping("/")
-  public String home(HttpSession session, Model model) {
+  public String home(HttpSession session, Model model,
+    @RequestParam Optional<String> error, @RequestParam Optional<String> success,
+    @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     model.addAttribute("theme", userService.getTheme(session));
     User user = userService.getUser(session).orElse(null);
     if (user == null) {
@@ -25,6 +28,7 @@ public record DashboardController(FormatService formatter, UserService userServi
     }
     model.addAttribute("formatter", formatter);
     model.addAttribute("theme", userService.getTheme(session));
+    model.addAttribute("alerts", new Alerts(error, success, warning, info));
     if(user.isAdmin()) {
       return adminDashboard(model, user);
     }

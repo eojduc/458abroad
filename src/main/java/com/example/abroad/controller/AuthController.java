@@ -3,8 +3,10 @@ package com.example.abroad.controller;
 import com.example.abroad.configuration.AuthSuccessHandler;
 import com.example.abroad.exception.EmailAlreadyInUseException;
 import com.example.abroad.exception.UsernameAlreadyInUseException;
+import com.example.abroad.model.Alerts;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,14 +40,25 @@ public class AuthController {
   }
 
   @GetMapping("/login")
-  public String showLoginForm(HttpServletRequest request, HttpSession session) {
+  public String showLoginForm(HttpSession session,
+    @RequestParam Optional<String> error, @RequestParam Optional<String> info,
+    @RequestParam Optional<String> success,
+    @RequestParam Optional<String> warning, Model model) {
     // Check if user is already authenticated
-    if(session.getAttribute("user") != null) {
+    var user = userService.getUser(session).orElse(null);
+    if(user != null) {
       System.out.println("in /LOGIN, User is already authenticated, redirecting to home");
-      return "redirect:/";
+      return "redirect:/?info=You are already logged in";
     }
     System.out.println("get mapping /login getting called");
+    model.addAttribute("alerts", new Alerts(error, success, warning, info));
     return "auth/login";
+  }
+
+  @GetMapping("/logout")
+  public String logout(HttpSession session) {
+    session.invalidate();
+    return "redirect:/login?info=You have been logged out";
   }
 
   @GetMapping("/register")
