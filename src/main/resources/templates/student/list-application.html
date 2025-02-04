@@ -13,7 +13,7 @@
           <h1 class="card-title">My Applications</h1>
           <div th:fragment="programTable" id="programTable" class="contents">
             <div class="overflow-x-auto">
-              <table class="table table-zebra w-full text-lg">
+              <table class="table table-lg w-full">
                 <thead>
                   <tr>
                     <th th:replace="~{components :: sortableHeader('Title', '/applications?sort=title', ${sort})}"></th>
@@ -24,26 +24,22 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr th:each="app, iterStat : ${apps}">
-                    <td>
-                      <a th:href="@{'/applications/' + ${app.id()}}" class="link">
-                        <span th:text="${programs[iterStat.index].title()}">Program Title</span>
-                      </a>
-                    </td>
-                    <td th:text="${programs[iterStat.index].year()} + ' ' + ${programs[iterStat.index].semester()}">
-                      2025 Fall
-                    </td>
-                    <td th:text="${programs[iterStat.index].facultyLead()}">
-                      Dr. Smith, Dr. Jones
-                    </td>
-                    <td>
-                      <span th:text="'Start: ' + ${programs[iterStat.index].startDate()}"></span><br>
-                      <span th:text="'End: ' + ${programs[iterStat.index].endDate()}"></span>
-                    </td>
-                    <td>
-                      <span class="badge badge-primary" th:text="${app.status()}">Applied</span>
-                    </td>
-                  </tr>
+                <tr th:each="pair : ${pairs}" class="border-base-300 border-y-2">
+                  <td>
+                    <a th:href="@{'/applications/' + ${pair.app().id()}}" class="link link-primary">
+                      <span th:text="${pair.prog().title()}">Program Title</span>
+                    </a>
+                  </td>
+                  <td th:text="${formatter.formatTerm(pair.prog().semester(), pair.prog().year())}"></td>
+                  <td th:text="${pair.prog().facultyLead()}"></td>
+                  <td class = "flex flex-col">
+                    <span th:text="'Start: ' + ${formatter.formatLocalDate(pair.prog().startDate())}"></span>
+                    <span th:text="'End: ' + ${formatter.formatLocalDate(pair.prog().endDate())}"></span>
+                  </td>
+                  <td>
+                    <div th:replace = "~{components :: statusBadge(${pair.app().status().name()})}"></div>
+                  </td>
+                </tr>
                 </tbody>
               </table>
             </div>

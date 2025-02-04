@@ -37,7 +37,7 @@ public record ListApplicationsService(
         .stream()
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .collect(Collectors.toList());
+        .toList();
 
     // build parallel lists if corresponding program is found
     List<Application> filteredApps = new ArrayList<>();
@@ -50,9 +50,6 @@ public record ListApplicationsService(
       }
     }
 
-    // pair together for sorting
-    record Pair(Application app, Program prog) {
-    }
     List<Pair> combined = new ArrayList<>();
     for (int i = 0; i < filteredApps.size(); i++) {
       combined.add(new Pair(filteredApps.get(i), programs.get(i)));
@@ -81,17 +78,20 @@ public record ListApplicationsService(
 
     List<Application> sortedApps = combined.stream()
         .map(Pair::app)
-        .collect(Collectors.toList());
+        .toList();
     List<Program> sortedPrograms = combined.stream()
         .map(Pair::prog)
-        .collect(Collectors.toList());
-    return new GetApplicationsResult.Success(sortedApps, sortedPrograms, user);
+        .toList();
+
+    return new GetApplicationsResult.Success(combined, user);
+  }
+  public record Pair(Application app, Program prog) {
   }
 
   public sealed interface GetApplicationsResult
       permits GetApplicationsResult.Success, GetApplicationsResult.UserNotFound {
 
-    record Success(List<Application> applications, List<Program> programs, User user) implements GetApplicationsResult {
+    record Success(List<Pair> data, User user) implements GetApplicationsResult {
     }
 
     record UserNotFound() implements GetApplicationsResult {
