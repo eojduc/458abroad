@@ -7,9 +7,7 @@
       <div th:replace="~{components :: alerts(${alerts})}"></div>
       <div class="card bg-base-200 w-3/5">
         <div class="card-body gap-4">
-          <h1 class="card-title text-center">
-            Welcome, <span th:text="${displayName}">Student</span>
-          </h1>
+          <h1 class="card-title text-center" th:text="Welcome, ${displayName}"></h1>
           <p class="text-center">
             Explore available study abroad programs or check the status of your applications below.
           </p>

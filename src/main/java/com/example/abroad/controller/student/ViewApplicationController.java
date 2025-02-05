@@ -43,10 +43,10 @@ public record ViewApplicationController(
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
-        "redirect:/dashboard?error=Application not found";
-      case ViewApplicationService.GetApplicationResult.AccessDenied() -> "redirect:/dashboard?error=Access denied";
+        "redirect:/?error=Application not found";
+      case ViewApplicationService.GetApplicationResult.AccessDenied() -> "redirect:/?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
-        "redirect:/dashboard?error=Program not found";
+        "redirect:/?error=Program not found";
     };
   }
 }

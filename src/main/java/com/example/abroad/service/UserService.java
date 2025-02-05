@@ -78,41 +78,41 @@ public record UserService(
     }
   }
 
-  enum DaisyTheme {
-    LIGHT,
-    DARK,
-    CUPCAKE,
-    BUMBLEBEE,
-    EMERALD,
-    CORPORATE,
-    SYNTHWAVE,
-    RETRO,
-    CYBERPUNK,
-    VALENTINE,
-    HALLOWEEN,
-    GARDEN,
-    FOREST,
-    AQUA,
-    LOFI,
-    PASTEL,
-    FANTASY,
-    WIREFRAME,
-    BLACK,
-    LUXURY,
-    DRACULA,
-    CMYK,
-    AUTUMN,
-    BUSINESS,
-    ACID,
-    LEMONADE,
-    NIGHT,
-    COFFEE,
-    WINTER,
-    DIM,
-    NORD,
-    SUNSET,
-    DEFAULT
-  }
+    enum DaisyTheme {
+      LIGHT,
+      DARK,
+      CUPCAKE,
+      BUMBLEBEE,
+      EMERALD,
+      CORPORATE,
+      SYNTHWAVE,
+      RETRO,
+      CYBERPUNK,
+      VALENTINE,
+      HALLOWEEN,
+      GARDEN,
+      FOREST,
+      AQUA,
+      LOFI,
+      PASTEL,
+      FANTASY,
+      WIREFRAME,
+      BLACK,
+      LUXURY,
+      DRACULA,
+      CMYK,
+      AUTUMN,
+      BUSINESS,
+      ACID,
+      LEMONADE,
+      NIGHT,
+      COFFEE,
+      WINTER,
+      DIM,
+      NORD,
+      SUNSET,
+      DEFAULT
+    }
 
   public void setTheme(String theme , HttpSession session) {
     if (theme.equals(DaisyTheme.DEFAULT)) {
@@ -136,20 +136,6 @@ public record UserService(
       return "";
     }
   }
-//  public User authenticateUser(String username, String password) {
-//    User user = findByUsername(username)
-//      .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-//
-//    System.out.println("Stored password hash: " + user.password());
-//    System.out.println(
-//      "Password match result: " + passwordEncoder.matches(password, user.password()));
-//
-//    if (!passwordEncoder.matches(password, user.password())) {
-//      throw new IncorrectPasswordException("Incorrect password");
-//    }
-//
-//    return user;
-//  }
 
   public Optional<Student> findByUsername(String username) {
 
