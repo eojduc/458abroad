@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html
   xmlns:th="http://www.thymeleaf.org"
   th:fragment="page"
@@ -25,6 +25,203 @@
             <strong>Student:</strong>
             <span th:text="${app.student()}">STUDENT</span>
           </p>
+        </div>
+      </div>
+    </div>
+    <div th:replace="~{components :: footer}"></div>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:fragment="page"
+  th:data-theme="${theme}"
+>
+  <head th:replace="~{components :: head('Application Details')}"></head>
+  <body>
+    <div
+      th:replace="~{components :: student-navbar(${user.displayName()})}"
+    ></div>
+    <div class="container mx-auto p-4">
+      <!-- Program Information Card -->
+      <div class="card bg-base-200 shadow-lg p-6 mb-6">
+        <h1 class="card-title mb-4" th:text="${prog.title()}">Program Title</h1>
+        <div class="card-body">
+          <p>
+            <strong>Term:</strong>
+            <span
+              th:text="${formatter.formatTerm(prog.semester(), prog.year())}"
+              >Term Info</span
+            >
+          </p>
+          <p>
+            <strong>Faculty Lead(s):</strong>
+            <span th:text="${prog.facultyLead()}">Faculty Lead</span>
+          </p>
+          <p>
+            <strong>Dates:</strong>
+            <span
+              th:text="'Start: ' + ${formatter.formatLocalDate(prog.startDate())}"
+              >Start Date</span
+            >,
+            <span
+              th:text="'End: ' + ${formatter.formatLocalDate(prog.endDate())}"
+              >End Date</span
+            >
+          </p>
+          <p>
+            <strong>Application Window:</strong>
+            <span
+              th:text="'Open: ' + ${formatter.formatInstant(prog.applicationOpen())}"
+              >Open</span
+            >
+            -
+            <span
+              th:text="'Close: ' + ${formatter.formatInstant(prog.applicationClose())}"
+              >Close</span
+            >
+          </p>
+          <p>
+            <strong>Description:</strong>
+            <span th:text="${prog.description()}">Program Description</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Application Details Card -->
+      <div class="card bg-base-200 shadow-lg p-6">
+        <div class="card-body">
+          <h2 class="card-title mb-4">My Application</h2>
+          <p>
+            <strong>Application ID:</strong>
+            <span th:text="${app.id}">APP_ID</span>
+          </p>
+          <p>
+            <strong>Status:</strong>
+            <span
+              class="badge badge-lg"
+              th:classappend="${(app.status.name() == 'APPLIED') ? ' badge-info' : (app.status.name() == 'ENROLLED' ? ' badge-success' : ' badge-warning')}"
+              th:text="${app.status.name()}"
+              >STATUS</span
+            >
+          </p>
+
+          <!-- Application Responses -->
+          <div class="mt-6">
+            <h3 class="text-xl font-semibold mb-2">Your Responses</h3>
+            <form
+              id="responsesForm"
+              th:action="@{'/applications/' + ${app.id()} + '/update'}"
+              method="post"
+              hx-post
+              hx-target="#responsesForm"
+              hx-swap="outerHTML"
+              th:object="${app}"
+            >
+              <div class="form-control mb-4">
+                <label class="label">
+                  <span class="label-text">Answer 1</span>
+                </label>
+                <textarea
+                  class="textarea textarea-bordered"
+                  name="answer1"
+                  th:field="*{answer1}"
+                  th:disabled="${!editable}"
+                ></textarea>
+              </div>
+              <div class="form-control mb-4">
+                <label class="label">
+                  <span class="label-text">Answer 2</span>
+                </label>
+                <textarea
+                  class="textarea textarea-bordered"
+                  name="answer2"
+                  th:field="*{answer2}"
+                  th:disabled="${!editable}"
+                ></textarea>
+              </div>
+              <div class="form-control mb-4">
+                <label class="label">
+                  <span class="label-text">Answer 3</span>
+                </label>
+                <textarea
+                  class="textarea textarea-bordered"
+                  name="answer3"
+                  th:field="*{answer3}"
+                  th:disabled="${!editable}"
+                ></textarea>
+              </div>
+              <div class="form-control mb-4">
+                <label class="label">
+                  <span class="label-text">Answer 4</span>
+                </label>
+                <textarea
+                  class="textarea textarea-bordered"
+                  name="answer4"
+                  th:field="*{answer4}"
+                  th:disabled="${!editable}"
+                ></textarea>
+              </div>
+              <div class="form-control mb-4">
+                <label class="label">
+                  <span class="label-text">Answer 5</span>
+                </label>
+                <textarea
+                  class="textarea textarea-bordered"
+                  name="answer5"
+                  th:field="*{answer5}"
+                  th:disabled="${!editable}"
+                ></textarea>
+              </div>
+              <div class="form-control mt-4" th:if="${editable}">
+                <button type="submit" class="btn btn-primary">
+                  Save Responses
+                </button>
+              </div>
+            </form>
+            <div th:if="${!editable}">
+              <p class="text-gray-500">
+                You cannot edit your responses at this time.
+              </p>
+            </div>
+          </div>
+
+          <!-- Withdraw / Reactivate Actions -->
+          <div class="mt-6">
+            <h3 class="text-xl font-semibold mb-2">Application Actions</h3>
+            <div th:switch="${app.status.name()}">
+              <div th:case="'withdrawn'">
+                <button
+                  class="btn btn-success"
+                  hx-post
+                  th:href="@{'/applications/' + ${app.id()} + '/reactivate'}"
+                  hx-confirm="Are you sure you want to reactivate your application? This will set your status to 'applied'."
+                  hx-target="closest .card"
+                  hx-swap="outerHTML"
+                >
+                  Reactivate Application
+                </button>
+              </div>
+              <!-- If the status is not canceled or withdrawn, allow withdrawal -->
+              <div th:case="*">
+                <div
+                  th:if="${app.status.name() != 'canceled' and app.status.name() != 'withdrawn'}"
+                >
+                  <button
+                    class="btn btn-warning"
+                    hx-post
+                    th:href="@{'/applications/' + ${app.id()} + '/withdraw'}"
+                    hx-confirm="Are you sure you want to withdraw your application? This action cannot be undone."
+                    hx-target="closest .card"
+                    hx-swap="outerHTML"
+                  >
+                    Withdraw Application
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

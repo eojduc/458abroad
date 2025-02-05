@@ -1,10 +1,11 @@
 package com.example.abroad.controller.student;
 
+import com.example.abroad.model.Application;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.ViewApplicationService;
-import com.example.abroad.service.ViewApplicationService.GetApplicationResult;
 
+import java.time.Instant;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
@@ -14,24 +15,38 @@ import org.springframework.web.bind.annotation.PathVariable;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
-public record ViewApplicationController(ViewApplicationService applicationService, FormatService formatter,
+public record ViewApplicationController(
+    ViewApplicationService applicationService,
+    FormatService formatter,
     UserService userService) {
 
   @GetMapping("/applications/{applicationId}")
   public String viewApplication(@PathVariable String applicationId, HttpSession session, Model model) {
-    GetApplicationResult result = applicationService.getApplication(applicationId, session);
+    var result = applicationService.getApplication(applicationId, session);
     return switch (result) {
-      case GetApplicationResult.Success(var app, var user) -> {
+      case ViewApplicationService.GetApplicationResult.Success(var app, var prog, var user) -> {
+        boolean editable = false;
+        if (app.status().equals(Application.Status.APPLIED)) {
+          Instant now = Instant.now();
+          if (now.isAfter(prog.applicationOpen()) && now.isBefore(prog.applicationClose())) {
+            editable = true;
+          }
+        }
         model.addAllAttributes(Map.of(
             "app", app,
+            "prog", prog,
             "user", user,
             "formatter", formatter,
-            "theme", userService.getTheme(session)));
+            "theme", userService.getTheme(session),
+            "editable", editable));
         yield "student/view-application :: page";
       }
-      case GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
-      case GetApplicationResult.ApplicationNotFound() -> "redirect:/dashboard?error=Application not found";
-      case GetApplicationResult.AccessDenied() -> "redirect:/dashboard?error=Access denied";
+      case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
+      case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
+        "redirect:/dashboard?error=Application not found";
+      case ViewApplicationService.GetApplicationResult.AccessDenied() -> "redirect:/dashboard?error=Access denied";
+      case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
+        "redirect:/dashboard?error=Program not found";
     };
   }
 }

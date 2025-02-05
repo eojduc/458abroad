@@ -1,7 +1,9 @@
 package com.example.abroad.service;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Program;
 import com.example.abroad.respository.ApplicationRepository;
+import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.model.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -10,7 +12,10 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public record ViewApplicationService(ApplicationRepository applicationRepository, UserService userService) {
+public record ViewApplicationService(
+    ApplicationRepository applicationRepository,
+    ProgramRepository programRepository,
+    UserService userService) {
 
   public GetApplicationResult getApplication(String applicationId, HttpSession session) {
     var user = userService.getUser(session).orElse(null);
@@ -25,14 +30,20 @@ public record ViewApplicationService(ApplicationRepository applicationRepository
     if (!app.student().equals(user.username())) {
       return new GetApplicationResult.AccessDenied();
     }
-    return new GetApplicationResult.Success(app, user);
+    Optional<Program> progOpt = programRepository.findById(app.programId());
+    if (progOpt.isEmpty()) {
+      return new GetApplicationResult.ProgramNotFound();
+    }
+    Program prog = progOpt.get();
+    return new GetApplicationResult.Success(app, prog, user);
   }
 
   public sealed interface GetApplicationResult
       permits GetApplicationResult.Success, GetApplicationResult.UserNotFound,
-      GetApplicationResult.ApplicationNotFound, GetApplicationResult.AccessDenied {
+      GetApplicationResult.ApplicationNotFound, GetApplicationResult.AccessDenied,
+      GetApplicationResult.ProgramNotFound {
 
-    record Success(Application application, User user) implements GetApplicationResult {
+    record Success(Application application, Program program, User user) implements GetApplicationResult {
     }
 
     record UserNotFound() implements GetApplicationResult {
@@ -42,6 +53,9 @@ public record ViewApplicationService(ApplicationRepository applicationRepository
     }
 
     record AccessDenied() implements GetApplicationResult {
+    }
+
+    record ProgramNotFound() implements GetApplicationResult {
     }
   }
 }
