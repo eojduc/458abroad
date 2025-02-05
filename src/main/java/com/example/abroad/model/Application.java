@@ -39,7 +39,6 @@ public final class Application {
   @Enumerated(EnumType.STRING)
   private Status status;
 
-
   public Application() {
     this.id = null;
     this.student = null;
@@ -55,10 +54,9 @@ public final class Application {
     this.status = null;
   }
 
-
   public Application(String id, String student, Integer programId, LocalDate dateOfBirth,
-    Double gpa, String major, String answer1, String answer2, String answer3, String answer4,
-    String answer5, Status status) {
+      Double gpa, String major, String answer1, String answer2, String answer3, String answer4,
+      String answer5, Status status) {
     this.id = id;
     this.student = student;
     this.programId = programId;
@@ -121,6 +119,30 @@ public final class Application {
     return status;
   }
 
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  public void setAnswer1(String answer1) {
+    this.answer1 = answer1;
+  }
+
+  public void setAnswer2(String answer2) {
+    this.answer2 = answer2;
+  }
+
+  public void setAnswer3(String answer3) {
+    this.answer3 = answer3;
+  }
+
+  public void setAnswer4(String answer4) {
+    this.answer4 = answer4;
+  }
+
+  public void setAnswer5(String answer5) {
+    this.answer5 = answer5;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -171,19 +193,19 @@ public final class Application {
   @Override
   public String toString() {
     return "Application{" +
-      "id='" + id + '\'' +
-      ", student='" + student + '\'' +
-      ", programId=" + programId +
-      ", dateOfBirth=" + dateOfBirth +
-      ", gpa=" + gpa +
-      ", major='" + major + '\'' +
-      ", answer1='" + answer1 + '\'' +
-      ", answer2='" + answer2 + '\'' +
-      ", answer3='" + answer3 + '\'' +
-      ", answer4='" + answer4 + '\'' +
-      ", answer5='" + answer5 + '\'' +
-      ", status=" + status +
-      '}';
+        "id='" + id + '\'' +
+        ", student='" + student + '\'' +
+        ", programId=" + programId +
+        ", dateOfBirth=" + dateOfBirth +
+        ", gpa=" + gpa +
+        ", major='" + major + '\'' +
+        ", answer1='" + answer1 + '\'' +
+        ", answer2='" + answer2 + '\'' +
+        ", answer3='" + answer3 + '\'' +
+        ", answer4='" + answer4 + '\'' +
+        ", answer5='" + answer5 + '\'' +
+        ", status=" + status +
+        '}';
   }
 
   public enum Status {
@@ -192,6 +214,5 @@ public final class Application {
     CANCELLED,
     WITHDRAWN
   }
-
 
 }

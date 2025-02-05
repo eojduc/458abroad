@@ -9,6 +9,8 @@ import com.example.abroad.model.User;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -18,32 +20,111 @@ public record ViewApplicationService(
     UserService userService) {
 
   public GetApplicationResult getApplication(String applicationId, HttpSession session) {
-    var user = userService.getUser(session).orElse(null);
-    if (user == null) {
+    var userOpt = userService.getUser(session);
+    if (userOpt.isEmpty()) {
       return new GetApplicationResult.UserNotFound();
     }
+    User user = userOpt.get();
+
     Optional<Application> appOpt = applicationRepository.findById(applicationId);
     if (appOpt.isEmpty()) {
       return new GetApplicationResult.ApplicationNotFound();
     }
     Application app = appOpt.get();
+
     if (!app.student().equals(user.username())) {
       return new GetApplicationResult.AccessDenied();
     }
+
     Optional<Program> progOpt = programRepository.findById(app.programId());
     if (progOpt.isEmpty()) {
       return new GetApplicationResult.ProgramNotFound();
     }
     Program prog = progOpt.get();
-    return new GetApplicationResult.Success(app, prog, user);
+
+    boolean editable = false;
+    Instant now = Instant.now();
+    if (app.status() == Application.Status.APPLIED &&
+        now.isAfter(prog.applicationOpen()) &&
+        now.isBefore(prog.applicationClose())) {
+      editable = true;
+    }
+
+    return new GetApplicationResult.Success(app, prog, user, editable);
+  }
+
+  public GetApplicationResult updateResponses(
+      String applicationId,
+      String answer1,
+      String answer2,
+      String answer3,
+      String answer4,
+      String answer5,
+      HttpSession session) {
+
+    GetApplicationResult result = getApplication(applicationId, session);
+    if (!(result instanceof GetApplicationResult.Success success)) {
+      return result;
+    }
+
+    if (!success.editable()) {
+      return new GetApplicationResult.NotEditable();
+    }
+
+    Application app = success.application();
+
+    app.setAnswer1(answer1);
+    app.setAnswer2(answer2);
+    app.setAnswer3(answer3);
+    app.setAnswer4(answer4);
+    app.setAnswer5(answer5);
+
+    applicationRepository.save(app);
+
+    return new GetApplicationResult.Success(app, success.program(), success.user(), success.editable());
+  }
+
+  public GetApplicationResult changeStatus(String applicationId, Application.Status newStatus, HttpSession session) {
+    GetApplicationResult result = getApplication(applicationId, session);
+    if (!(result instanceof GetApplicationResult.Success success)) {
+      return result;
+    }
+
+    Application app = success.application();
+
+    if (newStatus == Application.Status.WITHDRAWN) {
+      if (app.status() == Application.Status.CANCELLED || app.status() == Application.Status.WITHDRAWN) {
+        return new GetApplicationResult.IllegalStatusChange();
+      }
+    } else if (newStatus == Application.Status.APPLIED) {
+      if (app.status() != Application.Status.WITHDRAWN) {
+        return new GetApplicationResult.IllegalStatusChange();
+      }
+    }
+
+    app.setStatus(newStatus);
+
+    applicationRepository.save(app);
+
+    boolean editable = false;
+    Instant now = Instant.now();
+    if (app.status() == Application.Status.APPLIED &&
+        now.isAfter(success.program().applicationOpen()) &&
+        now.isBefore(success.program().applicationClose())) {
+      editable = true;
+    }
+
+    return new GetApplicationResult.Success(app, success.program(), success.user(), editable);
   }
 
   public sealed interface GetApplicationResult
       permits GetApplicationResult.Success, GetApplicationResult.UserNotFound,
       GetApplicationResult.ApplicationNotFound, GetApplicationResult.AccessDenied,
-      GetApplicationResult.ProgramNotFound {
+      GetApplicationResult.ProgramNotFound, GetApplicationResult.NotEditable,
+      GetApplicationResult.IllegalStatusChange {
 
-    record Success(Application application, Program program, User user) implements GetApplicationResult {
+    record Success(Application application, Program program, User user, boolean editable)
+        implements GetApplicationResult {
     }
 
     record UserNotFound() implements GetApplicationResult {
@@ -56,6 +137,12 @@ public record ViewApplicationService(
     }
 
     record ProgramNotFound() implements GetApplicationResult {
+    }
+
+    record NotEditable() implements GetApplicationResult {
+    }
+
+    record IllegalStatusChange() implements GetApplicationResult {
     }
   }
 }

@@ -83,7 +83,6 @@
               hx-post
               hx-target="#responsesForm"
               hx-swap="outerHTML"
-              th:object="${app}"
             >
               <div class="form-control mb-4">
                 <label class="label">
@@ -92,7 +91,7 @@
                 <textarea
                   class="textarea textarea-bordered"
                   name="answer1"
-                  th:field="*{answer1}"
+                  th:text="${app.answer1()}"
                   th:disabled="${!editable}"
                 ></textarea>
               </div>
@@ -103,7 +102,7 @@
                 <textarea
                   class="textarea textarea-bordered"
                   name="answer2"
-                  th:field="*{answer2}"
+                  th:text="${app.answer2()}"
                   th:disabled="${!editable}"
                 ></textarea>
               </div>
@@ -113,8 +112,8 @@
                 </label>
                 <textarea
                   class="textarea textarea-bordered"
-                  name="answer3"
-                  th:field="*{answer3}"
+                  name="answer2"
+                  th:text="${app.answer3()}"
                   th:disabled="${!editable}"
                 ></textarea>
               </div>
@@ -124,8 +123,8 @@
                 </label>
                 <textarea
                   class="textarea textarea-bordered"
-                  name="answer4"
-                  th:field="*{answer4}"
+                  name="answer2"
+                  th:text="${app.answer4()}"
                   th:disabled="${!editable}"
                 ></textarea>
               </div>
@@ -135,8 +134,8 @@
                 </label>
                 <textarea
                   class="textarea textarea-bordered"
-                  name="answer5"
-                  th:field="*{answer5}"
+                  name="answer2"
+                  th:text="${app.answer5()}"
                   th:disabled="${!editable}"
                 ></textarea>
               </div>
