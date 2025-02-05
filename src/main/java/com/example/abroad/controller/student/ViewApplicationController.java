@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpSession;
 
 @Controller
 public record ViewApplicationController(ViewApplicationService applicationService, FormatService formatter,
-                                        UserService userService) {
+    UserService userService) {
 
   @GetMapping("/applications/{applicationId}")
   public String viewApplication(@PathVariable String applicationId, HttpSession session, Model model) {
@@ -23,11 +23,10 @@ public record ViewApplicationController(ViewApplicationService applicationServic
     return switch (result) {
       case GetApplicationResult.Success(var app, var user) -> {
         model.addAllAttributes(Map.of(
-          "app", app,
-          "user", user,
-          "formatter", formatter,
-          "theme", userService.getTheme(session)
-        ));
+            "app", app,
+            "user", user,
+            "formatter", formatter,
+            "theme", userService.getTheme(session)));
         yield "student/view-application :: page";
       }
       case GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";

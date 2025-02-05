@@ -29,15 +29,19 @@ public record ViewApplicationService(ApplicationRepository applicationRepository
   }
 
   public sealed interface GetApplicationResult
-    permits GetApplicationResult.Success, GetApplicationResult.UserNotFound,
-            GetApplicationResult.ApplicationNotFound, GetApplicationResult.AccessDenied {
+      permits GetApplicationResult.Success, GetApplicationResult.UserNotFound,
+      GetApplicationResult.ApplicationNotFound, GetApplicationResult.AccessDenied {
 
-    record Success(Application application, User user) implements GetApplicationResult {}
+    record Success(Application application, User user) implements GetApplicationResult {
+    }
 
-    record UserNotFound() implements GetApplicationResult {}
+    record UserNotFound() implements GetApplicationResult {
+    }
 
-    record ApplicationNotFound() implements GetApplicationResult {}
+    record ApplicationNotFound() implements GetApplicationResult {
+    }
 
-    record AccessDenied() implements GetApplicationResult {}
+    record AccessDenied() implements GetApplicationResult {
+    }
   }
 }

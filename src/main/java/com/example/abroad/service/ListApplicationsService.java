@@ -1,6 +1,5 @@
 package com.example.abroad.service;
 
-import com.example.abroad.controller.student.BrowseProgramsController;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
@@ -9,15 +8,12 @@ import com.example.abroad.respository.ProgramRepository;
 
 import jakarta.servlet.http.HttpSession;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public record ListApplicationsService(
@@ -76,15 +72,9 @@ public record ListApplicationsService(
         break;
     }
 
-    List<Application> sortedApps = combined.stream()
-        .map(Pair::app)
-        .toList();
-    List<Program> sortedPrograms = combined.stream()
-        .map(Pair::prog)
-        .toList();
-
     return new GetApplicationsResult.Success(combined, user);
   }
+
   public record Pair(Application app, Program prog) {
   }
 
