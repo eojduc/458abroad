@@ -1,4 +1,4 @@
-package com.example.abroad.service;
+package com.example.abroad.Controller;
 
 import com.example.abroad.configuration.AuthSuccessHandler;
 import com.example.abroad.controller.AuthController;
