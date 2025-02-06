@@ -73,7 +73,7 @@ public record ViewApplicationController(
             "editable", success.editable(),
             "formatter", formatter,
             "theme", userService.getTheme(session)));
-        yield "student/view-application :: page";
+        yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
@@ -104,7 +104,7 @@ public record ViewApplicationController(
             "editable", success.editable(),
             "formatter", formatter,
             "theme", userService.getTheme(session)));
-        yield "student/view-application :: page";
+        yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
@@ -135,7 +135,7 @@ public record ViewApplicationController(
             "editable", success.editable(),
             "formatter", formatter,
             "theme", userService.getTheme(session)));
-        yield "student/view-application :: page";
+        yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
