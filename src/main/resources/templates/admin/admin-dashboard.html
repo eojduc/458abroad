@@ -2,49 +2,46 @@
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${theme}">
 <head th:replace="~{components :: head('Admin Dashboard')}"></head>
 <body>
-<div th:replace="~{components :: admin-navbar(admin)}"></div>
-<div class="bg-base-100 flex flex-col items-center justify-center h-screen">
-    <div class="bg-base-200 card card-normal w-1/2 m-10">
-        <div class="card-body">
-            <h1 class="card-title" th:text="'Welcome to Admin Page, ' + ${displayName}"></h1>
-            <div class="p-4">
-                <p>Admin Controls:</p>
-                <div class="flex flex-col gap-2 mt-4">
-                    <button class="btn btn-primary">Manage Users</button>
-                    <button class="btn btn-secondary">View Reports</button>
-                    <!-- Add button to open modal -->
-                    <button class="btn btn-accent" onclick="document.getElementById('createAdminModal').showModal()">Create New Admin</button>
-                    <form th:replace="~{components :: theme-form(${theme})}"></form>
+<div th:replace="~{components :: admin-navbar(${displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div class="card bg-base-200 w-3/5">
+        <div class="card-body gap-4">
+            <h1 class="card-title text-center" th:text="'Welcome, ' + ${displayName}"></h1>
+            <p class="text-center">
+                Oversee study abroad programs or create a new program directly from the admin dashboard.
+                You can review student applications by navigating to a specific program.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Browse Programs Section -->
+                <div class="card card-normal bg-base-300">
+                    <div class="card-body">
+                        <h2 class="card-title">Browse Programs</h2>
+                        <p class="text-sm">
+                            View all programs and edit their details.
+                        </p>
+                        <a href="/admin/programs" class="btn btn-primary btn-sm">
+                            Browse Programs
+                        </a>
+                    </div>
+                </div>
+                <!-- Create Program Section -->
+                <div class="card card-normal bg-base-300">
+                    <div class="card-body">
+                        <h2 class="card-title">Create Program</h2>
+                        <p class="text-sm">
+                            Create a new study abroad program for students to apply to.
+                        </p>
+                        <a href="/admin/programs/new" class="btn btn-secondary btn-sm">
+                            Create Program
+                        </a>
+                    </div>
                 </div>
             </div>
+            <form th:replace="~{components :: theme-form(${theme})}"></form>
         </div>
     </div>
 </div>
-
-<!-- Create Admin Modal -->
-<dialog id="createAdminModal" class="modal">
-    <div class="modal-box">
-        <h3 class="font-bold text-lg">Create New Admin</h3>
-        <form action="/admin/createAdmin" method="post" class="space-y-4">
-            <div class="form-control">
-                <label class="label">Username</label>
-                <input type="text" name="username" class="input input-bordered" required />
-            </div>
-            <div class="form-control">
-                <label class="label">Email</label>
-                <input type="email" name="email" class="input input-bordered" required />
-            </div>
-            <div class="form-control">
-                <label class="label">Password</label>
-                <input type="password" name="password" class="input input-bordered" required />
-            </div>
-            <div class="modal-action">
-                <button type="submit" class="btn btn-primary">Create Admin</button>
-                <button type="button" class="btn" onclick="document.getElementById('createAdminModal').close()">Cancel</button>
-            </div>
-        </form>
-    </div>
-</dialog>
 
 <div th:replace="~{components :: footer}"></div>
 </body>
