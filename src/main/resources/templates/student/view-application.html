@@ -5,13 +5,13 @@
   th:data-theme="${theme}"
 >
   <head th:replace="~{components :: head('Application Details')}"></head>
-  <body>
+  <body class="flex flex-col min-h-screen">
     <div
       th:replace="~{components :: student-navbar(${user.displayName()})}"
     ></div>
     <div
       id="applicationContent"
-      class="container mx-auto p-4"
+      class="container mx-auto p-4 flex-grow"
       th:fragment="applicationContent"
     >
       <!-- Program Information Card -->
