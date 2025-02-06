@@ -2,6 +2,9 @@ package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Program.Semester;
+import com.example.abroad.service.AddProgramService;
+import com.example.abroad.service.AddProgramService.AddProgramInfo;
+import com.example.abroad.service.AddProgramService.GetAddProgramInfo;
 import com.example.abroad.service.EditProgramService;
 import com.example.abroad.service.EditProgramService.GetEditProgramInfo;
 import com.example.abroad.service.EditProgramService.UpdateProgramInfo;
@@ -20,54 +23,48 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record AddProgramPageController(EditProgramService service, FormatService formatter,
-                                        UserService userService) {
+public record AddProgramPageController(AddProgramService service, FormatService formatter,
+                                       UserService userService) {
 
 
   @GetMapping("/admin/programs/new")
-  public String editProgramPage(HttpSession session, @PathVariable Integer programId,
+  public String addProgramPage(HttpSession session,
       @RequestParam Optional<String> error, @RequestParam Optional<String> success,
       @RequestParam Optional<String> warning, @RequestParam Optional<String> info,
       Model model) {
-    switch (service.getEditProgramInfo(programId, session)) {
-      case GetEditProgramInfo.Success(var program, var user) -> {
+    switch (service.getAddProgramInfo(session)) {
+      case GetAddProgramInfo.Success(var user) -> {
         model.addAllAttributes(Map.of(
-            "program", program,
             "user", user,
             "alerts", new Alerts(error, success, warning, info),
             "formatter", formatter,
             "theme", userService.getTheme(session)
         ));
-        return "admin/edit-program :: page";
+        return "admin/add-program :: page";
       }
-      case GetEditProgramInfo.NotLoggedIn() -> {
+      case GetAddProgramInfo.NotLoggedIn() -> {
         return "redirect:/login?error=You are not logged in";
       }
-      case GetEditProgramInfo.UserNotAdmin() -> {
+      case GetAddProgramInfo.UserNotAdmin() -> {
         return "redirect:/programs?error=You are not an admin";
-      }
-      case GetEditProgramInfo.ProgramNotFound() -> {
-        return "redirect:/admin/programs?error=That program does not exist";
       }
     }
   }
 
   @PostMapping("/admin/programs/new")
-  public String editProgramPost(@PathVariable Integer programId, @RequestParam String title,
+  public String addProgramPage(@RequestParam String title,
       @RequestParam String description,
       @RequestParam Integer year, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate,
       @RequestParam String facultyLead,
       @RequestParam Semester semester, @RequestParam LocalDateTime applicationOpen,
       @RequestParam LocalDateTime applicationClose, HttpSession session) {
-    return switch (service.updateProgramInfo(programId, title, description, year, startDate,
+    return switch (service.addProgramInfo(title, description, year, startDate,
         endDate,
         facultyLead, semester, applicationOpen, applicationClose, session)) {
-      case UpdateProgramInfo.Success() ->
-          String.format("redirect:/admin/programs/%d/edit?success=Program updated", programId);
-      case UpdateProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
-      case UpdateProgramInfo.UserNotAdmin() -> "redirect:/?error=You are not an admin";
-      case UpdateProgramInfo.ProgramNotFound() ->
-          "redirect:/admin/programs?error=That program does not exist";
+      case AddProgramInfo.Success(Integer programId) ->
+          String.format("redirect:/admin/programs/%d?success=Program created", programId);
+      case AddProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
+      case AddProgramInfo.UserNotAdmin() -> "redirect:/?error=You are not an admin";
     };
   }
 

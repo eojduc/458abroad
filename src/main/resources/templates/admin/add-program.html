@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:fragment="page(alerts, user, formatter)" th:data-theme="${theme}">
+
+<head th:replace="~{components :: head('Create New Program')}"></head>
+<body>
+
+<div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
+
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body gap-4">
+
+      <div class="card-actions justify-between">
+        <h1 class="card-title">Create New Program</h1>
+        <a th:href="@{/admin/programs}" class="btn btn-primary">
+          Back
+        </a>
+      </div>
+
+      <form class="contents"
+            method="post"
+            th:action="@{/admin/programs/new}">
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Title</span>
+          </div>
+          <input class="input w-full"
+                 type="text"
+                 name="title"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Description</span>
+          </div>
+          <textarea class="textarea w-full"
+                    name="description"
+                    required></textarea>
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Faculty Lead</span>
+          </div>
+          <input class="input w-full"
+                 type="text"
+                 name="facultyLead"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Semester</span>
+          </div>
+          <select class="select w-full"
+                  name="semester"
+                  required>
+            <option value="SPRING">Spring</option>
+            <option value="SUMMER">Summer</option>
+            <option value="FALL">Fall</option>
+          </select>
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Year</span>
+          </div>
+          <input class="input w-full"
+                 type="number"
+                 name="year"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Start Date</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="startDate"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">End Date</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="endDate"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Application Open</span>
+          </div>
+          <input class="input w-full"
+                 type="datetime-local"
+                 name="applicationOpen"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Application Deadline</span>
+          </div>
+          <input class="input w-full"
+                 type="datetime-local"
+                 name="applicationClose"
+                 required />
+        </label>
+
+        <div class="card-actions justify-end">
+          <button class="btn btn-primary w-1/4" type="submit">Create Program</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div th:replace="~{components :: footer}"></div>
+</body>
+</html>

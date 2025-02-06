@@ -1,11 +1,25 @@
 package com.example.abroad.service;
 
-import com.example.abroad.model.*;
-import com.example.abroad.respository.*;
+import com.example.abroad.model.Admin;
+import com.example.abroad.model.Application;
+import com.example.abroad.model.Program;
+import com.example.abroad.model.Student;
+import com.example.abroad.respository.AdminRepository;
+import com.example.abroad.respository.ApplicationRepository;
+import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.respository.StudentRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.Optional;
+import java.util.function.Function;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -16,14 +30,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.function.Function;
-
 @Service
 public class DataInitializationService {
+
   private static final Logger logger = LoggerFactory.getLogger(DataInitializationService.class);
   private final BCryptPasswordEncoder passwordEncoder;
   private final StudentRepository studentRepository;
@@ -31,6 +40,8 @@ public class DataInitializationService {
   private final ApplicationRepository applicationRepository;
   private final ProgramRepository programRepository;
   private final CSVFormat csvFormat;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Autowired
   public DataInitializationService(
@@ -49,7 +60,8 @@ public class DataInitializationService {
         .build();
   }
 
-  protected <T> void initializeData(String path, Function<CSVRecord, T> recordMapper, JpaRepository<T, ?> repository) {
+  protected <T> void initializeData(String path, Function<CSVRecord, T> recordMapper,
+      JpaRepository<T, ?> repository) {
     try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(path)) {
       if (inputStream == null) {
         logger.error("Resource not found: {}", path);
@@ -74,7 +86,6 @@ public class DataInitializationService {
       logger.error("Error reading data from CSV file {}: {}", path, e.getMessage());
     }
   }
-
 
 
   @Transactional
@@ -131,18 +142,36 @@ public class DataInitializationService {
   protected void initializePrograms(String path) {
     initializeData(
         path,
-        record -> new Program(
-            Integer.parseInt(record.get("id")),
-            record.get("title"),
-            Year.parse(record.get("year")),
-            Program.Semester.valueOf(record.get("semester").toUpperCase()),
-            Instant.parse(record.get("applicationOpen")),
-            Instant.parse(record.get("applicationClose")),
-            LocalDate.parse(record.get("startDate")),
-            LocalDate.parse(record.get("endDate")),
-            record.get("facultyLead"),
-            record.get("description")
-        ),
+        record -> {
+          Optional<Program> optionalProgram = programRepository.findById(
+              Integer.parseInt(record.get("id")));
+          if (optionalProgram.isPresent()) {
+            Program existingProgram = optionalProgram.get();
+            existingProgram.setTitle(record.get("title"));
+            existingProgram.setYear(Year.parse(record.get("year")));
+            existingProgram.setSemester(
+                Program.Semester.valueOf(record.get("semester").toUpperCase()));
+            existingProgram.setApplicationOpen(Instant.parse(record.get("applicationOpen")));
+            existingProgram.setApplicationClose(Instant.parse(record.get("applicationClose")));
+            existingProgram.setStartDate(LocalDate.parse(record.get("startDate")));
+            existingProgram.setEndDate(LocalDate.parse(record.get("endDate")));
+            existingProgram.setFacultyLead(record.get("facultyLead"));
+            existingProgram.setDescription(record.get("description"));
+            return existingProgram;
+          } else {
+            return new Program(
+                record.get("title"),
+                Year.parse(record.get("year")),
+                Program.Semester.valueOf(record.get("semester").toUpperCase()),
+                Instant.parse(record.get("applicationOpen")),
+                Instant.parse(record.get("applicationClose")),
+                LocalDate.parse(record.get("startDate")),
+                LocalDate.parse(record.get("endDate")),
+                record.get("facultyLead"),
+                record.get("description")
+            );
+          }
+        },
         programRepository
     );
   }
@@ -152,6 +181,8 @@ public class DataInitializationService {
     studentRepository.deleteAll();
     adminRepository.deleteAll();
     applicationRepository.deleteAll();
+
+    entityManager.createNativeQuery("ALTER SEQUENCE programs_seq RESTART WITH 1").executeUpdate();
     programRepository.deleteAll();
   }
 }

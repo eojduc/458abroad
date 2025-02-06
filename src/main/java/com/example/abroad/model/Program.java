@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -18,6 +19,7 @@ import java.util.Objects;
 public final class Program {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Integer id;
   @Column(nullable = false)
   private String title;
@@ -53,10 +55,9 @@ public final class Program {
   }
 
 
-  public Program(Integer id, String title, Year year, Semester semester, Instant applicationOpen,
+  public Program(String title, Year year, Semester semester, Instant applicationOpen,
     Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
     String description) {
-    this.id = id;
     this.title = title;
     this.year = year;
     this.semester = semester;
@@ -165,7 +166,10 @@ public final class Program {
     }
     return Objects.equals(description, program.description);
   }
-
+  // ONLY FOR INITIALIZING SAMPLE DATA
+  public void setId(Integer id) {
+    this.id = id;
+  }
   public void setTitle(String title) {
     this.title = title;
   }
