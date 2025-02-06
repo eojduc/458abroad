@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:fragment="page(alerts, user, formatter)" th:data-theme="${theme}">
+      th:fragment="page(alerts, user, formatter, referer)" th:data-theme="${theme}">
 
 <head th:replace="~{components :: head('Create New Program')}"></head>
 <body>
@@ -16,7 +16,7 @@
 
       <div class="card-actions justify-between">
         <h1 class="card-title">Create New Program</h1>
-        <a th:href="@{/admin/programs}" class="btn btn-primary">
+        <a th:href="${referer}" class="btn btn-primary">
           Back
         </a>
       </div>
