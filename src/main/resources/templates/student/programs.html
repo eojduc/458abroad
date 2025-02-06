@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name, alerts, formatter)" th:data-theme="${theme}">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(user, alerts, formatter)" th:data-theme="${theme}">
 <head th:replace="~{components :: head('Browse Programs')}"></head>
 <body>
-<div th:replace="~{components :: student-navbar(${name})}"></div>
+<div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
@@ -59,7 +59,7 @@
                      class="btn btn-primary">Apply</a>
                   <a th:if = "${programStatus[iterStat.index] == 'APPLIED' || programStatus[iterStat.index] == 'ENROLLED'
                     || programStatus[iterStat.index] == 'WITHDRAWN' || programStatus[iterStat.index] == 'CANCELLED'}"
-                     th:href="@{/applications/{id}(id=${program.id})}"
+                     th:href="@{/applications/{id}-{user}(id=${program.id}, user=${user.username})}"
                      class="btn btn-primary">View Application</a>
                   </div>
               </div>

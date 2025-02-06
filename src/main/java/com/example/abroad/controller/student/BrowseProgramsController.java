@@ -86,7 +86,7 @@ public record BrowseProgramsController(AdminProgramsService service, FormatServi
 
         model.addAllAttributes(
             Map.of(
-                "name", user.displayName(),
+                "user", user,
                 "programs", programs,
                 "programStatus", programStatus,
                 "alerts", new Alerts(error, success, warning, info),
