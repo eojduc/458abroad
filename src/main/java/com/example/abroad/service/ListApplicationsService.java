@@ -61,8 +61,17 @@ public record ListApplicationsService(
       case "faculty":
         combined.sort(Comparator.comparing(pair -> pair.prog().facultyLead()));
         break;
-      case "dates":
+      case "startdate":
         combined.sort(Comparator.comparing(pair -> pair.prog().startDate()));
+        break;
+      case "enddate":
+        combined.sort(Comparator.comparing(pair -> pair.prog().endDate()));
+        break;
+      case "applicationopen":
+        combined.sort(Comparator.comparing(pair -> pair.prog().applicationOpen()));
+        break;
+      case "applicationclosed":
+        combined.sort(Comparator.comparing(pair -> pair.prog().applicationClose()));
         break;
       case "status":
         combined.sort(Comparator.comparing(pair -> pair.app().status().toString()));
