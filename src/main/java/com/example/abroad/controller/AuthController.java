@@ -47,10 +47,8 @@ public class AuthController {
     // Check if user is already authenticated
     var user = userService.getUser(session).orElse(null);
     if(user != null) {
-      System.out.println("in /LOGIN, User is already authenticated, redirecting to home");
       return "redirect:/?info=You are already logged in";
     }
-    System.out.println("get mapping /login getting called");
     model.addAttribute("alerts", new Alerts(error, success, warning, info));
     return "auth/login";
   }
@@ -63,13 +61,9 @@ public class AuthController {
 
   @GetMapping("/register")
   public String showRegistrationForm(HttpServletRequest request, HttpSession session, HttpServletResponse response) {
-    // Check if user is already authenticated
     if(session.getAttribute("user") != null) {
-      System.out.println("in /REGISTER, User is already authenticated, redirecting to home");
       return "redirect:/";
     }
-
-    System.out.println("get mapping /register getting called. user not authenticated");
     return "auth/register";
   }
 
@@ -85,7 +79,6 @@ public class AuthController {
 
       userService.registerStudent(username, displayName, email, password);
 
-      // Create authentication token
       UsernamePasswordAuthenticationToken authToken =
               new UsernamePasswordAuthenticationToken(username, password);
 

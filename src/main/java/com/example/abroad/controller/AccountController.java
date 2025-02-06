@@ -33,19 +33,11 @@ public record AccountController(
     public String getProfile(HttpSession session, Model model, @RequestParam Optional<String> error,
                              @RequestParam Optional<String> success, @RequestParam Optional<String> warning,
                              @RequestParam Optional<String> info) {
-        System.out.println("DEBUG: Hitting getProfile endpoint");
-        System.out.println("DEBUG: Session ID: " + session.getId());
         User user = (User) session.getAttribute("user");
-        System.out.println("DEBUG: User from session: " + (user != null ? user.username() : "null"));
-        System.out.println("calling /getProfle");
         if (user == null) {
-            System.out.println("user is null");
             return "redirect:/login";
         }
-        System.out.println("User found: " + user.username());
         model.addAttribute("user", user);
-
-        // Create an Alerts object with no messages
 
         model.addAttribute("alerts", new Alerts(error, success, warning, info));
         model.addAttribute("formatter", formatter);

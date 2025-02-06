@@ -37,8 +37,6 @@ public record DashboardController(FormatService formatter, UserService userServi
   public String showDashboard(Model model, User user) {
     String displayName = user.displayName();
     String username = user.username();
-    System.out.println(
-      "Getting username from session: " + user.username());
     model.addAttribute("displayName", displayName);
     model.addAttribute("student", username); // Add this for navbar
     return "student/student-dashboard :: page";
@@ -54,7 +52,6 @@ public record DashboardController(FormatService formatter, UserService userServi
   @GetMapping("/hello")
   public String hello(Authentication authentication, Model model) {
     if (authentication != null) {
-      System.out.println("User is authenticated as: " + authentication.getName());
       model.addAttribute("name", authentication.getName());
     } else {
       System.out.println("No authentication found");
@@ -66,7 +63,6 @@ public record DashboardController(FormatService formatter, UserService userServi
   public String testAuth(Authentication authentication, Model model) {
     System.out.println("Test Auth endpoint called");
     if (authentication != null) {
-      System.out.println("User is authenticated as: " + authentication.getName());
       model.addAttribute("username", authentication.getName());
       model.addAttribute("roles", authentication.getAuthorities());
     } else {
