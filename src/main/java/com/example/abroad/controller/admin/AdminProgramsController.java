@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 public record AdminProgramsController(AdminProgramsService service, FormatService formatter,
                                       UserService userService) {
 
-  private static final Random random = new Random();
-
   @GetMapping("/admin/programs")
   public String getProgramsInfo(HttpSession session, Model model,
       @RequestParam(required = false) String sort,
@@ -39,8 +37,13 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
     }
 
     GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false);
-    int randomActive = random.nextInt(101);
-    int randomStatus = random.nextInt(101);
+    Map<String, Integer> programStatus = Map.of(
+        "applied", 10,
+        "enrolled", 5,
+        "canceled", 2,
+        "withdrawn", 1,
+        "count", 3
+    );
 
 
     return switch (programsInfo) {
@@ -51,8 +54,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
             Map.of(
                 "name", user.displayName(),
                 "programs", programs,
-                "programActive", randomActive,
-                "programStatus", randomStatus,
+                "programStatus", service.getProgramStatus(applications, programs),
                 "sort", Objects.toString(session.getAttribute("lastSort"), ""),
               "alerts", new Alerts(error, success, warning, info),
               "formatter", formatter,

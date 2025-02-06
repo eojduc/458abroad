@@ -23,12 +23,15 @@
         <th th:replace="~{components :: sortableHeader('App Closes', '/admin/programs?sort=appCloses', ${sort})}"></th>
         <th th:replace="~{components :: sortableHeader('Start Date', '/admin/programs?sort=startDate', ${sort})}"></th>
         <th th:replace="~{components :: sortableHeader('End Date', '/admin/programs?sort=endDate', ${sort})}"></th>
-        <th class="bg-base-200">Application Status</th>
-        <th th:replace="~{components :: sortableHeader('Total Active', '/admin/programs?sort=totalActive', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('Applied', '/admin/programs?sort=applied', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('Enrolled', '/admin/programs?sort=enrolled', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('Canceled', '/admin/programs?sort=canceled', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('Withdrawn', '/admin/programs?sort=withdrawn', ${sort})}"></th>
+        <th th:replace="~{components :: sortableHeader('Total Active', '/admin/programs?sort=count', ${sort})}"></th>
       </tr>
       </thead>
       <tbody th:fragment="programTableBody" id="programTableBody">
-        <tr th:each="program : ${programs}" class="border-base-300 border-y-2">
+        <tr th:each="program, iterStat : ${programs}" class="border-base-300 border-y-2">
           <td>
             <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="link link-primary" th:text="${program.title}">Program Title</a>
           </td>
@@ -52,10 +55,19 @@
             <div th:text="${formatter.formatLocalDate(program.endDate)}"></div>
           </td>
           <td>
-            <div th:text="${programActive}"></div>
+            <div th:text="${programStatus[program.id].applied}"></div>
           </td>
           <td>
-            <div th:text="${programStatus}"></div>
+            <div th:text="${programStatus[program.id].enrolled}"></div>
+          </td>
+          <td>
+            <div th:text="${programStatus[program.id].canceled}"></div>
+          </td>
+          <td>
+            <div th:text="${programStatus[program.id].withdrawn}"></div>
+          </td>
+          <td>
+            <div th:text="${programStatus[program.id].count}"></div>
           </td>
         </tr>
       </tbody>

@@ -2,7 +2,6 @@
 package com.example.abroad.service.admin;
 
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.AdminRepository;
@@ -14,9 +13,12 @@ import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,8 @@ public record AdminProgramsService(
       boolean studentMode
   ) {
     return userService.getUser(session)
-        .map(user -> processAuthorizedRequest(session, sort, nameFilter, timeFilter, user, studentMode))
+        .map(user -> processAuthorizedRequest(session, sort, nameFilter, timeFilter, user,
+            studentMode))
         .orElse(new GetAllProgramsInfo.UserNotFound());
   }
 
@@ -55,6 +58,11 @@ public record AdminProgramsService(
     session.removeAttribute("semDate");
     session.removeAttribute("startDate");
     session.removeAttribute("endDate");
+    session.removeAttribute("applied");
+    session.removeAttribute("enrolled");
+    session.removeAttribute("canceled");
+    session.removeAttribute("withdrawn");
+    session.removeAttribute("count");
     session.removeAttribute("facultyLead");
     session.removeAttribute("totalActive");
   }
@@ -72,20 +80,57 @@ public record AdminProgramsService(
     }
 
     List<Program> programs = programRepository.findAll();
-    List<Application> applications = applicationRepository.findProgramApplicationsByStudent(user.username())
+    List<Application> studentApplications = applicationRepository.findProgramApplicationsByStudent(
+            user.username())
         .stream()
-        .map(opt -> opt.orElseGet(Application::new)) // Replace empty optionals with a new Application
+        .map(opt -> opt.orElseGet(
+            Application::new)) // Replace empty optionals with a new Application
         .toList();
 
+    List<Application> allApplications = applicationRepository.findAll();
 
     applyFilters(session, programs, nameFilter, timeFilter);
-    applySorting(session, programs, sort, studentMode);
+    applySorting(session, programs, allApplications, sort, studentMode);
 
     return new GetAllProgramsInfo.Success(
         programs,
-        studentMode ? applications : applicationRepository.findAll(),
+        studentMode ? studentApplications : allApplications,
         user
     );
+  }
+
+  public Map<Integer, Map<String, Integer>> getProgramStatus(List<Application> applications, List<Program> programs) {
+    // Group applications by program ID
+    Map<Integer, List<Application>> groupedApplications = applications.stream()
+        .collect(Collectors.groupingBy(Application::programId));
+
+    // Process in order of programs and store in a map
+    return programs.stream()
+        .collect(Collectors.toMap(
+            Program::id,  // Key: programId
+            program -> {
+              List<Application> applicationList = groupedApplications.getOrDefault(program.id(), List.of());
+
+              int applied = 0, enrolled = 0, canceled = 0, withdrawn = 0;
+              for (Application app : applicationList) {
+                switch (app.status()) {
+                  case APPLIED -> applied++;
+                  case ENROLLED -> enrolled++;
+                  case CANCELLED -> canceled++;
+                  case WITHDRAWN -> withdrawn++;
+                }
+              }
+              int count = applied + enrolled;
+
+              return Map.of(
+                  "applied", applied,
+                  "enrolled", enrolled,
+                  "canceled", canceled,
+                  "withdrawn", withdrawn,
+                  "count", count
+              );
+            }
+        ));
   }
 
   private void applyFilters(
@@ -144,19 +189,21 @@ public record AdminProgramsService(
     };
   }
 
-  private void applySorting(HttpSession session, List<Program> programs, String newSort, boolean studentMode) {
+  private void applySorting(HttpSession session, List<Program> programs, List<Application> applications, String newSort,
+      boolean studentMode) {
     String storedSort = (String) session.getAttribute("lastSort");
     String effectiveSort = Optional.ofNullable(newSort).orElse(storedSort);
 
     if (effectiveSort != null) {
       session.setAttribute("lastSort", effectiveSort);
-      sortPrograms(session, programs, effectiveSort, newSort != null && !studentMode);
+      sortPrograms(session, programs, applications, effectiveSort, newSort != null && !studentMode);
     }
   }
 
   private void sortPrograms(
       HttpSession session,
       List<Program> programs,
+      List<Application> applications,
       String sort,
       boolean flipSortOrder
   ) {
@@ -168,7 +215,9 @@ public record AdminProgramsService(
       );
     }
 
-    Comparator<Program> comparator = getSortComparator(sort);
+    Map<Integer, Map<String, Integer>> programStatus = getProgramStatus(applications, programs);
+
+    Comparator<Program> comparator = getSortComparator(sort, programStatus);
     if (comparator != null) {
       if ("descending".equals(session.getAttribute(sort))) {
         comparator = comparator.reversed();
@@ -178,7 +227,7 @@ public record AdminProgramsService(
     }
   }
 
-  private Comparator<Program> getSortComparator(String sort) {
+  private Comparator<Program> getSortComparator(String sort, Map<Integer, Map<String, Integer>> programStatus) {
     return switch (sort) {
       case "title" -> Comparator.comparing(Program::title);
       case "semDate" -> Comparator.comparing(Program::year)
@@ -188,6 +237,11 @@ public record AdminProgramsService(
       case "startDate" -> Comparator.comparing(Program::startDate);
       case "endDate" -> Comparator.comparing(Program::endDate);
       case "facultyLead" -> Comparator.comparing(Program::facultyLead);
+      case "applied" -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("applied"));
+      case "enrolled" -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("enrolled"));
+      case "canceled" -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("canceled"));
+      case "withdrawn" -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("withdrawn"));
+      case "count" -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("count"));
       default -> null;
     };
   }
