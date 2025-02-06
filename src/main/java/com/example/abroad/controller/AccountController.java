@@ -1,5 +1,5 @@
-/*
 package com.example.abroad.controller;
+
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.AccountService;
 import com.example.abroad.service.AccountService.GetProfile;
@@ -77,4 +77,3 @@ public record AccountController(
         };
     }
 }
-*/
