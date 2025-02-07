@@ -53,13 +53,17 @@ public record AddProgramPageController(AddProgramService service, FormatService 
       @RequestParam Integer year, @RequestParam LocalDate startDate,
       @RequestParam LocalDate endDate, @RequestParam String facultyLead,
       @RequestParam Semester semester, @RequestParam LocalDateTime applicationOpen,
-      @RequestParam LocalDateTime applicationClose, HttpSession session) {
+      @RequestParam LocalDateTime applicationClose, HttpSession session, Model model) {
     return switch (service.addProgramInfo(title, description, year, startDate, endDate, facultyLead,
         semester, applicationOpen, applicationClose, session)) {
       case AddProgramInfo.Success(Integer programId) ->
           String.format("redirect:/admin/programs/%d?success=Program created", programId);
       case AddProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
       case AddProgramInfo.UserNotAdmin() -> "redirect:/?error=You are not an admin";
+      case AddProgramInfo.InvalidProgramInfo(var message) -> {
+        model.addAttribute("alerts", new Alerts(Optional.of(message), Optional.empty(), Optional.empty(), Optional.empty()));
+        yield "components :: alerts";
+      }
     };
   }
 

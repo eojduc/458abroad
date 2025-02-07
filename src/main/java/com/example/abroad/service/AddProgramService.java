@@ -38,6 +38,25 @@ public record AddProgramService(UserService userService, ProgramRepository progr
     if (!(user instanceof Admin)) {
       return new AddProgramInfo.UserNotAdmin();
     }
+
+    // Validate title length
+    if (title.length() > 80) {
+      return new AddProgramInfo.InvalidProgramInfo("Title must less than 80 characters.");
+    }
+
+    // Validate times/dates
+    if (!applicationOpen.isBefore(applicationClose)) {
+      return new AddProgramInfo.InvalidProgramInfo(
+          "Application must open before the application deadline.");
+    }
+    if (!applicationClose.isBefore(startDate.atStartOfDay())) {
+      return new AddProgramInfo.InvalidProgramInfo(
+          "Application deadline must be before the program opens.");
+    }
+    if (!startDate.isBefore(endDate)) {
+      return new AddProgramInfo.InvalidProgramInfo("Program must start before the program end date.");
+    }
+
     Program program = new Program();
     program.setTitle(title);
     program.setYear(Year.of(year));
@@ -80,6 +99,10 @@ public record AddProgramService(UserService userService, ProgramRepository progr
     }
 
     record NotLoggedIn() implements AddProgramInfo {
+
+    }
+
+    record InvalidProgramInfo(String message) implements AddProgramInfo {
 
     }
   }

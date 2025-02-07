@@ -9,7 +9,9 @@
 
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
 
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div id="alerts-bar">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
 
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-4">
@@ -21,10 +23,27 @@
         </a>
       </div>
 
-      <!-- Add an id to the form for associating with the modal -->
-      <form id="programForm" class="contents"
-            method="post"
-            th:action="@{/admin/programs/new}">
+      <script> // Redirect to the new program page after creation or scroll to top on error
+      function handleResponse(event) {
+        let xhr = event.detail.xhr;
+        let isRedirect = xhr.responseURL.includes("?success") ||
+            xhr.responseURL.includes("?error");
+
+        if (isRedirect && xhr.status === 200) {
+          window.location.href = xhr.responseURL;
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+      </script>
+
+
+      <form class="contents"
+            hx-post="/admin/programs/new"
+            hx-target="#alerts-bar"
+            hx-swap="innerHTML"
+            hx-history="false"
+            hx-on::after-request="handleResponse(event)">
 
         <label class="form-control">
           <div class="label">
@@ -80,26 +99,6 @@
 
         <label class="form-control">
           <div class="label">
-            <span class="label-text">Start Date</span>
-          </div>
-          <input class="input w-full"
-                 type="date"
-                 name="startDate"
-                 required />
-        </label>
-
-        <label class="form-control">
-          <div class="label">
-            <span class="label-text">End Date</span>
-          </div>
-          <input class="input w-full"
-                 type="date"
-                 name="endDate"
-                 required />
-        </label>
-
-        <label class="form-control">
-          <div class="label">
             <span class="label-text">Application Open</span>
           </div>
           <input class="input w-full"
@@ -118,12 +117,28 @@
                  required />
         </label>
 
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Start Date</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="startDate"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">End Date</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="endDate"
+                 required />
+        </label>
+
         <div class="card-actions justify-end">
-          <!-- This button now opens the confirm modal instead of submitting directly -->
-          <button class="btn btn-primary w-1/4" type="button"
-                  onclick="createProgramModal.showModal()">
-            Create Program
-          </button>
+          <button class="btn btn-primary w-1/4" type="submit">Create Program</button>
         </div>
       </form>
     </div>
@@ -132,30 +147,5 @@
 
 <!-- Footer -->
 <div th:replace="~{components :: footer}"></div>
-
-<!-- Confirmation Modal for Creating a Program -->
-<dialog id="createProgramModal" class="modal">
-  <div class="modal-box bg-base-200">
-    <p>Are you sure you want to create this program?</p>
-    <div class="modal-action gap-2">
-      <!-- Cancel button automatically closes the modal -->
-      <form method="dialog" class="contents">
-        <button class="btn btn-secondary w-1/4">Cancel</button>
-      </form>
-      <!-- Confirm button submits the form associated by the form attribute -->
-      <button class="btn btn-primary w-1/4"
-              type="submit"
-              form="programForm"
-              onclick="createProgramModal.close()">
-        Confirm
-      </button>
-    </div>
-  </div>
-  <!-- Optional backdrop to also close the modal when clicked -->
-  <form method="dialog" class="modal-backdrop">
-    <button>close</button>
-  </form>
-</dialog>
-
 </body>
 </html>
