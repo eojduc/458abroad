@@ -26,7 +26,7 @@
                     <div th:case="DeadPass" class="badge badge-secondary">
                       Closed
                     </div>
-                    <div th:case="Open" class="badge badge-primary">
+                    <div th:case="Open" class="badge badge-neutral">
                       Open
                     </div>
                     <div th:case="*"
@@ -37,7 +37,7 @@
               </div>
               <div class="collapse-content flex flex-col gap-4">
                 <p class="text-sm" th:text="${program.description}"></p>
-                <table class="table table-compact">
+                <table class="table table-compact w-fit ">
                   <tbody>
                   <tr class="border-base-200 border-y-2">
                     <td>Faculty Lead</td>

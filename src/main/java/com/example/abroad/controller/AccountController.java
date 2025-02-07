@@ -76,4 +76,11 @@ public record AccountController(
             }
         };
     }
+
+
+    @PostMapping("/profile/theme")
+    public String setTheme(@RequestParam String theme, HttpSession session) {
+        userService.setTheme(theme, session);
+        return "redirect:/profile";
+    }
 }

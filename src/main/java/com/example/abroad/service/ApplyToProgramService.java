@@ -47,8 +47,11 @@ public record ApplyToProgramService(
     HttpSession session, String major, Double gpa, LocalDate dob,
     String answer1, String answer2, String answer3, String answer4, String answer5
   ) {
+    if (major.isBlank() || answer1.isBlank() || answer2.isBlank()
+      || answer3.isBlank() || answer4.isBlank() || answer5.isBlank()) {
+      return new ApplyToProgram.InvalidSubmission();
+    }
     var user = userService.getUser(session).orElse(null);
-
     if (user == null) {
       return new ApplyToProgram.UserNotFound();
     }
@@ -91,7 +94,8 @@ public record ApplyToProgramService(
   }
 
   public sealed interface ApplyToProgram permits ApplyToProgram.Success,
-    ApplyToProgram.UserNotFound {
+    ApplyToProgram.UserNotFound,
+    ApplyToProgram.InvalidSubmission {
 
     record Success(String applicationId) implements ApplyToProgram {
 
@@ -99,6 +103,8 @@ public record ApplyToProgramService(
 
     record UserNotFound() implements ApplyToProgram {
 
+    }
+    record InvalidSubmission() implements ApplyToProgram {
     }
 
 

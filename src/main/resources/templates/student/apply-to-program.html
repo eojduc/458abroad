@@ -1,32 +1,59 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, user, alerts, questions, maxDayOfBirth)" th:data-theme="${theme}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:fragment="page(program, user, alerts, questions, maxDayOfBirth)"
+      th:data-theme="${theme}">
 <head th:replace="~{components :: head('Apply to ' + ${program.title})}"></head>
-
 <body>
-  <div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
-  <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
-
-    <div class="card card-normal w-full bg-base-200">
-      <div class="card-body flex flex-col gap-4">
-        <div class="card-actions justify-between">
-          <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
-          <a href="/programs" class="btn btn-secondary">Back to Programs</a>
-        </div>
-        <form th:replace="~{this :: apply-form(${program}, ${user}, ${questions})}"></form>
+<div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body flex flex-col gap-4">
+      <div class="card-actions justify-between">
+        <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
+        <a href="/programs" class="btn btn-secondary">Back to Programs</a>
       </div>
+      <!-- The apply form (with id="applyForm") is inserted here -->
+      <div th:replace="~{this :: apply-form(${program}, ${user}, ${questions})}"></div>
     </div>
   </div>
-  <div th:replace="~{components :: footer}"></div>
-</body>
+</div>
+<div th:replace="~{components :: footer}"></div>
 
+<!-- Modal for confirming application submission -->
+<dialog id="submit_modal" class="modal">
+  <div class="modal-box bg-base-200">
+    <p>Are you sure you want to submit this application?</p>
+    <div class="modal-action gap-2">
+      <!-- Cancel button automatically closes the modal -->
+      <form method="dialog" class="contents">
+        <button class="btn btn-secondary w-1/4">Cancel</button>
+      </form>
+      <!-- Confirm button submits the application form (by referencing its id) -->
+      <button class="btn btn-primary w-1/4"
+              type="submit"
+              form="applyForm"
+              onclick="submit_modal.close()">
+        Submit
+      </button>
+    </div>
+  </div>
+  <!-- Optional modal backdrop that also closes the dialog when clicked -->
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+</body>
 </html>
 
 
-<form xmlns:th="http://www.thymeleaf.org"
-    class="contents" th:action="@{/programs/{programId}/apply(programId=${program.id})}" method="post"
-      th:fragment="apply-form(program, user, questions)"
-      onsubmit="return confirm('Are you sure you want to submit this application?')">
+
+<form id="applyForm"
+      xmlns:th="http://www.thymeleaf.org"
+      class="contents"
+      th:action="@{/programs/{programId}/apply(programId=${program.id})}"
+      method="post"
+      th:fragment="apply-form(program, user, questions)">
 
   <label class="form-control">
     <div class="label">
@@ -34,25 +61,33 @@
     </div>
     <input class="input" type="text" name="major" required />
   </label>
+
   <label class="form-control">
     <div class="label">
       <span class="label-text">Date of Birth</span>
     </div>
     <input class="input" type="date" name="dob" required th:max="${maxDayOfBirth}" />
   </label>
+
   <label class="form-control">
     <div class="label">
       <span class="label-text">GPA</span>
     </div>
-    <input class="input" type="number" name="gpa" min="0" max="4" step="0.01" required />
+    <input class="input" type="number" name="gpa" min="0" max="4" step="0.001" required />
   </label>
+
+  <!-- Loop through additional questions -->
   <label class="form-control" th:each="question : ${questions}">
     <div class="label">
       <span class="label-text" th:text="${question.text}"></span>
     </div>
     <textarea th:name="${question.field}" class="textarea" required></textarea>
   </label>
+
   <div class="card-actions justify-end">
-    <button class="btn btn-primary w-1/4" type="submit">Submit</button>
+    <!-- Instead of submitting the form directly, this button opens the modal -->
+    <button class="btn btn-primary w-1/4" type="button" onclick="submit_modal.showModal()">
+      Submit
+    </button>
   </div>
 </form>

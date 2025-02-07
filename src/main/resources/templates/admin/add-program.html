@@ -21,7 +21,8 @@
         </a>
       </div>
 
-      <form class="contents"
+      <!-- Add an id to the form for associating with the modal -->
+      <form id="programForm" class="contents"
             method="post"
             th:action="@{/admin/programs/new}">
 
@@ -118,7 +119,11 @@
         </label>
 
         <div class="card-actions justify-end">
-          <button class="btn btn-primary w-1/4" type="submit">Create Program</button>
+          <!-- This button now opens the confirm modal instead of submitting directly -->
+          <button class="btn btn-primary w-1/4" type="button"
+                  onclick="createProgramModal.showModal()">
+            Create Program
+          </button>
         </div>
       </form>
     </div>
@@ -127,5 +132,30 @@
 
 <!-- Footer -->
 <div th:replace="~{components :: footer}"></div>
+
+<!-- Confirmation Modal for Creating a Program -->
+<dialog id="createProgramModal" class="modal">
+  <div class="modal-box bg-base-200">
+    <p>Are you sure you want to create this program?</p>
+    <div class="modal-action gap-2">
+      <!-- Cancel button automatically closes the modal -->
+      <form method="dialog" class="contents">
+        <button class="btn btn-secondary w-1/4">Cancel</button>
+      </form>
+      <!-- Confirm button submits the form associated by the form attribute -->
+      <button class="btn btn-primary w-1/4"
+              type="submit"
+              form="programForm"
+              onclick="createProgramModal.close()">
+        Confirm
+      </button>
+    </div>
+  </div>
+  <!-- Optional backdrop to also close the modal when clicked -->
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
 </body>
 </html>

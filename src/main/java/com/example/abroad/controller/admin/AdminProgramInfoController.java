@@ -60,8 +60,7 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
     return switch (service.deleteProgram(programId, session)) {
       case DeleteProgram.Success() -> "redirect:/admin/programs?success=Program deleted";
       case DeleteProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
-      case DeleteProgram.UserNotAdmin() ->
-        String.format("redirect:/programs/%s?error=You are not an admin", programId);
+      case DeleteProgram.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
       case ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
     };
   }

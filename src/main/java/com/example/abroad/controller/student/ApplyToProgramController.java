@@ -59,6 +59,7 @@ public record ApplyToProgramController(ApplyToProgramService service, FormatServ
       answer3, answer4, answer5)) {
       case ApplyToProgram.Success(var id) -> "redirect:/applications/" + id;
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
+      case ApplyToProgram.InvalidSubmission() -> "redirect:/programs/" + programId + "/apply?error=Invalid submission";
     };
   }
 

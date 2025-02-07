@@ -5,7 +5,7 @@
 <div th:replace="~{components :: admin-navbar(${displayName})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
     <div th:replace="~{components :: alerts(${alerts})}"></div>
-    <div class="card bg-base-200 w-3/5">
+    <div class="card bg-base-200 w-full">
         <div class="card-body gap-4">
             <h1 class="card-title text-center" th:text="'Welcome, ' + ${displayName}"></h1>
             <p class="text-center">
@@ -32,13 +32,12 @@
                         <p class="text-sm">
                             Create a new study abroad program for students to apply to.
                         </p>
-                        <a href="/admin/programs/new" class="btn btn-secondary btn-sm">
+                        <a href="/admin/programs/new" class="btn btn-primary btn-sm">
                             Create Program
                         </a>
                     </div>
                 </div>
             </div>
-            <form th:replace="~{components :: theme-form(${theme})}"></form>
         </div>
     </div>
 </div>

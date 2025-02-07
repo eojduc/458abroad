@@ -185,7 +185,7 @@
       <input
           type="text"
           name="nameFilter"
-          placeholder="Filter programs..."
+          placeholder="Search programs..."
           class="input"
           th:value="${keyword}"
           th:hx-get="@{${path}}"
@@ -240,7 +240,7 @@
   <span th:case="NOT_APPLIED" class="badge badge-neutral">Not Applied</span>
 </div>
 
-<form action="/theme" method="post" class="flex flex-row gap-2" th:fragment="theme-form(theme)">
+<form action="/profile/theme" method="post" class="flex flex-row gap-2" th:fragment="theme-form(theme)">
   <select class="select" name="theme">
     <option value="DEFAULT" th:selected="${theme == 'default'}">Default</option>
     <option value="LIGHT" th:selected="${theme == 'light'}">Light</option>
@@ -276,7 +276,7 @@
     <option value="NORD" th:selected="${theme == 'nord'}">Nord</option>
     <option value="SUNSET" th:selected="${theme == 'sunset'}">Sunset</option>
   </select>
-  <button class="btn btn-primary" type="submit">Change Theme</button>
+  <button class="btn btn-primary" type="submit">Save</button>
 </form>
 
 

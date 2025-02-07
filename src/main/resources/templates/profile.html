@@ -79,6 +79,12 @@
                     </form>
                 </div>
             </div>
+            <div class="card bg-base-300">
+                <div class="card-body">
+                    <h2 class="card-title">Choose Theme</h2>
+                    <form th:replace="~{components :: theme-form(${theme})}"></form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

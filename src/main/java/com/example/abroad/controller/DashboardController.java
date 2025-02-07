@@ -44,10 +44,4 @@ public record DashboardController(
       }
     };
   }
-
-  @PostMapping("/theme")
-  public String setTheme(@RequestParam String theme, HttpSession session) {
-    dashboardService.setTheme(theme, session);
-    return "redirect:/";
-  }
 }
