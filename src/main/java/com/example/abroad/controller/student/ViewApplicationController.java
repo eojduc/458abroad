@@ -5,8 +5,10 @@ import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.ViewApplicationService;
 
+import java.time.LocalDate;
 import java.util.Map;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,10 +61,13 @@ public record ViewApplicationController(
       @RequestParam("answer3") String answer3,
       @RequestParam("answer4") String answer4,
       @RequestParam("answer5") String answer5,
+      @RequestParam("gpa") double gpa,
+      @RequestParam("major") String major,
+      @RequestParam("dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
       HttpSession session,
       Model model) {
 
-    var result = applicationService.updateResponses(id, answer1, answer2, answer3, answer4, answer5, session);
+    var result = applicationService.updateResponses(id, answer1, answer2, answer3, answer4, answer5, gpa, major, dateOfBirth, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {
