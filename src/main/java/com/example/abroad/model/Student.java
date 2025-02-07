@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "students")
-public final class Student extends User {
+public final class Student implements User {
 
   @Id
   private String username;
@@ -33,19 +33,47 @@ public final class Student extends User {
     this.displayName = displayName;
   }
 
-  public String getUsername() {
+  public String username() {
     return username;
   }
 
-  public String getPassword() {
+  public String password() {
     return password;
   }
 
-  public String getEmail() {
+  public String email() {
     return email;
   }
 
-  public String getDisplayName() {
+  @Override
+  public Role role() {
+    return Role.ROLE_STUDENT;
+  }
+
+  public String displayName() {
     return displayName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Student student = (Student) o;
+
+    if (!username.equals(student.username)) {
+      return false;
+    }
+    if (!password.equals(student.password)) {
+      return false;
+    }
+    if (!email.equals(student.email)) {
+      return false;
+    }
+    return displayName.equals(student.displayName);
   }
 }

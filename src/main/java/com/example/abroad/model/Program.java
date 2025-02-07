@@ -4,18 +4,23 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.Objects;
 
 @Entity
 @Table(name = "programs")
-public class Program {
+public final class Program {
 
   @Id
-  private String id;
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  private Integer id;
   @Column(nullable = false)
   private String title;
   @Column(nullable = false)
@@ -33,9 +38,8 @@ public class Program {
   private LocalDate endDate;
   @Column(nullable = false)
   private String facultyLead;
-  @Column(nullable = false)
+  @Column(nullable = false, length = 10000)
   private String description;
-
 
   public Program() {
     this.id = null;
@@ -51,10 +55,9 @@ public class Program {
   }
 
 
-  public Program(String id, String title, Year year, Semester semester, Instant applicationOpen,
-      Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
-      String description) {
-    this.id = id;
+  public Program(String title, Year year, Semester semester, Instant applicationOpen,
+    Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
+    String description) {
     this.title = title;
     this.year = year;
     this.semester = semester;
@@ -66,44 +69,141 @@ public class Program {
     this.description = description;
   }
 
-  String getId() {
+  @Override
+  public String toString() {
+    return "Program{" +
+      "id='" + id + '\'' +
+      ", title='" + title + '\'' +
+      ", year=" + year +
+      ", semester=" + semester +
+      ", applicationOpen=" + applicationOpen +
+      ", applicationClose=" + applicationClose +
+      ", startDate=" + startDate +
+      ", endDate=" + endDate +
+      ", facultyLead='" + facultyLead + '\'' +
+      ", description='" + description + '\'' +
+      '}';
+  }
+
+
+  public Integer id() {
     return id;
   }
 
-  String getTitle() {
+  public String title() {
     return title;
   }
 
-  Year getYear() {
+  public Year year() {
     return year;
   }
 
-  Semester getSemester() {
+  public Semester semester() {
     return semester;
   }
 
-  Instant getApplicationOpen() {
+  public Instant applicationOpen() {
     return applicationOpen;
   }
 
-  Instant getApplicationClose() {
+  public Instant applicationClose() {
     return applicationClose;
   }
 
-  LocalDate getStartDate() {
+  public LocalDate startDate() {
     return startDate;
   }
 
-  LocalDate getEndDate() {
+  public LocalDate endDate() {
     return endDate;
   }
 
-  String getFacultyLead() {
+  public String facultyLead() {
     return facultyLead;
   }
 
-  String getDescription() {
+  public String description() {
     return description;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Program program = (Program) o;
+
+    if (!Objects.equals(id, program.id)) {
+      return false;
+    }
+    if (!Objects.equals(title, program.title)) {
+      return false;
+    }
+    if (!Objects.equals(year, program.year)) {
+      return false;
+    }
+    if (semester != program.semester) {
+      return false;
+    }
+    if (!Objects.equals(applicationOpen, program.applicationOpen)) {
+      return false;
+    }
+    if (!Objects.equals(applicationClose, program.applicationClose)) {
+      return false;
+    }
+    if (!Objects.equals(startDate, program.startDate)) {
+      return false;
+    }
+    if (!Objects.equals(endDate, program.endDate)) {
+      return false;
+    }
+    if (!Objects.equals(facultyLead, program.facultyLead)) {
+      return false;
+    }
+    return Objects.equals(description, program.description);
+  }
+  // ONLY FOR INITIALIZING SAMPLE DATA
+  public void setId(Integer id) {
+    this.id = id;
+  }
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public void setYear(Year of) {
+    this.year = of;
+  }
+
+  public void setSemester(Semester semester) {
+    this.semester = semester;
+  }
+
+  public void setApplicationOpen(Instant applicationOpen) {
+    this.applicationOpen = applicationOpen;
+  }
+
+  public void setApplicationClose(Instant applicationClose) {
+    this.applicationClose = applicationClose;
+  }
+
+  public void setStartDate(LocalDate startDate) {
+    this.startDate = startDate;
+  }
+
+  public void setEndDate(LocalDate endDate) {
+    this.endDate = endDate;
+  }
+
+  public void setFacultyLead(String facultyLead) {
+    this.facultyLead = facultyLead;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public enum Semester {

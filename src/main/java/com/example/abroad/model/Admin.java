@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 
 @Table(name = "admins")
 @Entity
-public final class Admin extends User {
+public final class Admin implements User {
 
   @Id
   private String username;
@@ -20,10 +20,6 @@ public final class Admin extends User {
 
 
   public Admin() {
-    this.username = null;
-    this.password = null;
-    this.email = null;
-    this.displayName = null;
   }
 
   public Admin(String username, String password, String email, String displayName) {
@@ -33,19 +29,48 @@ public final class Admin extends User {
     this.displayName = displayName;
   }
 
-  public String getUsername() {
+  public String username() {
     return username;
   }
 
-  public String getPassword() {
+  public String password() {
     return password;
   }
 
-  public String getEmail() {
+  public String email() {
     return email;
   }
 
-  public String getDisplayName() {
+  @Override
+  public Role role() {
+    return Role.ROLE_ADMIN;
+  }
+
+  public String displayName() {
     return displayName;
+  }
+
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Admin admin = (Admin) o;
+
+    if (!username.equals(admin.username)) {
+      return false;
+    }
+    if (!password.equals(admin.password)) {
+      return false;
+    }
+    if (!email.equals(admin.email)) {
+      return false;
+    }
+    return displayName.equals(admin.displayName);
   }
 }

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name, alerts, formatter)"
+      th:data-theme="${theme}">
+<head th:replace="~{components :: head('Admin Programs')}"></head>
+<body>
+<div th:replace="~{components :: admin-navbar(${name})}"></div>
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body gap-10">
+      <div class="flex justify-between items-center">
+        <h1 class="card-title">All Programs</h1>
+
+        <!-- Add Program Button -->
+        <a class="btn btn-primary" href="/admin/programs/new">Add Program</a>
+      </div>
+
+      <!-- Filter Form -->
+      <div th:replace="~{components :: filterForm('/admin/programs', true)}"></div>
+
+      <div class="overflow-x-auto">
+        <!-- Add fragment identifier to the table -->
+        <table class="table w-full" th:fragment="programTable(sort)" id="programTable">
+          <thead>
+          <tr>
+            <th th:replace="~{components :: sortableHeader('Title', '/admin/programs?sort=title', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Term', '/admin/programs?sort=semDate', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Faculty Lead', '/admin/programs?sort=facultyLead', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('App Opens', '/admin/programs?sort=appOpens', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('App Closes', '/admin/programs?sort=appCloses', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Start Date', '/admin/programs?sort=startDate', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('End Date', '/admin/programs?sort=endDate', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Applied', '/admin/programs?sort=applied', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Enrolled', '/admin/programs?sort=enrolled', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Canceled', '/admin/programs?sort=canceled', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Withdrawn', '/admin/programs?sort=withdrawn', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Total Active', '/admin/programs?sort=count', ${sort})}"></th>
+          </tr>
+          </thead>
+          <tbody th:fragment="programTableBody" id="programTableBody">
+          <tr th:each="program, iterStat : ${programs}" class="border-base-300 border-y-2">
+            <td>
+              <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="link link-primary"
+                 th:text="${program.title}">Program Title</a>
+            </td>
+            <td>
+              <div th:text="${formatter.formatTerm(program.semester, program.year)}">
+              </div>
+            </td>
+            <td>
+              <div th:text="${program.facultyLead}"></div>
+            </td>
+            <td>
+              <div th:text="${formatter.formatInstant(program.applicationOpen)}"></div>
+            </td>
+            <td>
+              <div th:text="${formatter.formatInstant(program.applicationClose)}"></div>
+            </td>
+            <td>
+              <div th:text="${formatter.formatLocalDate(program.startDate)}"></div>
+            </td>
+            <td>
+              <div th:text="${formatter.formatLocalDate(program.endDate)}"></div>
+            </td>
+            <td>
+              <div th:text="${programStatus[program.id].applied}"></div>
+            </td>
+            <td>
+              <div th:text="${programStatus[program.id].enrolled}"></div>
+            </td>
+            <td>
+              <div th:text="${programStatus[program.id].canceled}"></div>
+            </td>
+            <td>
+              <div th:text="${programStatus[program.id].withdrawn}"></div>
+            </td>
+            <td>
+              <div th:text="${programStatus[program.id].count}"></div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:replace="~{components :: footer}"></div>
+</body>
+</html>

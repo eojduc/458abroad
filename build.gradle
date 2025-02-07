@@ -2,8 +2,6 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'checkstyle'
-	id 'com.github.spotbugs' version '5.0.14'
 }
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
@@ -11,46 +9,41 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.postgresql:postgresql'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.security:spring-security-config'
+	implementation 'org.apache.commons:commons-csv:1.10.0'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-checkstyle {
-	toolVersion = '10.21.1' // Use the latest stable version
-	configDirectory = file("$rootDir/config") // Path to your configuration file
-}
+task resetDb {
+	doFirst {
+		// First make the script executable
+		file('resetdb.sh').setExecutable(true)
 
+		// Then run it
+		exec {
+			workingDir '.'
+			if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+				commandLine 'cmd', '/c', 'resetDb.sh'
+			} else {
+				commandLine 'sh', './resetDb.sh'
+			}
+		}
+	}
+
+}
 
 tasks.test {
 	useJUnitPlatform()
 }
 
-tasks.spotbugsMain {
-	dependsOn tasks.compileJava
-	classes = fileTree('build/classes/java/main')
-	reports {
-		html.required = true
-		html.stylesheet = 'fancy-hist.xsl'
-	}
+
+// Ensure clean runs first when using the `start` task
+tasks.named("bootJar") {
+	mustRunAfter "clean"
 }
-
-
-spotbugs {
-	toolVersion = '4.9.0'
-}
-
-tasks.register("start") {
-	group = "build"
-	description = "Runs tests, SpotBugs, Checkstyle, and builds the Spring Boot jar"
-
-	dependsOn 'checkstyleMain', 'spotbugsMain', 'test', 'bootJar'
-
-	doLast {
-		println "Custom build completed successfully!"
-	}
-}
-
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
@@ -60,6 +53,15 @@ java {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
+
+sourceSets {
+	main {
+		resources {
+			srcDirs = ['src/main/resources']
+		}
+	}
+}
+
 
 repositories {
 	mavenCentral()

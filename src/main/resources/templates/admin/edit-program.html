@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:fragment="page(program, applicants, user, alerts, formatter)" th:data-theme="${theme}">
+
+<head th:replace="~{components :: head(${program.title})}"></head>
+<body>
+
+<div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
+
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body gap-4">
+
+      <div class="card-actions justify-between">
+        <h1 class="card-title" th:text="'Edit Program (ID: ' + ${program.id} + ')'"></h1>
+        <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="btn btn-primary">
+          Back
+        </a>
+      </div>
+
+      <form class="contents"
+            method="post"
+            th:action="@{/admin/programs/{id}/edit(id=${program.id})}">
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Title</span>
+          </div>
+          <input class="input w-full"
+                 type="text"
+                 name="title"
+                 th:value="${program.title}"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Description</span>
+          </div>
+          <textarea class="textarea w-full"
+                    name="description"
+                    required
+                    th:text="${program.description}"></textarea>
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Faculty Lead</span>
+          </div>
+          <input class="input w-full"
+                 type="text"
+                 name="facultyLead"
+                 th:value="${program.facultyLead}"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Semester</span>
+          </div>
+          <select class="select w-full"
+                  name="semester"
+                  th:value="${program.semester}"
+                  required>
+            <option value="SPRING">Spring</option>
+            <option value="SUMMER">Summer</option>
+            <option value="FALL">Fall</option>
+          </select>
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Year</span>
+          </div>
+          <input class="input w-full"
+                 type="number"
+                 name="year"
+                 th:value="${program.year}"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Start Date</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="startDate"
+                 th:value="${program.startDate}"
+                 required />
+        </label>
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">End Date</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="endDate"
+                 th:value="${program.endDate}"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Application Open</span>
+          </div>
+          <input class="input w-full"
+                 type="datetime-local"
+                 name="applicationOpen"
+                 th:value="${formatter.formatInstantToIso(program.applicationOpen)}"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Application Deadline</span>
+          </div>
+          <input class="input w-full"
+                 type="datetime-local"
+                 name="applicationClose"
+                 th:value="${formatter.formatInstantToIso(program.applicationClose)}"
+                 required />
+        </label>
+
+        <div class="card-actions justify-end">
+          <button class="btn btn-primary w-1/4" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div th:replace="~{components :: footer}"></div>
+</body>
+</html>

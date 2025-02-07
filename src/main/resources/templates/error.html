@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html th:fragment="page" th:data-theme="${theme}">
+
+<head th:replace="~{components :: head(Error)}"></head>
+
+
+<body>
+<div th:replace="~{components :: logged-out-navbar}"></div>
+<div class="bg-base-100 flex flex-col items-center h-screen m-10">
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body">
+      <h1 class="card-title">Error</h1>
+      <p>There was an error rendering that page</p>
+    </div>
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>

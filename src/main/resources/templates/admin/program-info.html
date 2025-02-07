@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, applicants, user, formatter, alerts)" th:data-theme="${theme}">
+
+<head th:replace="~{components :: head(${program.title})}"></head>
+
+<body>
+<div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body gap-10">
+      <div class="flex flex-col gap-5">
+        <div class="card-actions justify-between">
+          <h1 class="card-title" th:text="${program.title}"></h1>
+          <a href="/admin/programs" class="btn btn-secondary">Back to Programs</a>
+        </div>
+        <p th:text="${program.description}"></p>
+      </div>
+      <div class="flex flex-col gap-2">
+        <h2 class="text-lg">Program Details</h2>
+        <table class="table table-sm border-collapse w-fit">
+          <tbody>
+          <tr class="border-base-300">
+            <td>Faculty Lead</td>
+            <td th:text="${program.facultyLead}"></td>
+          </tr>
+          <tr class="border-base-300 border-y-2">
+            <td>Term</td>
+            <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
+          </tr>
+          <tr class="border-base-300 border-y-2">
+            <td>Start Date</td>
+            <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
+          </tr>
+          <tr class="border-base-300 border-y-2">
+            <td>End Date</td>
+            <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
+          </tr>
+          <tr class="border-base-300 border-y-2">
+            <td>Application Open</td>
+            <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+          </tr>
+          <tr class="border-base-300">
+            <td>Application Deadline</td>
+            <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE, ASCENDING)}"></div>
+      </div>
+      <div class="card-actions">
+        <a class="btn btn-primary w-1/4" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
+        <button class="btn btn-secondary w-1/4" onclick="delete_modal.showModal()">Delete</button>
+        <dialog id="delete_modal" class="modal">
+          <div class="modal-box bg-base-200">
+            <div class="alert alert-error"
+                 th:if="${applicants.size() > 0}"
+                 th:text="'This program has ' + ${applicants.size()} + ' applicants. Deleting this program will delete the data of all these applicants. This action cannot be undone.'">
+            </div>
+            <div th:unless="${applicants.size() > 0}">Are you sure you want to delete this program?</div>
+            <div class="modal-action gap-2">
+              <form method="dialog" class="contents">
+                <button class="btn btn-primary w-1/4">Cancel</button>
+              </form>
+              <form th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post" class="contents">
+                <button class="btn btn-secondary w-1/4" type="submit">Delete</button>
+              </form>
+            </div>
+          </div>
+          <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
+      </div>
+    </div>
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+</body>
+
+</html>
+
+<th
+    xmlns:th="http://www.thymeleaf.org"
+    th:fragment="sortableHeader(path, text, target, sort, column, filter, thisColumn)"
+    th:class="${column == thisColumn} ? 'bg-base-300 cursor-pointer' : 'cursor-pointer'"
+    th:hx-get="@{${path}(sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'}, column=${thisColumn}, filter=${filter})}"
+    hx-swap="outerHTML"
+    th:hx-target="${target}">
+  <span th:text="${text} "></span>
+  <span th:if="${column != thisColumn}" class="invisible">▼</span>
+  <span th:if="${column == thisColumn}" th:text="${sort} == 'ASCENDING' ? '▼' : '▲'"></span>
+</th>
+
+<!-- Applicant table fragment -->
+<div
+    xmlns:th="http://www.thymeleaf.org"
+    th:fragment="applicant-table(applicants, program, formatter, column, filter, sort)"
+    id="applicant-table"
+    class="flex flex-col gap-5 overflow-x-auto">
+  <div class="flex flex-row gap-6 items-center">
+    <h2 class="text-lg">Applicants</h2>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='NONE')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
+        <span th:class="${filter == 'NONE'} ? 'badge badge-neutral' : 'badge badge-neutral badge-outline'">
+          ALL
+        </span>
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='APPLIED')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
+        <span th:class="${filter == 'APPLIED'} ? 'badge badge-info' : 'badge badge-info badge-outline'">
+          APPLIED
+        </span>
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='ENROLLED')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
+        <span th:class="${filter == 'ENROLLED'} ? 'badge badge-success' : 'badge badge-success badge-outline'">
+          ENROLLED
+        </span>
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='WITHDRAWN')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
+        <span th:class="${filter == 'WITHDRAWN'} ? 'badge badge-warning' : 'badge badge-warning badge-outline'">
+          WITHDRAWN
+        </span>
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='CANCELLED')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
+        <span th:class="${filter == 'CANCELLED'} ? 'badge badge-error' : 'badge badge-error badge-outline'">
+          CANCELLED
+        </span>
+    </button>
+  </div>
+  <table class="table table-sm border-collapse">
+    <thead>
+    <tr>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'name',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'DISPLAY_NAME'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'username',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'USERNAME'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'email',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'EMAIL'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'major',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'MAJOR'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'gpa',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'GPA'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'date of birth',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'DOB'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'status',
+        '#applicant-table',
+        ${sort},
+        ${column},
+        ${filter},
+        'STATUS'
+      )}"></th>
+      <th>update</th>
+    </tr>
+
+    </thead>
+
+    <tbody>
+    <tr th:each="applicant : ${applicants}" class="border-base-300 border-y-2">
+      <td>
+        <a class="link link-primary"
+           th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}"
+           th:text="${applicant.displayName}"></a>
+      </td>
+      <td th:text="${applicant.username}"></td>
+      <td th:text="${applicant.email}"></td>
+      <td th:text="${applicant.major}"></td>
+      <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 3)}"></td>
+      <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
+      <td>
+        <div th:id="'status-badge-' + ${applicant.username}">
+          <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
+        </div>
+      </td>
+      <td>
+        <form class="contents"
+              th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${applicant.applicationId})}"
+              hx-trigger="change"
+              th:hx-target="'#status-badge-' + ${applicant.username}">
+          <select name="status" class="select select-sm">
+            <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
+            <option value="ENROLLED" th:selected="${applicant.status.name() == 'ENROLLED'}">Enrolled</option>
+            <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
+            <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
+          </select>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+
+  </table>
+
+</div>

@@ -1,0 +1,174 @@
+<!-- <!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:fragment="page"
+  th:data-theme="${theme}"
+>
+  <head th:replace="~{components :: head('My Applications')}"></head>
+  <body class="min-h-screen flex flex-col">
+    <div
+      th:replace="~{components :: student-navbar(${user.displayName()})}"
+    ></div>
+    <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+      <div class="card card-normal w-full bg-base-200">
+        <div class="card-body gap-10">
+          <h1 class="card-title">My Applications</h1>
+          <div th:fragment="programTable" id="programTable" class="contents">
+            <div class="overflow-x-auto">
+              <table class="table table-lg w-full">
+                <thead>
+                  <tr>
+                    <th
+                      th:replace="~{components :: sortableHeader('Title', '/applications?sort=title', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Year & Semester', '/applications?sort=yearSemester', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Faculty Lead(s)', '/applications?sort=faculty', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Dates', '/applications?sort=dates', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Status', '/applications?sort=status', ${sort})}"
+                    ></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    th:each="pair : ${pairs}"
+                    class="border-base-300 border-y-2"
+                  >
+                    <td>
+                      <a
+                        th:href="@{'/applications/' + ${pair.app().id()}}"
+                        class="link link-primary"
+                      >
+                        <span th:text="${pair.prog().title()}"
+                          >Program Title</span
+                        >
+                      </a>
+                    </td>
+                    <td
+                      th:text="${formatter.formatTerm(pair.prog().semester(), pair.prog().year())}"
+                    ></td>
+                    <td th:text="${pair.prog().facultyLead()}"></td>
+                    <td class="flex flex-col">
+                      <span
+                        th:text="'Start: ' + ${formatter.formatLocalDate(pair.prog().startDate())}"
+                      ></span>
+                      <span
+                        th:text="'End: ' + ${formatter.formatLocalDate(pair.prog().endDate())}"
+                      ></span>
+                    </td>
+                    <td>
+                      <div
+                        th:replace="~{components :: statusBadge(${pair.app().status().name()})}"
+                      ></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div th:replace="~{components :: footer}"></div>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:fragment="page"
+  th:data-theme="${theme}"
+>
+  <head th:replace="~{components :: head('My Applications')}"></head>
+  <body class="min-h-screen flex flex-col">
+    <div
+      th:replace="~{components :: student-navbar(${user.displayName()})}"
+    ></div>
+    <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+      <div class="card card-normal w-full bg-base-200">
+        <div class="card-body gap-10">
+          <h1 class="card-title">My Applications</h1>
+          <div th:fragment="programTable" id="programTable" class="contents">
+            <div class="overflow-x-auto">
+              <table class="table table-lg w-full">
+                <thead>
+                  <tr>
+                    <th
+                      th:replace="~{components :: sortableHeader('Title', '/applications?sort=title', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Year & Semester', '/applications?sort=yearSemester', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Faculty Lead(s)', '/applications?sort=faculty', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Start Date', '/applications?sort=startDate', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('End Date', '/applications?sort=endDate', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Application Open', '/applications?sort=applicationOpen', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Application Closed', '/applications?sort=applicationClosed', ${sort})}"
+                    ></th>
+                    <th
+                      th:replace="~{components :: sortableHeader('Status', '/applications?sort=status', ${sort})}"
+                    ></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    th:each="pair : ${pairs}"
+                    class="border-base-300 border-y-2"
+                  >
+                    <td>
+                      <a
+                        th:href="@{'/applications/' + ${pair.app().id()}}"
+                        class="link link-primary"
+                      >
+                        <span th:text="${pair.prog().title()}"
+                          >Program Title</span
+                        >
+                      </a>
+                    </td>
+                    <td
+                      th:text="${formatter.formatTerm(pair.prog().semester(), pair.prog().year())}"
+                    ></td>
+                    <td th:text="${pair.prog().facultyLead()}"></td>
+                    <td
+                      th:text="${formatter.formatLocalDate(pair.prog().startDate())}"
+                    ></td>
+                    <td
+                      th:text="${formatter.formatLocalDate(pair.prog().endDate())}"
+                    ></td>
+                    <td
+                      th:text="${formatter.formatInstant(pair.prog().applicationOpen())}"
+                    ></td>
+                    <td
+                      th:text="${formatter.formatInstant(pair.prog().applicationClose())}"
+                    ></td>
+                    <td>
+                      <div
+                        th:replace="~{components :: statusBadge(${pair.app().status().name()})}"
+                      ></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div th:replace="~{components :: footer}"></div>
+  </body>
+</html>
