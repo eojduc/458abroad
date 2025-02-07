@@ -9,7 +9,9 @@
 
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
 
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div id="alerts-bar">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
 
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-4">
@@ -21,9 +23,27 @@
         </a>
       </div>
 
+      <script> // Redirect to the new program page after creation or scroll to top on error
+        function handleResponse(event) {
+          let xhr = event.detail.xhr;
+          let isRedirect = xhr.responseURL.includes("?success") ||
+              xhr.responseURL.includes("?error");
+
+          if (isRedirect && xhr.status === 200) {
+            window.location.href = xhr.responseURL;
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      </script>
+
+
       <form class="contents"
-            method="post"
-            th:action="@{/admin/programs/new}">
+            hx-post="/admin/programs/new"
+            hx-target="#alerts-bar"
+            hx-swap="innerHTML"
+            hx-history="false"
+            hx-on::after-request="handleResponse(event)">
 
         <label class="form-control">
           <div class="label">
@@ -79,26 +99,6 @@
 
         <label class="form-control">
           <div class="label">
-            <span class="label-text">Start Date</span>
-          </div>
-          <input class="input w-full"
-                 type="date"
-                 name="startDate"
-                 required />
-        </label>
-
-        <label class="form-control">
-          <div class="label">
-            <span class="label-text">End Date</span>
-          </div>
-          <input class="input w-full"
-                 type="date"
-                 name="endDate"
-                 required />
-        </label>
-
-        <label class="form-control">
-          <div class="label">
             <span class="label-text">Application Open</span>
           </div>
           <input class="input w-full"
@@ -114,6 +114,26 @@
           <input class="input w-full"
                  type="datetime-local"
                  name="applicationClose"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Start Date</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="startDate"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">End Date</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="endDate"
                  required />
         </label>
 
