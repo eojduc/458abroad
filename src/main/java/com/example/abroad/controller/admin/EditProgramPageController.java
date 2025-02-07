@@ -68,6 +68,13 @@ public record EditProgramPageController(EditProgramService service, FormatServic
       case UpdateProgramInfo.UserNotAdmin() -> "redirect:/?error=You are not an admin";
       case UpdateProgramInfo.ProgramNotFound() ->
         "redirect:/admin/programs?error=That program does not exist";
+      case UpdateProgramInfo.IncoherentDates() ->
+        String.format("redirect:/admin/programs/%d/edit?error=Program end date must be after start date,"
+            + " application deadline must be after open, and the application deadline must be before the start date",
+          programId);
+      case UpdateProgramInfo.TitleTooLong() ->
+        String.format("redirect:/admin/programs/%d/edit?error=Program title must be less than 80 characters",
+          programId);
     };
   }
 

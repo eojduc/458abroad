@@ -64,50 +64,19 @@ public record ApplyToProgramService(
     return new ApplyToProgram.Success(application.id());
   }
 
-  public sealed interface GetApplyPageData permits
-    GetApplyPageData.Success, GetApplyPageData.UserNotFound, GetApplyPageData.ProgramNotFound,
-    GetApplyPageData.StudentAlreadyApplied,
-    GetApplyPageData.UserNotStudent {
-
+  public sealed interface GetApplyPageData {
     record Success(Program program, User user, List<Question> questions,
-                   String maxDateOfBirth) implements
-      GetApplyPageData {
-
-    }
-
-    record UserNotFound() implements GetApplyPageData {
-
-    }
-
-    record ProgramNotFound() implements GetApplyPageData {
-
-    }
-
-    record StudentAlreadyApplied(String applicationId) implements GetApplyPageData {
-
-    }
-
-    record UserNotStudent() implements GetApplyPageData {
-
-    }
-
+                   String maxDateOfBirth) implements GetApplyPageData { }
+    record UserNotFound() implements GetApplyPageData { }
+    record ProgramNotFound() implements GetApplyPageData { }
+    record StudentAlreadyApplied(String applicationId) implements GetApplyPageData { }
+    record UserNotStudent() implements GetApplyPageData { }
   }
 
-  public sealed interface ApplyToProgram permits ApplyToProgram.Success,
-    ApplyToProgram.UserNotFound,
-    ApplyToProgram.InvalidSubmission {
-
-    record Success(String applicationId) implements ApplyToProgram {
-
-    }
-
-    record UserNotFound() implements ApplyToProgram {
-
-    }
-    record InvalidSubmission() implements ApplyToProgram {
-    }
-
-
+  public sealed interface ApplyToProgram {
+    record Success(String applicationId) implements ApplyToProgram { }
+    record UserNotFound() implements ApplyToProgram { }
+    record InvalidSubmission() implements ApplyToProgram { }
   }
 
 

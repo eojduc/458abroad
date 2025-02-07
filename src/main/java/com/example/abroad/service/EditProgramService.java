@@ -36,6 +36,13 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     Semester semester, LocalDateTime applicationOpen, LocalDateTime applicationClose,
     HttpSession session
   ) {
+    if (title.length() > 80) {
+      return new UpdateProgramInfo.TitleTooLong();
+    }
+    if (startDate.isAfter(endDate) || applicationClose.isAfter(startDate.atStartOfDay()) ||
+      applicationOpen.isAfter(applicationClose)) {
+      return new UpdateProgramInfo.IncoherentDates();
+    }
     var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new UpdateProgramInfo.NotLoggedIn();
@@ -63,41 +70,19 @@ public record EditProgramService(UserService userService, ProgramRepository prog
 
 
   public sealed interface GetEditProgramInfo {
-
-    record Success(Program program, Admin admin) implements GetEditProgramInfo {
-
-    }
-
-    record ProgramNotFound() implements GetEditProgramInfo {
-
-    }
-
-    record UserNotAdmin() implements GetEditProgramInfo {
-
-    }
-
-    record NotLoggedIn() implements GetEditProgramInfo {
-
-    }
+    record Success(Program program, Admin admin) implements GetEditProgramInfo { }
+    record ProgramNotFound() implements GetEditProgramInfo { }
+    record UserNotAdmin() implements GetEditProgramInfo { }
+    record NotLoggedIn() implements GetEditProgramInfo { }
   }
 
   public sealed interface UpdateProgramInfo {
-
-    record Success() implements UpdateProgramInfo {
-
-    }
-
-    record ProgramNotFound() implements UpdateProgramInfo {
-
-    }
-
-    record UserNotAdmin() implements UpdateProgramInfo {
-
-    }
-
-    record NotLoggedIn() implements UpdateProgramInfo {
-
-    }
+    record Success() implements UpdateProgramInfo { }
+    record ProgramNotFound() implements UpdateProgramInfo { }
+    record UserNotAdmin() implements UpdateProgramInfo { }
+    record NotLoggedIn() implements UpdateProgramInfo { }
+    record IncoherentDates() implements UpdateProgramInfo { }
+    record TitleTooLong() implements UpdateProgramInfo { }
   }
 
 }

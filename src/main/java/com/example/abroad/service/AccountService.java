@@ -66,11 +66,7 @@ public record AccountService(
         return new UpdateProfile.Success(updatedUser);
     }
 
-    public sealed interface ChangePassword permits
-            ChangePassword.Success,
-            ChangePassword.UserNotFound,
-            ChangePassword.IncorrectPassword,
-            ChangePassword.PasswordMismatch {
+    public sealed interface ChangePassword  {
 
         record Success(User updatedUser) implements ChangePassword {}
         record UserNotFound() implements ChangePassword {}

@@ -87,8 +87,7 @@ public record ListApplicationsService(
   public record Pair(Application app, Program prog) {
   }
 
-  public sealed interface GetApplicationsResult
-      permits GetApplicationsResult.Success, GetApplicationsResult.UserNotFound {
+  public sealed interface GetApplicationsResult {
 
     record Success(List<Pair> data, User user) implements GetApplicationsResult {
     }

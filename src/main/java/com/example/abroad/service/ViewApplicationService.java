@@ -117,11 +117,7 @@ public record ViewApplicationService(
     return new GetApplicationResult.Success(app, success.program(), success.user(), editable);
   }
 
-  public sealed interface GetApplicationResult
-      permits GetApplicationResult.Success, GetApplicationResult.UserNotFound,
-      GetApplicationResult.ApplicationNotFound, GetApplicationResult.AccessDenied,
-      GetApplicationResult.ProgramNotFound, GetApplicationResult.NotEditable,
-      GetApplicationResult.IllegalStatusChange {
+  public sealed interface GetApplicationResult {
 
     record Success(Application application, Program program, User user, boolean editable)
         implements GetApplicationResult {

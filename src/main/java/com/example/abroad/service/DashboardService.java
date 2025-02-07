@@ -6,11 +6,7 @@ import org.springframework.stereotype.Service;
 @Service
 public record DashboardService(UserService userService) {
 
-    public sealed interface GetDashboard permits
-            GetDashboard.StudentDashboard,
-            GetDashboard.AdminDashboard,
-            GetDashboard.NotLoggedIn {
-
+    public sealed interface GetDashboard {
         record StudentDashboard(User user) implements GetDashboard {}
         record AdminDashboard(User user) implements GetDashboard {}
         record NotLoggedIn() implements GetDashboard {}
