@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -60,6 +61,9 @@ public record ViewApplicationService(
       String answer3,
       String answer4,
       String answer5,
+      double gpa,
+      String major,
+      LocalDate dateOfBirth,
       HttpSession session) {
 
     GetApplicationResult result = getApplication(applicationId, session);
@@ -78,6 +82,10 @@ public record ViewApplicationService(
     app.setAnswer3(answer3);
     app.setAnswer4(answer4);
     app.setAnswer5(answer5);
+
+    app.setGpa(gpa);
+    app.setMajor(major);
+    app.setBirthdate(dateOfBirth);
 
     applicationRepository.save(app);
 

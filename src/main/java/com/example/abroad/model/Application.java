@@ -123,6 +123,18 @@ public final class Application {
     this.status = status;
   }
 
+  public void setGpa(Double gpa) {
+    this.gpa = gpa;
+  }
+
+  public void setMajor(String major) {
+    this.major = major;
+  }
+
+  public void setBirthdate(LocalDate dateOfBirth) {
+    this.dateOfBirth = dateOfBirth;
+  }
+
   public void setAnswer1(String answer1) {
     this.answer1 = answer1;
   }
