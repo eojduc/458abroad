@@ -37,6 +37,7 @@ public record ViewApplicationService(
       return new GetApplicationResult.ApplicationNotFound();
     }
     Application app = appOpt.get();
+    logger.info("APPLICATION GPA: " + app.gpa());
 
     if (!app.student().equals(user.username())) {
       return new GetApplicationResult.AccessDenied();
@@ -89,7 +90,6 @@ public record ViewApplicationService(
     app.setAnswer5(answer5);
 
     app.setGpa(gpa);
-    logger.info("APPLICATION GPA: " + app.gpa());
     app.setMajor(major);
     app.setBirthdate(dateOfBirth);
 
