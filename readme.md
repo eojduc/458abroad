@@ -23,4 +23,4 @@
 
 # Deployment Guide
 
-For detailed deployment instructions, refer to the [Deployment Guide](./DEPLOYMENT.md).
+For detailed deployment instructions, refer to the [Deployment Guide](deployment.md).
