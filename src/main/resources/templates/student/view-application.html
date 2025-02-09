@@ -97,7 +97,7 @@
                         max="4.0"
                         class="input input-bordered"
                         name="gpa"
-                        th:value="${T(java.lang.Math).floor(app.gpa() * 100) / 100}"
+                        th:value="${app.gpa()}"
                         th:disabled="${!editable}"
                       />
                     </div>

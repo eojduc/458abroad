@@ -1,5 +1,6 @@
 package com.example.abroad.service;
 
+import com.example.abroad.controller.student.BrowseProgramsController;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.respository.ApplicationRepository;
@@ -8,6 +9,8 @@ import com.example.abroad.model.User;
 
 import jakarta.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -19,6 +22,8 @@ public record ViewApplicationService(
     ApplicationRepository applicationRepository,
     ProgramRepository programRepository,
     UserService userService) {
+
+  private static final Logger logger = LoggerFactory.getLogger(BrowseProgramsController.class);
 
   public GetApplicationResult getApplication(String applicationId, HttpSession session) {
     var userOpt = userService.getUser(session);
@@ -84,6 +89,7 @@ public record ViewApplicationService(
     app.setAnswer5(answer5);
 
     app.setGpa(gpa);
+    logger.info("APPLICATION GPA: " + app.gpa());
     app.setMajor(major);
     app.setBirthdate(dateOfBirth);
 
