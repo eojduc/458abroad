@@ -176,8 +176,8 @@ public record AdminProgramsService(
     return switch (timeFilter) {
       case "future" -> program -> program.endDate().isBefore(now);
       case "open" -> program ->
-          program.applicationOpen().isBefore(nowInstant) ||
-              program.applicationClose().isAfter(nowInstant);
+          program.applicationOpen().isAfter(nowInstant) ||
+              program.applicationClose().isBefore(nowInstant);
       case "review" -> program ->
           program.applicationClose().isAfter(nowInstant) ||
               program.startDate().isBefore(now);
