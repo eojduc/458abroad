@@ -20,3 +20,7 @@
 - Normal Build and run (without modifying existing database)
   - `./gradlew clean bootJar`
   - `java -jar build/libs/abroad-0.0.1-SNAPSHOT.jar`
+
+# Deployment Guide
+
+For detailed deployment instructions, refer to the [Deployment Guide](deployment.md).
