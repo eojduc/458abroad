@@ -37,8 +37,6 @@ public final class Program {
   private LocalDate startDate;
   @Column(nullable = false)
   private LocalDate endDate;
-  @Column(nullable = false)
-  private String facultyLead;
   @Column(nullable = false, length = 10000)
   private String description;
 
@@ -51,13 +49,12 @@ public final class Program {
     this.applicationClose = null;
     this.startDate = null;
     this.endDate = null;
-    this.facultyLead = null;
     this.description = null;
   }
 
 
   public Program(String title, Year year, Semester semester, LocalDate applicationOpen,
-    LocalDate applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
+    LocalDate applicationClose, LocalDate startDate, LocalDate endDate,
     String description) {
     this.title = title;
     this.year = year;
@@ -66,7 +63,6 @@ public final class Program {
     this.applicationClose = applicationClose;
     this.startDate = startDate;
     this.endDate = endDate;
-    this.facultyLead = facultyLead;
     this.description = description;
   }
 
@@ -81,7 +77,6 @@ public final class Program {
       ", applicationClose=" + applicationClose +
       ", startDate=" + startDate +
       ", endDate=" + endDate +
-      ", facultyLead='" + facultyLead + '\'' +
       ", description='" + description + '\'' +
       '}';
   }
@@ -118,55 +113,11 @@ public final class Program {
   public LocalDate endDate() {
     return endDate;
   }
-
-  public String facultyLead() {
-    return facultyLead;
-  }
-
   public String description() {
     return description;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
 
-    Program program = (Program) o;
-
-    if (!Objects.equals(id, program.id)) {
-      return false;
-    }
-    if (!Objects.equals(title, program.title)) {
-      return false;
-    }
-    if (!Objects.equals(year, program.year)) {
-      return false;
-    }
-    if (semester != program.semester) {
-      return false;
-    }
-    if (!Objects.equals(applicationOpen, program.applicationOpen)) {
-      return false;
-    }
-    if (!Objects.equals(applicationClose, program.applicationClose)) {
-      return false;
-    }
-    if (!Objects.equals(startDate, program.startDate)) {
-      return false;
-    }
-    if (!Objects.equals(endDate, program.endDate)) {
-      return false;
-    }
-    if (!Objects.equals(facultyLead, program.facultyLead)) {
-      return false;
-    }
-    return Objects.equals(description, program.description);
-  }
   // ONLY FOR INITIALIZING SAMPLE DATA
   public void setId(Integer id) {
     this.id = id;
@@ -197,10 +148,6 @@ public final class Program {
 
   public void setEndDate(LocalDate endDate) {
     this.endDate = endDate;
-  }
-
-  public void setFacultyLead(String facultyLead) {
-    this.facultyLead = facultyLead;
   }
 
   public void setDescription(String description) {

@@ -155,7 +155,6 @@ public class DataInitializationService {
             existingProgram.setApplicationClose(LocalDate.parse(record.get("applicationClose")));
             existingProgram.setStartDate(LocalDate.parse(record.get("startDate")));
             existingProgram.setEndDate(LocalDate.parse(record.get("endDate")));
-            existingProgram.setFacultyLead(record.get("facultyLead"));
             existingProgram.setDescription(record.get("description"));
             return existingProgram;
           } else {
@@ -167,7 +166,6 @@ public class DataInitializationService {
                 LocalDate.parse(record.get("applicationClose")),
                 LocalDate.parse(record.get("startDate")),
                 LocalDate.parse(record.get("endDate")),
-                record.get("facultyLead"),
                 record.get("description")
             );
           }

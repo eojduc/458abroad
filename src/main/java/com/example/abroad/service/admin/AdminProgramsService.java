@@ -155,8 +155,9 @@ public record AdminProgramsService(
   }
 
   private boolean matchesNameFilter(Program program, String searchTerm) {
-    return program.title().toLowerCase().contains(searchTerm) ||
-        program.facultyLead().toLowerCase().contains(searchTerm);
+    return program.title().toLowerCase().contains(searchTerm)
+     // || program.facultyLead().toLowerCase().contains(searchTerm)
+    ;
   }
 
   private void applyTimeFilter(HttpSession session, List<Program> programs, String newTimeFilter) {
@@ -235,7 +236,7 @@ public record AdminProgramsService(
       case "appCloses" -> Comparator.comparing(Program::applicationClose);
       case "startDate" -> Comparator.comparing(Program::startDate);
       case "endDate" -> Comparator.comparing(Program::endDate);
-      case "facultyLead" -> Comparator.comparing(Program::facultyLead);
+      case "facultyLead" -> Comparator.comparing(Program::title);
       case "applied" -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("applied"));
       case "enrolled" -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("enrolled"));
       case "canceled" -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("canceled"));

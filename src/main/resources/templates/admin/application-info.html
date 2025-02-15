@@ -32,7 +32,7 @@
           </tr>
           <tr class="border-base-300">
             <td>Faculty Lead</td>
-            <td th:text="${program.facultyLead}"></td>
+            <td>TODO</td>
           </tr>
           <tr class="border-base-300">
             <td>Term</td>
@@ -48,11 +48,11 @@
           </tr>
           <tr class="border-base-300">
             <td>Application Open</td>
-            <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+            <td th:text="${formatter.formatLocalDate(program.applicationOpen)}"></td>
           </tr>
           <tr class="border-base-300">
             <td>Application Deadline</td>
-            <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+            <td th:text="${formatter.formatLocalDate(program.applicationClose)}"></td>
           </tr>
           </tbody>
         </table>

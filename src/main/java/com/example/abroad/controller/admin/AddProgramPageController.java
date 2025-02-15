@@ -51,10 +51,10 @@ public record AddProgramPageController(AddProgramService service, FormatService 
   @PostMapping("/admin/programs/new")
   public String addProgramPage(@RequestParam String title, @RequestParam String description,
       @RequestParam Integer year, @RequestParam LocalDate startDate,
-      @RequestParam LocalDate endDate, @RequestParam String facultyLead,
+      @RequestParam LocalDate endDate,
       @RequestParam Semester semester, @RequestParam LocalDate applicationOpen,
       @RequestParam LocalDate applicationClose, HttpSession session, Model model) {
-    return switch (service.addProgramInfo(title, description, year, startDate, endDate, facultyLead,
+    return switch (service.addProgramInfo(title, description, year, startDate, endDate,
         semester, applicationOpen, applicationClose, session)) {
       case AddProgramInfo.Success(Integer programId) ->
           String.format("redirect:/admin/programs/%d?success=Program created", programId);

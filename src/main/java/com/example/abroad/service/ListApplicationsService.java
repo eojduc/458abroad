@@ -60,7 +60,7 @@ public record ListApplicationsService(
             + pair.prog().semester().toString()));
         break;
       case "faculty":
-        combined.sort(Comparator.comparing(pair -> pair.prog().facultyLead()));
+//        combined.sort(Comparator.comparing(pair -> pair.prog().facultyLead()));
         break;
       case "startdate":
         combined.sort(Comparator.comparing(pair -> pair.prog().startDate()));

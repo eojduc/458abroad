@@ -27,7 +27,6 @@ public record AddProgramService(UserService userService, ProgramRepository progr
 
   public AddProgramInfo addProgramInfo(String title, String description,
       Integer year, LocalDate startDate, LocalDate endDate,
-      String facultyLead,
       Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
       HttpSession session
   ) {
@@ -65,7 +64,6 @@ public record AddProgramService(UserService userService, ProgramRepository progr
     program.setApplicationClose(applicationClose);
     program.setStartDate(startDate);
     program.setEndDate(endDate);
-    program.setFacultyLead(facultyLead);
     program.setDescription(description);
 
     program = programRepository.saveAndFlush(program);

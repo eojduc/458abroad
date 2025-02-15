@@ -33,7 +33,6 @@ public record EditProgramService(UserService userService, ProgramRepository prog
   public UpdateProgramInfo updateProgramInfo(Integer programId,
     String title, String description,
     Integer year, LocalDate startDate, LocalDate endDate,
-    String facultyLead,
     Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
     HttpSession session
   ) {
@@ -63,7 +62,6 @@ public record EditProgramService(UserService userService, ProgramRepository prog
       program.setApplicationClose(applicationClose);
       program.setStartDate(startDate);
       program.setEndDate(endDate);
-      program.setFacultyLead(facultyLead);
       program.setDescription(description);
 
       programRepository.save(program);
