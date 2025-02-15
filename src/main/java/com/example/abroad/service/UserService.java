@@ -1,118 +1,58 @@
 package com.example.abroad.service;
 
-import com.example.abroad.exception.EmailAlreadyInUseException;
-import com.example.abroad.exception.UsernameAlreadyInUseException;
-import com.example.abroad.model.Admin;
-import com.example.abroad.model.Student;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.AdminRepository;
-import com.example.abroad.respository.StudentRepository;
+import com.example.abroad.respository.LocalUserRepository;
+import com.example.abroad.respository.SSOUserRepository;
 import jakarta.servlet.http.HttpSession;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 @Service
 public record UserService(
-  AdminRepository adminRepository,
-  StudentRepository studentRepository,
-  PasswordEncoder passwordEncoder
+  LocalUserRepository localUserRepository,
+  SSOUserRepository ssoUserRepository
 ) {
 
   private static final String USER_SESSION_ATTRIBUTE = "user";
 
 
 
-  public Optional<User> getUser(HttpSession session){
+  public Optional<User> findUserFromSession(HttpSession session){
     return Optional.ofNullable((User) session.getAttribute(USER_SESSION_ATTRIBUTE));
 //    return adminRepository.findAll().stream().findFirst().map(user -> user);
   }
 
-  public Student registerStudent(String username, String displayName, String email, String password) {
-    checkUsernameAndEmailAvailability(username, email);
-
-    String hashedPassword = passwordEncoder.encode(password);
-    System.out.println("Encoded password during registration: " + hashedPassword);
-    Student student = new Student(username, hashedPassword, email, displayName);
-    return studentRepository.save(student);
+  public void saveUserToSession(User user, HttpSession session){
+    session.setAttribute(USER_SESSION_ATTRIBUTE, user);
   }
 
-  public Admin createAdmin(String username, String email, String password, HttpSession session) {
-    User user = (User) session.getAttribute("user");
-    String creatorUsername = user.username();
-    System.out.println("creator's username: " + creatorUsername);
-    Optional<Admin> optionalCreator = adminRepository.findByUsername(creatorUsername);
-    User creator = null;
-    if (optionalCreator.isPresent()) {
-      creator = optionalCreator.get();
+  public Optional<? extends User> findByUsername(String username) {
+    var user = localUserRepository.findByUsername(username);
+    if (user.isPresent()) {
+      return user;
     }
-
-    if (creator == null) {
-      throw new IllegalStateException("Admin not found in session");
-    }
-    System.out.println("Creator username: " + creatorUsername);
-    System.out.println("Creator role: " + creator.role());
-    System.out.println("Is creator an admin? " + creator.isAdmin());
-
-    if (!creator.isAdmin()) {
-      throw new IllegalStateException("Only admins can create other admins");
-    }
-
-    checkUsernameAndEmailAvailability(username, email);
-
-    String hashedPassword = passwordEncoder.encode(password);
-    Admin admin = new Admin(username, hashedPassword, email, username);
-    return adminRepository.save(admin);
+    return ssoUserRepository.findByUsername(username);
   }
 
-  private void checkUsernameAndEmailAvailability(String username, String email) {
-    if (adminRepository.existsByUsername(username) ||
-      studentRepository.existsByUsername(username)) {
-      throw new UsernameAlreadyInUseException("Username already taken: " + username);
-    }
-
-    if (adminRepository.existsByEmail(email) ||
-      studentRepository.existsByEmail(email)) {
-      throw new EmailAlreadyInUseException("Email already registered: " + email);
-    }
+  public List<? extends User> findAll() {
+    return Stream.concat(localUserRepository.findAll().stream(), ssoUserRepository.findAll().stream())
+      .toList();
   }
 
-    enum DaisyTheme {
-      LIGHT,
-      DARK,
-      CUPCAKE,
-      BUMBLEBEE,
-      EMERALD,
-      CORPORATE,
-      SYNTHWAVE,
-      RETRO,
-      CYBERPUNK,
-      VALENTINE,
-      HALLOWEEN,
-      GARDEN,
-      FOREST,
-      AQUA,
-      LOFI,
-      PASTEL,
-      FANTASY,
-      WIREFRAME,
-      BLACK,
-      LUXURY,
-      DRACULA,
-      CMYK,
-      AUTUMN,
-      BUSINESS,
-      ACID,
-      LEMONADE,
-      NIGHT,
-      COFFEE,
-      WINTER,
-      DIM,
-      NORD,
-      SUNSET,
-      DEFAULT
+  public void save(User user) {
+    switch (user) {
+      case User.LocalUser localUser -> localUserRepository.save(localUser);
+      case User.SSOUser ssoUser -> ssoUserRepository.save(ssoUser);
     }
+  }
+  enum DaisyTheme {
+    LIGHT, DARK, CUPCAKE, BUMBLEBEE, EMERALD, CORPORATE, SYNTHWAVE, RETRO, CYBERPUNK, VALENTINE,
+    HALLOWEEN, GARDEN, FOREST, AQUA, LOFI, PASTEL, FANTASY, WIREFRAME, BLACK, LUXURY, DRACULA,
+    CMYK, AUTUMN, BUSINESS, ACID, LEMONADE, NIGHT, COFFEE, WINTER, DIM, NORD, SUNSET, DEFAULT
+  }
 
   public void setTheme(String theme , HttpSession session) {
     if (theme.equals(DaisyTheme.DEFAULT)) {
@@ -137,11 +77,5 @@ public record UserService(
     }
   }
 
-  public Optional<Student> findByUsername(String username) {
-
-    Optional<Student> student = studentRepository.findByUsername(username);
-    return student;
-
-  }
 
 }

@@ -13,11 +13,11 @@ public class DataInitializerService {
   private final DataInitializationService dataInitializationService;
   private static final Logger logger = LoggerFactory.getLogger(DataInitializerService.class);
 
-  @Value("${data.students.path}")
-  private String studentCsvFilePath;
+  @Value("${data.local_users.path}")
+  private String localUsersCsvFilePath;
 
-  @Value("${data.admins.path}")
-  private String adminCsvFilePath;
+  @Value("${data.sso_users.path}")
+  private String ssoUsersCsvFilePath;
 
   @Value("${data.applications.path}")
   private String applicationCsvFilePath;
@@ -43,8 +43,8 @@ public class DataInitializerService {
         logger.info("Resetting database.");
         dataInitializationService.resetDatabase();
       }
-      dataInitializationService.initializeStudents(studentCsvFilePath);
-      dataInitializationService.initializeAdmins(adminCsvFilePath);
+      dataInitializationService.initializeLocalUsers(localUsersCsvFilePath);
+      dataInitializationService.initializeSsoUsers(ssoUsersCsvFilePath);
       dataInitializationService.initializeApplications(applicationCsvFilePath);
       dataInitializationService.initializePrograms(programCsvFilePath);
     } else {

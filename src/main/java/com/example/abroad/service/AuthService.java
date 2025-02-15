@@ -31,7 +31,7 @@ public record AuthService(
     }
 
     public CheckLoginStatus checkLoginStatus(HttpSession session) {
-        User user = userService.getUser(session).orElse(null);
+        User user = userService.findUserFromSession(session).orElse(null);
         if (user != null) {
             return new CheckLoginStatus.AlreadyLoggedIn();
         }
@@ -58,7 +58,7 @@ public record AuthService(
             HttpServletRequest request) {
 
         try {
-            userService.registerStudent(username, displayName, email, password);
+            userService.save(new User.LocalUser(username, password, email, User.Role.STUDENT, displayName));
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(username, password);

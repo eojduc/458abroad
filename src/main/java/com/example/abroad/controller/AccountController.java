@@ -2,7 +2,12 @@ package com.example.abroad.controller;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.AccountService;
+import com.example.abroad.service.AccountService.ChangePassword.IncorrectPassword;
+import com.example.abroad.service.AccountService.ChangePassword.NotLocalUser;
+import com.example.abroad.service.AccountService.ChangePassword.PasswordMismatch;
 import com.example.abroad.service.AccountService.GetProfile;
+import com.example.abroad.service.AccountService.GetProfile.Success;
+import com.example.abroad.service.AccountService.GetProfile.UserNotFound;
 import com.example.abroad.service.AccountService.UpdateProfile;
 import com.example.abroad.service.AccountService.ChangePassword;
 import com.example.abroad.service.FormatService;
@@ -29,8 +34,8 @@ public record AccountController(
                              @RequestParam Optional<String> info) {
 
         return switch (accountService.getProfile(session)) {
-            case GetProfile.UserNotFound() -> "redirect:/login";
-            case GetProfile.Success(var user) -> {
+            case UserNotFound() -> "redirect:/login";
+            case Success(var user) -> {
                 model.addAttribute("user", user);
                 model.addAttribute("alerts", new Alerts(error, success, warning, info));
                 model.addAttribute("formatter", formatter);
@@ -68,12 +73,13 @@ public record AccountController(
 
         return switch (accountService.changePassword(currentPassword, newPassword, confirmPassword, session)) {
             case ChangePassword.UserNotFound() -> "redirect:/login";
-            case ChangePassword.IncorrectPassword() -> "redirect:/profile?error=Current password is incorrect";
-            case ChangePassword.PasswordMismatch() -> "redirect:/profile?error=New passwords do not match";
+            case IncorrectPassword() -> "redirect:/profile?error=Current password is incorrect";
+            case PasswordMismatch() -> "redirect:/profile?error=New passwords do not match";
             case ChangePassword.Success(var updatedUser) -> {
                 session.setAttribute("user", updatedUser);
                 yield "redirect:/profile?success=Password updated successfully";
             }
+          case NotLocalUser() -> "redirect:/profile?error=Cannot change password for SSO user";
         };
     }
 

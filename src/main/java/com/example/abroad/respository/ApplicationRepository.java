@@ -10,8 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ApplicationRepository extends JpaRepository<Application, String> {
 
-  Integer countByProgramId(Integer programId);
-
   Optional<Application> findByProgramIdAndStudent(Integer programId, String studentId);
 
   List<Application> findByProgramId(Integer programId);

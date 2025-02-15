@@ -3,12 +3,9 @@ package com.example.abroad.service.admin;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
-import com.example.abroad.model.Student;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
-import com.example.abroad.respository.StudentRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -23,17 +20,15 @@ import org.springframework.stereotype.Service;
 public record AdminProgramInfoService(
   ProgramRepository programRepository,
   ApplicationRepository applicationRepository,
-  UserService userService,
-  StudentRepository studentRepository,
-  AdminRepository adminRepository
+  UserService userService
 ) {
 
   public DeleteProgram deleteProgram(Integer programId, HttpSession session) {
-    var user = userService.getUser(session).orElse(null);
+    var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new DeleteProgram.UserNotFound();
     }
-    if (adminRepository.findByUsername(user.username()).isEmpty()) {
+    if (user.role() != User.Role.ADMIN) {
       return new DeleteProgram.UserNotAdmin();
     }
     var program = programRepository.findById(programId).orElse(null);
@@ -69,18 +64,18 @@ public record AdminProgramInfoService(
     Optional<Column> column,
     Optional<Filter> filter,
     Optional<Sort> sort) {
-    var user = userService.getUser(session).orElse(null);
+    var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new GetProgramInfo.UserNotFound();
     }
-    if (adminRepository.findByUsername(user.username()).isEmpty()) {
+    if (user.role() != User.Role.ADMIN) {
       return new GetProgramInfo.UserNotAdmin();
     }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
       return new GetProgramInfo.ProgramNotFound();
     }
-    var students = studentRepository.findAll();
+    var students = userService.findAll().stream().filter(student -> student.role() == User.Role.STUDENT).toList();
 
     var sorter = switch (column.orElse(Column.NONE)) {
       case USERNAME, NONE -> Comparator.comparing(Applicant::username);
@@ -108,7 +103,7 @@ public record AdminProgramInfoService(
 
   }
 
-  private Stream<Applicant> applicants(Stream<Student> students, Application application) {
+  private Stream<Applicant> applicants(Stream<? extends User> students, Application application) {
     return students.filter(student -> student.username().equals(application.student()))
       .map(student -> new Applicant(
         student.username(),

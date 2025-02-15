@@ -23,7 +23,7 @@ public record ListApplicationsService(
 
   public GetApplicationsResult getApplications(HttpSession session, String sort) {
 
-    var user = userService.getUser(session).orElse(null);
+    var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new GetApplicationsResult.UserNotFound();
     }

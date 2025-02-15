@@ -1,17 +1,11 @@
 package com.example.abroad.service;
-import com.example.abroad.model.Admin;
-import com.example.abroad.model.Student;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.AdminRepository;
-import com.example.abroad.respository.StudentRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public record AccountService(
-        AdminRepository adminRepository,
-        StudentRepository studentRepository,
         PasswordEncoder passwordEncoder,
         UserService userService
 ) {
@@ -21,7 +15,7 @@ public record AccountService(
     }
 
     public GetProfile getProfile(HttpSession session) {
-        User user = userService.getUser(session).orElse(null);
+        User user = userService.findUserFromSession(session).orElse(null);
         if (user == null) {
             return new GetProfile.UserNotFound();
         }
@@ -37,33 +31,34 @@ public record AccountService(
     }
 
     public UpdateProfile updateProfile(String displayName, String email, HttpSession session) {
-        User user = userService.getUser(session).orElse(null);
+        User user = userService.findUserFromSession(session).orElse(null);
         if (user == null) {
             return new UpdateProfile.UserNotFound();
         }
 
-        User updatedUser;
-        if (user.isAdmin()) {
-            Admin admin = (Admin) user;
-            updatedUser = new Admin(
-                    admin.username(),
-                    admin.password(),
-                    email,
-                    displayName
-            );
-            adminRepository.save((Admin) updatedUser);
-        } else {
-            Student student = (Student) user;
-            updatedUser = new Student(
-                    student.username(),
-                    student.password(),
-                    email,
-                    displayName
-            );
-            studentRepository.save((Student) updatedUser);
-        }
-
-        return new UpdateProfile.Success(updatedUser);
+        return switch (user) {
+            case User.LocalUser localUser -> {
+                var updatedUser = new User.LocalUser(
+                        localUser.username(),
+                        localUser.password(),
+                        email,
+                        localUser.role(),
+                        displayName
+                );
+                userService.save(updatedUser);
+                yield new UpdateProfile.Success(updatedUser);
+            }
+            case User.SSOUser ssoUser -> {
+                var updatedUser = new User.SSOUser(
+                        ssoUser.username(),
+                        email,
+                        ssoUser.role(),
+                        displayName
+                );
+                userService.save(updatedUser);
+                yield new UpdateProfile.Success(updatedUser);
+            }
+        };
     }
 
     public sealed interface ChangePassword  {
@@ -72,6 +67,7 @@ public record AccountService(
         record UserNotFound() implements ChangePassword {}
         record IncorrectPassword() implements ChangePassword {}
         record PasswordMismatch() implements ChangePassword {}
+        record NotLocalUser() implements ChangePassword {}
     }
 
     public ChangePassword changePassword(
@@ -80,12 +76,15 @@ public record AccountService(
             String confirmPassword,
             HttpSession session) {
 
-        User user = userService.getUser(session).orElse(null);
+        User user = userService.findUserFromSession(session).orElse(null);
         if (user == null) {
             return new ChangePassword.UserNotFound();
         }
+        if (!(user instanceof User.LocalUser localUser)) {
+            return new ChangePassword.NotLocalUser();
+        }
 
-        if (!passwordEncoder.matches(currentPassword, user.password())) {
+        if (!passwordEncoder.matches(currentPassword, localUser.password())) {
             return new ChangePassword.IncorrectPassword();
         }
 
@@ -94,28 +93,14 @@ public record AccountService(
         }
 
         String hashedPassword = passwordEncoder.encode(newPassword);
-        User updatedUser;
-
-        if (user.isAdmin()) {
-            Admin admin = (Admin) user;
-            updatedUser = new Admin(
-                    admin.username(),
-                    hashedPassword,
-                    admin.email(),
-                    admin.displayName()
-            );
-            adminRepository.save((Admin) updatedUser);
-        } else {
-            Student student = (Student) user;
-            updatedUser = new Student(
-                    student.username(),
-                    hashedPassword,
-                    student.email(),
-                    student.displayName()
-            );
-            studentRepository.save((Student) updatedUser);
-        }
-
+        User updatedUser = new User.LocalUser(
+                localUser.username(),
+                hashedPassword,
+                localUser.email(),
+                localUser.role(),
+                localUser.displayName()
+        );
+        userService.save(updatedUser);
         return new ChangePassword.Success(updatedUser);
     }
 }

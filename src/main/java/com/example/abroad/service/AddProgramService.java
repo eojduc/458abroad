@@ -1,13 +1,11 @@
 package com.example.abroad.service;
 
-import com.example.abroad.Config;
-import com.example.abroad.model.Admin;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
+import com.example.abroad.model.User;
 import com.example.abroad.respository.ProgramRepository;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Year;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +13,14 @@ import org.springframework.stereotype.Service;
 public record AddProgramService(UserService userService, ProgramRepository programRepository) {
 
   public GetAddProgramInfo getAddProgramInfo(HttpSession session) {
-    var user = userService.getUser(session).orElse(null);
+    var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new GetAddProgramInfo.NotLoggedIn();
     }
-    if (!(user instanceof Admin admin)) {
+    if (user.role() != User.Role.ADMIN) {
       return new GetAddProgramInfo.UserNotAdmin();
     }
-    return new GetAddProgramInfo.Success(admin);
+    return new GetAddProgramInfo.Success(user);
   }
 
   public AddProgramInfo addProgramInfo(String title, String description,
@@ -30,11 +28,11 @@ public record AddProgramService(UserService userService, ProgramRepository progr
       Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
       HttpSession session
   ) {
-    var user = userService.getUser(session).orElse(null);
+    var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new AddProgramInfo.NotLoggedIn();
     }
-    if (!(user instanceof Admin)) {
+    if (user.role() != User.Role.ADMIN) {
       return new AddProgramInfo.UserNotAdmin();
     }
 
@@ -73,7 +71,7 @@ public record AddProgramService(UserService userService, ProgramRepository progr
 
   public sealed interface GetAddProgramInfo {
 
-    record Success(Admin admin) implements GetAddProgramInfo {
+    record Success(User admin) implements GetAddProgramInfo {
 
     }
 

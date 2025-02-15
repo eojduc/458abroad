@@ -4,16 +4,12 @@ package com.example.abroad.service.admin;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.AdminRepository;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
-import com.example.abroad.respository.StudentRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,9 +23,7 @@ import org.springframework.stereotype.Service;
 public record AdminProgramsService(
     ProgramRepository programRepository,
     ApplicationRepository applicationRepository,
-    UserService userService,
-    StudentRepository studentRepository,
-    AdminRepository adminRepository
+    UserService userService
 ) {
 
   private static final Logger logger = LoggerFactory.getLogger(AdminProgramsService.class);
@@ -42,7 +36,7 @@ public record AdminProgramsService(
       String timeFilter,
       boolean studentMode
   ) {
-    return userService.getUser(session)
+    return userService.findUserFromSession(session)
         .map(user -> processAuthorizedRequest(session, sort, nameFilter, timeFilter, user,
             studentMode))
         .orElse(new GetAllProgramsInfo.UserNotFound());
@@ -75,7 +69,7 @@ public record AdminProgramsService(
       User user,
       boolean studentMode
   ) {
-    if (!studentMode && !user.isAdmin()) {
+    if (!studentMode && user.role() != User.Role.ADMIN) {
       return new GetAllProgramsInfo.UserNotAdmin();
     }
 

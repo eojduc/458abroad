@@ -1,14 +1,12 @@
 package com.example.abroad.service;
 
-import com.example.abroad.Config;
-import com.example.abroad.model.Admin;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
+import com.example.abroad.model.User;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.EditProgramService.UpdateProgramInfo.DatabaseError;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Year;
 import org.springframework.stereotype.Service;
 
@@ -16,18 +14,18 @@ import org.springframework.stereotype.Service;
 public record EditProgramService(UserService userService, ProgramRepository programRepository) {
 
   public GetEditProgramInfo getEditProgramInfo(Integer programId, HttpSession session) {
-    var user = userService.getUser(session).orElse(null);
+    var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new GetEditProgramInfo.NotLoggedIn();
     }
-    if (!(user instanceof Admin admin)) {
+    if (user.role() != User.Role.ADMIN) {
       return new GetEditProgramInfo.UserNotAdmin();
     }
     var program = programRepository.findById(programId).orElse(null);
     if (program == null) {
       return new GetEditProgramInfo.ProgramNotFound();
     }
-    return new GetEditProgramInfo.Success(program, admin);
+    return new GetEditProgramInfo.Success(program, user);
   }
 
   public UpdateProgramInfo updateProgramInfo(Integer programId,
@@ -44,11 +42,11 @@ public record EditProgramService(UserService userService, ProgramRepository prog
         applicationOpen.isAfter(applicationClose)) {
         return new UpdateProgramInfo.IncoherentDates();
       }
-      var user = userService.getUser(session).orElse(null);
+      var user = userService.findUserFromSession(session).orElse(null);
       if (user == null) {
         return new UpdateProgramInfo.NotLoggedIn();
       }
-      if (!(user instanceof Admin)) {
+      if (user.role() != User.Role.ADMIN) {
         return new UpdateProgramInfo.UserNotAdmin();
       }
       var program = programRepository.findById(programId).orElse(null);
@@ -73,7 +71,7 @@ public record EditProgramService(UserService userService, ProgramRepository prog
 
 
   public sealed interface GetEditProgramInfo {
-    record Success(Program program, Admin admin) implements GetEditProgramInfo { }
+    record Success(Program program, User admin) implements GetEditProgramInfo { }
     record ProgramNotFound() implements GetEditProgramInfo { }
     record UserNotAdmin() implements GetEditProgramInfo { }
     record NotLoggedIn() implements GetEditProgramInfo { }

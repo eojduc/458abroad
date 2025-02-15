@@ -13,12 +13,12 @@ public record DashboardService(UserService userService) {
     }
 
     public GetDashboard getDashboard(HttpSession session) {
-        User user = userService.getUser(session).orElse(null);
+        User user = userService.findUserFromSession(session).orElse(null);
         if (user == null) {
             return new GetDashboard.NotLoggedIn();
         }
 
-        if (user.isAdmin()) {
+        if (user.role() == User.Role.ADMIN) {
             return new GetDashboard.AdminDashboard(user);
         }
 

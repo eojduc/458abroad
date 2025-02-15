@@ -1,12 +1,7 @@
 package com.example.abroad.service;
 
-import com.example.abroad.model.Admin;
-import com.example.abroad.model.Student;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.AdminRepository;
-import com.example.abroad.respository.StudentRepository;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,34 +10,19 @@ import org.springframework.stereotype.Service;
 
 // CustomUserDetailsService.java
 @Service
-public class CustomUserDetailsService implements UserDetailsService {
-
-  private final StudentRepository studentRepository;
-  private final AdminRepository adminRepository;
-
-  public CustomUserDetailsService(StudentRepository studentRepository,
-    AdminRepository adminRepository) {
-    this.studentRepository = studentRepository;
-    this.adminRepository = adminRepository;
-  }
+public record CustomUserDetailsService(UserService userService) implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     System.out.println("loading use by Username");
-    Optional<Admin> admin = adminRepository.findByUsername(username);
-    if (admin.isPresent()) {
-      return createUserDetails(admin.get());
+    var user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    if (!(user instanceof User.LocalUser localUser)) {
+      throw new UsernameNotFoundException("User not found: " + username);
     }
-
-    Optional<Student> student = studentRepository.findByUsername(username);
-    if (student.isPresent()) {
-      return createUserDetails(student.get());
-    }
-
-    throw new UsernameNotFoundException("User not found: " + username);
+    return createUserDetails(localUser);
   }
 
-  private UserDetails createUserDetails(User user) {
+  private UserDetails createUserDetails(User.LocalUser user) {
     return new org.springframework.security.core.userdetails.User(
       user.username(),
       user.password(),

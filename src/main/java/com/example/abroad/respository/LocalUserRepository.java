@@ -1,16 +1,15 @@
 package com.example.abroad.respository;
 
-import com.example.abroad.model.Student;
+import com.example.abroad.model.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface StudentRepository extends JpaRepository<Student, String> {
+public interface LocalUserRepository extends JpaRepository<User.LocalUser, String> {
 
-  Optional<Student> findByUsername(String username);
+  Optional<User.LocalUser> findByUsername(String username);
 
   boolean existsByUsername(String username);
 
   boolean existsByEmail(String email);
-
 
 }

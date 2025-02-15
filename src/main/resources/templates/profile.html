@@ -4,7 +4,7 @@
 </head>
 <body>
 <!-- Choose navbar based on user role -->
-<div th:replace="~{components :: ${user.isAdmin() ? 'admin-navbar' : 'student-navbar'}(${user.displayName()})}"></div>
+<div th:replace="~{components :: ${user.role().name() == 'ADMIN' ? 'admin-navbar' : 'student-navbar'}(${user.displayName()})}"></div>
 
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
     <div th:if="${alerts != null}" th:replace="~{components :: alerts(${alerts})}"></div>

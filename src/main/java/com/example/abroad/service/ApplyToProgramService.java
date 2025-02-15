@@ -22,11 +22,11 @@ public record ApplyToProgramService(
 
 
   public GetApplyPageData getPageData(Integer programId, HttpSession session) {
-    var user = userService.getUser(session).orElse(null);
+    var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new GetApplyPageData.UserNotFound();
     }
-    if (user.isAdmin()) {
+    if (user.role() != User.Role.STUDENT) {
       return new GetApplyPageData.UserNotStudent();
     }
     var program = programRepository.findById(programId).orElse(null);
@@ -51,7 +51,7 @@ public record ApplyToProgramService(
       || answer3.isBlank() || answer4.isBlank() || answer5.isBlank()) {
       return new ApplyToProgram.InvalidSubmission();
     }
-    var user = userService.getUser(session).orElse(null);
+    var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new ApplyToProgram.UserNotFound();
     }

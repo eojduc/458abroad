@@ -1,13 +1,12 @@
 package com.example.abroad.service;
 
-import com.example.abroad.model.Admin;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
-import com.example.abroad.model.Student;
-import com.example.abroad.respository.AdminRepository;
+import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
+import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.ProgramRepository;
-import com.example.abroad.respository.StudentRepository;
+import com.example.abroad.respository.SSOUserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -15,7 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.Optional;
@@ -35,22 +33,22 @@ public class DataInitializationService {
 
   private static final Logger logger = LoggerFactory.getLogger(DataInitializationService.class);
   private final BCryptPasswordEncoder passwordEncoder;
-  private final StudentRepository studentRepository;
-  private final AdminRepository adminRepository;
   private final ApplicationRepository applicationRepository;
   private final ProgramRepository programRepository;
+  private final LocalUserRepository localUserRepository;
+  private final SSOUserRepository ssoUserRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
   private EntityManager entityManager;
 
   @Autowired
   public DataInitializationService(
-      StudentRepository studentRepository,
-      AdminRepository adminRepository,
+    LocalUserRepository localUserRepository,
+      SSOUserRepository ssoUserRepository,
       ApplicationRepository applicationRepository,
       ProgramRepository programRepository) {
-    this.studentRepository = studentRepository;
-    this.adminRepository = adminRepository;
+    this.localUserRepository = localUserRepository;
+    this.ssoUserRepository = ssoUserRepository;
     this.applicationRepository = applicationRepository;
     this.programRepository = programRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
@@ -89,30 +87,31 @@ public class DataInitializationService {
 
 
   @Transactional
-  protected void initializeStudents(String path) {
+  protected void initializeLocalUsers(String path) {
     initializeData(
         path,
-        record -> new Student(
+        record -> new User.LocalUser(
             record.get("username"),
             passwordEncoder.encode(record.get("password")),
             record.get("email"),
+            User.Role.valueOf(record.get("role").toUpperCase()),
             record.get("displayName")
         ),
-        studentRepository
+        localUserRepository
     );
   }
 
   @Transactional
-  protected void initializeAdmins(String path) {
+  protected void initializeSsoUsers(String path) {
     initializeData(
         path,
-        record -> new Admin(
+        record -> new User.SSOUser(
             record.get("username"),
-            passwordEncoder.encode(record.get("password")),
             record.get("email"),
+            User.Role.valueOf(record.get("role").toUpperCase()),
             record.get("displayName")
         ),
-        adminRepository
+        ssoUserRepository
     );
   }
 
@@ -176,10 +175,9 @@ public class DataInitializationService {
 
   @Transactional
   protected void resetDatabase() {
-    studentRepository.deleteAll();
-    adminRepository.deleteAll();
     applicationRepository.deleteAll();
-
+    localUserRepository.deleteAll();
+    ssoUserRepository.deleteAll();
     entityManager.createNativeQuery("ALTER SEQUENCE programs_seq RESTART WITH 1").executeUpdate();
     programRepository.deleteAll();
   }

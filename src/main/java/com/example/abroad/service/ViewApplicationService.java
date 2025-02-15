@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -21,7 +20,7 @@ public record ViewApplicationService(
     UserService userService) {
 
   public GetApplicationResult getApplication(String applicationId, HttpSession session) {
-    var userOpt = userService.getUser(session);
+    var userOpt = userService.findUserFromSession(session);
     if (userOpt.isEmpty()) {
       return new GetApplicationResult.UserNotFound();
     }
