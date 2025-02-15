@@ -62,8 +62,8 @@ public record EditProgramPageController(EditProgramService service, FormatServic
     @RequestParam String description,
     @RequestParam Integer year, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate,
     @RequestParam String facultyLead,
-    @RequestParam Semester semester, @RequestParam LocalDateTime applicationOpen,
-    @RequestParam LocalDateTime applicationClose, HttpSession session) {
+    @RequestParam Semester semester, @RequestParam LocalDate applicationOpen,
+    @RequestParam LocalDate applicationClose, HttpSession session) {
     return switch (service.updateProgramInfo(programId, title, description, year, startDate,
       endDate,
       facultyLead, semester, applicationOpen, applicationClose, session)) {

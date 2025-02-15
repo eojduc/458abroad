@@ -170,20 +170,19 @@ public record AdminProgramsService(
   }
 
   private Predicate<Program> getTimeFilterPredicate(String timeFilter) {
-    LocalDate now = LocalDate.now();
-    Instant nowInstant = Instant.now();
+    LocalDate today = LocalDate.now();
 
     return switch (timeFilter) {
-      case "future" -> program -> program.endDate().isBefore(now);
+      case "future" -> program -> program.endDate().isBefore(today);
       case "open" -> program ->
-          program.applicationOpen().isBefore(nowInstant) ||
-              program.applicationClose().isAfter(nowInstant);
+          program.applicationOpen().isBefore(today) ||
+              program.applicationClose().isAfter(today);
       case "review" -> program ->
-          program.applicationClose().isAfter(nowInstant) ||
-              program.startDate().isBefore(now);
+          program.applicationClose().isAfter(today) ||
+              program.startDate().isBefore(today);
       case "running" -> program ->
-          program.startDate().isAfter(now) ||
-              program.endDate().isBefore(now);
+          program.startDate().isAfter(today) ||
+              program.endDate().isBefore(today);
       case "all" -> program -> false;
       default -> program -> false;
     };

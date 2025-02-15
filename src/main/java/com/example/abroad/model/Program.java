@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.Objects;
+import org.springframework.cglib.core.Local;
 
 @Entity
 @Table(name = "programs")
@@ -29,9 +30,9 @@ public final class Program {
   @Enumerated(EnumType.STRING)
   private Semester semester;
   @Column(nullable = false)
-  private Instant applicationOpen;
+  private LocalDate applicationOpen;
   @Column(nullable = false)
-  private Instant applicationClose;
+  private LocalDate applicationClose;
   @Column(nullable = false)
   private LocalDate startDate;
   @Column(nullable = false)
@@ -55,8 +56,8 @@ public final class Program {
   }
 
 
-  public Program(String title, Year year, Semester semester, Instant applicationOpen,
-    Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
+  public Program(String title, Year year, Semester semester, LocalDate applicationOpen,
+    LocalDate applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
     String description) {
     this.title = title;
     this.year = year;
@@ -102,11 +103,11 @@ public final class Program {
     return semester;
   }
 
-  public Instant applicationOpen() {
+  public LocalDate applicationOpen() {
     return applicationOpen;
   }
 
-  public Instant applicationClose() {
+  public LocalDate applicationClose() {
     return applicationClose;
   }
 
@@ -182,11 +183,11 @@ public final class Program {
     this.semester = semester;
   }
 
-  public void setApplicationOpen(Instant applicationOpen) {
+  public void setApplicationOpen(LocalDate applicationOpen) {
     this.applicationOpen = applicationOpen;
   }
 
-  public void setApplicationClose(Instant applicationClose) {
+  public void setApplicationClose(LocalDate applicationClose) {
     this.applicationClose = applicationClose;
   }
 

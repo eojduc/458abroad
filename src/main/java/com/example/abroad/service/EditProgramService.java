@@ -34,14 +34,14 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     String title, String description,
     Integer year, LocalDate startDate, LocalDate endDate,
     String facultyLead,
-    Semester semester, LocalDateTime applicationOpen, LocalDateTime applicationClose,
+    Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
     HttpSession session
   ) {
     try {
       if (title.length() > 80) {
         return new UpdateProgramInfo.TitleTooLong();
       }
-      if (startDate.isAfter(endDate) || applicationClose.isAfter(startDate.atStartOfDay()) ||
+      if (startDate.isAfter(endDate) || applicationClose.isAfter(startDate) ||
         applicationOpen.isAfter(applicationClose)) {
         return new UpdateProgramInfo.IncoherentDates();
       }
@@ -59,8 +59,8 @@ public record EditProgramService(UserService userService, ProgramRepository prog
       program.setTitle(title);
       program.setYear(Year.of(year));
       program.setSemester(semester);
-      program.setApplicationOpen(applicationOpen.atZone(Config.ZONE_ID).toInstant());
-      program.setApplicationClose(applicationClose.atZone(Config.ZONE_ID).toInstant());
+      program.setApplicationOpen(applicationOpen);
+      program.setApplicationClose(applicationClose);
       program.setStartDate(startDate);
       program.setEndDate(endDate);
       program.setFacultyLead(facultyLead);

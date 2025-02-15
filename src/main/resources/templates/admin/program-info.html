@@ -38,11 +38,11 @@
           </tr>
           <tr class="border-base-300 border-y-2">
             <td>Application Open</td>
-            <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+            <td th:text="${formatter.formatLocalDate(program.applicationOpen)}"></td>
           </tr>
           <tr class="border-base-300">
             <td>Application Deadline</td>
-            <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+            <td th:text="${formatter.formatLocalDate(program.applicationClose)}"></td>
           </tr>
           </tbody>
         </table>

@@ -45,11 +45,11 @@
                   </tr>
                   <tr class="border-base-200 border-y-2">
                     <td>Application Opens</td>
-                    <td th:text="${formatter.formatInstant(program.applicationOpen)}"></td>
+                    <td th:text="${formatter.formatLocalDate(program.applicationOpen)}"></td>
                   </tr>
                   <tr class="border-base-200 border-y-2">
                     <td>Application Closes</td>
-                    <td th:text="${formatter.formatInstant(program.applicationClose)}"></td>
+                    <td th:text="${formatter.formatLocalDate(program.applicationClose)}"></td>
                   </tr>
                   </tbody>
                 </table>

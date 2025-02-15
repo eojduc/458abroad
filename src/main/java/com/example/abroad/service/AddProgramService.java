@@ -28,7 +28,7 @@ public record AddProgramService(UserService userService, ProgramRepository progr
   public AddProgramInfo addProgramInfo(String title, String description,
       Integer year, LocalDate startDate, LocalDate endDate,
       String facultyLead,
-      Semester semester, LocalDateTime applicationOpen, LocalDateTime applicationClose,
+      Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
       HttpSession session
   ) {
     var user = userService.getUser(session).orElse(null);
@@ -49,7 +49,7 @@ public record AddProgramService(UserService userService, ProgramRepository progr
       return new AddProgramInfo.InvalidProgramInfo(
           "Application must open before the application deadline.");
     }
-    if (!applicationClose.isBefore(startDate.atStartOfDay())) {
+    if (!applicationClose.isBefore(startDate)) {
       return new AddProgramInfo.InvalidProgramInfo(
           "Application deadline must be before the program opens.");
     }
@@ -61,8 +61,8 @@ public record AddProgramService(UserService userService, ProgramRepository progr
     program.setTitle(title);
     program.setYear(Year.of(year));
     program.setSemester(semester);
-    program.setApplicationOpen(applicationOpen.atZone(Config.ZONE_ID).toInstant());
-    program.setApplicationClose(applicationClose.atZone(Config.ZONE_ID).toInstant());
+    program.setApplicationOpen(applicationOpen);
+    program.setApplicationClose(applicationClose);
     program.setStartDate(startDate);
     program.setEndDate(endDate);
     program.setFacultyLead(facultyLead);

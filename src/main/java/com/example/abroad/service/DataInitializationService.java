@@ -151,8 +151,8 @@ public class DataInitializationService {
             existingProgram.setYear(Year.parse(record.get("year")));
             existingProgram.setSemester(
                 Program.Semester.valueOf(record.get("semester").toUpperCase()));
-            existingProgram.setApplicationOpen(Instant.parse(record.get("applicationOpen")));
-            existingProgram.setApplicationClose(Instant.parse(record.get("applicationClose")));
+            existingProgram.setApplicationOpen(LocalDate.parse(record.get("applicationOpen")));
+            existingProgram.setApplicationClose(LocalDate.parse(record.get("applicationClose")));
             existingProgram.setStartDate(LocalDate.parse(record.get("startDate")));
             existingProgram.setEndDate(LocalDate.parse(record.get("endDate")));
             existingProgram.setFacultyLead(record.get("facultyLead"));
@@ -163,8 +163,8 @@ public class DataInitializationService {
                 record.get("title"),
                 Year.parse(record.get("year")),
                 Program.Semester.valueOf(record.get("semester").toUpperCase()),
-                Instant.parse(record.get("applicationOpen")),
-                Instant.parse(record.get("applicationClose")),
+                LocalDate.parse(record.get("applicationOpen")),
+                LocalDate.parse(record.get("applicationClose")),
                 LocalDate.parse(record.get("startDate")),
                 LocalDate.parse(record.get("endDate")),
                 record.get("facultyLead"),

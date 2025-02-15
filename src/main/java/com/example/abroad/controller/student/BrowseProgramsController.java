@@ -11,6 +11,7 @@ import com.example.abroad.service.admin.AdminProgramsService.GetAllProgramsInfo.
 import com.example.abroad.service.admin.AdminProgramsService.GetAllProgramsInfo.UserNotFound;
 import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +61,7 @@ public record BrowseProgramsController(AdminProgramsService service, FormatServi
 // Populate status for each program position
         for (int i = 0; i < programs.size(); i++) {
           Program program = programs.get(i);
+          LocalDate today = LocalDate.now();
           Instant nowInstant = Instant.now();
 
           // Find if there's an application for this program
@@ -74,9 +76,9 @@ public record BrowseProgramsController(AdminProgramsService service, FormatServi
             programStatus.set(i, userApp.status().toString());
           } else {
             // No application - determine why
-            if (nowInstant.isBefore(program.applicationOpen())) {
+            if (today.isBefore(program.applicationOpen())) {
               programStatus.set(i, "NotOpen");
-            } else if (nowInstant.isAfter(program.applicationClose())) {
+            } else if (today.isAfter(program.applicationClose())) {
               programStatus.set(i, "DeadPass");
             } else {
               programStatus.set(i, "Open");

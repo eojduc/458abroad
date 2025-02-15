@@ -51,10 +51,10 @@
               <div th:text="${program.facultyLead}"></div>
             </td>
             <td>
-              <div th:text="${formatter.formatInstant(program.applicationOpen)}"></div>
+              <div th:text="${formatter.formatLocalDate(program.applicationOpen)}"></div>
             </td>
             <td>
-              <div th:text="${formatter.formatInstant(program.applicationClose)}"></div>
+              <div th:text="${formatter.formatLocalDate(program.applicationClose)}"></div>
             </td>
             <td>
               <div th:text="${formatter.formatLocalDate(program.startDate)}"></div>

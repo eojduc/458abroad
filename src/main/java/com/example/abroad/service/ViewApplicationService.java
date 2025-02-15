@@ -44,10 +44,10 @@ public record ViewApplicationService(
     Program prog = progOpt.get();
 
     boolean editable = false;
-    Instant now = Instant.now();
+    LocalDate today = LocalDate.now();
     if (app.status() == Application.Status.APPLIED &&
-        now.isAfter(prog.applicationOpen()) &&
-        now.isBefore(prog.applicationClose())) {
+      today.isAfter(prog.applicationOpen()) &&
+      today.isBefore(prog.applicationClose())) {
       editable = true;
     }
 
@@ -115,10 +115,10 @@ public record ViewApplicationService(
     applicationRepository.save(app);
 
     boolean editable = false;
-    Instant now = Instant.now();
+    LocalDate today = LocalDate.now();
     if (app.status() == Application.Status.APPLIED &&
-        now.isAfter(success.program().applicationOpen()) &&
-        now.isBefore(success.program().applicationClose())) {
+      today.isAfter(success.program().applicationOpen()) &&
+      today.isBefore(success.program().applicationClose())) {
       editable = true;
     }
 
