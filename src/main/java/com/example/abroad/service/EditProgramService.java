@@ -5,6 +5,7 @@ import com.example.abroad.model.Admin;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.service.EditProgramService.UpdateProgramInfo.DatabaseError;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,36 +37,40 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     Semester semester, LocalDateTime applicationOpen, LocalDateTime applicationClose,
     HttpSession session
   ) {
-    if (title.length() > 80) {
-      return new UpdateProgramInfo.TitleTooLong();
-    }
-    if (startDate.isAfter(endDate) || applicationClose.isAfter(startDate.atStartOfDay()) ||
-      applicationOpen.isAfter(applicationClose)) {
-      return new UpdateProgramInfo.IncoherentDates();
-    }
-    var user = userService.getUser(session).orElse(null);
-    if (user == null) {
-      return new UpdateProgramInfo.NotLoggedIn();
-    }
-    if (!(user instanceof Admin)) {
-      return new UpdateProgramInfo.UserNotAdmin();
-    }
-    var program = programRepository.findById(programId).orElse(null);
-    if (program == null) {
-      return new UpdateProgramInfo.ProgramNotFound();
-    }
-    program.setTitle(title);
-    program.setYear(Year.of(year));
-    program.setSemester(semester);
-    program.setApplicationOpen(applicationOpen.atZone(Config.ZONE_ID).toInstant());
-    program.setApplicationClose(applicationClose.atZone(Config.ZONE_ID).toInstant());
-    program.setStartDate(startDate);
-    program.setEndDate(endDate);
-    program.setFacultyLead(facultyLead);
-    program.setDescription(description);
+    try {
+      if (title.length() > 80) {
+        return new UpdateProgramInfo.TitleTooLong();
+      }
+      if (startDate.isAfter(endDate) || applicationClose.isAfter(startDate.atStartOfDay()) ||
+        applicationOpen.isAfter(applicationClose)) {
+        return new UpdateProgramInfo.IncoherentDates();
+      }
+      var user = userService.getUser(session).orElse(null);
+      if (user == null) {
+        return new UpdateProgramInfo.NotLoggedIn();
+      }
+      if (!(user instanceof Admin)) {
+        return new UpdateProgramInfo.UserNotAdmin();
+      }
+      var program = programRepository.findById(programId).orElse(null);
+      if (program == null) {
+        return new UpdateProgramInfo.ProgramNotFound();
+      }
+      program.setTitle(title);
+      program.setYear(Year.of(year));
+      program.setSemester(semester);
+      program.setApplicationOpen(applicationOpen.atZone(Config.ZONE_ID).toInstant());
+      program.setApplicationClose(applicationClose.atZone(Config.ZONE_ID).toInstant());
+      program.setStartDate(startDate);
+      program.setEndDate(endDate);
+      program.setFacultyLead(facultyLead);
+      program.setDescription(description);
 
-    programRepository.save(program);
-    return new UpdateProgramInfo.Success();
+      programRepository.save(program);
+      return new UpdateProgramInfo.Success();
+    } catch (Exception e) {
+      return new DatabaseError(e.getMessage());
+    }
   }
 
 
@@ -83,6 +88,7 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     record NotLoggedIn() implements UpdateProgramInfo { }
     record IncoherentDates() implements UpdateProgramInfo { }
     record TitleTooLong() implements UpdateProgramInfo { }
+    record DatabaseError(String messsge) implements UpdateProgramInfo { }
   }
 
 }

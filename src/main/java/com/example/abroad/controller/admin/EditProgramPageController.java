@@ -1,5 +1,6 @@
 package com.example.abroad.controller.admin;
 
+import com.example.abroad.controller.student.BrowseProgramsController;
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.EditProgramService;
@@ -12,6 +13,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public record EditProgramPageController(EditProgramService service, FormatService formatter,
                                         UserService userService) {
+
+  private static final Logger logger = LoggerFactory.getLogger(EditProgramPageController.class);
 
 
   @GetMapping("/admin/programs/{programId}/edit")
@@ -75,6 +80,10 @@ public record EditProgramPageController(EditProgramService service, FormatServic
       case UpdateProgramInfo.TitleTooLong() ->
         String.format("redirect:/admin/programs/%d/edit?error=Program title must be less than 80 characters",
           programId);
+      case UpdateProgramInfo.DatabaseError(var m) -> {
+        logger.error("Dtabase error", m);
+        yield "redirect:/admin/programs?error=An unexpected error occurred";
+      }
     };
   }
 

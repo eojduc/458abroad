@@ -23,6 +23,7 @@ public record FormatService() {
     return formatSemester(semester) + " " + formatYear(year);
   }
 
+
   public String formatYear(Year year) {
     return year.toString();
   }

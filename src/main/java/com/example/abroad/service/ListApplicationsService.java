@@ -22,6 +22,7 @@ public record ListApplicationsService(
     UserService userService) {
 
   public GetApplicationsResult getApplications(HttpSession session, String sort) {
+
     var user = userService.getUser(session).orElse(null);
     if (user == null) {
       return new GetApplicationsResult.UserNotFound();
