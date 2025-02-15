@@ -1,4 +1,4 @@
-package com.example.abroad.service.admin;
+package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Status;

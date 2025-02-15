@@ -1,15 +1,14 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.service.AccountService;
-import com.example.abroad.service.AccountService.ChangePassword.IncorrectPassword;
-import com.example.abroad.service.AccountService.ChangePassword.NotLocalUser;
-import com.example.abroad.service.AccountService.ChangePassword.PasswordMismatch;
-import com.example.abroad.service.AccountService.GetProfile;
-import com.example.abroad.service.AccountService.GetProfile.Success;
-import com.example.abroad.service.AccountService.GetProfile.UserNotFound;
-import com.example.abroad.service.AccountService.UpdateProfile;
-import com.example.abroad.service.AccountService.ChangePassword;
+import com.example.abroad.service.page.AccountService;
+import com.example.abroad.service.page.AccountService.ChangePassword.IncorrectPassword;
+import com.example.abroad.service.page.AccountService.ChangePassword.NotLocalUser;
+import com.example.abroad.service.page.AccountService.ChangePassword.PasswordMismatch;
+import com.example.abroad.service.page.AccountService.GetProfile.Success;
+import com.example.abroad.service.page.AccountService.GetProfile.UserNotFound;
+import com.example.abroad.service.page.AccountService.UpdateProfile;
+import com.example.abroad.service.page.AccountService.ChangePassword;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;

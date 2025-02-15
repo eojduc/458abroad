@@ -1,9 +1,9 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.service.AuthService;
-import com.example.abroad.service.AuthService.CheckLoginStatus;
-import com.example.abroad.service.AuthService.RegisterResult;
+import com.example.abroad.service.page.AuthService;
+import com.example.abroad.service.page.AuthService.CheckLoginStatus;
+import com.example.abroad.service.page.AuthService.RegisterResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

@@ -14,7 +14,6 @@ public record CustomUserDetailsService(UserService userService) implements UserD
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    System.out.println("loading use by Username");
     var user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     if (!(user instanceof User.LocalUser localUser)) {
       throw new UsernameNotFoundException("User not found: " + username);

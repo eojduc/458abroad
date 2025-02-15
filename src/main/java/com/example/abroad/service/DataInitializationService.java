@@ -163,6 +163,7 @@ public class DataInitializationService {
                 Program.Semester.valueOf(record.get("semester").toUpperCase()),
                 LocalDate.parse(record.get("applicationOpen")),
                 LocalDate.parse(record.get("applicationClose")),
+                LocalDate.parse(record.get("documentDeadline")),
                 LocalDate.parse(record.get("startDate")),
                 LocalDate.parse(record.get("endDate")),
                 record.get("description")

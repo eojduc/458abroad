@@ -1,6 +1,7 @@
 package com.example.abroad.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -8,13 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
-import java.util.Objects;
-import org.springframework.cglib.core.Local;
-
 @Entity
 @Table(name = "programs")
 public final class Program {
@@ -22,21 +18,32 @@ public final class Program {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Integer id;
+
   @Column(nullable = false)
   private String title;
+
   @Column(nullable = false)
   private Year year;
+
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
   private Semester semester;
+
   @Column(nullable = false)
   private LocalDate applicationOpen;
+
   @Column(nullable = false)
   private LocalDate applicationClose;
+
+  @Column(nullable = false)
+  private LocalDate documentDeadline;
+
   @Column(nullable = false)
   private LocalDate startDate;
+
   @Column(nullable = false)
   private LocalDate endDate;
+
   @Column(nullable = false, length = 10000)
   private String description;
 
@@ -54,33 +61,19 @@ public final class Program {
 
 
   public Program(String title, Year year, Semester semester, LocalDate applicationOpen,
-    LocalDate applicationClose, LocalDate startDate, LocalDate endDate,
+    LocalDate applicationClose, LocalDate documentDeadline,
+    LocalDate startDate, LocalDate endDate,
     String description) {
     this.title = title;
     this.year = year;
     this.semester = semester;
     this.applicationOpen = applicationOpen;
     this.applicationClose = applicationClose;
+    this.documentDeadline = documentDeadline;
     this.startDate = startDate;
     this.endDate = endDate;
     this.description = description;
   }
-
-  @Override
-  public String toString() {
-    return "Program{" +
-      "id='" + id + '\'' +
-      ", title='" + title + '\'' +
-      ", year=" + year +
-      ", semester=" + semester +
-      ", applicationOpen=" + applicationOpen +
-      ", applicationClose=" + applicationClose +
-      ", startDate=" + startDate +
-      ", endDate=" + endDate +
-      ", description='" + description + '\'' +
-      '}';
-  }
-
 
   public Integer id() {
     return id;
@@ -115,6 +108,10 @@ public final class Program {
   }
   public String description() {
     return description;
+  }
+
+  public LocalDate documentDeadline() {
+    return documentDeadline;
   }
 
 
@@ -157,4 +154,33 @@ public final class Program {
   public enum Semester {
     FALL, SPRING, SUMMER
   }
+
+
+  @Entity
+  @Table(name = "faculty_leads")
+  public class FacultyLead {
+
+    @Embeddable
+    public record AppUser(String applicationId, String username) { }
+
+    @Id
+    private AppUser id;
+
+
+    public FacultyLead() {
+      this.id = null;
+    }
+
+    public FacultyLead(String applicationId, String username) {
+      this.id = new AppUser(applicationId, username);
+    }
+
+    public String applicationId() {
+      return id.applicationId();
+    }
+    public String username() {
+      return id.username();
+    }
+  }
+
 }

@@ -1,9 +1,9 @@
 package com.example.abroad.controller.student;
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.service.ApplyToProgramService;
-import com.example.abroad.service.ApplyToProgramService.ApplyToProgram;
-import com.example.abroad.service.ApplyToProgramService.GetApplyPageData;
+import com.example.abroad.service.page.ApplyToProgramService;
+import com.example.abroad.service.page.ApplyToProgramService.ApplyToProgram;
+import com.example.abroad.service.page.ApplyToProgramService.GetApplyPageData;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;

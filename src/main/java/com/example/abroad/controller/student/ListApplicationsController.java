@@ -1,8 +1,8 @@
 package com.example.abroad.controller.student;
 
 import com.example.abroad.service.FormatService;
-import com.example.abroad.service.ListApplicationsService;
-import com.example.abroad.service.ListApplicationsService.GetApplicationsResult;
+import com.example.abroad.service.page.ListApplicationsService;
+import com.example.abroad.service.page.ListApplicationsService.GetApplicationsResult;
 import com.example.abroad.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;

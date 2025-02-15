@@ -4,10 +4,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import java.sql.Blob;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Objects;
 
 @Entity
 @Table(name = "applications")
@@ -15,6 +19,7 @@ public final class Application {
 
   @Id
   private String id;
+
   @Column(nullable = false)
   private String student;
   @Column(nullable = false)
@@ -155,76 +160,129 @@ public final class Application {
     this.answer5 = answer5;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    Application that = (Application) o;
-
-    if (!Objects.equals(id, that.id)) {
-      return false;
-    }
-    if (!student.equals(that.student)) {
-      return false;
-    }
-    if (!programId.equals(that.programId)) {
-      return false;
-    }
-    if (!dateOfBirth.equals(that.dateOfBirth)) {
-      return false;
-    }
-    if (!gpa.equals(that.gpa)) {
-      return false;
-    }
-    if (!major.equals(that.major)) {
-      return false;
-    }
-    if (!answer1.equals(that.answer1)) {
-      return false;
-    }
-    if (!answer2.equals(that.answer2)) {
-      return false;
-    }
-    if (!answer3.equals(that.answer3)) {
-      return false;
-    }
-    if (!answer4.equals(that.answer4)) {
-      return false;
-    }
-    if (!answer5.equals(that.answer5)) {
-      return false;
-    }
-    return status == that.status;
-  }
-
-  @Override
-  public String toString() {
-    return "Application{" +
-        "id='" + id + '\'' +
-        ", student='" + student + '\'' +
-        ", programId=" + programId +
-        ", dateOfBirth=" + dateOfBirth +
-        ", gpa=" + gpa +
-        ", major='" + major + '\'' +
-        ", answer1='" + answer1 + '\'' +
-        ", answer2='" + answer2 + '\'' +
-        ", answer3='" + answer3 + '\'' +
-        ", answer4='" + answer4 + '\'' +
-        ", answer5='" + answer5 + '\'' +
-        ", status=" + status +
-        '}';
-  }
-
   public enum Status {
     APPLIED,
     ENROLLED,
     CANCELLED,
-    WITHDRAWN
+    WITHDRAWN,
+    ELIGIBLE,
+    APPROVED,
+  }
+
+  @Entity
+  @Table(name = "documents")
+  public class Document {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Integer id;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Type type;
+
+    @Column(nullable = false)
+    private Instant timestamp;
+
+    @Column(nullable = false)
+    @Lob
+    private Blob file;
+
+    @Column(nullable = false)
+    private String applicationId;
+
+    public enum Type {
+      ASSUMPTION_OF_RISK, CODE_OF_CONDUCT, MEDICAL_HISTORY, HOUSING
+    }
+
+    public Document() {
+      this.id = null;
+      this.type = null;
+      this.timestamp = null;
+      this.file = null;
+      this.applicationId = null;
+    }
+
+    public Document(Type type, Instant timestamp, Blob file, String applicationId) {
+      this.type = type;
+      this.timestamp = timestamp;
+      this.file = file;
+      this.applicationId = applicationId;
+    }
+
+    public Integer id() {
+      return id;
+    }
+
+    public Type type() {
+      return type;
+    }
+
+    public Instant timestamp() {
+      return timestamp;
+    }
+
+    public Blob file() {
+      return file;
+    }
+
+    public String applicationId() {
+      return applicationId;
+    }
+  }
+
+  @Entity
+  @Table(name = "notes")
+  public class Note {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Integer id;
+
+    @Column(nullable = false)
+    private String applicationId;
+
+    @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false, length = 10000)
+    private String content;
+
+    @Column(nullable = false)
+    private Instant timestamp;
+
+    public Note() {
+      this.id = null;
+      this.applicationId = null;
+      this.username = null;
+      this.content = null;
+      this.timestamp = null;
+    }
+
+    public Note(String applicationId, String username, String content, Instant timestamp) {
+      this.applicationId = applicationId;
+      this.username = username;
+      this.content = content;
+      this.timestamp = timestamp;
+    }
+
+    public Integer id() {
+      return id;
+    }
+
+    public String applicationId() {
+      return applicationId;
+    }
+
+    public String username() {
+      return username;
+    }
+
+    public String content() {
+      return content;
+    }
+
+    public Instant timestamp() {
+      return timestamp;
+    }
   }
 
 }

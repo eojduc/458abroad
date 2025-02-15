@@ -2,9 +2,9 @@ package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Program.Semester;
-import com.example.abroad.service.EditProgramService;
-import com.example.abroad.service.EditProgramService.GetEditProgramInfo;
-import com.example.abroad.service.EditProgramService.UpdateProgramInfo;
+import com.example.abroad.service.page.EditProgramService;
+import com.example.abroad.service.page.EditProgramService.GetEditProgramInfo;
+import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;

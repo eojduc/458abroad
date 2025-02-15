@@ -1,4 +1,4 @@
-package com.example.abroad.service;
+package com.example.abroad.service.page;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
@@ -6,6 +6,7 @@ import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Service;

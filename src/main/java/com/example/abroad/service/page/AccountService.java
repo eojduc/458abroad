@@ -1,5 +1,6 @@
-package com.example.abroad.service;
+package com.example.abroad.service.page;
 import com.example.abroad.model.User;
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

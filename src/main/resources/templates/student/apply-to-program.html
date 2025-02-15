@@ -81,7 +81,7 @@
     <div class="label">
       <span class="label-text" th:text="${question.text}"></span>
     </div>
-    <textarea th:name="${question.field}" class="textarea" required></textarea>
+    <textarea th:name="${question.field}" class="textarea" required maxlength="10000"></textarea>
   </label>
 
   <div class="card-actions justify-end">

@@ -12,8 +12,6 @@ public sealed interface User extends Serializable {
   @Id
   String username();
 
-
-
   String displayName();
 
   String email();

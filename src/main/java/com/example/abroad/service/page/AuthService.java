@@ -1,9 +1,10 @@
-package com.example.abroad.service;
+package com.example.abroad.service.page;
 
 import com.example.abroad.configuration.AuthSuccessHandler;
 import com.example.abroad.exception.EmailAlreadyInUseException;
 import com.example.abroad.exception.UsernameAlreadyInUseException;
 import com.example.abroad.model.User;
+import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

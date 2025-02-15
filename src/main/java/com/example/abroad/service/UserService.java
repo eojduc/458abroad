@@ -16,17 +16,12 @@ public record UserService(
   SSOUserRepository ssoUserRepository
 ) {
 
-  private static final String USER_SESSION_ATTRIBUTE = "user";
-
-
-
   public Optional<User> findUserFromSession(HttpSession session){
-    return Optional.ofNullable((User) session.getAttribute(USER_SESSION_ATTRIBUTE));
-//    return adminRepository.findAll().stream().findFirst().map(user -> user);
+    return Optional.ofNullable((User) session.getAttribute("user"));
   }
 
-  public void saveUserToSession(User user, HttpSession session){
-    session.setAttribute(USER_SESSION_ATTRIBUTE, user);
+  public void saveUserToSession(User user, HttpSession session) {
+    session.setAttribute("user", user);
   }
 
   public Optional<? extends User> findByUsername(String username) {
