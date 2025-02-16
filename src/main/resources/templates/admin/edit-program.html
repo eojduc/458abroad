@@ -53,6 +53,7 @@
           <input class="input w-full"
                  type="text"
                  name="facultyLead"
+                 value="TODO"
                  required />
         </label>
 
@@ -109,7 +110,7 @@
           <input class="input w-full"
                  type="date"
                  name="applicationOpen"
-                 th:value="${formatter.formatLocalDate(program.applicationOpen)}"
+                 th:value="${program.applicationOpen}"
                  required />
         </label>
 
@@ -120,7 +121,7 @@
           <input class="input w-full"
                  type="date"
                  name="applicationClose"
-                 th:value="${formatter.formatLocalDate(program.applicationClose)}"
+                 th:value="${program.applicationClose}"
                  required />
         </label>
 

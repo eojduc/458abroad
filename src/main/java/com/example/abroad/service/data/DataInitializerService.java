@@ -1,4 +1,4 @@
-package com.example.abroad.service;
+package com.example.abroad.service.data;
 
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;

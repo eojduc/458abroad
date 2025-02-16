@@ -4,9 +4,17 @@ import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.page.EditProgramService;
 import com.example.abroad.service.page.EditProgramService.GetEditProgramInfo;
+import com.example.abroad.service.page.EditProgramService.GetEditProgramInfo.NotLoggedIn;
+import com.example.abroad.service.page.EditProgramService.GetEditProgramInfo.ProgramNotFound;
+import com.example.abroad.service.page.EditProgramService.GetEditProgramInfo.Success;
+import com.example.abroad.service.page.EditProgramService.GetEditProgramInfo.UserNotAdmin;
 import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo.DatabaseError;
+import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo.DateIncoherence;
+import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo.DescriptionInvalid;
+import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo.TitleInvalid;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Map;
@@ -33,7 +41,7 @@ public record EditProgramPageController(EditProgramService service, FormatServic
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info,
     Model model) {
     switch (service.getEditProgramInfo(programId, session)) {
-      case GetEditProgramInfo.Success(var program, var user) -> {
+      case Success(var program, var user) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "user", user,
@@ -43,13 +51,13 @@ public record EditProgramPageController(EditProgramService service, FormatServic
         ));
         return "admin/edit-program :: page";
       }
-      case GetEditProgramInfo.NotLoggedIn() -> {
+      case NotLoggedIn() -> {
         return "redirect:/login?error=You are not logged in";
       }
-      case GetEditProgramInfo.UserNotAdmin() -> {
+      case UserNotAdmin() -> {
         return "redirect:/programs?error=You are not an admin";
       }
-      case GetEditProgramInfo.ProgramNotFound() -> {
+      case ProgramNotFound() -> {
         return "redirect:/admin/programs?error=That program does not exist";
       }
     }
@@ -70,17 +78,20 @@ public record EditProgramPageController(EditProgramService service, FormatServic
       case UpdateProgramInfo.UserNotAdmin() -> "redirect:/?error=You are not an admin";
       case UpdateProgramInfo.ProgramNotFound() ->
         "redirect:/admin/programs?error=That program does not exist";
-      case UpdateProgramInfo.IncoherentDates() ->
-        String.format("redirect:/admin/programs/%d/edit?error=Program end date must be after start date,"
-            + " application deadline must be after open, and the application deadline must be before the start date",
+      case DateIncoherence() ->
+        String.format("redirect:/admin/programs/%d/edit?error=Application close must be after Application open, document deadline must be after application close,"
+            + " start date must be after document deadline, and end date must be after start date",
           programId);
-      case UpdateProgramInfo.TitleTooLong() ->
-        String.format("redirect:/admin/programs/%d/edit?error=Program title must be less than 80 characters",
+      case TitleInvalid() ->
+        String.format("redirect:/admin/programs/%d/edit?error=Program title must be not blank and less than 80 characters",
           programId);
-      case UpdateProgramInfo.DatabaseError(var m) -> {
+      case DatabaseError(var m) -> {
         logger.error("Dtabase error", m);
         yield "redirect:/admin/programs?error=An unexpected error occurred";
       }
+      case DescriptionInvalid() ->
+        String.format("redirect:/admin/programs/%d/edit?error=Program description must be less than 10000 characters",
+          programId);
     };
   }
 

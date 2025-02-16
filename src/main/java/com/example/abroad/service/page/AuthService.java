@@ -75,7 +75,7 @@ public record AuthService(
 
         } catch (UsernameAlreadyInUseException e) {
             return new RegisterResult.UsernameExists();
-        } catch (EmailAlreadyInUseException e) {
+        } catch (EmailAlreadyInUseEsixception e) {
             return new RegisterResult.EmailExists();
         } catch (Exception e) {
             return new RegisterResult.AuthenticationError(e);

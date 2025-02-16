@@ -1,4 +1,4 @@
-package com.example.abroad.service;
+package com.example.abroad.service.data;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;

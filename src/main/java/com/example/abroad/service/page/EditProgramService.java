@@ -3,16 +3,16 @@ package com.example.abroad.service.page;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.service.ProgramService;
+import com.example.abroad.service.ProgramService.SaveProgram;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo.DatabaseError;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.Year;
 import org.springframework.stereotype.Service;
 
 @Service
-public record EditProgramService(UserService userService, ProgramRepository programRepository) {
+public record EditProgramService(UserService userService, ProgramService programService) {
 
   public GetEditProgramInfo getEditProgramInfo(Integer programId, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -22,7 +22,7 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     if (user.role() != User.Role.ADMIN) {
       return new GetEditProgramInfo.UserNotAdmin();
     }
-    var program = programRepository.findById(programId).orElse(null);
+    var program = programService.findById(programId).orElse(null);
     if (program == null) {
       return new GetEditProgramInfo.ProgramNotFound();
     }
@@ -36,13 +36,6 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     HttpSession session
   ) {
     try {
-      if (title.length() > 80) {
-        return new UpdateProgramInfo.TitleTooLong();
-      }
-      if (startDate.isAfter(endDate) || applicationClose.isAfter(startDate) ||
-        applicationOpen.isAfter(applicationClose)) {
-        return new UpdateProgramInfo.IncoherentDates();
-      }
       var user = userService.findUserFromSession(session).orElse(null);
       if (user == null) {
         return new UpdateProgramInfo.NotLoggedIn();
@@ -50,7 +43,7 @@ public record EditProgramService(UserService userService, ProgramRepository prog
       if (user.role() != User.Role.ADMIN) {
         return new UpdateProgramInfo.UserNotAdmin();
       }
-      var program = programRepository.findById(programId).orElse(null);
+      var program = programService.findById(programId).orElse(null);
       if (program == null) {
         return new UpdateProgramInfo.ProgramNotFound();
       }
@@ -62,11 +55,17 @@ public record EditProgramService(UserService userService, ProgramRepository prog
       program.setStartDate(startDate);
       program.setEndDate(endDate);
       program.setDescription(description);
-
-      programRepository.save(program);
-      return new UpdateProgramInfo.Success();
+      return switch (programService.saveProgram(program)) {
+        case SaveProgram.Success(var p) -> new UpdateProgramInfo.Success();
+        case SaveProgram.ApplicationCloseAfterDocumentDeadline() -> new UpdateProgramInfo.DateIncoherence();
+        case SaveProgram.ApplicationOpenAfterClose() -> new UpdateProgramInfo.DateIncoherence();
+        case SaveProgram.DescriptionInvalid() -> new UpdateProgramInfo.DescriptionInvalid();
+        case SaveProgram.DocumentDeadlineAfterStart() -> new UpdateProgramInfo.DateIncoherence();
+        case SaveProgram.StartAfterEnd() -> new UpdateProgramInfo.DateIncoherence();
+        case SaveProgram.TitleInvalid() -> new UpdateProgramInfo.TitleInvalid();
+      };
     } catch (Exception e) {
-      return new DatabaseError(e.getMessage());
+      return new UpdateProgramInfo.DatabaseError(e.getMessage());
     }
   }
 
@@ -83,8 +82,9 @@ public record EditProgramService(UserService userService, ProgramRepository prog
     record ProgramNotFound() implements UpdateProgramInfo { }
     record UserNotAdmin() implements UpdateProgramInfo { }
     record NotLoggedIn() implements UpdateProgramInfo { }
-    record IncoherentDates() implements UpdateProgramInfo { }
-    record TitleTooLong() implements UpdateProgramInfo { }
+    record TitleInvalid() implements UpdateProgramInfo { }
+    record DescriptionInvalid() implements UpdateProgramInfo { }
+    record DateIncoherence() implements UpdateProgramInfo { }
     record DatabaseError(String messsge) implements UpdateProgramInfo { }
   }
 
