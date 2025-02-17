@@ -8,12 +8,10 @@ import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
-import java.sql.Time;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -55,12 +53,11 @@ public record AdminProgramsService(
     Sort sort,
     String nameFilter,
     TimeFilter timeFilter,
-    boolean studentMode,
     Boolean ascending
   ) {
     return userService.findUserFromSession(session)
-        .map(user -> processAuthorizedRequest(session, sort, nameFilter, timeFilter, user,
-            studentMode, ascending))
+        .map(user -> processAuthorizedRequest(sort, nameFilter, timeFilter, user,
+            ascending))
         .orElse(new GetAllProgramsInfo.UserNotFound());
   }
 
@@ -84,37 +81,32 @@ public record AdminProgramsService(
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
-      HttpSession session,
       Sort sort,
       String nameFilter,
       TimeFilter timeFilter,
       User user,
-      boolean studentMode,
       Boolean ascending
   ) {
-    if (!studentMode && user.role() != User.Role.ADMIN) {
+    if (user.role() != User.Role.ADMIN) {
       return new GetAllProgramsInfo.UserNotAdmin();
     }
 
     List<Program> programs = programRepository.findAll();
-    List<Application> studentApplications = applicationRepository.findProgramApplicationsByStudent(
-            user.username())
-        .stream()
-        .map(opt -> opt.orElseGet(
-            Application::new)) // Replace empty optionals with a new Application
-        .toList();
-
     List<Application> allApplications = applicationRepository.findAll();
-
-    applyFilters(programs, nameFilter, timeFilter, ascending);
-    applySorting(session, programs, allApplications, sort, studentMode, ascending);
+    var comparator = getSortComparator(sort, allApplications, programs);
+    var programsToDisplay = programs.stream()
+      .filter(matchesNamePredicate(nameFilter))
+      .filter(getTimeFilterPredicate(timeFilter))
+      .sorted(ascending ? comparator : comparator.reversed())
+      .toList();
 
     return new GetAllProgramsInfo.Success(
-        programs,
-        studentMode ? studentApplications : allApplications,
+      programsToDisplay,
+        allApplications,
         user
     );
   }
+
 
   public Map<Integer, Map<String, Integer>> getProgramStatus(List<Application> applications, List<Program> programs) {
     // Group applications by program ID
@@ -149,92 +141,26 @@ public record AdminProgramsService(
       ));
   }
 
-  private void applyFilters(
-      List<Program> programs,
-      String nameFilter,
-      TimeFilter timeFilter,
-      Boolean ascending
-  ) {
-    applyNameFilter(programs, nameFilter);
-    applyTimeFilter(programs, timeFilter, ascending);
-  }
-
-  private void applyNameFilter(List<Program> programs, String newNameFilter) {
-    if (newNameFilter != null) {
-      String searchTerm = newNameFilter.toLowerCase();
-      programs.removeIf(program -> !matchesNameFilter(program, searchTerm));
-    }
-  }
-
-  private boolean matchesNameFilter(Program program, String searchTerm) {
-    return program.title().toLowerCase().contains(searchTerm)
+  private Predicate<Program> matchesNamePredicate(String searchTerm) {
+    return program -> program.title().toLowerCase().contains(searchTerm.toLowerCase());
      // || program.facultyLead().toLowerCase().contains(searchTerm)
-    ;
   }
 
-  private void applyTimeFilter(List<Program> programs, TimeFilter newTimeFilter, Boolean ascending) {
-    var effectiveFilter = Optional.ofNullable(newTimeFilter).orElse(DEFAULT_TIME_FILTER);
-    programs.removeIf(getTimeFilterPredicate(effectiveFilter, ascending));
-    logger.info("Filtered programs by {}", effectiveFilter);
-  }
-
-  private Predicate<Program> getTimeFilterPredicate(TimeFilter timeFilter, Boolean ascending) {
+  private Predicate<Program> getTimeFilterPredicate(TimeFilter timeFilter) {
     LocalDate today = LocalDate.now();
     return switch (timeFilter) {
-      case FUTURE -> program -> program.endDate().isBefore(today);
-      case OPEN -> program ->
-          program.applicationOpen().isBefore(today) ||
-              program.applicationClose().isAfter(today);
-      case REVIEW -> program ->
-          program.applicationClose().isAfter(today) ||
-              program.startDate().isBefore(today);
-      case RUNNING -> program ->
-          program.startDate().isAfter(today) ||
-              program.endDate().isBefore(today);
-      case ALL -> program -> false;
+      case FUTURE -> program -> !(program.endDate().isBefore(today));
+      case OPEN -> program -> !(program.applicationOpen().isBefore(today) || program.applicationClose().isAfter(today));
+      case REVIEW -> program -> !(program.applicationClose().isAfter(today) || program.startDate().isBefore(today));
+      case RUNNING -> program -> !(program.startDate().isAfter(today) || program.endDate().isBefore(today));
+      case ALL -> program -> true;
     };
   }
-
-  private void applySorting(HttpSession session, List<Program> programs, List<Application> applications, Sort newSort,
-      boolean studentMode, Boolean ascending) {
-    if (newSort != null) {
-      sortPrograms(session, programs, applications, newSort, !studentMode, ascending);
-    }
-  }
-
-  private void sortPrograms(
-      HttpSession session,
-      List<Program> programs,
-      List<Application> applications,
-      Sort sort,
-      boolean flipSortOrder,
-    Boolean ascending
-  ) {
-    String currentSortDirection = (String) session.getAttribute(sort.name());
-    if (flipSortOrder) {
-      session.setAttribute(
-          sort.name(),
-          "ascending".equals(currentSortDirection) ? "descending" : "ascending"
-      );
-    }
-
+  private Comparator<Program> getSortComparator(Sort sort, List<Application> applications, List<Program> programs) {
     Map<Integer, Map<String, Integer>> programStatus = getProgramStatus(applications, programs);
-
-    Comparator<Program> comparator = getSortComparator(sort, programStatus);
-    if (comparator != null) {
-      if (!ascending) {
-        comparator = comparator.reversed();
-      }
-      programs.sort(comparator);
-      logger.info("Sorted programs by {}", sort);
-    }
-  }
-
-  private Comparator<Program> getSortComparator(Sort sort, Map<Integer, Map<String, Integer>> programStatus) {
     return switch (sort) {
       case TITLE -> Comparator.comparing(Program::title);
-      case SEM_DATE -> Comparator.comparing(Program::year)
-          .thenComparing(Program::semester);
+      case SEM_DATE -> Comparator.comparing(Program::year).thenComparing(Program::semester);
       case APP_OPENS -> Comparator.comparing(Program::applicationOpen);
       case APP_CLOSES -> Comparator.comparing(Program::applicationClose);
       case START_DATE -> Comparator.comparing(Program::startDate);

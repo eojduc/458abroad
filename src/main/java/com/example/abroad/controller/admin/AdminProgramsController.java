@@ -27,7 +27,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info
       ) {
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, Sort.TITLE, "", TimeFilter.FUTURE, false, true);
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, Sort.TITLE, "", TimeFilter.FUTURE, true);
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetAllProgramsInfo.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
@@ -62,7 +62,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
     @RequestParam Optional<String> info
   ) {
 
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false, ascending);
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, ascending);
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetAllProgramsInfo.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";

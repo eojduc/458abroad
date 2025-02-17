@@ -5,13 +5,12 @@ import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.admin.AdminProgramsService;
-import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo;
-import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo.Success;
-import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo.UserNotFound;
-import com.example.abroad.service.page.admin.AdminProgramsService.Sort;
+import com.example.abroad.service.page.admin.BrowseProgramsService;
+import com.example.abroad.service.page.admin.BrowseProgramsService.GetAllProgramsInfo;
+import com.example.abroad.service.page.admin.BrowseProgramsService.GetAllProgramsInfo.Success;
+import com.example.abroad.service.page.admin.BrowseProgramsService.GetAllProgramsInfo.UserNotFound;
+import com.example.abroad.service.page.admin.BrowseProgramsService.Sort;
 import jakarta.servlet.http.HttpSession;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public record BrowseProgramsController(AdminProgramsService service, FormatService formatter,
+public record BrowseProgramsController(BrowseProgramsService service, FormatService formatter,
                                        UserService userService) {
 
   private static final Logger logger = LoggerFactory.getLogger(BrowseProgramsController.class);
@@ -41,7 +40,7 @@ public record BrowseProgramsController(AdminProgramsService service, FormatServi
       @RequestParam Optional<String> info
   ) {
     var sort = Sort.APP_CLOSES;
-    var timeFilter = AdminProgramsService.TimeFilter.FUTURE;
+    var timeFilter = BrowseProgramsService.TimeFilter.FUTURE;
     boolean noFilter = nameFilter == null;
     if (noFilter) {
       service.clearSessionData(session);
