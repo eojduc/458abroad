@@ -25,7 +25,7 @@ public record CustomUserDetailsService(UserService userService) implements UserD
     return new org.springframework.security.core.userdetails.User(
       user.username(),
       user.password(),
-      List.of(new SimpleGrantedAuthority(user.role().name()))
+      List.of()
     );
   }
 }

@@ -1,6 +1,7 @@
 package com.example.abroad.service;
 
 import com.example.abroad.model.Program.Semester;
+import com.example.abroad.model.User;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
@@ -21,6 +22,10 @@ public record FormatService() {
   }
   public String formatTerm(Semester semester, Year year) {
     return formatSemester(semester) + " " + formatYear(year);
+  }
+
+  public String displayUser(User user) {
+    return String.format("%s (%s)", user.displayName(), user.username());
   }
 
 

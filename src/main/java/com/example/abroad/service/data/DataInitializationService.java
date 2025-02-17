@@ -2,9 +2,11 @@ package com.example.abroad.service.data;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.respository.ApplicationRepository;
+import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.SSOUserRepository;
@@ -38,6 +40,7 @@ public class DataInitializationService {
   private final ProgramRepository programRepository;
   private final LocalUserRepository localUserRepository;
   private final SSOUserRepository ssoUserRepository;
+  private final FacultyLeadRepository facultyLeadRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
   private EntityManager entityManager;
@@ -47,11 +50,13 @@ public class DataInitializationService {
     LocalUserRepository localUserRepository,
       SSOUserRepository ssoUserRepository,
       ApplicationRepository applicationRepository,
+      FacultyLeadRepository facultyLeadRepository,
       ProgramRepository programRepository) {
     this.localUserRepository = localUserRepository;
     this.ssoUserRepository = ssoUserRepository;
     this.applicationRepository = applicationRepository;
     this.programRepository = programRepository;
+    this.facultyLeadRepository = facultyLeadRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
         .setHeader()
@@ -137,6 +142,15 @@ public class DataInitializationService {
             Application.Status.valueOf(record.get("status").toUpperCase())
         ),
         applicationRepository
+    );
+  }
+
+  @Transactional
+  protected void initializeFacultyLeads(String path) {
+    initializeData(
+        path,
+        record -> new FacultyLead(Integer.parseInt(record.get("programId")), record.get("username")),
+        facultyLeadRepository
     );
   }
 

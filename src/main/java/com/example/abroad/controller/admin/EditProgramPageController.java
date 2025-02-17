@@ -9,6 +9,7 @@ import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -33,13 +34,15 @@ public record EditProgramPageController(EditProgramService service, FormatServic
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info,
     Model model) {
     switch (service.getEditProgramInfo(programId, session)) {
-      case GetEditProgramInfo.Success(var program, var user) -> {
+      case GetEditProgramInfo.Success(var program, var user, var facultyLeads, var nonFacultyLeads) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "user", user,
           "alerts", new Alerts(error, success, warning, info),
           "formatter", formatter,
-          "theme", userService.getTheme(session)
+          "theme", userService.getTheme(session),
+          "facultyLeads", facultyLeads,
+          "nonFacultyLeads", nonFacultyLeads
         ));
         return "admin/edit-program :: page";
       }
@@ -60,10 +63,10 @@ public record EditProgramPageController(EditProgramService service, FormatServic
     @RequestParam String description,
     @RequestParam Integer year, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate,
     @RequestParam Semester semester, @RequestParam LocalDate applicationOpen,
+    @RequestParam List<String> facultyLeads,
     @RequestParam LocalDate applicationClose, HttpSession session) {
     return switch (service.updateProgramInfo(programId, title, description, year, startDate,
-      endDate,
-      semester, applicationOpen, applicationClose, session)) {
+      endDate, semester, applicationOpen, applicationClose, facultyLeads, session)) {
       case UpdateProgramInfo.Success() ->
         String.format("redirect:/admin/programs/%d/edit?success=Program updated", programId);
       case UpdateProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";

@@ -49,13 +49,19 @@
 
         <label class="form-control">
           <div class="label">
-            <span class="label-text">Faculty Lead</span>
+            <span class="label-text">Faculty Leads</span>
           </div>
-          <input class="input w-full"
-                 type="text"
-                 name="facultyLead"
-                 value="TODO"
-                 required />
+          <select class="select select-bordered w-full"
+                  name="facultyLeads"
+                  multiple>
+            <option th:each="facultyLead : ${facultyLeads}"
+                    th:value="${facultyLead.username}"
+                    th:text="${formatter.displayUser(facultyLead)}"
+                    selected></option>
+            <option th:each="nonFacultyLead : ${nonFacultyLeads}"
+                    th:value="${nonFacultyLead.username}"
+                    th:text="${formatter.displayUser(nonFacultyLead)}"></option>
+          </select>
         </label>
 
         <label class="form-control">

@@ -22,6 +22,10 @@ public sealed interface User extends Serializable {
 
   Theme theme();
 
+  default boolean isAdmin() {
+    return role() == Role.ADMIN;
+  }
+
 
 
 

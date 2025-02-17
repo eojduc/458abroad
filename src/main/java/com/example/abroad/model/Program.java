@@ -158,10 +158,10 @@ public final class Program {
 
   @Entity
   @Table(name = "faculty_leads")
-  public class FacultyLead {
+  public static class FacultyLead {
 
     @Embeddable
-    public record AppUser(String applicationId, String username) { }
+    public record AppUser(Integer programId, String username) { }
 
     @Id
     private AppUser id;
@@ -171,12 +171,12 @@ public final class Program {
       this.id = null;
     }
 
-    public FacultyLead(String applicationId, String username) {
-      this.id = new AppUser(applicationId, username);
+    public FacultyLead(Integer programId, String username) {
+      this.id = new AppUser(programId, username);
     }
 
-    public String applicationId() {
-      return id.applicationId();
+    public Integer programId() {
+      return id.programId();
     }
     public String username() {
       return id.username();
