@@ -121,16 +121,14 @@
 
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, column)">
-  <th th:classappend="${sort == column ? 'bg-base-300' : 'bg-base-200'}">
-    <div class="flex items-center gap-2 cursor-pointer"
-         th:hx-get="@{${path}(sort=${column}, ascending=${!ascending}, nameFilter=${nameFilter}, timeFilter=${timeFilter})}"
-         hx-target="#programTable"
-         hx-swap="outerHTML">
-      <span th:if="${sort == column}" th:text="${ascending} ? '▲' : '▼'">
-      </span>
+  <th th:class="${sort == column ? 'bg-base-300 cursor-pointer' : 'bg-base-200 cursor-pointer'}"
+      th:hx-get="@{${path}(sort=${column}, ascending=${!ascending}, nameFilter=${nameFilter}, timeFilter=${timeFilter})}"
+      hx-target="#programTable"
+      hx-swap="outerHTML">
+    <div class="flex items-center gap-2">
+      <span th:if="${sort == column}" th:text="${ascending} ? '▲' : '▼'"></span>
       <div th:unless="${sort == column}" class="invisible">▼</div>
       <span th:text="${label}"></span>
-      </svg>
     </div>
   </th>
 </div>

@@ -19,28 +19,28 @@
                 <thead>
                   <tr>
                     <th
-                      th:replace="~{components :: sortableHeader('Title', '/applications?sort=title', ${sort}, 'title')}"
+                      th:replace="~{this :: sortableHeader('Title', '/applications/sort', ${sort}, 'TITLE')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Year & Semester', '/applications?sort=yearSemester', ${sort}, 'yearSemester')}"
+                      th:replace="~{this :: sortableHeader('Year & Semester', '/applications/sort', ${sort}, 'YEAR_SEMESTER')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Faculty Lead(s)', '/applications?sort=faculty', ${sort}, 'faculty')}"
+                      th:replace="~{this :: sortableHeader('Faculty Lead(s)', '/applications/sort', ${sort}, 'FACULTY')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Start Date', '/applications?sort=startDate', ${sort}, 'startDate')}"
+                      th:replace="~{this :: sortableHeader('Start Date', '/applications/sort', ${sort}, 'START_DATE')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('End Date', '/applications?sort=endDate', ${sort}, 'endDate')}"
+                      th:replace="~{this :: sortableHeader('End Date', '/applications/sort', ${sort}, 'END_DATE')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Application Open', '/applications?sort=applicationOpen', ${sort}, 'applicationOpen')}"
+                      th:replace="~{this :: sortableHeader('Application Open', '/applications/sort', ${sort}, 'APPLICATION_OPEN')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Application Closed', '/applications?sort=applicationClosed', ${sort}, 'applicationClosed')}"
+                      th:replace="~{this :: sortableHeader('Application Closed', '/applications/sort', ${sort}, 'APPLICATION_CLOSED')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Status', '/applications?sort=status', ${sort}, 'status')}"
+                      th:replace="~{this :: sortableHeader('Status', '/applications/sort', ${sort}, 'STATUS')}"
                     ></th>
                   </tr>
                 </thead>
@@ -91,3 +91,17 @@
     <div th:replace="~{components :: footer}"></div>
   </body>
 </html>
+
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, activeSort, column)">
+  <th th:class="${activeSort.name == column} ? 'bg-base-300 cursor-pointer' : 'cursor-pointer'"
+      th:hx-get="@{${path}(sort=${column}, ascending=!${ascending})}"
+      hx-target="#programTable"
+      hx-swap="outerHTML">
+    <div class="flex items-center gap-2">
+      <span th:if="${activeSort.name == column}" th:text="${ascending} ? '▲' : '▼'"></span>
+      <div th:unless="${activeSort.name == column}" class="invisible">▼</div>
+      <span th:text="${label}"></span>
+    </div>
+  </th>
+</div>

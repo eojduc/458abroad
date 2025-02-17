@@ -9,6 +9,8 @@ import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,68 +24,47 @@ public record ListApplicationsService(
     ProgramRepository programRepository,
     UserService userService) {
 
-  public GetApplicationsResult getApplications(HttpSession session, String sort) {
+  public GetApplicationsResult getApplications(HttpSession session, Sort sort, Boolean ascending) {
 
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new GetApplicationsResult.UserNotFound();
     }
+    List<Application> applications = applicationRepository.findByStudent(user.username());
+    List<Program> programs = programRepository.findAll();
+    Comparator<Pair> sorter = switch (sort) {
+      case TITLE -> Comparator.comparing(pair -> pair.prog().title());
+      case YEAR_SEMESTER -> Comparator.comparing(pair -> pair.prog().year().toString() + pair.prog().semester().toString());
+      case FACULTY -> Comparator.comparing(pair -> pair.prog().title());
+      case START_DATE -> Comparator.comparing(pair -> pair.prog().startDate());
+      case END_DATE -> Comparator.comparing(pair -> pair.prog().endDate());
+      case APPLICATION_OPEN -> Comparator.comparing(pair -> pair.prog().applicationOpen());
+      case APPLICATION_CLOSED -> Comparator.comparing(pair -> pair.prog().applicationClose());
+      case STATUS -> Comparator.comparing(pair -> pair.app().status().toString());
+    };
+    return new GetApplicationsResult.Success(
+      join(programs, applications)
+        .sorted(ascending ? sorter : sorter.reversed())
+        .toList(),
+      user
+    );
+  }
+  public static Stream<Pair> join(List<Program> programs, List<Application> applications) {
+    return programs.stream()
+      .flatMap(program -> applications.stream()
+        .filter(app -> app.programId().equals(program.id()))
+        .map(app -> new Pair(app, program)));
+  }
 
-    // retrieve student applications
-    List<Application> applications = applicationRepository
-        .findProgramApplicationsByStudent(user.username())
-        .stream()
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .toList();
-
-    // build parallel lists if corresponding program is found
-    List<Application> filteredApps = new ArrayList<>();
-    List<Program> programs = new ArrayList<>();
-    for (Application app : applications) {
-      Optional<Program> progOpt = programRepository.findById(app.programId());
-      if (progOpt.isPresent()) {
-        filteredApps.add(app);
-        programs.add(progOpt.get());
-      }
-    }
-
-    List<Pair> combined = new ArrayList<>();
-    for (int i = 0; i < filteredApps.size(); i++) {
-      combined.add(new Pair(filteredApps.get(i), programs.get(i)));
-    }
-    switch (sort.toLowerCase()) {
-      case "title":
-        combined.sort(Comparator.comparing(pair -> pair.prog().title()));
-        break;
-      case "yearsemester":
-        combined.sort(Comparator.comparing(pair -> pair.prog().year().toString()
-            + pair.prog().semester().toString()));
-        break;
-      case "faculty":
-//        combined.sort(Comparator.comparing(pair -> pair.prog().facultyLead()));
-        break;
-      case "startdate":
-        combined.sort(Comparator.comparing(pair -> pair.prog().startDate()));
-        break;
-      case "enddate":
-        combined.sort(Comparator.comparing(pair -> pair.prog().endDate()));
-        break;
-      case "applicationopen":
-        combined.sort(Comparator.comparing(pair -> pair.prog().applicationOpen()));
-        break;
-      case "applicationclosed":
-        combined.sort(Comparator.comparing(pair -> pair.prog().applicationClose()));
-        break;
-      case "status":
-        combined.sort(Comparator.comparing(pair -> pair.app().status().toString()));
-        break;
-      default:
-        combined.sort(Comparator.comparing(pair -> pair.prog().title()));
-        break;
-    }
-
-    return new GetApplicationsResult.Success(combined, user);
+  public enum Sort {
+    TITLE,
+    YEAR_SEMESTER,
+    FACULTY,
+    START_DATE,
+    END_DATE,
+    APPLICATION_OPEN,
+    APPLICATION_CLOSED,
+    STATUS
   }
 
   public record Pair(Application app, Program prog) {

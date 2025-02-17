@@ -161,24 +161,6 @@
   </div>
 </div>
 
-<!-- Sortable Column w/ HTMX Actions -->
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, activeSort, column)">
-  <th th:classappend="${activeSort == column ? 'bg-base-300' : 'bg-base-200'}">
-  <div class="flex items-center gap-2 cursor-pointer"
-         th:hx-get="@{${path}}"
-         hx-target="#programTable"
-         hx-swap="outerHTML">
-      <span th:text="${label}"></span>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-      </svg>
-    </div>
-  </th>
-</div>
-
-
-
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="logged-out-navbar" class="bg-base-100 navbar">
   <a href="/" class="btn btn-ghost text-xl">

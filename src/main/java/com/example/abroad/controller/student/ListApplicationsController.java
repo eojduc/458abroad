@@ -5,6 +5,7 @@ import com.example.abroad.service.page.ListApplicationsService;
 import com.example.abroad.service.page.ListApplicationsService.GetApplicationsResult;
 import com.example.abroad.service.UserService;
 
+import com.example.abroad.service.page.ListApplicationsService.Sort;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -21,26 +22,46 @@ public record ListApplicationsController(ListApplicationsService listApplication
   @GetMapping("/applications")
   public String listApplications(
       HttpSession session,
-      HttpServletRequest request,
-      Model model,
-      @RequestParam(value = "sort", required = false, defaultValue = "title") String sort) {
+      Model model) {
 
-    GetApplicationsResult result = listApplicationsService.getApplications(session, sort);
+    GetApplicationsResult result = listApplicationsService.getApplications(session, Sort.TITLE, true);
 
     return switch (result) {
       case GetApplicationsResult.Success(var pairs, var user) -> {
         model.addAllAttributes(Map.of(
             "pairs", pairs,
             "user", user,
-            "sort", sort,
+            "sort", Sort.TITLE,
             "formatter", formatter,
             "theme", userService.getTheme(session)));
+        yield "student/list-application :: page";
+      }
+      case GetApplicationsResult.UserNotFound() ->
+        "redirect:/login?error=Not logged in";
+    };
+  }
 
-        if (request.getHeader("HX-Request") != null) {
-          yield "student/list-application :: programTable";
-        } else {
-          yield "student/list-application :: page";
-        }
+
+  @GetMapping("/applications/sort")
+  public String sortApplications(   HttpSession session,
+    Model model,
+    @RequestParam Sort sort,
+    @RequestParam Boolean ascending) {
+
+    GetApplicationsResult result = listApplicationsService.getApplications(session, sort, ascending);
+
+    return switch (result) {
+      case GetApplicationsResult.Success(var pairs, var user) -> {
+        model.addAllAttributes(Map.of(
+          "pairs", pairs,
+          "user", user,
+          "sort", sort,
+          "formatter", formatter,
+          "theme", userService.getTheme(session),
+          "ascending", ascending
+        ));
+
+        yield "student/list-application :: programTable";
       }
       case GetApplicationsResult.UserNotFound() ->
         "redirect:/login?error=Not logged in";
