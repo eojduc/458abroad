@@ -3,65 +3,64 @@
 <head th:replace="~{components :: head('Browse Programs')}"></head>
 <body>
 <div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-2/5 md:w-3/5 sm:w-full gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
       <h1 class="card-title">Browse Programs</h1>
       <!-- Filter Form -->
-      <div th:replace="~{components :: filterForm('/programs', false)}"></div>
+      <div th:replace="~{this :: filterForm('/programs/search')}"></div>
       <div th:fragment="programTable" id="programTable" class="contents">
-        <div class="flex flex-col gap-4" th:each="program, iterStat : ${programs}">
-          <div class="card card-normal w-full bg-base-300">
-            <div class="card-body gap-2 collapse collapse-arrow">
-              <input type="radio" name="programs-accordian" />
-              <div class="collapse-title gap-4">
-                <div class="card-actions justify-between">
-                  <h1 class="card-title" th:text=" ${program.title} + ': ' + ${formatter.formatTerm(program.semester, program.year)}"></h1>
-                  <div th:switch="${programStatus[iterStat.index]}">
-                    <!-- If the application has not opened yet -->
-                    <div th:case="NotOpen" class="badge badge-neutral">
-                      Upcoming
-                    </div>
-                    <div th:case="DeadPass" class="badge badge-secondary">
-                      Closed
-                    </div>
-                    <div th:case="Open" class="badge badge-neutral">
-                      Open
-                    </div>
-                    <div th:case="*"
-                         th:replace="~{components :: statusBadge(${programStatus[iterStat.index]})}"></div>
+        <div class="flex flex-col gap-4" th:each="programAndStatus : ${programAndStatuses}">
+          <div class="collapse collapse-arrow bg-base-300">
+            <input type="checkbox"/>
+            <div class="collapse-title">
+              <div class="card-actions justify-between">
+                <h1 class="card-title"
+                    th:text="${programAndStatus.program.title} + ': ' + ${formatter.formatTerm(programAndStatus.program.semester, programAndStatus.program.year)}"></h1>
+                <div th:switch="${programAndStatus.status.name}">
+                  <!-- If the application has not opened yet -->
+                  <div th:case="UPCOMING" class="badge badge-neutral text-info">
+                    Upcoming
                   </div>
+                  <div th:case="CLOSED" class="badge badge-neutral text-error">
+                    Closed
+                  </div>
+                  <div th:case="OPEN" class="badge badge-neutral text-success">
+                    Open
+                  </div>
+                  <div th:case="*"
+                       th:replace="~{components :: statusBadge(${programAndStatus.status.name})}"></div>
                 </div>
-                <p th:text="${formatter.formatDateRange(program.startDate, program.endDate)}"></p>
               </div>
-              <div class="collapse-content flex flex-col gap-4">
-                <p class="text-sm" th:text="${program.description}"></p>
-                <table class="table table-compact w-fit ">
-                  <tbody>
-                  <tr class="border-base-200 border-y-2">
-                    <td>Faculty Lead</td>
-                    <td>TODO</td>
-                  </tr>
-                  <tr class="border-base-200 border-y-2">
-                    <td>Application Opens</td>
-                    <td th:text="${formatter.formatLocalDate(program.applicationOpen)}"></td>
-                  </tr>
-                  <tr class="border-base-200 border-y-2">
-                    <td>Application Closes</td>
-                    <td th:text="${formatter.formatLocalDate(program.applicationClose)}"></td>
-                  </tr>
-                  </tbody>
-                </table>
-                <div class="card-actions justify-end">
-                  <a th:if = "${programStatus[iterStat.index] == 'Open'}"
-                     th:href="@{/programs/{id}/apply(id=${program.id})}"
-                     class="btn btn-primary">Apply</a>
-                  <a th:if = "${programStatus[iterStat.index] == 'APPLIED' || programStatus[iterStat.index] == 'ENROLLED'
-                    || programStatus[iterStat.index] == 'WITHDRAWN' || programStatus[iterStat.index] == 'CANCELLED'}"
-                     th:href="@{/applications/{id}-{user}(id=${program.id}, user=${user.username})}"
-                     class="btn btn-primary">View Application</a>
-                  </div>
+              <p th:text="${formatter.formatDateRange(programAndStatus.program.startDate, programAndStatus.program.endDate)}"></p>
+            </div>
+            <div class="collapse-content flex flex-col gap-4">
+              <p class="text-sm" th:text="${programAndStatus.program.description}"></p>
+              <table class="table table-compact w-fit ">
+                <tbody>
+                <tr class="border-base-200 border-y-2">
+                  <td>Faculty Lead</td>
+                  <td>TODO</td>
+                </tr>
+                <tr class="border-base-200 border-y-2">
+                  <td>Application Opens</td>
+                  <td th:text="${formatter.formatLocalDate(programAndStatus.program.applicationOpen)}"></td>
+                </tr>
+                <tr class="border-base-200 border-y-2">
+                  <td>Application Closes</td>
+                  <td th:text="${formatter.formatLocalDate(programAndStatus.program.applicationClose)}"></td>
+                </tr>
+                </tbody>
+              </table>
+              <div class="card-actions justify-end">
+                <a th:if="${programAndStatus.status.name == 'OPEN'}"
+                   th:href="@{/programs/{id}/apply(id=${programAndStatus.program.id})}"
+                   class="btn btn-primary">Apply</a>
+                <a th:if="${programAndStatus.status.name == 'APPLIED' || programAndStatus.status.name == 'ENROLLED'
+                  || programAndStatus.status.name == 'WITHDRAWN' || programAndStatus.status.name == 'CANCELLED'}"
+                   th:href="@{/applications/{id}-{user}(id=${programAndStatus.program.id}, user=${user.username})}"
+                   class="btn btn-primary">View Application</a>
               </div>
             </div>
           </div>
@@ -74,4 +73,26 @@
 <div th:replace="~{components :: footer}"></div>
 </body>
 </html>
+
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="filterForm(path)">
+  <div class="flex gap-4">
+    <!-- Keyword search -->
+    <label>
+      <input
+          type="text"
+          name="nameFilter"
+          placeholder="Search programs..."
+          class="input input-bordered"
+          th:value="${keyword}"
+          th:hx-get="@{${path}}"
+          hx-target="#programTable"
+          hx-swap="outerHTML"
+          hx-trigger="input delay:300ms"
+          autocomplete="off"
+      />
+    </label>
+  </div>
+</div>
+
 

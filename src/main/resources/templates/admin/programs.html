@@ -48,9 +48,10 @@
     </tr>
   </thead>
   <tbody th:fragment="programTableBody" id="programTableBody">
-  <tr th:each="programAndStatus : ${programAndStatuses}">
+  <tr th:each="programAndStatus : ${programAndStatuses}" class="border-base-300 border-y-2">
     <td>
-      <a th:href="@{/admin/programs/{programId}/info(programId=${programAndStatus.program.id})}"
+      <a th:href="@{/admin/programs/{programId}(programId=${programAndStatus.program.id})}"
+          class="link link-primary"
          th:text="${programAndStatus.program.title}"></a>
     </td>
     <td th:text="${formatter.formatTerm(programAndStatus.program.semester, programAndStatus.program.year)}"></td>

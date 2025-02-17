@@ -5,7 +5,7 @@
 <head th:replace="~{components :: head('Apply to ' + ${program.title})}"></head>
 <body>
 <div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-2/5 md:w-3/5 sm:w-full gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body flex flex-col gap-4">
@@ -81,7 +81,7 @@
     <div class="label">
       <span class="label-text" th:text="${question.text}"></span>
     </div>
-    <textarea th:name="${question.field}" class="textarea" required maxlength="10000"></textarea>
+    <textarea th:name="${question.field}" class="textarea" required maxlength="10000" rows="20"></textarea>
   </label>
 
   <div class="card-actions justify-end">
