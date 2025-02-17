@@ -1,6 +1,7 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.Alerts;
+import com.example.abroad.model.User.Theme;
 import com.example.abroad.service.page.AccountService;
 import com.example.abroad.service.page.AccountService.ChangePassword.IncorrectPassword;
 import com.example.abroad.service.page.AccountService.ChangePassword.NotLocalUser;
@@ -84,7 +85,7 @@ public record AccountController(
 
 
     @PostMapping("/profile/theme")
-    public String setTheme(@RequestParam String theme, HttpSession session) {
+    public String setTheme(@RequestParam Theme theme, HttpSession session) {
         userService.setTheme(theme, session);
         return "redirect:/profile";
     }

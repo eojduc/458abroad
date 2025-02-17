@@ -2,6 +2,8 @@ package com.example.abroad.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import jakarta.persistence.Id;
@@ -18,6 +20,10 @@ public sealed interface User extends Serializable {
 
   Role role();
 
+  Theme theme();
+
+
+
 
   @Entity
   @Table(name = "local_users")
@@ -32,6 +38,9 @@ public sealed interface User extends Serializable {
     private Role role;
     @Column(nullable = false)
     private String displayName;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Theme theme;
 
     public LocalUser() {
       this.username = null;
@@ -42,12 +51,13 @@ public sealed interface User extends Serializable {
     }
 
 
-    public LocalUser(String username, String password, String email, Role role, String displayName) {
+    public LocalUser(String username, String password, String email, Role role, String displayName, Theme theme) {
       this.username = username;
       this.password = password;
       this.email = email;
       this.role = role;
       this.displayName = displayName;
+      this.theme = theme;
     }
 
     public String username() {
@@ -65,6 +75,9 @@ public sealed interface User extends Serializable {
     public Role role() {
       return role;
     }
+    public Theme theme() {
+      return theme;
+    }
   }
 
   @Entity
@@ -78,6 +91,9 @@ public sealed interface User extends Serializable {
     private Role role;
     @Column(nullable = false)
     private String displayName;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Theme theme;
 
     public SSOUser() {
       this.username = null;
@@ -86,11 +102,12 @@ public sealed interface User extends Serializable {
       this.displayName = null;
     }
 
-    public SSOUser(String username, String email, Role role, String displayName) {
+    public SSOUser(String username, String email, Role role, String displayName, Theme theme) {
       this.username = username;
       this.email = email;
       this.role = role;
       this.displayName = displayName;
+      this.theme = theme;
     }
 
     public String username() {
@@ -105,6 +122,9 @@ public sealed interface User extends Serializable {
     public String displayName() {
       return displayName;
     }
+    public Theme theme() {
+      return theme;
+    }
 
   }
 
@@ -112,6 +132,11 @@ public sealed interface User extends Serializable {
   enum Role {
     STUDENT,
     ADMIN
+  }
+  enum Theme {
+    LIGHT, DARK, CUPCAKE, BUMBLEBEE, EMERALD, CORPORATE, SYNTHWAVE, RETRO, CYBERPUNK, VALENTINE,
+    HALLOWEEN, GARDEN, FOREST, AQUA, LOFI, PASTEL, FANTASY, WIREFRAME, BLACK, LUXURY, DRACULA,
+    CMYK, AUTUMN, BUSINESS, ACID, LEMONADE, NIGHT, COFFEE, WINTER, DIM, NORD, SUNSET, DEFAULT
   }
 
 }

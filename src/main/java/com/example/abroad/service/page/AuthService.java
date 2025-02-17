@@ -4,6 +4,7 @@ import com.example.abroad.configuration.AuthSuccessHandler;
 import com.example.abroad.exception.EmailAlreadyInUseException;
 import com.example.abroad.exception.UsernameAlreadyInUseException;
 import com.example.abroad.model.User;
+import com.example.abroad.model.User.Theme;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,7 +60,7 @@ public record AuthService(
             HttpServletRequest request) {
 
         try {
-            userService.save(new User.LocalUser(username, password, email, User.Role.STUDENT, displayName));
+            userService.save(new User.LocalUser(username, password, email, User.Role.STUDENT, displayName, Theme.DEFAULT));
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(username, password);

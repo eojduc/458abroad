@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:fragment="page(program, user, alerts, questions, maxDayOfBirth)"
-      th:data-theme="${theme}">
+      th:data-theme="${user.theme.name.toLowerCase}">
 <head th:replace="~{components :: head('Apply to ' + ${program.title})}"></head>
 <body>
 <div th:replace="~{components :: student-navbar(${user.displayName})}"></div>

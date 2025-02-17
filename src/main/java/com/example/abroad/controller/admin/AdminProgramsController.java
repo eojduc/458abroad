@@ -44,6 +44,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
             entry("nameFilter", ""),
             entry("timeFilter", "FUTURE"),
             entry("theme", userService.getTheme(session)),
+            entry("user", user),
             entry("ascending", true),
             entry("programAndStatuses", programAndStatuses)
           )

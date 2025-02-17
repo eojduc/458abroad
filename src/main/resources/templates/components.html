@@ -183,9 +183,9 @@
 
 <form action="/profile/theme" method="post" class="flex flex-row gap-2" th:fragment="theme-form(theme)">
   <select class="select" name="theme">
-    <option value="DEFAULT" th:selected="${theme == 'default'}">Default</option>
-    <option value="LIGHT" th:selected="${theme == 'light'}">Light</option>
-    <option value="DARK" th:selected="${theme == 'dark'}">Dark</option>
+    <option value="DEFAULT" th:selected="${user.theme.name == 'DEFAULT'}">Default</option>
+    <option value="LIGHT" th:selected="${user.theme.name == 'LIGHT'}">Light</option>
+    <option value="DARK" th:selected="${user.theme.name == 'DARK'}">Dark</option>
     <option value="CUPCAKE" th:selected="${theme == 'cupcake'}">Cupcake</option>
     <option value="BUMBLEBEE" th:selected="${theme == 'bumblebee'}">Bumblebee</option>
     <option value="EMERALD" th:selected="${theme == 'emerald'}">Emerald</option>

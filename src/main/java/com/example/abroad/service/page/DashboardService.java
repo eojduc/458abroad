@@ -26,10 +26,6 @@ public record DashboardService(UserService userService) {
         return new GetDashboard.StudentDashboard(user);
     }
 
-    public void setTheme(String theme, HttpSession session) {
-        userService.setTheme(theme, session);
-    }
-
     public String getTheme(HttpSession session) {
         return userService.getTheme(session);
     }

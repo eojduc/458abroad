@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(user, alerts, formatter)" th:data-theme="${theme}">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(user, alerts, formatter)" th:data-theme="${user.theme.name.toLowerCase}">
 <head th:replace="~{components :: head('Browse Programs')}"></head>
 <body>
 <div th:replace="~{components :: student-navbar(${user.displayName})}"></div>

@@ -35,10 +35,12 @@ public record DashboardController(
       case GetDashboard.StudentDashboard(var user) -> {
         model.addAttribute("displayName", user.displayName());
         model.addAttribute("student", user.username());
+        model.addAttribute("user", user);
         yield "student/student-dashboard :: page";
       }
       case GetDashboard.AdminDashboard(var user) -> {
         model.addAttribute("displayName", user.displayName());
+        model.addAttribute("user", user);
         yield "admin/admin-dashboard :: page";
       }
     };

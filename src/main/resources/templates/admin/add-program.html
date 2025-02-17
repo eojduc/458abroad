@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:fragment="page(alerts, user, formatter, referer)" th:data-theme="${theme}">
+      th:fragment="page(alerts, user, formatter, referer)" th:data-theme="${user.theme.name.toLowerCase}">
 
 <head th:replace="~{components :: head('Create New Program')}"></head>
 <body>

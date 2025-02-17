@@ -3,6 +3,7 @@ package com.example.abroad.service.data;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
+import com.example.abroad.model.User.Theme;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.ProgramRepository;
@@ -95,7 +96,8 @@ public class DataInitializationService {
             passwordEncoder.encode(record.get("password")),
             record.get("email"),
             User.Role.valueOf(record.get("role").toUpperCase()),
-            record.get("displayName")
+            record.get("displayName"),
+          Theme.DEFAULT
         ),
         localUserRepository
     );
@@ -109,7 +111,8 @@ public class DataInitializationService {
             record.get("username"),
             record.get("email"),
             User.Role.valueOf(record.get("role").toUpperCase()),
-            record.get("displayName")
+            record.get("displayName"),
+          Theme.DEFAULT
         ),
         ssoUserRepository
     );

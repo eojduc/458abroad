@@ -44,7 +44,8 @@ public record AccountService(
                         localUser.password(),
                         email,
                         localUser.role(),
-                        displayName
+                        displayName,
+                        localUser.theme()
                 );
                 userService.save(updatedUser);
                 yield new UpdateProfile.Success(updatedUser);
@@ -54,7 +55,8 @@ public record AccountService(
                         ssoUser.username(),
                         email,
                         ssoUser.role(),
-                        displayName
+                        displayName,
+                        ssoUser.theme()
                 );
                 userService.save(updatedUser);
                 yield new UpdateProfile.Success(updatedUser);
@@ -99,7 +101,8 @@ public record AccountService(
                 hashedPassword,
                 localUser.email(),
                 localUser.role(),
-                localUser.displayName()
+                localUser.displayName(),
+                localUser.theme()
         );
         userService.save(updatedUser);
         return new ChangePassword.Success(updatedUser);
