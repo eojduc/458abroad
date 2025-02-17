@@ -29,44 +29,35 @@ public record EditProgramService(UserService userService, ProgramService program
     return new GetEditProgramInfo.Success(program, user);
   }
 
-  public UpdateProgramInfo updateProgramInfo(Integer programId,
-    String title, String description,
-    Integer year, LocalDate startDate, LocalDate endDate,
-    Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
+  public UpdateProgramInfo updateProgramInfo(
+    Integer programId, String title, String description, Integer year, LocalDate startDate,
+    LocalDate endDate, Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
     HttpSession session
   ) {
-    try {
-      var user = userService.findUserFromSession(session).orElse(null);
-      if (user == null) {
-        return new UpdateProgramInfo.NotLoggedIn();
-      }
-      if (user.role() != User.Role.ADMIN) {
-        return new UpdateProgramInfo.UserNotAdmin();
-      }
-      var program = programService.findById(programId).orElse(null);
-      if (program == null) {
-        return new UpdateProgramInfo.ProgramNotFound();
-      }
-      program.setTitle(title);
-      program.setYear(Year.of(year));
-      program.setSemester(semester);
-      program.setApplicationOpen(applicationOpen);
-      program.setApplicationClose(applicationClose);
-      program.setStartDate(startDate);
-      program.setEndDate(endDate);
-      program.setDescription(description);
-      return switch (programService.saveProgram(program)) {
-        case SaveProgram.Success(var p) -> new UpdateProgramInfo.Success();
-        case SaveProgram.ApplicationCloseAfterDocumentDeadline() -> new UpdateProgramInfo.DateIncoherence();
-        case SaveProgram.ApplicationOpenAfterClose() -> new UpdateProgramInfo.DateIncoherence();
-        case SaveProgram.DescriptionInvalid() -> new UpdateProgramInfo.DescriptionInvalid();
-        case SaveProgram.DocumentDeadlineAfterStart() -> new UpdateProgramInfo.DateIncoherence();
-        case SaveProgram.StartAfterEnd() -> new UpdateProgramInfo.DateIncoherence();
-        case SaveProgram.TitleInvalid() -> new UpdateProgramInfo.TitleInvalid();
-      };
-    } catch (Exception e) {
-      return new UpdateProgramInfo.DatabaseError(e.getMessage());
+    var user = userService.findUserFromSession(session).orElse(null);
+    if (user == null) {
+      return new UpdateProgramInfo.NotLoggedIn();
     }
+    if (user.role() != User.Role.ADMIN) {
+      return new UpdateProgramInfo.UserNotAdmin();
+    }
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new UpdateProgramInfo.ProgramNotFound();
+    }
+    program.setTitle(title);
+    program.setYear(Year.of(year));
+    program.setSemester(semester);
+    program.setApplicationOpen(applicationOpen);
+    program.setApplicationClose(applicationClose);
+    program.setStartDate(startDate);
+    program.setEndDate(endDate);
+    program.setDescription(description);
+    return switch (programService.saveProgram(program)) {
+      case SaveProgram.Success(var p) -> new UpdateProgramInfo.Success();
+      case SaveProgram.InvalidProgramInfo(var message) -> new UpdateProgramInfo.InvalidProgramInfo(message);
+      case SaveProgram.DatabaseError(var message) -> new UpdateProgramInfo.DatabaseError(message);
+    };
   }
 
 
@@ -82,9 +73,7 @@ public record EditProgramService(UserService userService, ProgramService program
     record ProgramNotFound() implements UpdateProgramInfo { }
     record UserNotAdmin() implements UpdateProgramInfo { }
     record NotLoggedIn() implements UpdateProgramInfo { }
-    record TitleInvalid() implements UpdateProgramInfo { }
-    record DescriptionInvalid() implements UpdateProgramInfo { }
-    record DateIncoherence() implements UpdateProgramInfo { }
+    record InvalidProgramInfo(String message) implements UpdateProgramInfo { }
     record DatabaseError(String messsge) implements UpdateProgramInfo { }
   }
 

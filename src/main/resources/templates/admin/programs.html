@@ -23,18 +23,18 @@
         <table class="table w-full" th:fragment="programTable(sort)" id="programTable">
           <thead>
           <tr>
-            <th th:replace="~{components :: sortableHeader('Title', '/admin/programs?sort=title', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('Term', '/admin/programs?sort=semDate', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('Faculty Lead', '/admin/programs?sort=facultyLead', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('App Opens', '/admin/programs?sort=appOpens', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('App Closes', '/admin/programs?sort=appCloses', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('Start Date', '/admin/programs?sort=startDate', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('End Date', '/admin/programs?sort=endDate', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('Applied', '/admin/programs?sort=applied', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('Enrolled', '/admin/programs?sort=enrolled', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('Canceled', '/admin/programs?sort=canceled', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('Withdrawn', '/admin/programs?sort=withdrawn', ${sort})}"></th>
-            <th th:replace="~{components :: sortableHeader('Total Active', '/admin/programs?sort=count', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Title', '/admin/programs/sort?sort=title', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Term', '/admin/programs/sort?sort=semDate', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Faculty Lead', '/admin/programs/sort?sort=facultyLead', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('App Opens', '/admin/programs/sort?sort=appOpens', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('App Closes', '/admin/programs/sort?sort=appCloses', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Start Date', '/admin/programs/slrt?sort=startDate', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('End Date', '/admin/programs/sort?sort=endDate', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Applied', '/admin/programs/sort?sort=applied', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Enrolled', '/admin/programs/sort?sort=enrolled', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Canceled', '/admin/programs/sort?sort=canceled', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Withdrawn', '/admin/programs/sort?sort=withdrawn', ${sort})}"></th>
+            <th th:replace="~{components :: sortableHeader('Total Active', '/admin/programs/sort?sort=count', ${sort})}"></th>
           </tr>
           </thead>
           <tbody th:fragment="programTableBody" id="programTableBody">

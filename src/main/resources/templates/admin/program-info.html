@@ -82,18 +82,6 @@
 
 </html>
 
-<th
-    xmlns:th="http://www.thymeleaf.org"
-    th:fragment="sortableHeader(path, text, target, sort, column, filter, thisColumn)"
-    th:class="${column == thisColumn} ? 'bg-base-300 cursor-pointer' : 'cursor-pointer'"
-    th:hx-get="@{${path}(sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'}, column=${thisColumn}, filter=${filter})}"
-    hx-swap="outerHTML"
-    th:hx-target="${target}">
-  <span th:text="${text} "></span>
-  <span th:if="${column != thisColumn}" class="invisible">▼</span>
-  <span th:if="${column == thisColumn}" th:text="${sort} == 'ASCENDING' ? '▼' : '▲'"></span>
-</th>
-
 <!-- Applicant table fragment -->
 <div
     xmlns:th="http://www.thymeleaf.org"
@@ -146,67 +134,46 @@
   <table class="table table-sm border-collapse">
     <thead>
     <tr>
-      <th th:replace="~{this :: sortableHeader(
+      <th th:replace="~{components :: sortableHeader2(
         @{/admin/programs/{programId}/applicants(programId=${program.id})},
         'name',
         '#applicant-table',
-        ${sort},
-        ${column},
-        ${filter},
         'DISPLAY_NAME'
       )}"></th>
-      <th th:replace="~{this :: sortableHeader(
+      <th th:replace="~{components :: sortableHeader2(
         @{/admin/programs/{programId}/applicants(programId=${program.id})},
         'username',
         '#applicant-table',
-        ${sort},
-        ${column},
-        ${filter},
         'USERNAME'
       )}"></th>
-      <th th:replace="~{this :: sortableHeader(
+      <th th:replace="~{components :: sortableHeader2(
         @{/admin/programs/{programId}/applicants(programId=${program.id})},
         'email',
         '#applicant-table',
-        ${sort},
-        ${column},
-        ${filter},
         'EMAIL'
       )}"></th>
-      <th th:replace="~{this :: sortableHeader(
+      <th th:replace="~{components :: sortableHeader2(
         @{/admin/programs/{programId}/applicants(programId=${program.id})},
         'major',
         '#applicant-table',
-        ${sort},
-        ${column},
-        ${filter},
         'MAJOR'
       )}"></th>
-      <th th:replace="~{this :: sortableHeader(
+      <th th:replace="~{components :: sortableHeader2(
         @{/admin/programs/{programId}/applicants(programId=${program.id})},
         'gpa',
         '#applicant-table',
-        ${sort},
-        ${column},
-        ${filter},
         'GPA'
       )}"></th>
-      <th th:replace="~{this :: sortableHeader(
+      <th th:replace="~{components :: sortableHeader2(
         @{/admin/programs/{programId}/applicants(programId=${program.id})},
         'date of birth',
         '#applicant-table',
-        ${sort},
-        ${column},
-        ${filter},
         'DOB'
       )}"></th>
-      <th th:replace="~{this :: sortableHeader(
+      <th th:replace="~{components :: sortableHeader2(
         @{/admin/programs/{programId}/applicants(programId=${program.id})},
         'status',
         '#applicant-table',
-        ${sort},
-        ${column},
-        ${filter},
         'STATUS'
       )}"></th>
       <th>update</th>
@@ -215,36 +182,36 @@
     </thead>
 
     <tbody>
-    <tr th:each="applicant : ${applicants}" class="border-base-300 border-y-2">
-      <td>
-        <a class="link link-primary"
-           th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}"
-           th:text="${applicant.displayName}"></a>
-      </td>
-      <td th:text="${applicant.username}"></td>
-      <td th:text="${applicant.email}"></td>
-      <td th:text="${applicant.major}"></td>
-      <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 3)}"></td>
-      <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
-      <td>
-        <div th:id="'status-badge-' + ${applicant.username}">
-          <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
-        </div>
-      </td>
-      <td>
-        <form class="contents"
-              th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${applicant.applicationId})}"
-              hx-trigger="change"
-              th:hx-target="'#status-badge-' + ${applicant.username}">
-          <select name="status" class="select select-sm">
-            <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
-            <option value="ENROLLED" th:selected="${applicant.status.name() == 'ENROLLED'}">Enrolled</option>
-            <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
-            <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
-          </select>
-        </form>
-      </td>
-    </tr>
+      <tr th:each="applicant : ${applicants}" class="border-base-300 border-y-2">
+        <td>
+          <a class="link link-primary"
+             th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}"
+             th:text="${applicant.displayName}"></a>
+        </td>
+        <td th:text="${applicant.username}"></td>
+        <td th:text="${applicant.email}"></td>
+        <td th:text="${applicant.major}"></td>
+        <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 3)}"></td>
+        <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
+        <td>
+          <div th:id="'status-badge-' + ${applicant.username}">
+            <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
+          </div>
+        </td>
+        <td>
+          <form class="contents"
+                th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${applicant.applicationId})}"
+                hx-trigger="change"
+                th:hx-target="'#status-badge-' + ${applicant.username}">
+            <select name="status" class="select select-sm">
+              <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
+              <option value="ENROLLED" th:selected="${applicant.status.name() == 'ENROLLED'}">Enrolled</option>
+              <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
+              <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
+            </select>
+          </form>
+        </td>
+      </tr>
     </tbody>
 
   </table>

@@ -32,13 +32,7 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
     return switch (service.getProgramInfo(programId, session, Optional.empty(), Optional.empty(), Optional.empty())) {
       case GetProgramInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetProgramInfo.UserNotAdmin() -> String.format("redirect:/programs/%s?error=You are not an admin", programId);
-      case GetProgramInfo.ProgramNotFound() -> {
-        model.addAllAttributes(Map.of(
-          "title", "Program not found",
-          "message", "That program does not exist"
-        ));
-        yield "error :: page";
-      }
+      case GetProgramInfo.ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
       case GetProgramInfo.Success(var program, var applicants, var user) -> {
         model.addAllAttributes(Map.of(
           "program", program,

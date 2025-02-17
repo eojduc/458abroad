@@ -177,6 +177,17 @@
   </th>
 </div>
 
+<th
+    xmlns:th="http://www.thymeleaf.org"
+    th:fragment="sortableHeader2(path, text, target, thisColumn)"
+    th:class="${column == thisColumn} ? 'bg-base-300 cursor-pointer' : 'cursor-pointer'"
+    th:hx-get="@{${path}(sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'}, column=${thisColumn}, filter=${filter})}"
+    hx-swap="outerHTML"
+    th:hx-target="${target}">
+  <span th:text="${text} "></span>
+  <span th:if="${column != thisColumn}" class="invisible">▼</span>
+  <span th:if="${column == thisColumn}" th:text="${sort} == 'ASCENDING' ? '▼' : '▲'"></span>
+</th>
 <!-- Filter Form -->
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="filterForm(path, showTimeFilter)">
   <div class="flex gap-4">
@@ -278,6 +289,8 @@
   </select>
   <button class="btn btn-primary" type="submit">Save</button>
 </form>
+
+
 
 
 

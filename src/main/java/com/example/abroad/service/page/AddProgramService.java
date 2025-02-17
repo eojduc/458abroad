@@ -48,13 +48,9 @@ public record AddProgramService(UserService userService, ProgramService programS
     program.setDescription(description);
 
    return switch (programService.saveProgram(program)) {
-     case SaveProgram.TitleInvalid() -> new AddProgramInfo.InvalidProgramInfo("Title is invalid");
-      case SaveProgram.DescriptionInvalid() -> new AddProgramInfo.InvalidProgramInfo("Description is invalid");
-      case SaveProgram.ApplicationOpenAfterClose() -> new AddProgramInfo.InvalidProgramInfo("Application open is after close");
-      case SaveProgram.ApplicationCloseAfterDocumentDeadline() -> new AddProgramInfo.InvalidProgramInfo("Application close is after document deadline");
-      case SaveProgram.DocumentDeadlineAfterStart() -> new AddProgramInfo.InvalidProgramInfo("Document deadline is after start date");
-      case SaveProgram.StartAfterEnd() -> new AddProgramInfo.InvalidProgramInfo("Start date is after end date");
+     case SaveProgram.InvalidProgramInfo(var message) -> new AddProgramInfo.InvalidProgramInfo(message);
       case SaveProgram.Success(var p) -> new AddProgramInfo.Success(p.id());
+     case SaveProgram.DatabaseError(var message) -> new AddProgramInfo.DatabaseError(message);
     };
   }
 
@@ -89,6 +85,9 @@ public record AddProgramService(UserService userService, ProgramService programS
     }
 
     record InvalidProgramInfo(String message) implements AddProgramInfo {
+
+    }
+    record DatabaseError(String message) implements AddProgramInfo {
 
     }
   }
