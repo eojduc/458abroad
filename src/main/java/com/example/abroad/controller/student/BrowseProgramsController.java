@@ -47,7 +47,7 @@ public record BrowseProgramsController(AdminProgramsService service, FormatServi
     }
 
     GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter,
-        true);
+        true, true);
 
     return switch (programsInfo) {
       case UserNotFound() -> "redirect:/login?error=You are not logged in";

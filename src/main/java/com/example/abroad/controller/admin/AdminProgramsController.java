@@ -28,12 +28,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info
       ) {
-    boolean noSortOrFilter = sort == null && nameFilter == null && timeFilter == null;
-    if (noSortOrFilter) {
-      service.clearSessionData(session);
-    }
-
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false);
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false, true);
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetAllProgramsInfo.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
@@ -43,23 +38,24 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
                 "name", user.displayName(),
                 "programs", programs,
                 "programStatus", service.getProgramStatus(applications, programs),
-                "sort", Objects.toString(session.getAttribute("lastSort"), ""),
+                "sort", Optional.ofNullable(sort).orElse("title"),
               "alerts", new Alerts(error, success, warning, info),
               "formatter", formatter,
-              "theme", userService.getTheme(session)
+              "nameFilter", Optional.ofNullable(nameFilter).orElse(""),
+              "theme", userService.getTheme(session),
+              "ascending", true
             )
         );
-        yield "admin/programs :: " + ( noSortOrFilter ? "page" : "programTable");
+        yield "admin/programs :: page";
       }
     };
   }
-
-
-  @GetMapping("/admin/programs/sort")
-  public String getProgramsInfo2(HttpSession session, Model model,
-    @RequestParam(required = false) String sort,
-    @RequestParam(required = false) String nameFilter,
-    @RequestParam(required = false) String timeFilter,
+  @GetMapping("/admin/programs/table")
+  public String getProgramsInfo3(HttpSession session, Model model,
+    @RequestParam String sort,
+    @RequestParam String nameFilter,
+    @RequestParam String timeFilter,
+    @RequestParam Boolean ascending,
     @RequestParam Optional<String> error,
     @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning,
@@ -70,7 +66,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
       service.clearSessionData(session);
     }
 
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false);
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false, true);
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetAllProgramsInfo.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
@@ -80,13 +76,16 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
             "name", user.displayName(),
             "programs", programs,
             "programStatus", service.getProgramStatus(applications, programs),
-            "sort", Objects.toString(session.getAttribute("lastSort"), ""),
+            "sort", Optional.ofNullable(sort).orElse("title"),
+            "nameFilter", Optional.ofNullable(nameFilter).orElse(""),
+            "timeFilter", Optional.ofNullable(timeFilter).orElse("future"),
             "alerts", new Alerts(error, success, warning, info),
             "formatter", formatter,
-            "theme", userService.getTheme(session)
+            "theme", userService.getTheme(session),
+            "ascending", ascending
           )
         );
-        yield "admin/programs :: " + ( noSortOrFilter ? "page" : "programTable");
+        yield "admin/programs :: programTable";
       }
     };
   }

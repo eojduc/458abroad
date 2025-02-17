@@ -30,11 +30,12 @@ public record AdminProgramsService(
   private static final String DEFAULT_TIME_FILTER = "future";
 
   public GetAllProgramsInfo getProgramInfo(
-      HttpSession session,
-      String sort,
-      String nameFilter,
-      String timeFilter,
-      boolean studentMode
+    HttpSession session,
+    String sort,
+    String nameFilter,
+    String timeFilter,
+    boolean studentMode,
+    Boolean ascending
   ) {
     return userService.findUserFromSession(session)
         .map(user -> processAuthorizedRequest(session, sort, nameFilter, timeFilter, user,
@@ -83,7 +84,7 @@ public record AdminProgramsService(
 
     List<Application> allApplications = applicationRepository.findAll();
 
-    applyFilters(session, programs, nameFilter, timeFilter);
+    applyFilters(programs, nameFilter, timeFilter);
     applySorting(session, programs, allApplications, sort, studentMode);
 
     return new GetAllProgramsInfo.Success(
@@ -100,50 +101,44 @@ public record AdminProgramsService(
 
     // Process in order of programs and store in a map
     return programs.stream()
-        .collect(Collectors.toMap(
-            Program::id,  // Key: programId
-            program -> {
-              List<Application> applicationList = groupedApplications.getOrDefault(program.id(), List.of());
+      .collect(Collectors.toMap(
+        Program::id,  // Key: programId
+        program -> {
+          List<Application> applicationList = groupedApplications.getOrDefault(program.id(), List.of());
 
-              int applied = 0, enrolled = 0, canceled = 0, withdrawn = 0;
-              for (Application app : applicationList) {
-                switch (app.status()) {
-                  case APPLIED -> applied++;
-                  case ENROLLED -> enrolled++;
-                  case CANCELLED -> canceled++;
-                  case WITHDRAWN -> withdrawn++;
-                }
-              }
-              int count = applied + enrolled;
-
-              return Map.of(
-                  "applied", applied,
-                  "enrolled", enrolled,
-                  "canceled", canceled,
-                  "withdrawn", withdrawn,
-                  "count", count
-              );
+          int applied = 0, enrolled = 0, canceled = 0, withdrawn = 0;
+          for (Application app : applicationList) {
+            switch (app.status()) {
+              case APPLIED -> applied++;
+              case ENROLLED -> enrolled++;
+              case CANCELLED -> canceled++;
+              case WITHDRAWN -> withdrawn++;
             }
-        ));
+          }
+          int count = applied + enrolled;
+          return Map.of(
+            "applied", applied,
+            "enrolled", enrolled,
+            "canceled", canceled,
+            "withdrawn", withdrawn,
+            "count", count
+          );
+        }
+      ));
   }
 
   private void applyFilters(
-      HttpSession session,
       List<Program> programs,
       String nameFilter,
       String timeFilter
   ) {
-    applyNameFilter(session, programs, nameFilter);
-    applyTimeFilter(session, programs, timeFilter);
+    applyNameFilter(programs, nameFilter);
+    applyTimeFilter(programs, timeFilter);
   }
 
-  private void applyNameFilter(HttpSession session, List<Program> programs, String newNameFilter) {
-    String storedNameFilter = (String) session.getAttribute("nameFilter");
-    String effectiveFilter = Optional.ofNullable(newNameFilter).orElse(storedNameFilter);
-
-    if (effectiveFilter != null) {
-      session.setAttribute("nameFilter", effectiveFilter);
-      String searchTerm = effectiveFilter.toLowerCase();
+  private void applyNameFilter(List<Program> programs, String newNameFilter) {
+    if (newNameFilter != null) {
+      String searchTerm = newNameFilter.toLowerCase();
       programs.removeIf(program -> !matchesNameFilter(program, searchTerm));
     }
   }
@@ -154,12 +149,8 @@ public record AdminProgramsService(
     ;
   }
 
-  private void applyTimeFilter(HttpSession session, List<Program> programs, String newTimeFilter) {
-    String storedTimeFilter = (String) session.getAttribute("timeFilter");
-    String effectiveFilter = Optional.ofNullable(newTimeFilter)
-        .orElse(Optional.ofNullable(storedTimeFilter).orElse(DEFAULT_TIME_FILTER));
-
-    session.setAttribute("timeFilter", effectiveFilter);
+  private void applyTimeFilter(List<Program> programs, String newTimeFilter) {
+    String effectiveFilter = Optional.ofNullable(newTimeFilter).orElse(DEFAULT_TIME_FILTER);
     programs.removeIf(getTimeFilterPredicate(effectiveFilter));
     logger.info("Filtered programs by {}", effectiveFilter);
   }
@@ -187,7 +178,6 @@ public record AdminProgramsService(
       boolean studentMode) {
     String storedSort = (String) session.getAttribute("lastSort");
     String effectiveSort = Optional.ofNullable(newSort).orElse(storedSort);
-
     if (effectiveSort != null) {
       session.setAttribute("lastSort", effectiveSort);
       sortPrograms(session, programs, applications, effectiveSort, newSort != null && !studentMode);

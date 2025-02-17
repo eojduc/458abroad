@@ -19,28 +19,28 @@
                 <thead>
                   <tr>
                     <th
-                      th:replace="~{components :: sortableHeader('Title', '/applications?sort=title', ${sort})}"
+                      th:replace="~{components :: sortableHeader('Title', '/applications?sort=title', ${sort}, 'title')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Year & Semester', '/applications?sort=yearSemester', ${sort})}"
+                      th:replace="~{components :: sortableHeader('Year & Semester', '/applications?sort=yearSemester', ${sort}, 'yearSemester')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Faculty Lead(s)', '/applications?sort=faculty', ${sort})}"
+                      th:replace="~{components :: sortableHeader('Faculty Lead(s)', '/applications?sort=faculty', ${sort}, 'faculty')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Start Date', '/applications?sort=startDate', ${sort})}"
+                      th:replace="~{components :: sortableHeader('Start Date', '/applications?sort=startDate', ${sort}, 'startDate')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('End Date', '/applications?sort=endDate', ${sort})}"
+                      th:replace="~{components :: sortableHeader('End Date', '/applications?sort=endDate', ${sort}, 'endDate')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Application Open', '/applications?sort=applicationOpen', ${sort})}"
+                      th:replace="~{components :: sortableHeader('Application Open', '/applications?sort=applicationOpen', ${sort}, 'applicationOpen')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Application Closed', '/applications?sort=applicationClosed', ${sort})}"
+                      th:replace="~{components :: sortableHeader('Application Closed', '/applications?sort=applicationClosed', ${sort}, 'applicationClosed')}"
                     ></th>
                     <th
-                      th:replace="~{components :: sortableHeader('Status', '/applications?sort=status', ${sort})}"
+                      th:replace="~{components :: sortableHeader('Status', '/applications?sort=status', ${sort}, 'status')}"
                     ></th>
                   </tr>
                 </thead>
