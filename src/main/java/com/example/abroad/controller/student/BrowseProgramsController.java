@@ -61,8 +61,6 @@ public record BrowseProgramsController(AdminProgramsService service, FormatServi
         for (int i = 0; i < programs.size(); i++) {
           Program program = programs.get(i);
           LocalDate today = LocalDate.now();
-          Instant nowInstant = Instant.now();
-
           // Find if there's an application for this program
           Application userApp = applications.stream()
               .filter(app -> Objects.equals(app.student(), user.username())

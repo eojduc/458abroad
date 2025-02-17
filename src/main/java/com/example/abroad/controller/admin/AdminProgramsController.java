@@ -20,15 +20,12 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
 
   @GetMapping("/admin/programs")
   public String getProgramsInfo(HttpSession session, Model model,
-      @RequestParam(required = false) String sort,
-      @RequestParam(required = false) String nameFilter,
-      @RequestParam(required = false) String timeFilter,
       @RequestParam Optional<String> error,
       @RequestParam Optional<String> success,
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info
       ) {
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false, true);
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, "title", "", "future", false, true);
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetAllProgramsInfo.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
@@ -38,10 +35,10 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
                 "name", user.displayName(),
                 "programs", programs,
                 "programStatus", service.getProgramStatus(applications, programs),
-                "sort", Optional.ofNullable(sort).orElse("title"),
+                "sort", "title",
               "alerts", new Alerts(error, success, warning, info),
               "formatter", formatter,
-              "nameFilter", Optional.ofNullable(nameFilter).orElse(""),
+              "nameFilter", "",
               "theme", userService.getTheme(session),
               "ascending", true
             )
@@ -61,10 +58,6 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
     @RequestParam Optional<String> warning,
     @RequestParam Optional<String> info
   ) {
-    boolean noSortOrFilter = sort == null && nameFilter == null && timeFilter == null;
-    if (noSortOrFilter) {
-      service.clearSessionData(session);
-    }
 
     GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, false, true);
     return switch (programsInfo) {
@@ -76,9 +69,9 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
             "name", user.displayName(),
             "programs", programs,
             "programStatus", service.getProgramStatus(applications, programs),
-            "sort", Optional.ofNullable(sort).orElse("title"),
-            "nameFilter", Optional.ofNullable(nameFilter).orElse(""),
-            "timeFilter", Optional.ofNullable(timeFilter).orElse("future"),
+            "sort", sort,
+            "nameFilter", nameFilter,
+            "timeFilter", timeFilter,
             "alerts", new Alerts(error, success, warning, info),
             "formatter", formatter,
             "theme", userService.getTheme(session),
