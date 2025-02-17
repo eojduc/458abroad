@@ -16,70 +16,11 @@
       </div>
 
       <!-- Filter Form -->
-      <div th:replace="~{this :: filterForm('/admin/programs/table', ${sort})}"></div>
+      <div th:replace="~{this :: filterForm('/admin/programs/table')}"></div>
 
       <div class="overflow-x-auto">
         <!-- Add fragment identifier to the table -->
-        <table class="table w-full" th:fragment="programTable(sort)" id="programTable">
-          <thead>
-            <tr>
-              <th th:replace="~{this :: sortableHeader('Title', '/admin/programs/table', ${sort}, 'TITLE')}"></th>
-              <th th:replace="~{this :: sortableHeader('Term', '/admin/programs/table', ${sort}, 'SEM_DATE')}"></th>
-              <th th:replace="~{this :: sortableHeader('Faculty Lead', '/admin/programs/table', ${sort}, 'FACULTY_LEAD')}"></th>
-              <th th:replace="~{this :: sortableHeader('App Opens', '/admin/programs/table', ${sort}, 'APP_OPENS')}"></th>
-              <th th:replace="~{this :: sortableHeader('App Closes', '/admin/programs/table', ${sort}, 'APP_CLOSES')}"></th>
-              <th th:replace="~{this :: sortableHeader('Start Date', '/admin/programs/table', ${sort}, 'START_DATE')}"></th>
-              <th th:replace="~{this :: sortableHeader('End Date', '/admin/programs/table', ${sort}, 'END_DATE')}"></th>
-              <th th:replace="~{this :: sortableHeader('Applied', '/admin/programs/table', ${sort}, 'APPLIED')}"></th>
-              <th th:replace="~{this :: sortableHeader('Enrolled', '/admin/programs/table', ${sort}, 'ENROLLED')}"></th>
-              <th th:replace="~{this :: sortableHeader('Canceled', '/admin/programs/table', ${sort}, 'CANCELED')}"></th>
-              <th th:replace="~{this :: sortableHeader('Withdrawn', '/admin/programs/table', ${sort}, 'WITHDRAWN')}"></th>
-              <th th:replace="~{this :: sortableHeader('Total Active', '/admin/programs/table', ${sort}, 'TOTAL_ACTIVE')}"></th>
-            </tr>
-          </thead>
-          <tbody th:fragment="programTableBody" id="programTableBody">
-          <tr th:each="program, iterStat : ${programs}" class="border-base-300 border-y-2">
-            <td>
-              <a th:href="@{/admin/programs/{id}(id=${program.id})}" class="link link-primary"
-                 th:text="${program.title}">Program Title</a>
-            </td>
-            <td>
-              <div th:text="${formatter.formatTerm(program.semester, program.year)}">
-              </div>
-            </td>
-            <td>
-              <div>TODO</div>
-            </td>
-            <td>
-              <div th:text="${formatter.formatLocalDate(program.applicationOpen)}"></div>
-            </td>
-            <td>
-              <div th:text="${formatter.formatLocalDate(program.applicationClose)}"></div>
-            </td>
-            <td>
-              <div th:text="${formatter.formatLocalDate(program.startDate)}"></div>
-            </td>
-            <td>
-              <div th:text="${formatter.formatLocalDate(program.endDate)}"></div>
-            </td>
-            <td>
-              <div th:text="${programStatus[program.id].applied}"></div>
-            </td>
-            <td>
-              <div th:text="${programStatus[program.id].enrolled}"></div>
-            </td>
-            <td>
-              <div th:text="${programStatus[program.id].canceled}"></div>
-            </td>
-            <td>
-              <div th:text="${programStatus[program.id].withdrawn}"></div>
-            </td>
-            <td>
-              <div th:text="${programStatus[program.id].count}"></div>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+        <div th:replace="~{this :: programTable(sort)}"></div>
       </div>
     </div>
   </div>
@@ -89,43 +30,83 @@
 </body>
 </html>
 
+<table class="table w-full" th:fragment="programTable(sort)" id="programTable">
+  <thead>
+    <tr>
+      <th th:replace="~{this :: sortableHeader('Title', '/admin/programs/table', 'TITLE')}"></th>
+      <th th:replace="~{this :: sortableHeader('Term', '/admin/programs/table', 'SEM_DATE')}"></th>
+      <th th:replace="~{this :: sortableHeader('Faculty Lead', '/admin/programs/table', 'FACULTY_LEAD')}"></th>
+      <th th:replace="~{this :: sortableHeader('App Opens', '/admin/programs/table', 'APP_OPENS')}"></th>
+      <th th:replace="~{this :: sortableHeader('App Closes', '/admin/programs/table', 'APP_CLOSES')}"></th>
+      <th th:replace="~{this :: sortableHeader('Start Date', '/admin/programs/table', 'START_DATE')}"></th>
+      <th th:replace="~{this :: sortableHeader('End Date', '/admin/programs/table', 'END_DATE')}"></th>
+      <th th:replace="~{this :: sortableHeader('Applied', '/admin/programs/table', 'APPLIED')}"></th>
+      <th th:replace="~{this :: sortableHeader('Enrolled', '/admin/programs/table', 'ENROLLED')}"></th>
+      <th th:replace="~{this :: sortableHeader('Canceled', '/admin/programs/table', 'CANCELED')}"></th>
+      <th th:replace="~{this :: sortableHeader('Withdrawn', '/admin/programs/table', 'WITHDRAWN')}"></th>
+      <th th:replace="~{this :: sortableHeader('Total Active', '/admin/programs/table', 'TOTAL_ACTIVE')}"></th>
+    </tr>
+  </thead>
+  <tbody th:fragment="programTableBody" id="programTableBody">
+  <tr th:each="programAndStatus : ${programAndStatuses}">
+    <td>
+      <a th:href="@{/admin/programs/{programId}/info(programId=${programAndStatus.program.id})}"
+         th:text="${programAndStatus.program.title}"></a>
+    </td>
+    <td th:text="${formatter.formatTerm(programAndStatus.program.semester, programAndStatus.program.year)}"></td>
+    <td>TODO</td>
+    <td th:text="${formatter.formatLocalDate(programAndStatus.program.applicationOpen)}"></td>
+    <td th:text="${formatter.formatLocalDate(programAndStatus.program.applicationClose)}"></td>
+    <td th:text="${formatter.formatLocalDate(programAndStatus.program.startDate)}"></td>
+    <td th:text="${formatter.formatLocalDate(programAndStatus.program.endDate)}"></td>
+    <td th:text="${programAndStatus.applied}"></td>
+    <td th:text="${programAndStatus.enrolled}"></td>
+    <td th:text="${programAndStatus.canceled}"></td>
+    <td th:text="${programAndStatus.withdrawn}"></td>
+    <td th:text="${programAndStatus.totalActive}"></td>
+  </tr>
+  </tbody>
+  <div hx-swap-oob="true" id="filterSortParams">
+    <input type="hidden" name="sort" th:value="${sort}" />
+    <input type="hidden" name="ascending" th:value="${ascending}" />
+  </div>
+</table>
+<form xmlns:th="http://www.thymeleaf.org"
+      th:fragment="filterForm(path)"
+      id="filterForm">
+  <!-- Container for sort parameters -->
+  <div id="filterSortParams">
+    <input type="hidden" name="sort" th:value="${sort}" />
+    <input type="hidden" name="ascending" th:value="${ascending}" />
+  </div>
 
-<form
-    xmlns:th="http://www.thymeleaf.org"
-    th:fragment="filterForm(path, sort)"
-    id="filterForm"
->
   <div class="flex gap-4">
     <!-- Keyword search -->
     <label>
-      <input
-          type="text"
-          name="nameFilter"
-          placeholder="Search programs..."
-          class="input"
-          th:value="${keyword}"
-          th:hx-get="@{${path}(sort=${sort}, ascending=${ascending})}"
-          hx-trigger="input delay:300ms"
-          hx-include="#filterForm"
-          autocomplete="off"
-          hx-target="#programTable"
-          hx-swap="outerHTML"
-      />
+      <input type="text"
+             name="nameFilter"
+             placeholder="Search programs..."
+             class="input"
+             th:value="${keyword}"
+             th:hx-get="@{${path}}"
+             hx-trigger="input delay:300ms"
+             hx-include="#filterForm"
+             autocomplete="off"
+             hx-target="#programTable"
+             hx-swap="outerHTML" />
     </label>
 
     <!-- Time filter -->
     <label>
-      <select
-          name="timeFilter"
-          class="select"
-          th:value="${timeFilter}"
-          th:hx-get="@{${path}(sort=${sort}, ascending=${ascending})}"
-          hx-trigger="change"
-          hx-include="#filterForm"
-          autocomplete="off"
-          hx-target="#programTable"
-          hx-swap="outerHTML"
-      >
+      <select name="timeFilter"
+              class="select"
+              th:value="${timeFilter}"
+              th:hx-get="@{${path}}"
+              hx-trigger="change"
+              hx-include="#filterForm"
+              autocomplete="off"
+              hx-target="#programTable"
+              hx-swap="outerHTML">
         <option value="FUTURE" th:selected="${timeFilter == 'FUTURE'}">Current & Future Programs</option>
         <option value="OPEN" th:selected="${timeFilter == 'OPEN'}">Programs Open to Applications</option>
         <option value="REVIEW" th:selected="${timeFilter == 'REVIEW'}">Programs in Review</option>
@@ -137,8 +118,9 @@
 </form>
 
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, activeSort, column)">
-  <th th:classappend="${activeSort == column ? 'bg-base-300' : 'bg-base-200'}">
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, column)">
+  <th th:classappend="${sort == column ? 'bg-base-300' : 'bg-base-200'}">
     <div class="flex items-center gap-2 cursor-pointer"
          th:hx-get="@{${path}(sort=${column}, ascending=${!ascending}, nameFilter=${nameFilter}, timeFilter=${timeFilter})}"
          hx-target="#programTable"

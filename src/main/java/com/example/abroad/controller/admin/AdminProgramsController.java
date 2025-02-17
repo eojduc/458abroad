@@ -1,5 +1,7 @@
 package com.example.abroad.controller.admin;
 
+import static java.util.Map.entry;
+
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
@@ -21,7 +23,8 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
                                       UserService userService) {
 
   @GetMapping("/admin/programs")
-  public String getProgramsInfo(HttpSession session, Model model,
+  public String getProgramsInfo(
+    HttpSession session, Model model,
       @RequestParam Optional<String> error,
       @RequestParam Optional<String> success,
       @RequestParam Optional<String> warning,
@@ -31,20 +34,19 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetAllProgramsInfo.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
-      case GetAllProgramsInfo.Success(var programs, var applications, var user) -> {
+      case GetAllProgramsInfo.Success(var programAndStatuses, var user) -> {
         model.addAllAttributes(
-            Map.of(
-                "name", user.displayName(),
-                "programs", programs,
-                "programStatus", service.getProgramStatus(applications, programs),
-                "sort", "TITLE",
-              "alerts", new Alerts(error, success, warning, info),
-              "formatter", formatter,
-              "nameFilter", "",
-              "timeFilter", "FUTURE",
-              "theme", userService.getTheme(session),
-              "ascending", true
-            )
+          Map.ofEntries(
+            entry("name", user.displayName()),
+            entry("sort", "TITLE"),
+            entry("alerts", new Alerts(error, success, warning, info)),
+            entry("formatter", formatter),
+            entry("nameFilter", ""),
+            entry("timeFilter", "FUTURE"),
+            entry("theme", userService.getTheme(session)),
+            entry("ascending", true),
+            entry("programAndStatuses", programAndStatuses)
+          )
         );
         yield "admin/programs :: page";
       }
@@ -55,30 +57,24 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
     @RequestParam Sort sort,
     @RequestParam String nameFilter,
     @RequestParam TimeFilter timeFilter,
-    @RequestParam Boolean ascending,
-    @RequestParam Optional<String> error,
-    @RequestParam Optional<String> success,
-    @RequestParam Optional<String> warning,
-    @RequestParam Optional<String> info
+    @RequestParam Boolean ascending
   ) {
 
     GetAllProgramsInfo programsInfo = service.getProgramInfo(session, sort, nameFilter, timeFilter, ascending);
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetAllProgramsInfo.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
-      case GetAllProgramsInfo.Success(var programs, var applications, var user) -> {
+      case GetAllProgramsInfo.Success(var programAndStatuses, var user) -> {
         model.addAllAttributes(
-          Map.of(
-            "name", user.displayName(),
-            "programs", programs,
-            "programStatus", service.getProgramStatus(applications, programs),
-            "sort", sort.name(),
-            "nameFilter", nameFilter,
-            "timeFilter", timeFilter.name(),
-            "alerts", new Alerts(error, success, warning, info),
-            "formatter", formatter,
-            "theme", userService.getTheme(session),
-            "ascending", ascending
+          Map.ofEntries(
+            entry("name", user.displayName()),
+            entry("sort", sort.name()),
+            entry("nameFilter", nameFilter),
+            entry("timeFilter", timeFilter.name()),
+            entry("formatter", formatter),
+            entry("theme", userService.getTheme(session)),
+            entry("ascending", ascending),
+            entry("programAndStatuses", programAndStatuses)
           )
         );
         yield "admin/programs :: programTable";

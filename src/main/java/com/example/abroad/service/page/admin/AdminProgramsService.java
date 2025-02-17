@@ -11,11 +11,9 @@ import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,9 +22,6 @@ public record AdminProgramsService(
     ApplicationRepository applicationRepository,
     UserService userService
 ) {
-
-  private static final Logger logger = LoggerFactory.getLogger(AdminProgramsService.class);
-  private static final TimeFilter DEFAULT_TIME_FILTER = TimeFilter.FUTURE;
   public enum Sort {
     TITLE,
     SEM_DATE,
@@ -39,7 +34,7 @@ public record AdminProgramsService(
     ENROLLED,
     CANCELED,
     WITHDRAWN,
-    COUNT
+    TOTAL_ACTIVE
   }
   public enum TimeFilter {
     FUTURE,
@@ -55,29 +50,14 @@ public record AdminProgramsService(
     TimeFilter timeFilter,
     Boolean ascending
   ) {
-    return userService.findUserFromSession(session)
-        .map(user -> processAuthorizedRequest(sort, nameFilter, timeFilter, user,
-            ascending))
-        .orElse(new GetAllProgramsInfo.UserNotFound());
-  }
-
-  public void clearSessionData(HttpSession session) {
-    session.removeAttribute("nameFilter");
-    session.removeAttribute("timeFilter");
-    session.removeAttribute("lastSort");
-    session.removeAttribute("title");
-    session.removeAttribute("appOpens");
-    session.removeAttribute("appCloses");
-    session.removeAttribute("semDate");
-    session.removeAttribute("startDate");
-    session.removeAttribute("endDate");
-    session.removeAttribute("applied");
-    session.removeAttribute("enrolled");
-    session.removeAttribute("canceled");
-    session.removeAttribute("withdrawn");
-    session.removeAttribute("count");
-    session.removeAttribute("facultyLead");
-    session.removeAttribute("totalActive");
+    var user = userService.findUserFromSession(session).orElse(null);
+    if (user == null) {
+      return new GetAllProgramsInfo.UserNotFound();
+    }
+    if (user.role() != User.Role.ADMIN) {
+      return new GetAllProgramsInfo.UserNotAdmin();
+    }
+    return processAuthorizedRequest(sort, nameFilter, timeFilter, user, ascending);
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
@@ -87,58 +67,45 @@ public record AdminProgramsService(
       User user,
       Boolean ascending
   ) {
-    if (user.role() != User.Role.ADMIN) {
-      return new GetAllProgramsInfo.UserNotAdmin();
-    }
-
-    List<Program> programs = programRepository.findAll();
-    List<Application> allApplications = applicationRepository.findAll();
-    var comparator = getSortComparator(sort, allApplications, programs);
-    var programsToDisplay = programs.stream()
+    var programsAndStatuses = programRepository.findAll()
+      .stream()
       .filter(matchesNamePredicate(nameFilter))
       .filter(getTimeFilterPredicate(timeFilter))
-      .sorted(ascending ? comparator : comparator.reversed())
+      .map(getProgramAndStatuses())
+      .sorted(getSortComparator(sort, ascending))
       .toList();
-
     return new GetAllProgramsInfo.Success(
-      programsToDisplay,
-        allApplications,
+      programsAndStatuses,
         user
     );
   }
 
 
-  public Map<Integer, Map<String, Integer>> getProgramStatus(List<Application> applications, List<Program> programs) {
-    // Group applications by program ID
-    Map<Integer, List<Application>> groupedApplications = applications.stream()
-        .collect(Collectors.groupingBy(Application::programId));
+  public Function<Program, ProgramAndStatuses> getProgramAndStatuses() {
+    return program -> {
+      var applications = applicationRepository.findByProgramId(program.id());
+      var counts = applications.stream()
+        .collect(Collectors.groupingBy(Application::status, Collectors.counting()));
 
-    // Process in order of programs and store in a map
-    return programs.stream()
-      .collect(Collectors.toMap(
-        Program::id,  // Key: programId
-        program -> {
-          List<Application> applicationList = groupedApplications.getOrDefault(program.id(), List.of());
+      return new ProgramAndStatuses(
+        program,
+        counts.getOrDefault(Application.Status.APPLIED, 0L),
+        counts.getOrDefault(Application.Status.ENROLLED, 0L),
+        counts.getOrDefault(Application.Status.CANCELLED, 0L),
+        counts.getOrDefault(Application.Status.WITHDRAWN, 0L),
+        (long) applications.size()
+      );
+    };
+  }
 
-          int applied = 0, enrolled = 0, canceled = 0, withdrawn = 0;
-          for (Application app : applicationList) {
-            switch (app.status()) {
-              case APPLIED -> applied++;
-              case ENROLLED -> enrolled++;
-              case CANCELLED -> canceled++;
-              case WITHDRAWN -> withdrawn++;
-            }
-          }
-          int count = applied + enrolled;
-          return Map.of(
-            "applied", applied,
-            "enrolled", enrolled,
-            "canceled", canceled,
-            "withdrawn", withdrawn,
-            "count", count
-          );
-        }
-      ));
+  public record ProgramAndStatuses(
+    Program program,
+    Long applied,
+    Long enrolled,
+    Long canceled,
+    Long withdrawn,
+    Long totalActive
+  ) {
   }
 
   private Predicate<Program> matchesNamePredicate(String searchTerm) {
@@ -156,43 +123,36 @@ public record AdminProgramsService(
       case ALL -> program -> true;
     };
   }
-  private Comparator<Program> getSortComparator(Sort sort, List<Application> applications, List<Program> programs) {
-    Map<Integer, Map<String, Integer>> programStatus = getProgramStatus(applications, programs);
-    return switch (sort) {
-      case TITLE -> Comparator.comparing(Program::title);
-      case SEM_DATE -> Comparator.comparing(Program::year).thenComparing(Program::semester);
-      case APP_OPENS -> Comparator.comparing(Program::applicationOpen);
-      case APP_CLOSES -> Comparator.comparing(Program::applicationClose);
-      case START_DATE -> Comparator.comparing(Program::startDate);
-      case END_DATE -> Comparator.comparing(Program::endDate);
-      case FACULTY_LEAD -> Comparator.comparing(Program::title);
-      case APPLIED -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("applied"));
-      case ENROLLED -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("enrolled"));
-      case CANCELED -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("canceled"));
-      case WITHDRAWN -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("withdrawn"));
-      case COUNT -> Comparator.comparingInt(program -> programStatus.get(program.id()).get("count"));
+  private Comparator<ProgramAndStatuses> getSortComparator(Sort sort, Boolean ascending) {
+    Comparator<ProgramAndStatuses> comparator =  switch (sort) {
+      case TITLE -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().title());
+      case SEM_DATE -> Comparator
+        .comparing((ProgramAndStatuses pas) -> pas.program().year(), Comparator.naturalOrder())
+        .thenComparing(pas -> pas.program().semester(), Comparator.naturalOrder());
+      case APP_OPENS -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().applicationOpen());
+      case APP_CLOSES -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().applicationClose());
+      case START_DATE -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().startDate());
+      case END_DATE -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().endDate());
+      case FACULTY_LEAD -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().title());
+      case APPLIED -> Comparator.comparing(ProgramAndStatuses::applied);
+      case ENROLLED -> Comparator.comparing(ProgramAndStatuses::enrolled);
+      case CANCELED -> Comparator.comparing(ProgramAndStatuses::canceled);
+      case WITHDRAWN -> Comparator.comparing(ProgramAndStatuses::withdrawn);
+      case TOTAL_ACTIVE -> Comparator.comparing(ProgramAndStatuses::totalActive);
     };
+    return ascending ? comparator : comparator.reversed();
   }
 
-  public sealed interface GetAllProgramsInfo permits
-      GetAllProgramsInfo.Success,
-      GetAllProgramsInfo.UserNotFound,
-      GetAllProgramsInfo.UserNotAdmin {
+  public sealed interface GetAllProgramsInfo {
 
     record Success(
-        List<Program> programs,
-        List<Application> applicants,
+        List<ProgramAndStatuses> programsAndStatuses,
         User user
     ) implements GetAllProgramsInfo {
-
     }
-
     record UserNotFound() implements GetAllProgramsInfo {
-
     }
-
     record UserNotAdmin() implements GetAllProgramsInfo {
-
     }
   }
 }
