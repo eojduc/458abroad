@@ -23,18 +23,18 @@
         <table class="table w-full" th:fragment="programTable(sort)" id="programTable">
           <thead>
             <tr>
-              <th th:replace="~{this :: sortableHeader('Title', '/admin/programs/table', ${sort}, 'title')}"></th>
-              <th th:replace="~{this :: sortableHeader('Term', '/admin/programs/table', ${sort}, 'term')}"></th>
-              <th th:replace="~{this :: sortableHeader('Faculty Lead', '/admin/programs/table', ${sort}, 'facultyLead')}"></th>
-              <th th:replace="~{this :: sortableHeader('App Opens', '/admin/programs/table', ${sort}, 'appOpens')}"></th>
-              <th th:replace="~{this :: sortableHeader('App Closes', '/admin/programs/table', ${sort}, 'appCloses')}"></th>
-              <th th:replace="~{this :: sortableHeader('Start Date', '/admin/programs/table', ${sort}, 'startDate')}"></th>
-              <th th:replace="~{this :: sortableHeader('End Date', '/admin/programs/table', ${sort}, 'endDate')}"></th>
-              <th th:replace="~{this :: sortableHeader('Applied', '/admin/programs/table', ${sort}, 'applied')}"></th>
-              <th th:replace="~{this :: sortableHeader('Enrolled', '/admin/programs/table', ${sort}, 'enrolled')}"></th>
-              <th th:replace="~{this :: sortableHeader('Canceled', '/admin/programs/table', ${sort}, 'canceled')}"></th>
-              <th th:replace="~{this :: sortableHeader('Withdrawn', '/admin/programs/table', ${sort}, 'withdrawn')}"></th>
-              <th th:replace="~{this :: sortableHeader('Total Active', '/admin/programs/table', ${sort}, 'totalActive')}"></th>
+              <th th:replace="~{this :: sortableHeader('Title', '/admin/programs/table', ${sort}, 'TITLE')}"></th>
+              <th th:replace="~{this :: sortableHeader('Term', '/admin/programs/table', ${sort}, 'SEM_DATE')}"></th>
+              <th th:replace="~{this :: sortableHeader('Faculty Lead', '/admin/programs/table', ${sort}, 'FACULTY_LEAD')}"></th>
+              <th th:replace="~{this :: sortableHeader('App Opens', '/admin/programs/table', ${sort}, 'APP_OPENS')}"></th>
+              <th th:replace="~{this :: sortableHeader('App Closes', '/admin/programs/table', ${sort}, 'APP_CLOSES')}"></th>
+              <th th:replace="~{this :: sortableHeader('Start Date', '/admin/programs/table', ${sort}, 'START_DATE')}"></th>
+              <th th:replace="~{this :: sortableHeader('End Date', '/admin/programs/table', ${sort}, 'END_DATE')}"></th>
+              <th th:replace="~{this :: sortableHeader('Applied', '/admin/programs/table', ${sort}, 'APPLIED')}"></th>
+              <th th:replace="~{this :: sortableHeader('Enrolled', '/admin/programs/table', ${sort}, 'ENROLLED')}"></th>
+              <th th:replace="~{this :: sortableHeader('Canceled', '/admin/programs/table', ${sort}, 'CANCELED')}"></th>
+              <th th:replace="~{this :: sortableHeader('Withdrawn', '/admin/programs/table', ${sort}, 'WITHDRAWN')}"></th>
+              <th th:replace="~{this :: sortableHeader('Total Active', '/admin/programs/table', ${sort}, 'TOTAL_ACTIVE')}"></th>
             </tr>
           </thead>
           <tbody th:fragment="programTableBody" id="programTableBody">
@@ -126,11 +126,11 @@
           hx-target="#programTable"
           hx-swap="outerHTML"
       >
-        <option value="future" th:selected="${timeFilter == 'future'}">Current & Future Programs</option>
-        <option value="open" th:selected="${timeFilter == 'open'}">Programs Open to Applications</option>
-        <option value="review" th:selected="${timeFilter == 'review'}">Programs in Review</option>
-        <option value="running" th:selected="${timeFilter == 'running'}">Programs Running Now</option>
-        <option value="all" th:selected="${timeFilter == 'all'}">All Programs</option>
+        <option value="FUTURE" th:selected="${timeFilter == 'FUTURE'}">Current & Future Programs</option>
+        <option value="OPEN" th:selected="${timeFilter == 'OPEN'}">Programs Open to Applications</option>
+        <option value="REVIEW" th:selected="${timeFilter == 'REVIEW'}">Programs in Review</option>
+        <option value="RUNNING" th:selected="${timeFilter == 'RUNNING'}">Programs Running Now</option>
+        <option value="ALL" th:selected="${timeFilter == 'ALL'}">All Programs</option>
       </select>
     </label>
   </div>

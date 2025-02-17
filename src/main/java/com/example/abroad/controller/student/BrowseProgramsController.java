@@ -9,6 +9,7 @@ import com.example.abroad.service.page.admin.AdminProgramsService;
 import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo;
 import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo.Success;
 import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo.UserNotFound;
+import com.example.abroad.service.page.admin.AdminProgramsService.Sort;
 import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -39,8 +40,8 @@ public record BrowseProgramsController(AdminProgramsService service, FormatServi
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info
   ) {
-    String sort = "appCloses";
-    String timeFilter = "future";
+    var sort = Sort.APP_CLOSES;
+    var timeFilter = AdminProgramsService.TimeFilter.FUTURE;
     boolean noFilter = nameFilter == null;
     if (noFilter) {
       service.clearSessionData(session);
