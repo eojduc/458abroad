@@ -1,13 +1,16 @@
 package com.example.abroad.service.data;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.respository.ApplicationRepository;
+import com.example.abroad.respository.DocumentRepository;
 import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.LocalUserRepository;
+import com.example.abroad.respository.NoteRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.SSOUserRepository;
 import jakarta.persistence.EntityManager;
@@ -17,10 +20,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.Optional;
 import java.util.function.Function;
+import javax.sql.rowset.serial.SerialBlob;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -41,6 +48,8 @@ public class DataInitializationService {
   private final LocalUserRepository localUserRepository;
   private final SSOUserRepository ssoUserRepository;
   private final FacultyLeadRepository facultyLeadRepository;
+  private final NoteRepository noteRepository;
+  private final DocumentRepository documentRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
   private EntityManager entityManager;
@@ -51,12 +60,16 @@ public class DataInitializationService {
       SSOUserRepository ssoUserRepository,
       ApplicationRepository applicationRepository,
       FacultyLeadRepository facultyLeadRepository,
+      NoteRepository noteRepository,
+      DocumentRepository documentRepository,
       ProgramRepository programRepository) {
     this.localUserRepository = localUserRepository;
     this.ssoUserRepository = ssoUserRepository;
     this.applicationRepository = applicationRepository;
     this.programRepository = programRepository;
     this.facultyLeadRepository = facultyLeadRepository;
+    this.noteRepository = noteRepository;
+    this.documentRepository = documentRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
         .setHeader()
@@ -153,6 +166,39 @@ public class DataInitializationService {
         facultyLeadRepository
     );
   }
+  @Transactional
+  protected void initializeDocuments(String path) {
+    initializeData(
+        path,
+        record -> {
+          try {
+            return new Application.Document(
+              Document.Type.valueOf(record.get("type").toUpperCase()),
+              Instant.parse(record.get("timestamp")),
+              new SerialBlob("hello world!".getBytes()),
+                record.get("applicationId")
+            );
+          } catch (SQLException e) {
+            throw new RuntimeException(e);
+          }
+        },
+        documentRepository
+    );
+  }
+
+  @Transactional
+  protected void initializeNotes(String path) {
+    initializeData(
+        path,
+        record -> new Application.Note(
+            record.get("applicationId"),
+            record.get("username"),
+          record.get("content"),
+          Instant.parse(record.get("timestamp"))
+        ),
+        noteRepository
+    );
+  }
 
   @Transactional
   protected void initializePrograms(String path) {
@@ -196,6 +242,9 @@ public class DataInitializationService {
     applicationRepository.deleteAll();
     localUserRepository.deleteAll();
     ssoUserRepository.deleteAll();
+    noteRepository.deleteAll();
+    facultyLeadRepository.deleteAll();
+    documentRepository.deleteAll();
     entityManager.createNativeQuery("ALTER SEQUENCE programs_seq RESTART WITH 1").executeUpdate();
     programRepository.deleteAll();
   }

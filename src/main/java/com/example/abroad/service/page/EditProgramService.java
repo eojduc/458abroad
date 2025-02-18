@@ -48,7 +48,7 @@ public record EditProgramService(UserService userService, ProgramService program
   public UpdateProgramInfo updateProgramInfo(
     Integer programId, String title, String description, Integer year, LocalDate startDate,
     LocalDate endDate, Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
-    List<String> facultyLeads, HttpSession session
+    List<String> facultyLeads, HttpSession session, LocalDate documentDeadline
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -69,6 +69,7 @@ public record EditProgramService(UserService userService, ProgramService program
     program.setStartDate(startDate);
     program.setEndDate(endDate);
     program.setDescription(description);
+    program.setDocumentDeadline(documentDeadline);
     return switch (programService.saveProgram(program)) {
       case SaveProgram.Success(var prog) -> {
         programService.setFacultyLeads(prog, facultyLeads);

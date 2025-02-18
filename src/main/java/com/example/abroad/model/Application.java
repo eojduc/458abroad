@@ -171,7 +171,7 @@ public final class Application {
 
   @Entity
   @Table(name = "documents")
-  public class Document {
+  public static class Document {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
@@ -232,7 +232,7 @@ public final class Application {
 
   @Entity
   @Table(name = "notes")
-  public class Note {
+  public static class Note {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;

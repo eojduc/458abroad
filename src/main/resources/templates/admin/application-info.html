@@ -4,14 +4,14 @@
 
 <body>
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-2/5 md:w-3/5 sm:w-full gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
       <div class="card-actions justify-between">
         <h1 class="card-title" th:text="${student.displayName}"></h1>
         <div id="status-badge">
-          <div th:replace="~{components :: statusBadge(${_application.status.name()})}"></div>
+          <div th:replace="~{components :: statusBadge(${programIsPast && _application.status.name() == 'ENROLLED' ? 'COMPLETED' : _application.status.name()})}"></div>
         </div>
       </div>
       <div>
@@ -28,11 +28,19 @@
           </tr>
           <tr class="border-base-300">
             <td>Description</td>
-            <td th:text="${program.description}"></td>
+            <td th:text="${program.description}" class="whitespace-pre-line"></td>
           </tr>
           <tr class="border-base-300">
-            <td>Faculty Lead</td>
-            <td>TODO</td>
+            <td>Faculty Leads</td>
+            <td>
+              <ul class="list-disc list-inside">
+                <li th:each="facultyLead : ${facultyLeads}">
+                  <a class="link link-primary"
+                     th:href="@{/admin/users/{id}(id=${facultyLead.username})}"
+                     th:text="${facultyLead.displayName}"></a>
+                </li>
+              </ul>
+            </td>
           </tr>
           <tr class="border-base-300">
             <td>Term</td>
@@ -45,6 +53,10 @@
           <tr class="border-base-300">
             <td>End Date</td>
             <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
+          </tr>
+          <tr class="border-base-300">
+            <td>Document Deadline</td>
+            <td th:text="${formatter.formatLocalDate(program.documentDeadline)}"></td>
           </tr>
           <tr class="border-base-300">
             <td>Application Open</td>
@@ -80,6 +92,11 @@
                     <option value="WITHDRAWN"
                             th:selected="${_application.status.name() == 'WITHDRAWN'}"
                     >Withdrawn</option>
+                    <option value="ELIGIBLE"
+                            th:selected="${_application.status.name() == 'ELIGIBLE'}">Eligible</option>
+                    <option value="APPROVED"
+                            th:selected="${_application.status.name() == 'APPROVED'}">Approved</option>
+
                   </select>
                 </form>
               </td>
@@ -107,11 +124,77 @@
           </tbody>
         </table>
       </div>
-      <h1 class="text-lg">Responses</h1>
-      <div class="m-4 flex flex-col gap-5">
-        <div th:each="question : ${questions}" class="flex flex-col gap-2">
-          <h2 th:text="${question.text}"></h2>
-          <p class="text-sm" th:text="${_application[question.field]}"></p>
+      <div>
+        <h1 class="text-lg">Responses</h1>
+        <div class="m-4 flex flex-col gap-5">
+          <div th:each="question : ${questions}" class="flex flex-col gap-2">
+            <h2 th:text="${question.text}" class="text-xs font-bold"></h2>
+            <p class="text-sm" th:text="${_application[question.field]}"></p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h1 class="text-lg">Documents</h1>
+        <div class="m-4 flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <div th:if="${documents.medicalHistory.isPresent()}" class="flex flex-row gap-2 items-center">
+              <a th:href="@{/admin/documents/{id}(id=${documents.medicalHistory.get().id})}" class="link link-secondary" th:text="${documents.medicalHistory.get().name}"></a>
+              <span class="text-xs" th:text="${formatter.formatInstant(documents.medicalHistory.get().timestamp)}"></span>
+            </div>
+            <div th:unless="${documents.medicalHistory.isPresent()}" class="flex flex-row gap-2">
+              <span class="text-xs">No medical history document uploaded</span>
+            </div>
+            <div th:if="${documents.codeOfConduct.isPresent()}" class="flex flex-row gap-2 items-center">
+              <a th:href="@{/admin/documents/{id}(id=${documents.codeOfConduct.get().id})}" class="link link-secondary" th:text="${documents.codeOfConduct.get().name}"></a>
+              <span class="text-xs" th:text="${formatter.formatInstant(documents.codeOfConduct.get().timestamp)}"></span>
+            </div>
+            <div th:unless="${documents.codeOfConduct.isPresent()}" class="flex flex-row gap-2">
+              <span class="text-xs">No code of conduct document uploaded</span>
+            </div>
+            <div th:if="${documents.housing.isPresent()}" class="flex flex-row gap-2 items-center">
+              <a th:href="@{/admin/documents/{id}(id=${documents.housing.get().id})}" class="link link-secondary" th:text="${documents.housing.get().name}"></a>
+              <span class="text-xs" th:text="${formatter.formatInstant(documents.housing.get().timestamp)}"></span>
+            </div>
+            <div th:unless="${documents.housing.isPresent()}" class="flex flex-row gap-2">
+              <span class="text-xs">No housing form document uploaded</span>
+            </div>
+            <div th:if="${documents.assumptionOfRisk.isPresent()}" class="flex flex-row gap-2 items-center">
+              <a th:href="@{/admin/documents/{id}(id=${documents.assumptionOfRisk.get().id})}" class="link link-secondary" th:text="${documents.assumptionOfRisk.get().name}"></a>
+              <span class="text-xs" th:text="${formatter.formatInstant(documents.assumptionOfRisk.get().timestamp)}"></span>
+            </div>
+            <div th:unless="${documents.assumptionOfRisk.isPresent()}" class="flex flex-row gap-2">
+              <span class="text-xs">No assumption of risk document uploaded</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <h1 class="text-lg">Notes</h1>
+        <div id="note-table">
+          <div th:fragment="note-table" class="flex flex-col gap-5 m-4">
+            <div th:each="note : ${notes}" class="card card-compact bg-base-300">
+              <div class="card-body gap-5">
+                <div class="flex flex-col gap-2">
+                  <div class="flex justify-between">
+                    <div class="text-xs ml-auto" th:text="${note.username} + ' (' + ${formatter.formatInstant(note.timestamp)} + ')'"></div>
+                  </div>
+                  <p class="overflow-x-auto break-words w-full whitespace-pre-line" th:text="${note.content}"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-row gap-5">
+          <form class="contents"
+                th:hx-post="@{/admin/applications/{id}/notes(id=${_application.id})}"
+                hx-target="#note-table"
+                hx-on::after-request="this.reset()">
+
+          <textarea class="textarea textarea-bordered w-full"
+                    name="content"
+                    required></textarea>
+            <button class="btn btn-primary">Add Note</button>
+          </form>
         </div>
       </div>
     </div>
@@ -121,6 +204,7 @@
 </body>
 
 </html>
+
 
 
 
