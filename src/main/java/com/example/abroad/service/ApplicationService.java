@@ -25,7 +25,6 @@ public record ApplicationService(ApplicationRepository applicationRepository, No
   public List<Application> findByProgramId(Integer programId) {
     return applicationRepository.findByProgramId(programId);
   }
-
   public void updateStatus(String applicationId, Application.Status status) {
     applicationRepository.updateStatus(applicationId, status);
   }
