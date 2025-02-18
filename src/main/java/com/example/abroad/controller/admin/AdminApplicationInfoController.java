@@ -2,14 +2,20 @@ package com.example.abroad.controller.admin;
 
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Question;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService;
-import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo;
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound;
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.NotLoggedIn;
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.ProgramNotFound;
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.Success;
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.UserNotAdmin;
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.PostNote;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.UpdateApplicationStatus;
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
@@ -28,9 +34,10 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
     Model model, @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     return switch (service.getApplicationInfo(applicationId, session)) {
-      case GetApplicationInfo.Success(var program, var student, var application, var user) -> {
+      case Success(var program, var student, var application, var user, var notes, var documents, var status, var facultyLeads) -> {
         model.addAllAttributes(Map.of(
           "program", program,
+          "programIsPast", program.endDate().isBefore(LocalDate.now()),
           "student", student,
           "_application", application,
           // _application is used to avoid conflict with the application variable in Thymeleaf
@@ -38,13 +45,38 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
           "questions", Question.QUESTIONS,
           "user", user,
           "alerts", new Alerts(error, success, warning, info),
-          "theme", userService.getTheme(session)
+          "theme", userService.getTheme(session),
+          "notes", notes
+        ));
+        model.addAllAttributes(Map.of(
+          "documents", documents,
+          "status", status,
+          "facultyLeads", facultyLeads
         ));
         yield "admin/application-info :: page";
       }
-      case GetApplicationInfo.ApplicationNotFound() -> "redirect:/admin/programs?error=That application does not exist";
-      case GetApplicationInfo.UserNotAdmin() -> "redirect:/applications?error=You are not an admin";
-      case GetApplicationInfo.NotLoggedIn() ->
+      case ApplicationNotFound() -> "redirect:/admin/programs?error=That application does not exist";
+      case UserNotAdmin() -> "redirect:/applications?error=You are not an admin";
+      case NotLoggedIn() ->
+        "redirect:/login?error=You must be logged in to view this page";
+      case ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
+    };
+  }
+
+  @PostMapping("/admin/applications/{applicationId}/notes")
+  public String createNote(@PathVariable String applicationId, HttpSession session,
+    @RequestParam String content, Model model) {
+    return switch (service.postNote(applicationId, content, session)) {
+      case PostNote.Success(var notes) -> {
+        model.addAllAttributes(Map.of(
+          "notes", notes,
+          "formatter", formatter
+        ));
+        yield "admin/application-info :: note-table";
+      }
+      case PostNote.ApplicationNotFound() -> "redirect:/admin/programs?error=That application does not exist";
+      case PostNote.UserNotAdmin() -> "redirect:/applications?error=You are not an admin";
+      case PostNote.NotLoggedIn() ->
         "redirect:/login?error=You must be logged in to view this page";
     };
   }
@@ -53,10 +85,10 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
   @PostMapping("/admin/applications/{applicationId}/status")
   public String updateApplicationStatus(@PathVariable String applicationId,
     HttpSession session, Model model,
-    @RequestParam Application.Status status) {
+    @RequestParam Status status) {
     switch (service.updateApplicationStatus(applicationId, status, session)) {
       case UpdateApplicationStatus.Success(var newStatus) -> {
-        model.addAttribute("status", newStatus.name());
+        model.addAttribute("status", newStatus);
         return "components :: statusBadge";
       }
       case UpdateApplicationStatus.ApplicationNotFound() -> {
@@ -68,6 +100,10 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
         return "components :: statusBadge";
       }
       case UpdateApplicationStatus.UserNotAdmin() -> {
+        model.addAttribute("status", "error");
+        return "components :: statusBadge";
+      }
+      case UpdateApplicationStatus.ProgramNotFound() -> {
         model.addAttribute("status", "error");
         return "components :: statusBadge";
       }

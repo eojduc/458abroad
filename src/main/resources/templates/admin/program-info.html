@@ -21,8 +21,16 @@
         <table class="table table-sm border-collapse w-fit">
           <tbody>
           <tr class="border-base-300">
-            <td>Faculty Lead</td>
-            <td>TODO</td>
+            <td>Faculty Leads</td>
+            <td>
+              <ul class="list-disc list-inside">
+                <li th:each="facultyLead : ${facultyLeads}">
+                  <a class="link link-primary"
+                     th:href="@{/admin/users/{id}(id=${facultyLead.username})}"
+                     th:text="${facultyLead.displayName}"></a>
+                </li>
+              </ul>
+            </td>
           </tr>
           <tr class="border-base-300 border-y-2">
             <td>Term</td>
@@ -82,6 +90,7 @@
 
 </html>
 
+
 <!-- Applicant table fragment -->
 <div
     xmlns:th="http://www.thymeleaf.org"
@@ -107,11 +116,35 @@
         </span>
     </button>
     <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='ELIGIBLE')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
+        <span th:class="${filter == 'ENROLLED'} ? 'badge badge-success' : 'badge badge-info badge-outline'">
+          ELIGIBLE
+        </span>
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='APPROVED')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
+        <span th:class="${filter == 'APPROVED'} ? 'badge badge-success' : 'badge badge-success badge-outline'">
+          APPROVED
+        </span>
+    </button>
+    <button class="contents"
             th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='ENROLLED')}"
             hx-swap="outerHTML"
             hx-target="#applicant-table">
         <span th:class="${filter == 'ENROLLED'} ? 'badge badge-success' : 'badge badge-success badge-outline'">
           ENROLLED
+        </span>
+    </button>
+    <button class="contents"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='COMPLETED')}"
+            hx-swap="outerHTML"
+            hx-target="#applicant-table">
+        <span th:class="${filter == 'ENROLLED'} ? 'badge badge-success' : 'badge badge-success badge-outline'">
+          COMPLETED
         </span>
     </button>
     <button class="contents"
@@ -176,6 +209,42 @@
         '#applicant-table',
         'STATUS'
       )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'medical history',
+        '#applicant-table',
+        'MEDICAL_HISTORY'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'housing',
+        '#applicant-table',
+        'HOUSING'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'code of conduct',
+        '#applicant-table',
+        'CODE_OF_CONDUCT'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'assumption of risk',
+        '#applicant-table',
+        'ASSUMPTION_OF_RISK'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'latest note',
+        '#applicant-table',
+        'LATEST_NOTE'
+      )}"></th>
+      <th th:replace="~{this :: sortableHeader(
+        @{/admin/programs/{programId}/applicants(programId=${program.id})},
+        'note count',
+        '#applicant-table',
+        'NOTE_COUNT'
+      )}"></th>
       <th>update</th>
     </tr>
 
@@ -195,8 +264,57 @@
         <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
         <td>
           <div th:id="'status-badge-' + ${applicant.username}">
-            <div th:replace="~{components :: statusBadge(${applicant.status.name()})}"></div>
+            <div th:replace="~{components :: statusBadge(${applicant.displayStatus})}">
           </div>
+        </td>
+        <td>
+          <span th:if="${applicant.medicalHistorySubmissionTime.isPresent()}">
+            <span class="badge badge-success" th:text="${applicant.medicalHistorySubmissionTime.get()}"></span>
+          </span>
+          <span th:if ="${applicant.medicalHistorySubmissionTime.isEmpty() && documentDeadlinePassed}">
+            <span class="badge badge-error">Late</span>
+          </span>
+          <span th:if ="${applicant.medicalHistorySubmissionTime.isEmpty() && !documentDeadlinePassed}">
+            <span class="badge badge-warning">Pending</span>
+          </span>
+        </td>
+        <td>
+          <span th:if="${applicant.housingSubmissionTime.isPresent()}">
+            <span class="badge badge-success" th:text="${applicant.housingSubmissionTime.get()}"></span>
+          </span>
+          <span th:if ="${applicant.housingSubmissionTime.isEmpty() && documentDeadlinePassed}">
+            <span class="badge badge-error">Late</span>
+          </span>
+          <span th:if ="${applicant.housingSubmissionTime.isEmpty() && !documentDeadlinePassed}">
+            <span class="badge badge-warning">Pending</span>
+          </span>
+        </td>
+        <td>
+          <span th:if="${applicant.codeOfConductSubmissionTime.isPresent()}">
+            <span class="badge badge-success" th:text="${applicant.codeOfConductSubmissionTime.get()}"></span>
+          </span>
+          <span th:if ="${applicant.codeOfConductSubmissionTime.isEmpty() && documentDeadlinePassed}">
+            <span class="badge badge-error">Late</span>
+          </span>
+          <span th:if ="${applicant.codeOfConductSubmissionTime.isEmpty() && !documentDeadlinePassed}">
+            <span class="badge badge-warning">Pending</span>
+          </span>
+        </td>
+        <td>
+          <span th:if="${applicant.assumptionOfRiskSubmissionTime.isPresent()}">
+            <span class="badge badge-success" th:text="${applicant.assumptionOfRiskSubmissionTime.get()}"></span>
+          </span>
+          <span th:if ="${applicant.assumptionOfRiskSubmissionTime.isEmpty() && documentDeadlinePassed}">
+            <span class="badge badge-error">Late</span>
+          </span>
+          <span th:if ="${applicant.assumptionOfRiskSubmissionTime.isEmpty() && !documentDeadlinePassed}">
+            <span class="badge badge-warning">Pending</span>
+          </span>
+        </td>
+        <td>
+          <span th:if ="${applicant.latestNote.isPresent()}" th:text="${applicant.latestNote.get().username} + ': ' + ${applicant.latestNote.get().timestamp}"></span>
+        </td>
+        <td th:text="${applicant.noteCount}" class="text-center">
         </td>
         <td>
           <form class="contents"
@@ -205,9 +323,15 @@
                 th:hx-target="'#status-badge-' + ${applicant.username}">
             <select name="status" class="select select-sm">
               <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
-              <option value="ENROLLED" th:selected="${applicant.status.name() == 'ENROLLED'}">Enrolled</option>
+              <option value="ENROLLED"
+                      th:if="${!programIsDone}"
+                      th:selected="${applicant.status.name() == 'ENROLLED'}"
+                      th:text="${programIsDone ? 'Completed' : 'Enrolled'}"></option>
               <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
               <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
+              <option value="ELIGIBLE" th:selected="${applicant.status.name() == 'ELIGIBLE'}">Eligible</option>
+              <option value="APPROVED" th:selected="${applicant.status.name() == 'APPROVED'}">Approved</option>
+
             </select>
           </form>
         </td>

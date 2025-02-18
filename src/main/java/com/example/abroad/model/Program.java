@@ -150,6 +150,9 @@ public final class Program {
   public void setDescription(String description) {
     this.description = description;
   }
+  public void setDocumentDeadline(LocalDate documentDeadline) {
+    this.documentDeadline = documentDeadline;
+  }
 
   public enum Semester {
     FALL, SPRING, SUMMER
