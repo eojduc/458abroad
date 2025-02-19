@@ -9,7 +9,6 @@ import com.example.abroad.respository.DocumentRepository;
 import com.example.abroad.respository.NoteRepository;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -33,20 +32,33 @@ public record ApplicationService(ApplicationRepository applicationRepository, No
     return applicationRepository.findById(applicationId);
   }
 
-  public List<Application.Document> getDocuments(String applicationId) {
-    return documentRepository.findByApplicationId(applicationId);
-  }
-
-  public Map<Type, Optional<Document>> getLatestDocuments(String applicationId) {
-    return documentRepository.findByApplicationId(applicationId)
+  public Documents getLatestDocuments(String applicationId) {
+    var latestDocuments = documentRepository.findByApplicationId(applicationId)
       .stream()
       .collect(Collectors.groupingBy(
         Document::type,
         Collectors.maxBy(Comparator.comparing(Document::timestamp))
       ));
+    return new Documents(
+      latestDocuments.getOrDefault(Type.MEDICAL_HISTORY, Optional.empty()),
+      latestDocuments.getOrDefault(Type.CODE_OF_CONDUCT, Optional.empty()),
+      latestDocuments.getOrDefault(Type.HOUSING, Optional.empty()),
+      latestDocuments.getOrDefault(Type.ASSUMPTION_OF_RISK, Optional.empty())
+    );
   }
 
-  public Note saveNote(Note note) {
+  public record Documents(
+    Optional<Document> medicalHistory,
+    Optional<Document> codeOfConduct,
+    Optional<Document> housing,
+    Optional<Document> assumptionOfRisk
+  ) {
+
+  }
+
+
+
+    public Note saveNote(Note note) {
     return noteRepository.save(note);
   }
 }

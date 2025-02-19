@@ -19,34 +19,29 @@ public record AddProgramService(UserService userService, ProgramService programS
     if (user == null) {
       return new GetAddProgramInfo.NotLoggedIn();
     }
-    if (user.role() != User.Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new GetAddProgramInfo.UserNotAdmin();
     }
     return new GetAddProgramInfo.Success(user);
   }
 
-  public AddProgramInfo addProgramInfo(String title, String description,
-      Integer year, LocalDate startDate, LocalDate endDate,
-      Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
-      HttpSession session
+  public AddProgramInfo addProgramInfo(
+    String title, String description, Integer year, LocalDate startDate, LocalDate endDate,
+    Semester semester, LocalDate applicationOpen, LocalDate applicationClose, HttpSession session
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new AddProgramInfo.NotLoggedIn();
     }
-    if (user.role() != User.Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new AddProgramInfo.UserNotAdmin();
     }
-    Program program = new Program();
-    program.setTitle(title);
-    program.setYear(Year.of(year));
-    program.setSemester(semester);
-    program.setApplicationOpen(applicationOpen);
-    program.setApplicationClose(applicationClose);
-    program.setStartDate(startDate);
-    program.setEndDate(endDate);
-    program.setDescription(description);
-
+    Program program = new Program(
+      null,
+      title, Year.of(year),
+      semester, applicationOpen, applicationClose,
+      null, startDate, endDate, description
+    );
    return switch (programService.saveProgram(program)) {
      case SaveProgram.InvalidProgramInfo(var message) -> new AddProgramInfo.InvalidProgramInfo(message);
       case SaveProgram.Success(var p) -> new AddProgramInfo.Success(p.id());

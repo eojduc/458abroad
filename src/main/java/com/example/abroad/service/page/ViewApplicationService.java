@@ -77,19 +77,19 @@ public record ViewApplicationService(
 
     Application app = success.application();
 
-    app.setAnswer1(answer1);
-    app.setAnswer2(answer2);
-    app.setAnswer3(answer3);
-    app.setAnswer4(answer4);
-    app.setAnswer5(answer5);
+    var newApp = app
+      .withAnswer1(answer1)
+      .withAnswer2(answer2)
+      .withAnswer3(answer3)
+      .withAnswer4(answer4)
+      .withAnswer5(answer5)
+      .withGpa(gpa)
+      .withMajor(major)
+      .withDateOfBirth(dateOfBirth);
 
-    app.setGpa(gpa);
-    app.setMajor(major);
-    app.setBirthdate(dateOfBirth);
+    applicationRepository.save(newApp);
 
-    applicationRepository.save(app);
-
-    return new GetApplicationResult.Success(app, success.program(), success.user(), success.editable());
+    return new GetApplicationResult.Success(newApp, success.program(), success.user(), success.editable());
   }
 
   public GetApplicationResult changeStatus(String applicationId, Application.Status newStatus, HttpSession session) {
@@ -110,9 +110,7 @@ public record ViewApplicationService(
       }
     }
 
-    app.setStatus(newStatus);
-
-    applicationRepository.save(app);
+    applicationRepository.save(app.withStatus(newStatus));
 
     boolean editable = false;
     LocalDate today = LocalDate.now();

@@ -34,8 +34,7 @@ public record ApplyToProgramService(
     if (program == null) {
       return new GetApplyPageData.ProgramNotFound();
     }
-    var existingApplication = applicationRepository.findByProgramIdAndStudent(programId,
-      user.username());
+    var existingApplication = applicationRepository.findByProgramIdAndStudent(programId, user.username());
     if (existingApplication.isPresent()) {
       return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().id());
     }

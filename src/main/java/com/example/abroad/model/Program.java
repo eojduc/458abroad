@@ -60,10 +60,11 @@ public final class Program {
   }
 
 
-  public Program(String title, Year year, Semester semester, LocalDate applicationOpen,
+  public Program(Integer id, String title, Year year, Semester semester, LocalDate applicationOpen,
     LocalDate applicationClose, LocalDate documentDeadline,
     LocalDate startDate, LocalDate endDate,
     String description) {
+    this.id = id;
     this.title = title;
     this.year = year;
     this.semester = semester;
@@ -114,44 +115,61 @@ public final class Program {
     return documentDeadline;
   }
 
-
-  // ONLY FOR INITIALIZING SAMPLE DATA
-  public void setId(Integer id) {
-    this.id = id;
-  }
-  public void setTitle(String title) {
-    this.title = title;
+  public Program withTitle(String title) {
+    return new Program(
+      this.id, title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
   }
 
-  public void setYear(Year of) {
-    this.year = of;
+  public Program withYear(Year year) {
+    return new Program(
+      this.id, this.title, year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
+  }
+  public Program withSemester(Semester semester) {
+    return new Program(
+      this.id, this.title, this.year, semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
+  }
+  public Program withApplicationOpen(LocalDate applicationOpen) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
+  }
+  public Program withApplicationClose(LocalDate applicationClose) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
+  }
+  public Program withStartDate(LocalDate startDate) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, startDate, this.endDate, this.description
+    );
+  }
+  public Program withEndDate(LocalDate endDate) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, endDate, this.description
+    );
   }
 
-  public void setSemester(Semester semester) {
-    this.semester = semester;
+  public Program withDescription(String description) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, description
+    );
   }
-
-  public void setApplicationOpen(LocalDate applicationOpen) {
-    this.applicationOpen = applicationOpen;
-  }
-
-  public void setApplicationClose(LocalDate applicationClose) {
-    this.applicationClose = applicationClose;
-  }
-
-  public void setStartDate(LocalDate startDate) {
-    this.startDate = startDate;
-  }
-
-  public void setEndDate(LocalDate endDate) {
-    this.endDate = endDate;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-  public void setDocumentDeadline(LocalDate documentDeadline) {
-    this.documentDeadline = documentDeadline;
+  public Program withDocumentDeadline(LocalDate documentDeadline) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      documentDeadline, this.startDate, this.endDate, this.description
+    );
   }
 
   public enum Semester {

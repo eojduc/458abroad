@@ -124,40 +124,32 @@ public final class Application {
     return status;
   }
 
-  public void setStatus(Status status) {
-    this.status = status;
+  public Application withStatus(Status status) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
-
-  public void setGpa(Double gpa) {
-    this.gpa = gpa;
+  public Application withMajor(String major) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
-
-  public void setMajor(String major) {
-    this.major = major;
+  public Application withGpa(Double gpa) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
-
-  public void setBirthdate(LocalDate dateOfBirth) {
-    this.dateOfBirth = dateOfBirth;
+  public Application withDateOfBirth(LocalDate dateOfBirth) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
-
-  public void setAnswer1(String answer1) {
-    this.answer1 = answer1;
+  public Application withAnswer1(String answer1) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
-
-  public void setAnswer2(String answer2) {
-    this.answer2 = answer2;
+  public Application withAnswer2(String answer2) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
-
-  public void setAnswer3(String answer3) {
-    this.answer3 = answer3;
+  public Application withAnswer3(String answer3) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
-
-  public void setAnswer4(String answer4) {
-    this.answer4 = answer4;
+  public Application withAnswer4(String answer4) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
-
-  public void setAnswer5(String answer5) {
-    this.answer5 = answer5;
+  public Application withAnswer5(String answer5) {
+    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
   }
 
   public enum Status {
@@ -191,7 +183,16 @@ public final class Application {
     private String applicationId;
 
     public enum Type {
-      ASSUMPTION_OF_RISK, CODE_OF_CONDUCT, MEDICAL_HISTORY, HOUSING
+      ASSUMPTION_OF_RISK, CODE_OF_CONDUCT, MEDICAL_HISTORY, HOUSING;
+
+      public String text() {
+        return switch (this) {
+          case ASSUMPTION_OF_RISK -> "Assumption of Risk";
+          case CODE_OF_CONDUCT -> "Code of Conduct";
+          case MEDICAL_HISTORY -> "Medical History";
+          case HOUSING -> "Housing Form";
+        };
+      }
     }
 
     public Document() {

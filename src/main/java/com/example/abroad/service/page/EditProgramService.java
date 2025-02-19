@@ -1,7 +1,6 @@
 package com.example.abroad.service.page;
 
 import com.example.abroad.model.Program;
-import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.model.User;
 import com.example.abroad.service.ProgramService;
@@ -11,23 +10,22 @@ import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
 public record EditProgramService(UserService userService, ProgramService programService) {
 
-  public GetEditProgramInfo getEditProgramInfo(Integer programId, HttpSession session) {
+  public EditProgramPage getEditProgramInfo(Integer programId, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
-      return new GetEditProgramInfo.NotLoggedIn();
+      return new EditProgramPage.NotLoggedIn();
     }
-    if (user.role() != User.Role.ADMIN) {
-      return new GetEditProgramInfo.UserNotAdmin();
+    if (!user.isAdmin()) {
+      return new EditProgramPage.UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);
     if (program == null) {
-      return new GetEditProgramInfo.ProgramNotFound();
+      return new EditProgramPage.ProgramNotFound();
     }
     var facultyLeads = programService.findFacultyLeads(program)
       .stream()
@@ -42,7 +40,7 @@ public record EditProgramService(UserService userService, ProgramService program
       .filter(u -> !facultyUsernames.contains(u.username()))
       .toList();
 
-    return new GetEditProgramInfo.Success(program, user, facultyLeads, nonFacultyLeads);
+    return new EditProgramPage.Success(program, user, facultyLeads, nonFacultyLeads);
   }
 
   public UpdateProgramInfo updateProgramInfo(
@@ -54,23 +52,24 @@ public record EditProgramService(UserService userService, ProgramService program
     if (user == null) {
       return new UpdateProgramInfo.NotLoggedIn();
     }
-    if (user.role() != User.Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new UpdateProgramInfo.UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);
     if (program == null) {
       return new UpdateProgramInfo.ProgramNotFound();
     }
-    program.setTitle(title);
-    program.setYear(Year.of(year));
-    program.setSemester(semester);
-    program.setApplicationOpen(applicationOpen);
-    program.setApplicationClose(applicationClose);
-    program.setStartDate(startDate);
-    program.setEndDate(endDate);
-    program.setDescription(description);
-    program.setDocumentDeadline(documentDeadline);
-    return switch (programService.saveProgram(program)) {
+    var newProgram = program
+      .withTitle(title)
+      .withYear(Year.of(year))
+      .withSemester(semester)
+      .withApplicationOpen(applicationOpen)
+      .withApplicationClose(applicationClose)
+      .withStartDate(startDate)
+      .withEndDate(endDate)
+      .withDescription(description)
+      .withDocumentDeadline(documentDeadline);
+    return switch (programService.saveProgram(newProgram)) {
       case SaveProgram.Success(var prog) -> {
         programService.setFacultyLeads(prog, facultyLeads);
         yield new UpdateProgramInfo.Success();
@@ -81,16 +80,16 @@ public record EditProgramService(UserService userService, ProgramService program
   }
 
 
-  public sealed interface GetEditProgramInfo {
+  public sealed interface EditProgramPage {
     record Success(
       Program program,
       User admin,
       List<? extends User> facultyLeads,
       List<? extends User> nonFacultyLeads
-    ) implements GetEditProgramInfo { }
-    record ProgramNotFound() implements GetEditProgramInfo { }
-    record UserNotAdmin() implements GetEditProgramInfo { }
-    record NotLoggedIn() implements GetEditProgramInfo { }
+    ) implements EditProgramPage { }
+    record ProgramNotFound() implements EditProgramPage { }
+    record UserNotAdmin() implements EditProgramPage { }
+    record NotLoggedIn() implements EditProgramPage { }
   }
 
   public sealed interface UpdateProgramInfo {

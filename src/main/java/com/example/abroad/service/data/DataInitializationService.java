@@ -208,19 +208,18 @@ public class DataInitializationService {
           Optional<Program> optionalProgram = programRepository.findById(
               Integer.parseInt(record.get("id")));
           if (optionalProgram.isPresent()) {
-            Program existingProgram = optionalProgram.get();
-            existingProgram.setTitle(record.get("title"));
-            existingProgram.setYear(Year.parse(record.get("year")));
-            existingProgram.setSemester(
-                Program.Semester.valueOf(record.get("semester").toUpperCase()));
-            existingProgram.setApplicationOpen(LocalDate.parse(record.get("applicationOpen")));
-            existingProgram.setApplicationClose(LocalDate.parse(record.get("applicationClose")));
-            existingProgram.setStartDate(LocalDate.parse(record.get("startDate")));
-            existingProgram.setEndDate(LocalDate.parse(record.get("endDate")));
-            existingProgram.setDescription(record.get("description"));
-            return existingProgram;
+            return optionalProgram.get()
+              .withTitle(record.get("title"))
+              .withYear(Year.parse(record.get("year")))
+              .withSemester(Program.Semester.valueOf(record.get("semester").toUpperCase()))
+              .withApplicationOpen(LocalDate.parse(record.get("applicationOpen")))
+              .withApplicationClose(LocalDate.parse(record.get("applicationClose")))
+              .withStartDate(LocalDate.parse(record.get("startDate")))
+              .withEndDate(LocalDate.parse(record.get("endDate")))
+              .withDescription(record.get("description"));
           } else {
             return new Program(
+              null,
                 record.get("title"),
                 Year.parse(record.get("year")),
                 Program.Semester.valueOf(record.get("semester").toUpperCase()),

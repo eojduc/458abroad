@@ -1,13 +1,12 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ApplicationService.Documents;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
@@ -16,8 +15,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,7 +30,7 @@ public record AdminApplicationInfoService(
     if (user == null) {
       return new GetApplicationInfo.NotLoggedIn();
     }
-    if (user.role() != User.Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new GetApplicationInfo.UserNotAdmin();
     }
     var application = applicationService.findById(applicationId).orElse(null);
@@ -44,24 +41,9 @@ public record AdminApplicationInfoService(
     var student = userService.findByUsername(application.student()).orElse(null);
     var notes = applicationService.getNotes(application.id())
       .stream()
-      .sorted(Comparator.comparing(Note::timestamp))
-      .toList()
-      .reversed();
-    var latestDocuments = applicationService.getDocuments(application.id())
-      .stream()
-      .collect(Collectors.groupingBy(
-        Document::type,
-        Collectors.maxBy(Comparator.comparing(Document::timestamp))
-      ));
-    var medicalHistory = latestDocuments.getOrDefault(Document.Type.MEDICAL_HISTORY, Optional.empty())
-      .map(doc -> new Doc("Medical History Form", doc.id(), doc.timestamp()));
-    var codeOfConduct = latestDocuments.getOrDefault(Document.Type.CODE_OF_CONDUCT, Optional.empty())
-      .map(doc -> new Doc("Code of Conduct", doc.id(), doc.timestamp()));
-    var housing = latestDocuments.getOrDefault(Document.Type.HOUSING, Optional.empty())
-      .map(doc -> new Doc("Housing Form", doc.id(), doc.timestamp()));
-    var assumptionOfRisk = latestDocuments.getOrDefault(Document.Type.ASSUMPTION_OF_RISK, Optional.empty())
-      .map(doc -> new Doc("Assumption of Risk", doc.id(), doc.timestamp()));
-    var documents = new Documents(medicalHistory, codeOfConduct, housing, assumptionOfRisk);
+      .sorted(Comparator.comparing(Note::timestamp).reversed())
+      .toList();
+    var documents = applicationService.getLatestDocuments(application.id());
     if (program == null || student == null) {
       return new GetApplicationInfo.ApplicationNotFound();
     }
@@ -71,30 +53,16 @@ public record AdminApplicationInfoService(
     return new GetApplicationInfo.Success(program, student, application, user, notes, documents, status, facultyLeads);
   }
 
-  public record Doc(
-    String name,
-    Integer id,
-                    Instant timestamp) {
-  }
 
-
-  public record Documents(
-    Optional<Doc> medicalHistory,
-    Optional<Doc> codeOfConduct,
-    Optional<Doc> housing,
-    Optional<Doc> assumptionOfRisk
-  ) {
-
-  }
 
   public UpdateApplicationStatus updateApplicationStatus(
-    String applicationId, Application.Status status,
-    HttpSession session) {
+    String applicationId, Application.Status status, HttpSession session
+  ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new UpdateApplicationStatus.NotLoggedIn();
     }
-    if (user.role() != User.Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new UpdateApplicationStatus.UserNotAdmin();
     }
     var application = applicationService.findById(applicationId).orElse(null);

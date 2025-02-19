@@ -3,7 +3,7 @@ package com.example.abroad.controller.admin;
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.page.EditProgramService;
-import com.example.abroad.service.page.EditProgramService.GetEditProgramInfo;
+import com.example.abroad.service.page.EditProgramService.EditProgramPage;
 import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
@@ -34,7 +34,7 @@ public record EditProgramPageController(EditProgramService service, FormatServic
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info,
     Model model) {
     switch (service.getEditProgramInfo(programId, session)) {
-      case GetEditProgramInfo.Success(var program, var user, var facultyLeads, var nonFacultyLeads) -> {
+      case EditProgramPage.Success(var program, var user, var facultyLeads, var nonFacultyLeads) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "user", user,
@@ -46,13 +46,13 @@ public record EditProgramPageController(EditProgramService service, FormatServic
         ));
         return "admin/edit-program :: page";
       }
-      case GetEditProgramInfo.NotLoggedIn() -> {
+      case EditProgramPage.NotLoggedIn() -> {
         return "redirect:/login?error=You are not logged in";
       }
-      case GetEditProgramInfo.UserNotAdmin() -> {
+      case EditProgramPage.UserNotAdmin() -> {
         return "redirect:/programs?error=You are not an admin";
       }
-      case GetEditProgramInfo.ProgramNotFound() -> {
+      case EditProgramPage.ProgramNotFound() -> {
         return "redirect:/admin/programs?error=That program does not exist";
       }
     }

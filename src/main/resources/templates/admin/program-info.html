@@ -55,7 +55,7 @@
           </tbody>
         </table>
       </div>
-      <div>
+      <div class="overflow-x-auto">
         <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE, ASCENDING)}"></div>
       </div>
       <div class="card-actions">
@@ -96,7 +96,7 @@
     xmlns:th="http://www.thymeleaf.org"
     th:fragment="applicant-table(applicants, program, formatter, column, filter, sort)"
     id="applicant-table"
-    class="flex flex-col gap-5 overflow-x-auto">
+    class="flex flex-col gap-5">
   <div class="flex flex-row gap-6 items-center">
     <h2 class="text-lg">Applicants</h2>
     <button class="contents"
@@ -268,46 +268,46 @@
           </div>
         </td>
         <td>
-          <span th:if="${applicant.medicalHistorySubmissionTime.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.medicalHistorySubmissionTime.get()}"></span>
+          <span th:if="${applicant.documents.medicalHistory.isPresent()}">
+            <span class="badge badge-success" th:text="${applicant.documents.medicalHistory.get().timestamp}"></span>
           </span>
-          <span th:if ="${applicant.medicalHistorySubmissionTime.isEmpty() && documentDeadlinePassed}">
+          <span th:if ="${applicant.documents.medicalHistory.isEmpty() && documentDeadlinePassed}">
             <span class="badge badge-error">Late</span>
           </span>
-          <span th:if ="${applicant.medicalHistorySubmissionTime.isEmpty() && !documentDeadlinePassed}">
+          <span th:if ="${applicant.documents.medicalHistory.isEmpty() && !documentDeadlinePassed}">
             <span class="badge badge-warning">Pending</span>
           </span>
         </td>
         <td>
-          <span th:if="${applicant.housingSubmissionTime.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.housingSubmissionTime.get()}"></span>
+          <span th:if="${applicant.documents.housing.isPresent()}">
+            <span class="badge badge-success" th:text="${applicant.documents.housing.get().timestamp}"></span>
           </span>
-          <span th:if ="${applicant.housingSubmissionTime.isEmpty() && documentDeadlinePassed}">
+          <span th:if ="${applicant.documents.housing.isEmpty() && documentDeadlinePassed}">
             <span class="badge badge-error">Late</span>
           </span>
-          <span th:if ="${applicant.housingSubmissionTime.isEmpty() && !documentDeadlinePassed}">
+          <span th:if ="${applicant.documents.housing.isEmpty() && !documentDeadlinePassed}">
             <span class="badge badge-warning">Pending</span>
           </span>
         </td>
         <td>
-          <span th:if="${applicant.codeOfConductSubmissionTime.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.codeOfConductSubmissionTime.get()}"></span>
+          <span th:if="${applicant.documents.codeOfConduct.isPresent()}">
+            <span class="badge badge-success" th:text="${applicant.documents.codeOfConduct.get().timestamp}"></span>
           </span>
-          <span th:if ="${applicant.codeOfConductSubmissionTime.isEmpty() && documentDeadlinePassed}">
+          <span th:if ="${applicant.documents.codeOfConduct.isEmpty() && documentDeadlinePassed}">
             <span class="badge badge-error">Late</span>
           </span>
-          <span th:if ="${applicant.codeOfConductSubmissionTime.isEmpty() && !documentDeadlinePassed}">
+          <span th:if ="${applicant.documents.codeOfConduct.isEmpty() && !documentDeadlinePassed}">
             <span class="badge badge-warning">Pending</span>
           </span>
         </td>
         <td>
-          <span th:if="${applicant.assumptionOfRiskSubmissionTime.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.assumptionOfRiskSubmissionTime.get()}"></span>
+          <span th:if="${applicant.documents.assumptionOfRisk.isPresent()}">
+            <span class="badge badge-success" th:text="${applicant.documents.assumptionOfRisk.get().timestamp}">
           </span>
-          <span th:if ="${applicant.assumptionOfRiskSubmissionTime.isEmpty() && documentDeadlinePassed}">
+          <span th:if ="${applicant.documents.assumptionOfRisk.isEmpty() && documentDeadlinePassed}">
             <span class="badge badge-error">Late</span>
           </span>
-          <span th:if ="${applicant.assumptionOfRiskSubmissionTime.isEmpty() && !documentDeadlinePassed}">
+          <span th:if ="${applicant.documents.assumptionOfRisk.isEmpty() && !documentDeadlinePassed}">
             <span class="badge badge-warning">Pending</span>
           </span>
         </td>

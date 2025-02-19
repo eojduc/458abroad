@@ -9,6 +9,7 @@ import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Role;
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ApplicationService.Documents;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminProgramInfoService.DeleteProgram.ProgramNotFound;
@@ -96,10 +97,10 @@ public record AdminProgramInfoService(
       case STATUS -> Comparator.comparing(Applicant::status);
       case NOTE_COUNT -> Comparator.comparing(Applicant::noteCount);
       case LATEST_NOTE -> Comparator.comparing(applicant -> applicant.latestNote().map(Note::timestamp).orElse(Instant.MIN));
-      case MEDICAL_HISTORY -> Comparator.comparing(applicant -> applicant.medicalHistorySubmissionTime().orElse(Instant.MIN));
-      case CODE_OF_CONDUCT -> Comparator.comparing(applicant -> applicant.codeOfConductSubmissionTime().orElse(Instant.MIN));
-      case ASSUMPTION_OF_RISK -> Comparator.comparing(applicant -> applicant.assumptionOfRiskSubmissionTime().orElse(Instant.MIN));
-      case HOUSING -> Comparator.comparing(applicant -> applicant.housingSubmissionTime().orElse(Instant.MIN));
+      case MEDICAL_HISTORY -> Comparator.comparing(applicant -> applicant.documents().medicalHistory().map(Document::timestamp).orElse(Instant.MIN));
+      case CODE_OF_CONDUCT -> Comparator.comparing(applicant -> applicant.documents().codeOfConduct().map(Document::timestamp).orElse(Instant.MIN));
+      case ASSUMPTION_OF_RISK -> Comparator.comparing(applicant -> applicant.documents().assumptionOfRisk().map(Document::timestamp).orElse(Instant.MIN));
+      case HOUSING -> Comparator.comparing(applicant -> applicant.documents().housing().map(Document::timestamp).orElse(Instant.MIN));
     };
     var reversed = sort.orElse(Sort.ASCENDING) == Sort.DESCENDING;
     var programIsDone = program.endDate().isBefore(LocalDate.now());
@@ -125,7 +126,7 @@ public record AdminProgramInfoService(
   }
 
   private Stream<Applicant> applicants(Stream<? extends User> students, Application application) {
-    var latestDocumentMap = applicationService.getLatestDocuments(application.id());
+    var documents = applicationService.getLatestDocuments(application.id());
     var notes = applicationService.getNotes(application.id());
     var program = programService.findById(application.programId()).orElse(null);
     var displayStatus = switch (application.status()) {
@@ -142,10 +143,7 @@ public record AdminProgramInfoService(
         application.dateOfBirth(),
         application.status(),
         application.id(),
-        latestDocumentMap.getOrDefault(Type.MEDICAL_HISTORY, Optional.empty()).map(Document::timestamp),
-        latestDocumentMap.getOrDefault(Type.CODE_OF_CONDUCT, Optional.empty()).map(Document::timestamp),
-        latestDocumentMap.getOrDefault(Type.ASSUMPTION_OF_RISK, Optional.empty()).map(Document::timestamp),
-        latestDocumentMap.getOrDefault(Type.HOUSING, Optional.empty()).map(Document::timestamp),
+        documents,
         notes.size(),
         notes.stream().max(Comparator.comparing(Note::timestamp)),
         displayStatus
@@ -190,10 +188,7 @@ public record AdminProgramInfoService(
   public record Applicant(String username, String displayName, String email, String major,
                           Double gpa, LocalDate dob, Status status,
                           String applicationId,
-                          Optional<Instant> medicalHistorySubmissionTime,
-                          Optional<Instant> codeOfConductSubmissionTime,
-                          Optional<Instant> assumptionOfRiskSubmissionTime,
-                          Optional<Instant> housingSubmissionTime,
+                          Documents documents,
                           Integer noteCount,
                           Optional<Note> latestNote,
                           String displayStatus) {

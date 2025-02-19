@@ -126,6 +126,7 @@
     </a>
     <a href="/programs" class="btn btn-ghost">Browse Programs</a>
     <a href="/applications" class="btn btn-ghost">My Applications</a>
+    <a th:if="${user != null && user.isAdmin()}" href="/admin/programs" class="btn btn-ghost">Admin View</a>
   </div>
   <div class="flex-none gap-2">
     <a href="/profile"
