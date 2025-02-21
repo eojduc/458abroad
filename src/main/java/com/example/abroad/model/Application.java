@@ -1,6 +1,7 @@
 package com.example.abroad.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -9,9 +10,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import java.sql.Blob;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "applications")
@@ -30,49 +33,20 @@ public final class Application {
   private Double gpa;
   @Column(nullable = false)
   private String major;
-  @Column(nullable = false, length = 10000)
-  private String answer1;
-  @Column(nullable = false, length = 10000)
-  private String answer2;
-  @Column(nullable = false, length = 10000)
-  private String answer3;
-  @Column(nullable = false, length = 10000)
-  private String answer4;
-  @Column(nullable = false, length = 10000)
-  private String answer5;
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
   private Status status;
 
-  public Application() {
-    this.id = null;
-    this.student = null;
-    this.programId = null;
-    this.dateOfBirth = null;
-    this.gpa = null;
-    this.major = null;
-    this.answer1 = null;
-    this.answer2 = null;
-    this.answer3 = null;
-    this.answer4 = null;
-    this.answer5 = null;
-    this.status = null;
-  }
+  public Application() {}
 
   public Application(String id, String student, Integer programId, LocalDate dateOfBirth,
-      Double gpa, String major, String answer1, String answer2, String answer3, String answer4,
-      String answer5, Status status) {
+      Double gpa, String major, Status status) {
     this.id = id;
     this.student = student;
     this.programId = programId;
     this.dateOfBirth = dateOfBirth;
     this.gpa = gpa;
     this.major = major;
-    this.answer1 = answer1;
-    this.answer2 = answer2;
-    this.answer3 = answer3;
-    this.answer4 = answer4;
-    this.answer5 = answer5;
     this.status = status;
   }
 
@@ -100,56 +74,105 @@ public final class Application {
     return major;
   }
 
-  public String answer1() {
-    return answer1;
-  }
-
-  public String answer2() {
-    return answer2;
-  }
-
-  public String answer3() {
-    return answer3;
-  }
-
-  public String answer4() {
-    return answer4;
-  }
-
-  public String answer5() {
-    return answer5;
-  }
-
   public Status status() {
     return status;
   }
 
+  @Entity
+  @Table(name = "responses")
+  public static class Response {
+    @Id
+    private ID id;
+
+    @Column(nullable = false, length = 10000)
+    private String response;
+
+    @Embeddable
+    public static class ID implements Serializable {
+      @Column(nullable = false)
+      private String applicationId;
+      @Enumerated(EnumType.STRING)
+      @Column(nullable = false)
+      private Question question;
+      public ID() {}
+      public ID(String applicationId, Question question) {
+        this.applicationId = applicationId;
+        this.question = question;
+      }
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ID id = (ID) o;
+        return Objects.equals(applicationId, id.applicationId) && question == id.question;
+      }
+      @Override
+      public int hashCode() {
+        return Objects.hash(applicationId, question);
+      }
+    }
+
+    public Response() {
+    }
+
+    public Response(String applicationId, Question question, String response) {
+      this.id = new ID(applicationId, question);
+      this.response = response;
+    }
+
+    public String applicationId() {
+      return id.applicationId;
+    }
+
+    public Question question() {
+      return id.question;
+    }
+
+    public String response() {
+      return response;
+    }
+
+    public enum Question {
+      WHY_THIS_PROGRAM,
+      ALIGN_WITH_CAREER,
+      ANTICIPATED_CHALLENGES,
+      ADAPTED_TO_ENVIRONMENT,
+      UNIQUE_PERSPECTIVE;
+
+      public String text() {
+        return switch (this) {
+          case WHY_THIS_PROGRAM -> "Why do you want to participate in this study abroad program?";
+          case ALIGN_WITH_CAREER -> "How does this program align with your academic or career goals?";
+          case ANTICIPATED_CHALLENGES -> "What challenges do you anticipate during this experience, and how will you address them?";
+          case ADAPTED_TO_ENVIRONMENT -> "Describe a time you adapted to a new or unfamiliar environment.";
+          case UNIQUE_PERSPECTIVE -> "What unique perspective or contribution will you bring to the group?";
+        };
+      }
+
+      public String field() {
+        return switch (this) {
+          case WHY_THIS_PROGRAM -> "answer1";
+          case ALIGN_WITH_CAREER -> "answer2";
+          case ANTICIPATED_CHALLENGES -> "answer3";
+          case ADAPTED_TO_ENVIRONMENT -> "answer4";
+          case UNIQUE_PERSPECTIVE -> "answer5";
+        };
+      }
+    }
+
+  }
+
   public Application withStatus(Status status) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
+    return new Application(id, student, programId, dateOfBirth, gpa, major, status);
   }
   public Application withMajor(String major) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
+    return new Application(id, student, programId, dateOfBirth, gpa, major, status);
   }
   public Application withGpa(Double gpa) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
+    return new Application(id, student, programId, dateOfBirth, gpa, major, status);
   }
   public Application withDateOfBirth(LocalDate dateOfBirth) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
-  }
-  public Application withAnswer1(String answer1) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
-  }
-  public Application withAnswer2(String answer2) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
-  }
-  public Application withAnswer3(String answer3) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
-  }
-  public Application withAnswer4(String answer4) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
-  }
-  public Application withAnswer5(String answer5) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, answer1, answer2, answer3, answer4, answer5, status);
+    return new Application(id, student, programId, dateOfBirth, gpa, major, status);
   }
 
   public enum Status {
@@ -165,12 +188,33 @@ public final class Application {
   @Table(name = "documents")
   public static class Document {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Integer id;
+    private ID id;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Type type;
+    @Embeddable
+    public static class ID implements Serializable {
+      @Enumerated(EnumType.STRING)
+      @Column(nullable = false)
+      private Type type;
+
+      @Column(nullable = false)
+      private String applicationId;
+      public ID() {}
+      public ID(Type type, String applicationId) {
+        this.type = type;
+        this.applicationId = applicationId;
+      }
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ID id = (ID) o;
+        return type == id.type && Objects.equals(applicationId, id.applicationId);
+      }
+      @Override
+      public int hashCode() {
+        return Objects.hash(type, applicationId);
+      }
+    }
 
     @Column(nullable = false)
     private Instant timestamp;
@@ -178,9 +222,6 @@ public final class Application {
     @Column(nullable = false)
     @Lob
     private Blob file;
-
-    @Column(nullable = false)
-    private String applicationId;
 
     public enum Type {
       ASSUMPTION_OF_RISK, CODE_OF_CONDUCT, MEDICAL_HISTORY, HOUSING;
@@ -196,26 +237,20 @@ public final class Application {
     }
 
     public Document() {
-      this.id = null;
-      this.type = null;
-      this.timestamp = null;
-      this.file = null;
-      this.applicationId = null;
     }
 
     public Document(Type type, Instant timestamp, Blob file, String applicationId) {
-      this.type = type;
       this.timestamp = timestamp;
       this.file = file;
-      this.applicationId = applicationId;
-    }
-
-    public Integer id() {
-      return id;
+      this.id = new ID(type, applicationId);
     }
 
     public Type type() {
-      return type;
+      return id.type;
+    }
+
+    public String id() {
+      return id.applicationId + "-" + id.type;
     }
 
     public Instant timestamp() {
@@ -227,7 +262,7 @@ public final class Application {
     }
 
     public String applicationId() {
-      return applicationId;
+      return id.applicationId;
     }
   }
 

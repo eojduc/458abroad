@@ -2,6 +2,7 @@ package com.example.abroad.service.data;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Document;
+import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.User;
@@ -12,6 +13,7 @@ import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.NoteRepository;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.respository.ResponseRepository;
 import com.example.abroad.respository.SSOUserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -50,6 +52,7 @@ public class DataInitializationService {
   private final FacultyLeadRepository facultyLeadRepository;
   private final NoteRepository noteRepository;
   private final DocumentRepository documentRepository;
+  private final ResponseRepository responseRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
   private EntityManager entityManager;
@@ -62,7 +65,9 @@ public class DataInitializationService {
       FacultyLeadRepository facultyLeadRepository,
       NoteRepository noteRepository,
       DocumentRepository documentRepository,
-      ProgramRepository programRepository) {
+      ProgramRepository programRepository,
+      ResponseRepository responseRepository
+    ) {
     this.localUserRepository = localUserRepository;
     this.ssoUserRepository = ssoUserRepository;
     this.applicationRepository = applicationRepository;
@@ -70,6 +75,7 @@ public class DataInitializationService {
     this.facultyLeadRepository = facultyLeadRepository;
     this.noteRepository = noteRepository;
     this.documentRepository = documentRepository;
+    this.responseRepository = responseRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
         .setHeader()
@@ -147,11 +153,6 @@ public class DataInitializationService {
             LocalDate.parse(record.get("dateOfBirth")),
             Double.parseDouble(record.get("gpa")),
             record.get("major"),
-            record.get("answer1"),
-            record.get("answer2"),
-            record.get("answer3"),
-            record.get("answer4"),
-            record.get("answer5"),
             Application.Status.valueOf(record.get("status").toUpperCase())
         ),
         applicationRepository
@@ -183,6 +184,19 @@ public class DataInitializationService {
           }
         },
         documentRepository
+    );
+  }
+
+  @Transactional
+  protected void initializeResponses(String path) {
+    initializeData(
+        path,
+        record -> new Application.Response(
+            record.get("applicationId"),
+            Response.Question.valueOf(record.get("question")),
+            record.get("response")
+        ),
+        responseRepository
     );
   }
 

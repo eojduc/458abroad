@@ -34,6 +34,9 @@ public class DataInitializerService {
   @Value("${data.documents.path}")
   private String documentsCsvFilePath;
 
+  @Value("${data.responses.path}")
+  private String responsesCsvFilePath;
+
   @Value("${fillDb:false}")
   private boolean fillDb;
 
@@ -59,6 +62,8 @@ public class DataInitializerService {
       dataInitializationService.initializeFacultyLeads(facultyLeadCsvFilePath);
       dataInitializationService.initializeNotes(notesCsvFilePath);
       dataInitializationService.initializeDocuments(documentsCsvFilePath);
+      dataInitializationService.initializeResponses(responsesCsvFilePath);
+
     } else {
       logger.info("Skipping data initialization.");
     }

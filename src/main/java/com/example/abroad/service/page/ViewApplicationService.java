@@ -1,14 +1,17 @@
 package com.example.abroad.service.page;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.model.User;
 
+import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,7 +19,7 @@ import java.util.Optional;
 
 @Service
 public record ViewApplicationService(
-    ApplicationRepository applicationRepository,
+    ApplicationService applicationService,
     ProgramRepository programRepository,
     UserService userService) {
 
@@ -27,7 +30,7 @@ public record ViewApplicationService(
     }
     User user = userOpt.get();
 
-    Optional<Application> appOpt = applicationRepository.findById(applicationId);
+    Optional<Application> appOpt = applicationService.findById(applicationId);
     if (appOpt.isEmpty()) {
       return new GetApplicationResult.ApplicationNotFound();
     }
@@ -50,8 +53,9 @@ public record ViewApplicationService(
       today.isBefore(prog.applicationClose())) {
       editable = true;
     }
+    var responses = applicationService.getResponses(app.id());
 
-    return new GetApplicationResult.Success(app, prog, user, editable);
+    return new GetApplicationResult.Success(app, prog, user, editable, responses);
   }
 
   public GetApplicationResult updateResponses(
@@ -78,18 +82,18 @@ public record ViewApplicationService(
     Application app = success.application();
 
     var newApp = app
-      .withAnswer1(answer1)
-      .withAnswer2(answer2)
-      .withAnswer3(answer3)
-      .withAnswer4(answer4)
-      .withAnswer5(answer5)
       .withGpa(gpa)
       .withMajor(major)
       .withDateOfBirth(dateOfBirth);
 
-    applicationRepository.save(newApp);
-
-    return new GetApplicationResult.Success(newApp, success.program(), success.user(), success.editable());
+    applicationService.save(newApp);
+    applicationService.saveResponse(newApp.id(), Application.Response.Question.WHY_THIS_PROGRAM, answer1);
+    applicationService.saveResponse(newApp.id(), Application.Response.Question.ALIGN_WITH_CAREER, answer2);
+    applicationService.saveResponse(newApp.id(), Application.Response.Question.ANTICIPATED_CHALLENGES, answer3);
+    applicationService.saveResponse(newApp.id(), Application.Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
+    applicationService.saveResponse(newApp.id(), Application.Response.Question.UNIQUE_PERSPECTIVE, answer5);
+    var responses = applicationService.getResponses(newApp.id());
+    return new GetApplicationResult.Success(newApp, success.program(), success.user(), success.editable(), responses);
   }
 
   public GetApplicationResult changeStatus(String applicationId, Application.Status newStatus, HttpSession session) {
@@ -110,7 +114,7 @@ public record ViewApplicationService(
       }
     }
 
-    applicationRepository.save(app.withStatus(newStatus));
+    applicationService.save(app.withStatus(newStatus));
 
     boolean editable = false;
     LocalDate today = LocalDate.now();
@@ -119,13 +123,14 @@ public record ViewApplicationService(
       today.isBefore(success.program().applicationClose())) {
       editable = true;
     }
+    var responses = applicationService.getResponses(app.id());
 
-    return new GetApplicationResult.Success(app, success.program(), success.user(), editable);
+    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responses);
   }
 
   public sealed interface GetApplicationResult {
 
-    record Success(Application application, Program program, User user, boolean editable)
+    record Success(Application application, Program program, User user, boolean editable, List<Response> responses)
         implements GetApplicationResult {
     }
 

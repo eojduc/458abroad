@@ -1,22 +1,25 @@
 package com.example.abroad.service.page;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Response;
+import com.example.abroad.model.Application.Response.Question;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
-import com.example.abroad.model.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
 public record ApplyToProgramService(
-  ApplicationRepository applicationRepository,
+  ApplicationService applicationService,
   ProgramRepository programRepository,
   UserService userService
 ) {
@@ -34,12 +37,12 @@ public record ApplyToProgramService(
     if (program == null) {
       return new GetApplyPageData.ProgramNotFound();
     }
-    var existingApplication = applicationRepository.findByProgramIdAndStudent(programId, user.username());
+    var existingApplication = applicationService.findByProgramIdAndStudent(programId, user.username());
     if (existingApplication.isPresent()) {
       return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().id());
     }
     var maxDayOfBirth = LocalDate.now().minusYears(10).format(DateTimeFormatter.ISO_DATE);
-    return new GetApplyPageData.Success(program, user, Question.QUESTIONS, maxDayOfBirth);
+    return new GetApplyPageData.Success(program, user, Arrays.asList(Question.values()), maxDayOfBirth);
   }
 
   public ApplyToProgram applyToProgram(
@@ -56,10 +59,14 @@ public record ApplyToProgramService(
       return new ApplyToProgram.UserNotFound();
     }
     var application = new Application(programId + "-" + user.username(), user.username(),
-      programId, dob, gpa, major, answer1,
-      answer2, answer3, answer4, answer5, Status.APPLIED
+      programId, dob, gpa, major, Status.APPLIED
     );
-    applicationRepository.save(application);
+    applicationService.save(application);
+    applicationService.saveResponse(application.id(), Response.Question.WHY_THIS_PROGRAM, answer1);
+    applicationService.saveResponse(application.id(), Response.Question.ALIGN_WITH_CAREER, answer2);
+    applicationService.saveResponse(application.id(), Response.Question.ANTICIPATED_CHALLENGES, answer3);
+    applicationService.saveResponse(application.id(), Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
+    applicationService.saveResponse(application.id(), Response.Question.UNIQUE_PERSPECTIVE, answer5);
 
     return new ApplyToProgram.Success(application.id());
   }

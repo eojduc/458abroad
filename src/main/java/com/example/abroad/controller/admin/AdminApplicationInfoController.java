@@ -3,7 +3,6 @@ package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Application.Status;
-import com.example.abroad.model.Question;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound;
@@ -34,7 +33,7 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
     Model model, @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     return switch (service.getApplicationInfo(applicationId, session)) {
-      case Success(var program, var student, var application, var user, var notes, var documents, var status, var facultyLeads) -> {
+      case Success(var program, var student, var application, var user, var notes, var documents, var status, var facultyLeads, var responses) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "programIsPast", program.endDate().isBefore(LocalDate.now()),
@@ -42,7 +41,7 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
           "_application", application,
           // _application is used to avoid conflict with the application variable in Thymeleaf
           "formatter", formatter,
-          "questions", Question.QUESTIONS,
+          "responses", responses,
           "user", user,
           "alerts", new Alerts(error, success, warning, info),
           "theme", userService.getTheme(session),

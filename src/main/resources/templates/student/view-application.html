@@ -127,66 +127,15 @@
                         th:disabled="${!editable}"
                       />
                     </div>
-
-                    <div class="form-control mb-4">
+                    <div class="form-control mb-4" th:each="response: ${responses}">
                       <label class="label">
-                        <span class="label-text">Answer 1</span>
+                        <span class="label-text" th:text="${response.question().text()}"></span>
                       </label>
                       <textarea
                         class="textarea"
-                        name="answer1"
-                        th:text="${app.answer1()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
-                    </div>
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Answer 2</span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        name="answer2"
-                        th:text="${app.answer2()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
-                    </div>
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Answer 3</span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        name="answer3"
-                        th:text="${app.answer3()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
-                    </div>
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Answer 4</span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        name="answer4"
-                        th:text="${app.answer4()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
-                    </div>
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Answer 5</span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        name="answer5"
-                        th:text="${app.answer5()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
+                        th:name="${response.question().field()}"
+                        th:text="${response.response()}"
+                        th:disabled="${!editable}"></textarea>
                     </div>
                   </div>
                 </form>
@@ -219,7 +168,7 @@
                       th:if="${app.status.name() != 'CANCELLED' and app.status.name() != 'WITHDRAWN'}"
                     >
                       <button
-                        class="btn btn-warning"
+                        class="btn btn-secondary"
                         type="button"
                         onclick="withdraw_modal.showModal()"
                       >
@@ -280,10 +229,10 @@
         </p>
         <div class="modal-action gap-2">
           <form method="dialog" class="contents">
-            <button class="btn btn-secondary w-1/4">Cancel</button>
+            <button class="btn btn-primary w-1/4">Cancel</button>
           </form>
           <button
-            class="btn btn-warning w-1/4"
+            class="btn btn-secondary w-1/4"
             type="submit"
             form="withdrawForm"
             onclick="withdraw_modal.close()"

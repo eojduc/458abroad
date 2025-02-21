@@ -16,9 +16,4 @@ public interface ApplicationRepository extends JpaRepository<Application, String
 
   List<Application> findByStudent(String studentId);
 
-  @Modifying
-  @Transactional
-  @Query("update Application a set a.status = ?2 where a.id = ?1")
-  void updateStatus(String applicationId, Application.Status status);
-
 }

@@ -43,6 +43,7 @@ public record AdminApplicationInfoService(
       .stream()
       .sorted(Comparator.comparing(Note::timestamp).reversed())
       .toList();
+    var responses = applicationService.getResponses(application.id());
     var documents = applicationService.getLatestDocuments(application.id());
     if (program == null || student == null) {
       return new GetApplicationInfo.ApplicationNotFound();
@@ -50,7 +51,9 @@ public record AdminApplicationInfoService(
     var facultyLeads = programService.findFacultyLeads(program);
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var status = programIsPast && application.status() == Status.ENROLLED ? "COMPLETED" : application.status().toString();
-    return new GetApplicationInfo.Success(program, student, application, user, notes, documents, status, facultyLeads);
+    return new GetApplicationInfo.Success(
+      program, student, application, user, notes, documents, status, facultyLeads, responses
+    );
   }
 
 
@@ -119,7 +122,10 @@ public record AdminApplicationInfoService(
 
   public sealed interface GetApplicationInfo  {
 
-    record Success(Program program, User student, Application application, User user, List<Note> notes, Documents documents, String status, List<? extends User> facultyLeads) implements
+    record Success(Program program, User student, Application application, User user, List<Note> notes,
+                   Documents documents, String status, List<? extends User> facultyLeads,
+                    List<Application.Response> responses
+    ) implements
       GetApplicationInfo {
 
     }

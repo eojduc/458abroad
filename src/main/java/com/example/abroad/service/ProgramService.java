@@ -64,19 +64,6 @@ public record ProgramService(ProgramRepository programRepository, ApplicationRep
     return programRepository.findById(id);
   }
 
-  public List<Program> findAll() {
-    return programRepository.findAll();
-  }
-
-
-  public List<Program> findAppliedPrograms(String username) {
-    var programIds = applicationRepository.findByStudent(username)
-        .stream()
-        .map(Application::programId)
-        .toList();
-    return programRepository.findAllById(programIds);
-  }
-
 
   public List<? extends User> findFacultyLeads(Program program) {
     var facultyLeadUsernames = facultyLeadRepository.findById_ProgramId(program.id())

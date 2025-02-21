@@ -36,6 +36,7 @@ public record ViewApplicationController(
             "prog", success.program(),
             "user", success.user(),
             "editable", success.editable(),
+            "responses", success.responses(),
             "formatter", formatter,
             "theme", userService.getTheme(session)));
         yield "student/view-application :: page";
@@ -77,6 +78,7 @@ public record ViewApplicationController(
             "user", success.user(),
             "editable", success.editable(),
             "formatter", formatter,
+            "responses", success.responses(),
             "theme", userService.getTheme(session)));
         yield "student/view-application :: applicationContent";
       }
@@ -108,6 +110,7 @@ public record ViewApplicationController(
             "user", success.user(),
             "editable", success.editable(),
             "formatter", formatter,
+            "responses", success.responses(),
             "theme", userService.getTheme(session)));
         yield "student/view-application :: applicationContent";
       }
@@ -138,6 +141,7 @@ public record ViewApplicationController(
             "prog", success.program(),
             "user", success.user(),
             "editable", success.editable(),
+            "responses", success.responses(),
             "formatter", formatter,
             "theme", userService.getTheme(session)));
         yield "student/view-application :: applicationContent";
