@@ -22,19 +22,25 @@ import java.util.Optional;
 public record ListApplicationsService(
     ApplicationRepository applicationRepository,
     ProgramRepository programRepository,
+    DocumentService documentService,
     UserService userService) {
 
   public GetApplicationsResult getApplications(HttpSession session, Sort sort, Boolean ascending) {
-
+    // Check user authentication
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new GetApplicationsResult.UserNotFound();
     }
+
+    // Fetch base data
     List<Application> applications = applicationRepository.findByStudent(user.username());
     List<Program> programs = programRepository.findAll();
-    Comparator<Pair> sorter = switch (sort) {
+
+    // Create sorter based on selected column
+    Comparator<PairWithDocuments> sorter = switch (sort) {
       case TITLE -> Comparator.comparing(pair -> pair.prog().title());
-      case YEAR_SEMESTER -> Comparator.comparing(pair -> pair.prog().year().toString() + pair.prog().semester().toString());
+      case YEAR_SEMESTER -> Comparator.comparing(pair ->
+              pair.prog().year().toString() + pair.prog().semester().toString());
       case FACULTY -> Comparator.comparing(pair -> pair.prog().title());
       case START_DATE -> Comparator.comparing(pair -> pair.prog().startDate());
       case END_DATE -> Comparator.comparing(pair -> pair.prog().endDate());
@@ -42,19 +48,43 @@ public record ListApplicationsService(
       case APPLICATION_CLOSED -> Comparator.comparing(pair -> pair.prog().applicationClose());
       case STATUS -> Comparator.comparing(pair -> pair.app().status().toString());
     };
-    return new GetApplicationsResult.Success(
-      join(programs, applications)
-        .sorted(ascending ? sorter : sorter.reversed())
-        .toList(),
-      user
-    );
+
+    // Join and enrich data with document information
+    var enrichedPairs = join(programs, applications)
+            .map(pair -> {
+              boolean isDocumentRelevant = pair.app().status() == Application.Status.APPROVED ||
+                      pair.app().status() == Application.Status.ENROLLED;
+
+              // Get document statuses if application is approved or enrolled
+              var documentStatuses = isDocumentRelevant
+                      ? documentService.getDocumentStatuses(pair.app().id(), pair.prog().id())
+                      : List.<DocumentService.DocumentStatus>of();
+
+              // Count missing documents
+              var missingCount = isDocumentRelevant
+                      ? documentService.getMissingDocumentsCount(pair.app().id())
+                      : 0;
+
+              // Create enriched pair with document information
+              return new PairWithDocuments(
+                      pair.app(),
+                      pair.prog(),
+                      documentStatuses,
+                      missingCount
+              );
+            })
+            .sorted(ascending ? sorter : sorter.reversed()) // Apply sorting
+            .toList();
+
+    return new GetApplicationsResult.Success(enrichedPairs, user);
   }
-  public static Stream<Pair> join(List<Program> programs, List<Application> applications) {
-    return programs.stream()
-      .flatMap(program -> applications.stream()
-        .filter(app -> app.programId().equals(program.id()))
-        .map(app -> new Pair(app, program)));
-  }
+  public record PairWithDocuments(
+          Application app,
+          Program prog,
+          List<DocumentService.DocumentStatus> documents,
+          long missingDocumentsCount
+  ) {}
+
 
   public enum Sort {
     TITLE,
@@ -67,15 +97,21 @@ public record ListApplicationsService(
     STATUS
   }
 
+
   public record Pair(Application app, Program prog) {
   }
 
+
+
+  public static Stream<Pair> join(List<Program> programs, List<Application> applications) {
+    return programs.stream()
+            .flatMap(program -> applications.stream()
+                    .filter(app -> app.programId().equals(program.id()))
+                    .map(app -> new Pair(app, program)));
+  }
+
   public sealed interface GetApplicationsResult {
-
-    record Success(List<Pair> data, User user) implements GetApplicationsResult {
-    }
-
-    record UserNotFound() implements GetApplicationsResult {
-    }
+    record Success(List<PairWithDocuments> data, User user) implements GetApplicationsResult {}
+    record UserNotFound() implements GetApplicationsResult {}
   }
 }
