@@ -4,6 +4,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.model.Application;
 import com.example.abroad.respository.DocumentRepository;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.service.FormatService;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +14,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -23,13 +22,18 @@ import java.util.Optional;
 public class DocumentService {
     private final DocumentRepository documentRepository;
     private final ProgramRepository programRepository;
+    private final FormatService formatService;
     private static final long MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB
     private static final String PDF_MAGIC_NUMBER = "%PDF-";
     private static final Logger logger = LoggerFactory.getLogger(DocumentService.class);
 
-    public DocumentService(DocumentRepository documentRepository, ProgramRepository programRepository) {
+    public DocumentService(
+            DocumentRepository documentRepository,
+            ProgramRepository programRepository,
+            FormatService formatService) {
         this.documentRepository = documentRepository;
         this.programRepository = programRepository;
+        this.formatService = formatService;
     }
 
     public record DocumentStatus(
@@ -57,9 +61,7 @@ public class DocumentService {
 
                     Instant timestamp = doc.map(Application.Document::timestamp).orElse(null);
                     String formattedTime = timestamp != null ?
-                            DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm:ss")
-                                    .withZone(ZoneId.systemDefault())
-                                    .format(timestamp) :
+                            formatService.formatInstant(timestamp) :
                             null;
 
                     return new DocumentStatus(
