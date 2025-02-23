@@ -117,16 +117,30 @@
 
                       <!-- Document name -->
                       <span th:text="${doc.type.text()}" class="text-sm">Document Type</span>
+
+                      <!-- View button for submitted documents -->
+                      <a th:if="${doc.submitted}"
+                         th:href="@{/applications/{appId}/documents/{type}/view(appId=${doc.applicationId},type=${doc.type})}"
+                         class="btn btn-xs btn-ghost"
+                         target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             class="w-4 h-4 stroke-current">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <span class="ml-1">View</span>
+                      </a>
                     </div>
 
                     <!-- Upload form for missing documents -->
                     <div th:unless="${doc.submitted}" class="pl-6">
                       <div class="flex flex-col gap-2">
                         <!-- Download blank form button -->
-                        <a th:href="${@documentService.getBlankFormPath(doc.type)}"
+                        <a th:href="@{/applications/{appId}/documents/{type}/blank(appId=${doc.applicationId},type=${doc.type})}"
                            class="btn btn-xs btn-outline"
-                           target="_blank"
-                           download>
+                           target="_blank">
                           Download Blank Form
                         </a>
 

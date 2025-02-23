@@ -20,73 +20,52 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
-
 @Controller
-public record ListApplicationsController(ListApplicationsService listApplicationsService, FormatService formatter,
-    UserService userService, DocumentService documentService) {
-
+public record ListApplicationsController(
+        ListApplicationsService listApplicationsService,
+        FormatService formatter,
+        UserService userService
+) {
   @GetMapping("/applications")
-  public String listApplications(
-      HttpSession session,
-      Model model) {
-
+  public String listApplications(HttpSession session, Model model) {
     GetApplicationsResult result = listApplicationsService.getApplications(session, Sort.TITLE, true);
-
     return switch (result) {
       case GetApplicationsResult.Success(var pairs, var user) -> {
         model.addAllAttributes(Map.of(
-            "pairs", pairs,
-            "user", user,
-            "sort", Sort.TITLE,
-            "formatter", formatter,
-            "theme", userService.getTheme(session)));
+                "pairs", pairs,
+                "user", user,
+                "sort", Sort.TITLE,
+                "formatter", formatter,
+                "theme", userService.getTheme(session)));
         yield "student/list-application :: page";
       }
       case GetApplicationsResult.UserNotFound() ->
-        "redirect:/login?error=Not logged in";
+              "redirect:/login?error=Not logged in";
     };
   }
 
-
   @GetMapping("/applications/sort")
-  public String sortApplications(   HttpSession session,
-    Model model,
-    @RequestParam Sort sort,
-    @RequestParam Boolean ascending) {
-
+  public String sortApplications(
+          HttpSession session,
+          Model model,
+          @RequestParam Sort sort,
+          @RequestParam Boolean ascending
+  ) {
     GetApplicationsResult result = listApplicationsService.getApplications(session, sort, ascending);
-
     return switch (result) {
       case GetApplicationsResult.Success(var pairs, var user) -> {
         model.addAllAttributes(Map.of(
-          "pairs", pairs,
-          "user", user,
-          "sort", sort,
-          "formatter", formatter,
-          "theme", userService.getTheme(session),
-          "ascending", ascending
+                "pairs", pairs,
+                "user", user,
+                "sort", sort,
+                "formatter", formatter,
+                "theme", userService.getTheme(session),
+                "ascending", ascending
         ));
-
         yield "student/list-application :: programTable";
       }
       case GetApplicationsResult.UserNotFound() ->
-        "redirect:/login?error=Not logged in";
+              "redirect:/login?error=Not logged in";
     };
-  }
-
-  @PostMapping("/applications/{id}/documents")
-  public String uploadDocument(@PathVariable String id,
-                               @RequestParam("type") Application.Document.Type type,
-                               @RequestParam("file") MultipartFile file,
-                               RedirectAttributes redirectAttributes) {
-    try {
-      documentService.uploadDocument(id, type, file);
-      redirectAttributes.addFlashAttribute("message", "Document uploaded successfully");
-    } catch (IllegalArgumentException e) {
-      redirectAttributes.addFlashAttribute("error", e.getMessage());
-    } catch (RuntimeException e) {
-      redirectAttributes.addFlashAttribute("error", "Failed to upload document");
-    }
-    return "redirect:/applications";
   }
 }
