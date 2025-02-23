@@ -141,7 +141,9 @@
                                      class="file-input file-input-bordered file-input-xs w-full max-w-xs"
                                      name="file"
                                      accept="application/pdf"
-                                     required/>
+                                     required
+                                     onchange="this.closest('form').querySelector('.btn-primary').classList.toggle('btn-secondary', this.files.length > 0)"
+                              />
                               <button class="btn btn-primary btn-xs">Re-upload</button>
                             </div>
                           </form>
@@ -180,7 +182,9 @@
                                      class="file-input file-input-bordered file-input-xs w-full max-w-xs"
                                      name="file"
                                      accept="application/pdf"
-                                     required/>
+                                     required
+                                     onchange="this.closest('form').querySelector('.btn-primary').classList.toggle('btn-secondary', this.files.length > 0)"
+                              />
                               <div class="flex items-center justify-between">
                                 <button class="btn btn-primary btn-xs">Upload</button>
                                 <!-- Deadline information -->
