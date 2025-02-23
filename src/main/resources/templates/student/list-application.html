@@ -48,11 +48,9 @@
             <tbody>
             <tr th:each="pair : ${pairs}" class="border-base-300 border-y-2">
               <td>
-
-                th:href="@{'/applications/' + ${pair.app().id()}}"
-                class="link link-primary"
-                >
-                <span th:text="${pair.prog().title()}">Program Title</span>
+                <a th:href="@{'/applications/' + ${pair.app().id()}}"
+                   class="link link-primary">
+                  <span th:text="${pair.prog().title()}">Program Title</span>
                 </a>
               </td>
               <td
