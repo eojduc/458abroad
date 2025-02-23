@@ -1,6 +1,8 @@
 package com.example.abroad.controller.student;
 
+import com.example.abroad.model.Application;
 import com.example.abroad.service.FormatService;
+import com.example.abroad.service.page.DocumentService;
 import com.example.abroad.service.page.ListApplicationsService;
 import com.example.abroad.service.page.ListApplicationsService.GetApplicationsResult;
 import com.example.abroad.service.UserService;
@@ -11,13 +13,17 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 
 @Controller
 public record ListApplicationsController(ListApplicationsService listApplicationsService, FormatService formatter,
-    UserService userService) {
+    UserService userService, DocumentService documentService) {
 
   @GetMapping("/applications")
   public String listApplications(
@@ -66,5 +72,21 @@ public record ListApplicationsController(ListApplicationsService listApplication
       case GetApplicationsResult.UserNotFound() ->
         "redirect:/login?error=Not logged in";
     };
+  }
+
+  @PostMapping("/applications/{id}/documents")
+  public String uploadDocument(@PathVariable String id,
+                               @RequestParam("type") Application.Document.Type type,
+                               @RequestParam("file") MultipartFile file,
+                               RedirectAttributes redirectAttributes) {
+    try {
+      documentService.uploadDocument(id, type, file);
+      redirectAttributes.addFlashAttribute("message", "Document uploaded successfully");
+    } catch (IllegalArgumentException e) {
+      redirectAttributes.addFlashAttribute("error", e.getMessage());
+    } catch (RuntimeException e) {
+      redirectAttributes.addFlashAttribute("error", "Failed to upload document");
+    }
+    return "redirect:/applications";
   }
 }

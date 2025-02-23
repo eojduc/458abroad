@@ -78,19 +78,21 @@
               <td>
                 <!-- Show documents for APPROVED or ENROLLED applications -->
                 <div th:if="${pair.app().status() == T(com.example.abroad.model.Application.Status).APPROVED ||
-                              pair.app().status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
+                                          pair.app().status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
                      class="space-y-2">
 
                   <!-- Warning alert for missing documents -->
                   <div th:if="${pair.missingDocumentsCount > 0}"
                        class="alert alert-warning shadow-lg py-2 px-4">
                     <div class="flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-warning w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                           class="stroke-warning w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                       </svg>
                       <span class="text-sm">
-                          [[${pair.missingDocumentsCount}]] document(s) required
-                        </span>
+                                                [[${pair.missingDocumentsCount}]] document(s) required
+                                            </span>
                     </div>
                   </div>
 
@@ -99,15 +101,19 @@
                     <div class="flex items-center gap-2">
                       <!-- Status icon -->
                       <span th:if="${doc.submitted}" class="text-success">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                     class="w-4 h-4 stroke-current">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                          d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </span>
                       <span th:unless="${doc.submitted}" class="text-error">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                     class="w-4 h-4 stroke-current">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </span>
 
                       <!-- Document name -->
                       <span th:text="${doc.type.text()}" class="text-sm">Document Type</span>
@@ -115,38 +121,66 @@
 
                     <!-- Upload form for missing documents -->
                     <div th:unless="${doc.submitted}" class="pl-6">
-                      <form th:action="@{/applications/{id}/documents(id=${doc.applicationId})}"
-                            method="POST"
-                            enctype="multipart/form-data"
-                            class="flex flex-col gap-2">
-                        <input type="hidden" name="type" th:value="${doc.type}" />
-                        <input type="file"
-                               class="file-input file-input-bordered file-input-xs w-full max-w-xs"
-                               name="file"
-                               required />
-                        <div class="flex items-center justify-between">
-                          <button class="btn btn-primary btn-xs">Upload</button>
-                          <!-- Deadline information -->
-                          <span class="text-xs"
-                                th:classappend="${doc.deadline.isBefore(T(java.time.LocalDate).now())} ? 'text-error' : 'text-warning'">
-                              <span th:if="${doc.deadline.isAfter(T(java.time.LocalDate).now())}"
-                                    th:text="'Due in: ' + ${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), doc.deadline)} + ' days'">
-                                Due date
-                              </span>
-                              <span th:unless="${doc.deadline.isAfter(T(java.time.LocalDate).now())}"
-                                    th:text="'Overdue by: ' + ${T(java.time.temporal.ChronoUnit).DAYS.between(doc.deadline, T(java.time.LocalDate).now())} + ' days'">
-                                Overdue
-                              </span>
-                            </span>
-                        </div>
-                      </form>
+                      <div class="flex flex-col gap-2">
+                        <!-- Download blank form button -->
+                        <a th:href="${@documentService.getBlankFormPath(doc.type)}"
+                           class="btn btn-xs btn-outline"
+                           target="_blank"
+                           download>
+                          Download Blank Form
+                        </a>
+
+                        <!-- Upload form -->
+                        <form th:action="@{/applications/{id}/documents(id=${doc.applicationId})}"
+                              method="POST"
+                              enctype="multipart/form-data"
+                              class="flex flex-col gap-2">
+                          <!-- Show error message if present -->
+                          <div th:if="${error}" class="alert alert-error shadow-lg py-2 px-4">
+                            <div class="flex items-center gap-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                                   viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                      clip-rule="evenodd"/>
+                              </svg>
+                              <span class="text-sm" th:text="${error}"></span>
+                            </div>
+                          </div>
+
+                          <input type="hidden" name="type" th:value="${doc.type}"/>
+                          <input type="file"
+                                 class="file-input file-input-bordered file-input-xs w-full max-w-xs"
+                                 name="file"
+                                 accept="application/pdf"
+                                 required/>
+                          <div class="flex items-center justify-between">
+                            <button class="btn btn-primary btn-xs">Upload</button>
+                            <!-- Deadline information -->
+                            <span class="text-xs"
+                                  th:classappend="${doc.deadline.isBefore(T(java.time.LocalDate).now())} ? 'text-error' : 'text-warning'">
+                                                            <span th:if="${doc.deadline.isAfter(T(java.time.LocalDate).now())}"
+                                                                  th:text="'Due in: ' + ${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), doc.deadline)} + ' days'">
+                                                            </span>
+                                                            <span th:unless="${doc.deadline.isAfter(T(java.time.LocalDate).now())}"
+                                                                  th:text="'Overdue by: ' + ${T(java.time.temporal.ChronoUnit).DAYS.between(doc.deadline, T(java.time.LocalDate).now())} + ' days'">
+                                                            </span>
+                                                        </span>
+                          </div>
+
+                          <!-- Note about PDF requirement -->
+                          <p class="text-xs text-base-content/70">
+                            Please download the blank form, fill it out, and upload it as a PDF
+                          </p>
+                        </form>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <!-- Message for non-approved/enrolled applications -->
                 <div th:unless="${pair.app().status() == T(com.example.abroad.model.Application.Status).APPROVED ||
-                                 pair.app().status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
+                                             pair.app().status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
                      class="text-base-content/50 italic text-sm">
                   Documents required after approval
                 </div>
