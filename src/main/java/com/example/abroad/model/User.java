@@ -26,6 +26,8 @@ public sealed interface User extends Serializable {
     return role() == Role.ADMIN;
   }
 
+  default boolean isStudent() {return role() == Role.STUDENT;}
+
 
 
 

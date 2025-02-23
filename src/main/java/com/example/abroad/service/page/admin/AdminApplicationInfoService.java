@@ -87,7 +87,7 @@ public record AdminApplicationInfoService(
     if (user == null) {
       return new PostNote.NotLoggedIn();
     }
-    if (user.role() != User.Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new PostNote.UserNotAdmin();
     }
     var application = applicationService.findById(applicationId).orElse(null);

@@ -23,26 +23,10 @@ public record AdminProgramsService(
     UserService userService
 ) {
   public enum Sort {
-    TITLE,
-    SEM_DATE,
-    APP_OPENS,
-    APP_CLOSES,
-    START_DATE,
-    END_DATE,
-    FACULTY_LEAD,
-    APPLIED,
-    ENROLLED,
-    CANCELED,
-    WITHDRAWN,
-    TOTAL_ACTIVE
+    TITLE, SEM_DATE, APP_OPENS, APP_CLOSES, START_DATE, END_DATE, FACULTY_LEAD, APPLIED, ENROLLED,
+    CANCELED, WITHDRAWN, TOTAL_ACTIVE
   }
-  public enum TimeFilter {
-    FUTURE,
-    OPEN,
-    REVIEW,
-    RUNNING,
-    ALL
-  }
+  public enum TimeFilter { FUTURE, OPEN, REVIEW, RUNNING, ALL }
   public GetAllProgramsInfo getProgramInfo(
     HttpSession session,
     Sort sort,

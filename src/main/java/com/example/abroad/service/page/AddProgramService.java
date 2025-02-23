@@ -37,10 +37,9 @@ public record AddProgramService(UserService userService, ProgramService programS
       return new AddProgramInfo.UserNotAdmin();
     }
     Program program = new Program(
-      null,
-      title, Year.of(year),
-      semester, applicationOpen, applicationClose,
-      null, startDate, endDate, description
+      null, title, Year.of(year), semester, applicationOpen, applicationClose,
+      null, //TODO MAKE NOT NULL
+      startDate, endDate, description
     );
    return switch (programService.saveProgram(program)) {
      case SaveProgram.InvalidProgramInfo(var message) -> new AddProgramInfo.InvalidProgramInfo(message);

@@ -14,16 +14,11 @@ public record DashboardService(UserService userService) {
     }
 
     public GetDashboard getDashboard(HttpSession session) {
-        User user = userService.findUserFromSession(session).orElse(null);
-        if (user == null) {
-            return new GetDashboard.NotLoggedIn();
-        }
-
-        if (user.role() == User.Role.ADMIN) {
-            return new GetDashboard.AdminDashboard(user);
-        }
-
-        return new GetDashboard.StudentDashboard(user);
+        return userService.findUserFromSession(session)
+          .map(user -> user.isAdmin() ?
+            new GetDashboard.AdminDashboard(user) :
+            new GetDashboard.StudentDashboard(user))
+          .orElse(new GetDashboard.NotLoggedIn());
     }
 
     public String getTheme(HttpSession session) {

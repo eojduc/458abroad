@@ -12,7 +12,7 @@
       <div class="flex flex-col gap-5">
         <div class="card-actions justify-between">
           <h1 class="card-title" th:text="${program.title}"></h1>
-          <a href="/admin/programs" class="btn btn-secondary">Back to Programs</a>
+          <a href="/admin/programs" class="btn btn-primary">Back to Programs</a>
         </div>
         <p th:text="${program.description}"></p>
       </div>
@@ -119,7 +119,7 @@
             th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='ELIGIBLE')}"
             hx-swap="outerHTML"
             hx-target="#applicant-table">
-        <span th:class="${filter == 'ENROLLED'} ? 'badge badge-success' : 'badge badge-info badge-outline'">
+        <span th:class="${filter == 'ELIGIBLE'} ? 'badge badge-success' : 'badge badge-info badge-outline'">
           ELIGIBLE
         </span>
     </button>
@@ -143,7 +143,7 @@
             th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='COMPLETED')}"
             hx-swap="outerHTML"
             hx-target="#applicant-table">
-        <span th:class="${filter == 'ENROLLED'} ? 'badge badge-success' : 'badge badge-success badge-outline'">
+        <span th:class="${filter == 'COMPLETED'} ? 'badge badge-success' : 'badge badge-success badge-outline'">
           COMPLETED
         </span>
     </button>

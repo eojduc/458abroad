@@ -236,7 +236,7 @@
       th:hx-target="${target}"
       hx-swap="outerHTML">
     <div class="flex items-center gap-2">
-      <span th:if="${sort.name == column}" th:text="${ascending} ? '▲' : '▼'"></span>
+      <span th:if="${sort.name == column}" th:text="${ascending} ? '▼' : '▲'"></span>
       <div th:unless="${sort.name == column}" class="invisible">▼</div>
       <span th:text="${label}"></span>
     </div>

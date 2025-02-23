@@ -30,7 +30,7 @@ public record ApplyToProgramService(
     if (user == null) {
       return new GetApplyPageData.UserNotFound();
     }
-    if (user.role() != User.Role.STUDENT) {
+    if (!user.isStudent()) {
       return new GetApplyPageData.UserNotStudent();
     }
     var program = programRepository.findById(programId).orElse(null);
