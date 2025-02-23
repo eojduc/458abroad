@@ -3,8 +3,10 @@ package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
+import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -14,14 +16,19 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public record AdminProgramsService(
     ProgramRepository programRepository,
+    FacultyLeadRepository facultyLeadRepository,
     ApplicationRepository applicationRepository,
     UserService userService
 ) {
+  static Logger logger = LoggerFactory.getLogger(AdminProgramsService.class);
   public enum Sort {
     TITLE,
     SEM_DATE,
@@ -47,6 +54,7 @@ public record AdminProgramsService(
     HttpSession session,
     Sort sort,
     String nameFilter,
+    String leadFilter,
     TimeFilter timeFilter,
     Boolean ascending
   ) {
@@ -57,19 +65,28 @@ public record AdminProgramsService(
     if (user.role() != User.Role.ADMIN) {
       return new GetAllProgramsInfo.UserNotAdmin();
     }
-    return processAuthorizedRequest(sort, nameFilter, timeFilter, user, ascending);
+    return processAuthorizedRequest(sort, nameFilter, leadFilter, timeFilter, user, ascending);
+  }
+  public List<String> getKnownFacultyLeads() {
+    return facultyLeadRepository.findAll().stream()
+        .map(FacultyLead::username)
+        .collect(Collectors.toSet())
+        .stream()
+        .toList();
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
       Sort sort,
       String nameFilter,
+      String leadFilter,
       TimeFilter timeFilter,
       User user,
       Boolean ascending
   ) {
     var programsAndStatuses = programRepository.findAll()
       .stream()
-      .filter(matchesNamePredicate(nameFilter))
+      .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
+      .filter(matchesNamePredicate(leadFilter, program -> extractFacultyLeadUsername(program)))
       .filter(getTimeFilterPredicate(timeFilter))
       .map(getProgramAndStatuses())
       .sorted(getSortComparator(sort, ascending))
@@ -89,6 +106,7 @@ public record AdminProgramsService(
 
       return new ProgramAndStatuses(
         program,
+        getFacultyLeads(program.id()).map(FacultyLead::username).toList(),
         counts.getOrDefault(Application.Status.APPLIED, 0L),
         counts.getOrDefault(Application.Status.ENROLLED, 0L),
         counts.getOrDefault(Application.Status.CANCELLED, 0L),
@@ -100,6 +118,7 @@ public record AdminProgramsService(
 
   public record ProgramAndStatuses(
     Program program,
+    List<String> facultyLeads,
     Long applied,
     Long enrolled,
     Long canceled,
@@ -108,9 +127,17 @@ public record AdminProgramsService(
   ) {
   }
 
-  private Predicate<Program> matchesNamePredicate(String searchTerm) {
-    return program -> program.title().toLowerCase().contains(searchTerm.toLowerCase());
-     // || program.facultyLead().toLowerCase().contains(searchTerm)
+  private Stream<FacultyLead> getFacultyLeads(int programId) {
+    return facultyLeadRepository.findById_ProgramId(programId).stream();
+  }
+
+  private List<String> extractFacultyLeadUsername(Program program) {
+    return getFacultyLeads(program.id())
+        .map(FacultyLead::username)
+        .toList();
+  }
+  private Predicate<Program> matchesNamePredicate(String searchTerm, Function<Program, List<String>> fieldExtractor) {
+    return program -> fieldExtractor.apply(program).stream().anyMatch(s -> s.toLowerCase().contains(searchTerm.toLowerCase()));
   }
 
   private Predicate<Program> getTimeFilterPredicate(TimeFilter timeFilter) {
@@ -133,7 +160,7 @@ public record AdminProgramsService(
       case APP_CLOSES -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().applicationClose());
       case START_DATE -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().startDate());
       case END_DATE -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().endDate());
-      case FACULTY_LEAD -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().title());
+      case FACULTY_LEAD -> Comparator.comparing(programAndStatuses -> facultyLeadRepository.findById_ProgramId(programAndStatuses.program().id()).size());
       case APPLIED -> Comparator.comparing(ProgramAndStatuses::applied);
       case ENROLLED -> Comparator.comparing(ProgramAndStatuses::enrolled);
       case CANCELED -> Comparator.comparing(ProgramAndStatuses::canceled);

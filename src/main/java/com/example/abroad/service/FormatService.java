@@ -1,5 +1,6 @@
 package com.example.abroad.service;
 
+import com.example.abroad.controller.admin.AddProgramPageController;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.model.User;
 import java.time.Instant;
@@ -7,10 +8,22 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public record FormatService() {
+  static Logger logger = LoggerFactory.getLogger(FormatService.class);
+
+  public String formatFacultyLeads(List<String> leads) {
+    if (leads.isEmpty()) {
+      logger.error("No faculty leads found");
+      return "admin";
+    }
+    return String.join(", ", leads);
+  }
 
   public String formatInstant(Instant instant) {
     return instant.atZone(ZoneId.systemDefault())
