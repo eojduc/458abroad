@@ -22,9 +22,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.sql.Blob;
-import java.time.Instant;
-import java.util.Optional;
 import java.sql.SQLException;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/applications/{applicationId}/documents")
@@ -49,14 +48,16 @@ public class DocumentController {
         if (this.userService.findUserFromSession(session).isEmpty()) {
             return "redirect:/login?error=Not logged in";
         }
-
+        boolean isUpdate = this.documentService.getDocument(applicationId, type).isPresent();
         try {
             this.documentService.uploadDocument(applicationId, type, file);
-            redirectAttributes.addFlashAttribute("message", "Document uploaded successfully");
+            String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
+            redirectAttributes.addFlashAttribute("message", message);
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Failed to upload document");
+            String errorMessage = isUpdate ? "Failed to update document" : "Failed to upload document";
+            redirectAttributes.addFlashAttribute("error", errorMessage);
         }
         return "redirect:/applications";
     }

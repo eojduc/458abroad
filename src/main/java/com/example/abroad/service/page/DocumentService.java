@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +37,8 @@ public class DocumentService {
             boolean submitted,
             LocalDate deadline,
             String applicationId,
-            Instant submittedAt
+            Instant submittedAt,
+            String formattedTimestamp
     ) {}
 
     public record ValidationResult(boolean valid, String errorMessage) {}
@@ -52,12 +55,20 @@ public class DocumentService {
                             .filter(d -> d.type() == type)
                             .findFirst();
 
+                    Instant timestamp = doc.map(Application.Document::timestamp).orElse(null);
+                    String formattedTime = timestamp != null ?
+                            DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm:ss")
+                                    .withZone(ZoneId.systemDefault())
+                                    .format(timestamp) :
+                            null;
+
                     return new DocumentStatus(
                             type,
                             doc.isPresent(),
                             deadline,
                             applicationId,
-                            doc.map(Application.Document::timestamp).orElse(null)
+                            timestamp,
+                            formattedTime
                     );
                 })
                 .toList();
@@ -73,6 +84,7 @@ public class DocumentService {
         return Application.Document.Type.values().length - documents.size();
     }
 
+    @Transactional
     public boolean uploadDocument(String applicationId, Application.Document.Type type, MultipartFile file) {
         ValidationResult validation = validatePDF(file);
         if (!validation.valid()) {
@@ -81,14 +93,29 @@ public class DocumentService {
 
         try {
             logger.info("Uploading document of size: {}", file.getSize());
+
+            // Check if document already exists
+            Optional<Application.Document> existingDoc = documentRepository.findById(
+                    new Application.Document.ID(type, applicationId)
+            );
+
+            // Create new document with current timestamp
             Application.Document document = new Application.Document(
                     type,
-                    Instant.now(),
+                    Instant.now(), // This will be the latest timestamp
                     BlobProxy.generateProxy(file.getInputStream(), file.getSize()),
                     applicationId
             );
+
+            // Save will either create new or update existing
             this.documentRepository.save(document);
-            logger.info("Document saved successfully");
+
+            if (existingDoc.isPresent()) {
+                logger.info("Updated existing document for type: {} with new timestamp", type);
+            } else {
+                logger.info("Created new document for type: {}", type);
+            }
+
             return true;
         } catch (IOException e) {
             logger.error("Failed to store document", e);

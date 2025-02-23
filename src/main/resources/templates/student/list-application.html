@@ -14,34 +14,27 @@
     <div class="card-body gap-10">
       <h1 class="card-title">My Applications</h1>
       <div th:fragment="programTable" id="programTable" class="contents">
+        <!-- Show success message if present -->
+        <div th:if="${message}" class="alert alert-success shadow-lg py-2 px-4">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span th:text="${message}"></span>
+          </div>
+        </div>
         <div class="overflow-x-auto">
           <table class="table table-lg w-full">
             <thead>
             <tr>
-              <th
-                      th:replace="~{this :: sortableHeader('Title', '/applications/sort', 'TITLE', '#programTable')}"
-              ></th>
-              <th
-                      th:replace="~{this :: sortableHeader('Year & Semester', '/applications/sort', 'YEAR_SEMESTER', '#programTable')}"
-              ></th>
-              <th
-                      th:replace="~{this :: sortableHeader('Faculty Lead(s)', '/applications/sort', 'FACULTY', '#programTable')}"
-              ></th>
-              <th
-                      th:replace="~{this :: sortableHeader('Start Date', '/applications/sort', 'START_DATE', '#programTable')}"
-              ></th>
-              <th
-                      th:replace="~{this :: sortableHeader('End Date', '/applications/sort', 'END_DATE', '#programTable')}"
-              ></th>
-              <th
-                      th:replace="~{this :: sortableHeader('Application Open', '/applications/sort', 'APPLICATION_OPEN', '#programTable')}"
-              ></th>
-              <th
-                      th:replace="~{this :: sortableHeader('Application Closed', '/applications/sort', 'APPLICATION_CLOSED', '#programTable')}"
-              ></th>
-              <th
-                      th:replace="~{this :: sortableHeader('Status', '/applications/sort', 'STATUS', '#programTable')}"
-              ></th>
+              <th th:replace="~{this :: sortableHeader('Title', '/applications/sort', 'TITLE', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Year & Semester', '/applications/sort', 'YEAR_SEMESTER', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Faculty Lead(s)', '/applications/sort', 'FACULTY', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Start Date', '/applications/sort', 'START_DATE', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('End Date', '/applications/sort', 'END_DATE', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Application Open', '/applications/sort', 'APPLICATION_OPEN', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Application Closed', '/applications/sort', 'APPLICATION_CLOSED', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Status', '/applications/sort', 'STATUS', '#programTable')}"></th>
               <th>Essential Documents</th>
             </tr>
             </thead>
@@ -53,32 +46,20 @@
                   <span th:text="${pair.prog().title()}">Program Title</span>
                 </a>
               </td>
-              <td
-                      th:text="${formatter.formatTerm(pair.prog().semester(), pair.prog().year())}"
-              ></td>
+              <td th:text="${formatter.formatTerm(pair.prog().semester(), pair.prog().year())}"></td>
               <td>TODO</td>
-              <td
-                      th:text="${formatter.formatLocalDate(pair.prog().startDate())}"
-              ></td>
-              <td
-                      th:text="${formatter.formatLocalDate(pair.prog().endDate())}"
-              ></td>
-              <td
-                      th:text="${formatter.formatLocalDate(pair.prog().applicationOpen())}"
-              ></td>
-              <td
-                      th:text="${formatter.formatLocalDate(pair.prog().applicationClose())}"
-              ></td>
+              <td th:text="${formatter.formatLocalDate(pair.prog().startDate())}"></td>
+              <td th:text="${formatter.formatLocalDate(pair.prog().endDate())}"></td>
+              <td th:text="${formatter.formatLocalDate(pair.prog().applicationOpen())}"></td>
+              <td th:text="${formatter.formatLocalDate(pair.prog().applicationClose())}"></td>
               <td>
-                <div
-                        th:replace="~{components :: statusBadge(${pair.app().status().name()})}"
-                ></div>
+                <div th:replace="~{components :: statusBadge(${pair.app().status().name()})}"></div>
               </td>
               <!-- Essential Documents Column -->
               <td>
                 <!-- Show documents for APPROVED or ENROLLED applications -->
                 <div th:if="${pair.app().status() == T(com.example.abroad.model.Application.Status).APPROVED ||
-                                          pair.app().status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
+                                                      pair.app().status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
                      class="space-y-2">
 
                   <!-- Warning alert for missing documents -->
@@ -118,23 +99,47 @@
                       <!-- Document name -->
                       <span th:text="${doc.type.text()}" class="text-sm">Document Type</span>
 
-                      <!-- View button for submitted documents -->
-                      <a th:if="${doc.submitted}"
-                         th:href="@{/applications/{appId}/documents/{type}/view(appId=${doc.applicationId},type=${doc.type})}"
-                         class="btn btn-xs btn-ghost"
-                         target="_blank">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                             class="w-4 h-4 stroke-current">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                        <span class="ml-1">View</span>
-                      </a>
+                      <!-- View button and timestamp for submitted documents -->
+                      <div th:if="${doc.submitted}" class="flex items-center gap-2">
+                        <a th:href="@{/applications/{appId}/documents/{type}/view(appId=${doc.applicationId},type=${doc.type})}"
+                           class="btn btn-xs btn-ghost"
+                           target="_blank">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                               class="w-4 h-4 stroke-current">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                          </svg>
+                          <span class="ml-1">View</span>
+                        </a>
+
+                        <!-- Display timestamp -->
+                        <span th:if="${doc.formattedTimestamp}" class="text-xs text-base-content/70">
+                                                    Last updated: [[${doc.formattedTimestamp}]]
+                                                </span>
+                      </div>
                     </div>
 
-                    <!-- Upload form for missing documents -->
+                    <!-- Upload/re-upload form section -->
+                    <div th:if="${doc.submitted}" class="pl-6 mt-2">
+                      <form th:action="@{/applications/{id}/documents(id=${doc.applicationId})}"
+                            method="POST"
+                            enctype="multipart/form-data"
+                            class="flex flex-col gap-2">
+                        <input type="hidden" name="type" th:value="${doc.type}"/>
+                        <div class="flex items-center gap-2">
+                          <input type="file"
+                                 class="file-input file-input-bordered file-input-xs w-full max-w-xs"
+                                 name="file"
+                                 accept="application/pdf"
+                                 required/>
+                          <button class="btn btn-primary btn-xs">Re-upload</button>
+                        </div>
+                      </form>
+                    </div>
+
+                    <!-- Initial upload form -->
                     <div th:unless="${doc.submitted}" class="pl-6">
                       <div class="flex flex-col gap-2">
                         <!-- Download blank form button -->
@@ -194,7 +199,7 @@
 
                 <!-- Message for non-approved/enrolled applications -->
                 <div th:unless="${pair.app().status() == T(com.example.abroad.model.Application.Status).APPROVED ||
-                                             pair.app().status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
+                                                         pair.app().status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
                      class="text-base-content/50 italic text-sm">
                   Documents required after approval
                 </div>
