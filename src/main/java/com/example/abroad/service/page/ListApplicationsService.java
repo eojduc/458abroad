@@ -50,7 +50,7 @@ public record ListApplicationsService(
     };
 
     // Join and enrich data with document information
-    var enrichedPairs = join(programs, applications)
+    List<PairWithDocuments> enrichedPairs = join(programs, applications)
             .map(pair -> {
               boolean isDocumentRelevant = pair.app().status() == Application.Status.APPROVED ||
                       pair.app().status() == Application.Status.ENROLLED;

@@ -52,6 +52,8 @@ public record DocumentService(
         return documents.size() == Application.Document.Type.values().length;
     }
 
+    //comment here
+
     public long getMissingDocumentsCount(String applicationId) {
         var documents = documentRepository.findById_ApplicationId(applicationId);
         return Application.Document.Type.values().length - documents.size();
