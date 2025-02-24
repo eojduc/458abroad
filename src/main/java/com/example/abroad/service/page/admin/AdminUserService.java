@@ -1,22 +1,41 @@
 package com.example.abroad.service.page.admin;
 
+import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
+import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.LocalUserRepository;
+import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.SSOUserRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Comparator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Service
-public record AdminUserService(
+public class AdminUserService{
+        private final LocalUserRepository localUserRepository;
+        private final SSOUserRepository ssoUserRepository;
+        private final FacultyLeadRepository facultyLeadRepository;
+        private final ProgramRepository programRepository;
+        private final UserService userService;
+
+        public AdminUserService(
         LocalUserRepository localUserRepository,
         SSOUserRepository ssoUserRepository,
+        FacultyLeadRepository facultyLeadRepository,
+        ProgramRepository programRepository,
         UserService userService
-) {
+    ) {
+        this.localUserRepository = localUserRepository;
+        this.ssoUserRepository = ssoUserRepository;
+        this.facultyLeadRepository = facultyLeadRepository;
+        this.programRepository = programRepository;
+        this.userService = userService;
+}
     public enum Sort {
         NAME, EMAIL, ROLE, USER_TYPE
     }
@@ -90,6 +109,88 @@ public record AdminUserService(
             case USER_TYPE -> Comparator.comparing(UserInfo::userType);
         };
         return ascending ? comparator : comparator.reversed();
+    }
+
+    public sealed interface ModifyUserResult {
+        record Success(User modifiedUser) implements ModifyUserResult {}
+        record UserNotFound() implements ModifyUserResult {}
+        record UserNotAdmin() implements ModifyUserResult {}
+        record CannotModifySuperAdmin() implements ModifyUserResult {}
+        record RequiresConfirmation(
+                String username,
+                List<Program> affectedPrograms
+        ) implements ModifyUserResult {}
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ModifyUserResult modifyUserAdminStatus(
+            HttpSession session,
+            String targetUsername,
+            boolean grantAdmin,
+            boolean confirmed
+    ) {
+        // Check if requesting user is admin
+        var adminUser = userService.findUserFromSession(session).orElse(null);
+        if (adminUser == null) {
+            return new ModifyUserResult.UserNotFound();
+        }
+        if (!adminUser.isAdmin()) {
+            return new ModifyUserResult.UserNotAdmin();
+        }
+
+        // Find target user
+        var targetUser = userService.findByUsername(targetUsername).orElse(null);
+        if (targetUser == null) {
+            return new ModifyUserResult.UserNotFound();
+        }
+
+        // Prevent modifying super admin
+        if ("admin".equals(targetUsername)) {
+            return new ModifyUserResult.CannotModifySuperAdmin();
+        }
+
+        // If revoking admin privileges, check faculty lead status
+        if (!grantAdmin) {
+            var facultyLeadPrograms = getFacultyLeadPrograms(targetUsername);
+            if (!facultyLeadPrograms.isEmpty() && !confirmed) {
+                return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
+            }
+
+            // If confirmed and user is only faculty lead for any program,
+            // transfer faculty lead to admin
+            if (confirmed) {
+                handleFacultyLeadTransfer(targetUsername, facultyLeadPrograms);
+            }
+        }
+
+        // Modify user admin status
+        var updatedUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
+        if (targetUser.isLocal()) {
+            localUserRepository.save((User.LocalUser) updatedUser);
+        } else {
+            ssoUserRepository.save((User.SSOUser) updatedUser);
+        }
+
+        return new ModifyUserResult.Success(updatedUser);
+    }
+
+    private List<Program> getFacultyLeadPrograms(String username) {
+        var facultyLeads = facultyLeadRepository.findById_Username(username);
+        return facultyLeads.stream()
+                .map(lead -> programRepository.findById(lead.programId())
+                        .orElseThrow(() -> new RuntimeException("Program not found")))
+                .toList();
+    }
+
+    private void handleFacultyLeadTransfer(String username, List<Program> programs) {
+        programs.forEach(program -> {
+            var leads = facultyLeadRepository.findById_ProgramId(program.id());
+            if (leads.size() == 1 && leads.get(0).username().equals(username)) {
+                // This is the only faculty lead, transfer to admin
+                facultyLeadRepository.delete(leads.get(0));
+                facultyLeadRepository.save(new Program.FacultyLead(program.id(), "admin"));
+            }
+        });
     }
 }
 

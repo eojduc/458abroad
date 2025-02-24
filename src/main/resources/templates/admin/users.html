@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name, alerts, formatter)"
       th:data-theme="${user.theme.name.toLowerCase}">
+
 <head th:replace="~{components :: head('Admin Users')}"></head>
 <body>
 <div th:replace="~{components :: admin-navbar(${name})}"></div>
@@ -24,8 +25,34 @@
 </div>
 
 <div th:replace="~{components :: footer}"></div>
-</body>
-</html>
+
+<!-- Dialog Container - Add this div to hold the dynamically loaded dialog -->
+<div id="dialogContainer"></div>
+
+<!-- Confirmation Dialog -->
+<dialog th:fragment="confirmationDialog" id="adminConfirmDialog" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirm Admin Privilege Removal</h3>
+        <p class="py-4">
+            This user is currently a faculty lead for the following programs:
+        </p>
+        <ul class="list-disc list-inside mb-4">
+            <li th:each="program : ${programs}" th:text="${program.title()}"></li>
+        </ul>
+        <p>
+            For programs where they are the only faculty lead, the lead role will be transferred to the admin account.
+        </p>
+        <div class="modal-action">
+            <form th:action="@{/admin/users/{username}/admin-status(username=${username},confirmed=true)}"
+                  method="POST"
+                  class="inline">
+                <input type="hidden" name="grantAdmin" value="false"/>
+                <button type="submit" class="btn btn-warning">Proceed</button>
+            </form>
+            <button class="btn" onclick="document.getElementById('adminConfirmDialog').close()">Cancel</button>
+        </div>
+    </div>
+</dialog>
 
 <!-- User Table Fragment -->
 <table class="table w-full" th:fragment="userTable(sort)" id="userTable">
@@ -35,6 +62,7 @@
         <th th:replace="~{this :: sortableHeader('Email', '/admin/users/table', 'EMAIL')}"></th>
         <th th:replace="~{this :: sortableHeader('Role', '/admin/users/table', 'ROLE')}"></th>
         <th th:replace="~{this :: sortableHeader('Type', '/admin/users/table', 'USER_TYPE')}"></th>
+        <th>Actions</th>
     </tr>
     </thead>
     <tbody>
@@ -48,6 +76,34 @@
             <span th:text="${userInfo.userType}"
                   th:class="${userInfo.userType == 'SSO' ? 'badge badge-info' : 'badge badge-accent'}">
             </span>
+        </td>
+        <td>
+            <!-- Don't show any buttons for the admin user -->
+            <div th:if="${userInfo.user.username != 'admin'}" class="flex gap-2">
+                <!-- For non-admin users, show Grant Admin button -->
+                <form th:if="${!userInfo.user.isAdmin()}"
+                      th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
+                      method="POST"
+                      class="inline">
+                    <input type="hidden" name="grantAdmin" value="true"/>
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        Grant Admin
+                    </button>
+                </form>
+                <!-- For admin users (except super admin), show Revoke Admin button with HTMX -->
+                <form th:if="${userInfo.user.isAdmin() && userInfo.user.username != 'admin'}"
+                      th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
+                      th:hx-post="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
+                      hx-target="#dialogContainer"
+                      hx-swap="innerHTML"
+                      method="POST"
+                      class="inline">
+                    <input type="hidden" name="grantAdmin" value="false"/>
+                    <button type="submit" class="btn btn-sm btn-warning">
+                        Revoke Admin
+                    </button>
+                </form>
+            </div>
         </td>
     </tr>
     </tbody>
@@ -96,3 +152,18 @@
         </div>
     </th>
 </div>
+
+<!-- Add dialog handling script -->
+<script>
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'dialogContainer') {
+            const dialog = document.getElementById('adminConfirmDialog');
+            if (dialog) {
+                dialog.showModal();
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
