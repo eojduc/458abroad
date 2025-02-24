@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -181,16 +182,24 @@ public class AdminUserService{
                         .orElseThrow(() -> new RuntimeException("Program not found")))
                 .toList();
     }
-
     private void handleFacultyLeadTransfer(String username, List<Program> programs) {
-        programs.forEach(program -> {
-            var leads = facultyLeadRepository.findById_ProgramId(program.id());
-            if (leads.size() == 1 && leads.get(0).username().equals(username)) {
-                // This is the only faculty lead, transfer to admin
-                facultyLeadRepository.delete(leads.get(0));
-                facultyLeadRepository.save(new Program.FacultyLead(program.id(), "admin"));
+        // Get all faculty leads for this username directly
+        List<Program.FacultyLead> userLeads = facultyLeadRepository.findById_Username(username);
+
+        // For each of the user's leads
+        userLeads.forEach(userLead -> {
+            // Delete the current user's lead entry
+            facultyLeadRepository.delete(userLead);
+
+            // Check how many leads remain for this program after deletion
+            List<Program.FacultyLead> remainingLeads = facultyLeadRepository.findById_ProgramId(userLead.programId());
+
+            // If no leads remain for this program, make admin the lead
+            if (remainingLeads.isEmpty()) {
+                facultyLeadRepository.save(new Program.FacultyLead(userLead.programId(), "admin"));
             }
         });
     }
+
 }
 
