@@ -6,9 +6,8 @@ import com.example.abroad.model.Application.Response.Question;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.ApplicationRepository;
-import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 public record ApplyToProgramService(
   ApplicationService applicationService,
-  ProgramRepository programRepository,
+  ProgramService programService,
   UserService userService
 ) {
 
@@ -33,7 +32,7 @@ public record ApplyToProgramService(
     if (!user.isStudent()) {
       return new GetApplyPageData.UserNotStudent();
     }
-    var program = programRepository.findById(programId).orElse(null);
+    var program = programService.findById(programId).orElse(null);
     if (program == null) {
       return new GetApplyPageData.ProgramNotFound();
     }

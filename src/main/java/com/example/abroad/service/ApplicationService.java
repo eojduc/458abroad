@@ -19,7 +19,8 @@ public record ApplicationService(
   ApplicationRepository applicationRepository,
   NoteRepository noteRepository,
   DocumentRepository documentRepository,
-  ResponseRepository responseRepository) {
+  ResponseRepository responseRepository
+) {
 
   public List<Note> getNotes(String applicationId) {
     return noteRepository.findByApplicationId(applicationId);
