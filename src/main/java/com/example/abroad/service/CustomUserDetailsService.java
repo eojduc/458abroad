@@ -14,17 +14,14 @@ public record CustomUserDetailsService(UserService userService) implements UserD
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    var user = userService.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    var user = userService.findByUsername(username)
+      .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     if (!(user instanceof User.LocalUser localUser)) {
       throw new UsernameNotFoundException("User not found: " + username);
     }
-    return createUserDetails(localUser);
-  }
-
-  private UserDetails createUserDetails(User.LocalUser user) {
     return new org.springframework.security.core.userdetails.User(
-      user.username(),
-      user.password(),
+      localUser.username(),
+      localUser.password(),
       List.of()
     );
   }

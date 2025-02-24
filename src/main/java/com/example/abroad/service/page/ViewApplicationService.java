@@ -78,10 +78,8 @@ public record ViewApplicationService(
     if (!success.editable()) {
       return new GetApplicationResult.NotEditable();
     }
-
-    Application app = success.application();
-
-    var newApp = app
+    
+    var newApp = success.application()
       .withGpa(gpa)
       .withMajor(major)
       .withDateOfBirth(dateOfBirth);
@@ -93,7 +91,7 @@ public record ViewApplicationService(
     applicationService.saveResponse(newApp.id(), Application.Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
     applicationService.saveResponse(newApp.id(), Application.Response.Question.UNIQUE_PERSPECTIVE, answer5);
     var responses = applicationService.getResponses(newApp.id());
-    return new GetApplicationResult.Success(newApp, success.program(), success.user(), success.editable(), responses);
+    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses);
   }
 
   public GetApplicationResult changeStatus(String applicationId, Application.Status newStatus, HttpSession session) {

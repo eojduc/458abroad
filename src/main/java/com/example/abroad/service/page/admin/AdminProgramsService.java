@@ -54,8 +54,6 @@ public record AdminProgramsService(
   public List<String> getKnownFacultyLeads() {
     return facultyLeadRepository.findAll().stream()
         .map(FacultyLead::username)
-        .collect(Collectors.toSet())
-        .stream()
         .toList();
   }
 
