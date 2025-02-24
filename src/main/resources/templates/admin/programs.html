@@ -33,18 +33,18 @@
 <table class="table w-full" th:fragment="programTable(sort)" id="programTable">
   <thead>
     <tr>
-      <th th:replace="~{this :: sortableHeader('Title', '/admin/programs/table', 'TITLE')}"></th>
-      <th th:replace="~{this :: sortableHeader('Term', '/admin/programs/table', 'SEM_DATE')}"></th>
-      <th th:replace="~{this :: sortableHeader('Faculty Lead', '/admin/programs/table', 'FACULTY_LEAD')}"></th>
-      <th th:replace="~{this :: sortableHeader('App Opens', '/admin/programs/table', 'APP_OPENS')}"></th>
-      <th th:replace="~{this :: sortableHeader('App Closes', '/admin/programs/table', 'APP_CLOSES')}"></th>
-      <th th:replace="~{this :: sortableHeader('Start Date', '/admin/programs/table', 'START_DATE')}"></th>
-      <th th:replace="~{this :: sortableHeader('End Date', '/admin/programs/table', 'END_DATE')}"></th>
-      <th th:replace="~{this :: sortableHeader('Applied', '/admin/programs/table', 'APPLIED')}"></th>
-      <th th:replace="~{this :: sortableHeader('Enrolled', '/admin/programs/table', 'ENROLLED')}"></th>
-      <th th:replace="~{this :: sortableHeader('Canceled', '/admin/programs/table', 'CANCELED')}"></th>
-      <th th:replace="~{this :: sortableHeader('Withdrawn', '/admin/programs/table', 'WITHDRAWN')}"></th>
-      <th th:replace="~{this :: sortableHeader('Total Active', '/admin/programs/table', 'TOTAL_ACTIVE')}"></th>
+      <th th:replace="~{this :: sortableHeader('Title', 'TITLE')}"></th>
+      <th th:replace="~{this :: sortableHeader('Term', 'SEM_DATE')}"></th>
+      <th th:replace="~{this :: sortableHeader('Faculty Lead', 'FACULTY_LEAD')}"></th>
+      <th th:replace="~{this :: sortableHeader('App Opens', 'APP_OPENS')}"></th>
+      <th th:replace="~{this :: sortableHeader('App Closes', 'APP_CLOSES')}"></th>
+      <th th:replace="~{this :: sortableHeader('Start Date', 'START_DATE')}"></th>
+      <th th:replace="~{this :: sortableHeader('End Date', 'END_DATE')}"></th>
+      <th th:replace="~{this :: sortableHeader('Applied', 'APPLIED')}"></th>
+      <th th:replace="~{this :: sortableHeader('Enrolled', 'ENROLLED')}"></th>
+      <th th:replace="~{this :: sortableHeader('Canceled', 'CANCELED')}"></th>
+      <th th:replace="~{this :: sortableHeader('Withdrawn', 'WITHDRAWN')}"></th>
+      <th th:replace="~{this :: sortableHeader('Total Active', 'TOTAL_ACTIVE')}"></th>
     </tr>
   </thead>
   <tbody th:fragment="programTableBody" id="programTableBody">
@@ -67,18 +67,22 @@
     <td th:text="${programAndStatus.totalActive}"></td>
   </tr>
   </tbody>
+  <div hx-swap-oob="true" id="filterSortParams">
+    <input type="hidden" name="sort" th:value="${sort}" />
+    <input type="hidden" name="ascending" th:value="${ascending}" />
+  </div>
+
 </table>
 
 <form xmlns:th="http://www.thymeleaf.org"
       th:fragment="filterForm(path)"
       id="filterForm">
-  <!-- Container for sort parameters -->
-  <div id="filterSortParams">
-    <input type="hidden" name="sort" th:value="${sort}" />
-    <input type="hidden" name="ascending" th:value="${ascending}" />
-  </div>
-
   <div class="flex gap-4">
+    <!-- Container for sort parameters -->
+    <div id="filterSortParams">
+      <input type="hidden" name="sort" th:value="${sort}" />
+      <input type="hidden" name="ascending" th:value="${ascending}" />
+    </div>
     <!-- Keyword search Title -->
     <label>
       <input type="text"
@@ -133,11 +137,9 @@
   </div>
 </form>
 
-
-
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, column)">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, column)">
   <th th:class="${sort == column ? 'bg-base-300 cursor-pointer' : 'bg-base-200 cursor-pointer'}"
-      th:hx-get="@{${path}(sort=${column}, ascending=${!ascending}, nameFilter=${nameFilter}, leadFilter=${leadFilter}, timeFilter=${timeFilter})}"
+      th:hx-get="@{'/admin/programs/table'(sort=${column}, ascending=${!ascending}, nameFilter=${nameFilter}, leadFilter=${leadFilter}, timeFilter=${timeFilter})}"
       hx-target="#programTable"
       hx-swap="outerHTML">
     <div class="flex items-center gap-2">
@@ -147,5 +149,4 @@
     </div>
   </th>
 </div>
-
 
