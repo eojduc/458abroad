@@ -17,19 +17,18 @@
             <!-- Filter Form -->
             <div th:replace="~{this :: filterForm('/admin/users/table')}"></div>
 
-            <div class="overflow-x-auto">
-                <div th:replace="~{this :: userTable(sort)}"></div>
-            </div>
+            <!-- Single table replacement -->
+            <div th:replace="~{this :: userTable(${sort})}"></div>
         </div>
     </div>
 </div>
 
 <div th:replace="~{components :: footer}"></div>
 
-<!-- Dialog Container - Add this div to hold the dynamically loaded dialog -->
+<!-- Dialog Container -->
 <div id="dialogContainer"></div>
 
-<!-- Confirmation Dialog -->
+<!-- Confirmation Dialog Fragment -->
 <dialog th:fragment="confirmationDialog" id="adminConfirmDialog" class="modal">
     <div class="modal-box">
         <h3 class="font-bold text-lg">Confirm Admin Privilege Removal</h3>
@@ -55,63 +54,67 @@
 </dialog>
 
 <!-- User Table Fragment -->
-<table class="table w-full" th:fragment="userTable(sort)" id="userTable">
-    <thead>
-    <tr>
-        <th th:replace="~{this :: sortableHeader('Name', '/admin/users/table', 'NAME')}"></th>
-        <th th:replace="~{this :: sortableHeader('Email', '/admin/users/table', 'EMAIL')}"></th>
-        <th th:replace="~{this :: sortableHeader('Role', '/admin/users/table', 'ROLE')}"></th>
-        <th th:replace="~{this :: sortableHeader('Type', '/admin/users/table', 'USER_TYPE')}"></th>
-        <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="userInfo : ${users}"
-        th:class="${userInfo.user.isAdmin() ? 'bg-primary bg-opacity-10 border-base-300 border-y-2' : 'border-base-300 border-y-2'}"
-        th:data-user-type="${userInfo.userType}">
-        <td th:text="${userInfo.user.displayName()}"></td>
-        <td th:text="${userInfo.user.email()}"></td>
-        <td th:text="${userInfo.user.role()}"></td>
-        <td>
-            <span th:text="${userInfo.userType}"
-                  th:class="${userInfo.userType == 'SSO' ? 'badge badge-info' : 'badge badge-accent'}">
-            </span>
-        </td>
-        <td>
-            <!-- Don't show any buttons for the admin user -->
-            <div th:if="${userInfo.user.username != 'admin'}" class="flex gap-2">
-                <!-- For non-admin users, show Grant Admin button -->
-                <form th:if="${!userInfo.user.isAdmin()}"
-                      th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
-                      method="POST"
-                      class="inline">
-                    <input type="hidden" name="grantAdmin" value="true"/>
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        Grant Admin
-                    </button>
-                </form>
-                <!-- For admin users (except super admin), show Revoke Admin button with HTMX -->
-                <form th:if="${userInfo.user.isAdmin() && userInfo.user.username != 'admin'}"
-                      th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
-                      th:hx-post="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
-                      hx-target="#dialogContainer"
-                      hx-swap="innerHTML"
-                      method="POST"
-                      class="inline">
-                    <input type="hidden" name="grantAdmin" value="false"/>
-                    <button type="submit" class="btn btn-sm btn-warning">
-                        Revoke Admin
-                    </button>
-                </form>
-            </div>
-        </td>
-    </tr>
-    </tbody>
+<div th:fragment="userTable(sort)">
+    <div class="overflow-x-auto">
+        <table class="table w-full" id="userTable">
+            <thead>
+            <tr>
+                <th th:replace="~{this :: sortableHeader('Name', '/admin/users/table', 'NAME')}"></th>
+                <th th:replace="~{this :: sortableHeader('Email', '/admin/users/table', 'EMAIL')}"></th>
+                <th th:replace="~{this :: sortableHeader('Role', '/admin/users/table', 'ROLE')}"></th>
+                <th th:replace="~{this :: sortableHeader('Type', '/admin/users/table', 'USER_TYPE')}"></th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="userInfo : ${users}"
+                th:class="${userInfo.user.isAdmin() ? 'bg-primary bg-opacity-10 border-base-300 border-y-2' : 'border-base-300 border-y-2'}"
+                th:data-user-type="${userInfo.userType}">
+                <td th:text="${userInfo.user.displayName()}"></td>
+                <td th:text="${userInfo.user.email()}"></td>
+                <td th:text="${userInfo.user.role()}"></td>
+                <td>
+                    <span th:text="${userInfo.userType}"
+                          th:class="${userInfo.userType == 'SSO' ? 'badge badge-info' : 'badge badge-accent'}">
+                    </span>
+                </td>
+                <td>
+                    <!-- Don't show any buttons for the admin user -->
+                    <div th:if="${userInfo.user.username != 'admin'}" class="flex gap-2">
+                        <!-- For non-admin users, show Grant Admin button -->
+                        <form th:if="${!userInfo.user.isAdmin()}"
+                              th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
+                              method="POST"
+                              class="inline">
+                            <input type="hidden" name="grantAdmin" value="true"/>
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                Grant Admin
+                            </button>
+                        </form>
+                        <!-- For admin users (except super admin), show Revoke Admin button with HTMX -->
+                        <form th:if="${userInfo.user.isAdmin() && userInfo.user.username != 'admin'}"
+                              th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
+                              th:hx-post="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
+                              hx-target="#dialogContainer"
+                              hx-swap="innerHTML"
+                              method="POST"
+                              class="inline">
+                            <input type="hidden" name="grantAdmin" value="false"/>
+                            <button type="submit" class="btn btn-sm btn-warning">
+                                Revoke Admin
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
     <div hx-swap-oob="true" id="filterSortParams">
         <input type="hidden" name="sort" th:value="${sort}" />
         <input type="hidden" name="ascending" th:value="${ascending}" />
     </div>
-</table>
+</div>
 
 <!-- Filter Form Fragment -->
 <form xmlns:th="http://www.thymeleaf.org"
@@ -153,7 +156,7 @@
     </th>
 </div>
 
-<!-- Add dialog handling script -->
+<!-- Dialog handling script -->
 <script>
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         if (evt.detail.target.id === 'dialogContainer') {
