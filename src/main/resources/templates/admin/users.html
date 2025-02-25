@@ -82,7 +82,7 @@
                                         <form th:if="${userInfo.user.isAdmin() && userInfo.user.username != 'admin'}"
                                               th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
                                               th:hx-post="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
-                                              hx-target="#dialogContainer"
+                                              hx-target="#adminDialogContainer"
                                               hx-swap="innerHTML"
                                               method="POST"
                                               class="inline">
@@ -91,6 +91,15 @@
                                                 Revoke Admin
                                             </button>
                                         </form>
+
+                                        <!-- Reset Password Button (only for LOCAL users) -->
+                                        <button th:if="${userInfo.userType == 'LOCAL' && userInfo.user.username != 'admin'}"
+                                                class="btn btn-sm btn-secondary"
+                                                th:hx-get="@{/admin/users/{username}/show-reset-password(username=${userInfo.user.username})}"
+                                                hx-target="#passwordDialogContainer"
+                                                hx-swap="innerHTML">
+                                            Reset Password
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -109,8 +118,9 @@
 
 <div th:replace="~{components :: footer}"></div>
 
-<!-- Dialog Container -->
-<div id="dialogContainer"></div>
+<!-- Completely separate dialog containers -->
+<div id="adminDialogContainer"></div>
+<div id="passwordDialogContainer"></div>
 
 <!-- Confirmation Dialog Fragment -->
 <dialog th:fragment="confirmationDialog" id="adminConfirmDialog" class="modal">
@@ -132,8 +142,48 @@
                 <input type="hidden" name="grantAdmin" value="false"/>
                 <button type="submit" class="btn btn-warning">Proceed</button>
             </form>
-            <button class="btn" onclick="document.getElementById('adminConfirmDialog').close()">Cancel</button>
+            <button class="btn" onclick="closeAdminDialog()">Cancel</button>
         </div>
+    </div>
+</dialog>
+
+<!-- Password Reset Dialog Fragment -->
+<dialog th:fragment="passwordResetDialog" id="passwordResetDialog" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Reset User Password</h3>
+        <p class="py-4">
+            Enter a new password for this user. The password must be at least 8 characters.
+        </p>
+        <form th:action="@{/admin/users/{username}/reset-password(username=${username})}"
+              method="POST"
+              class="flex flex-col gap-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">New Password</span>
+                </label>
+                <input type="password"
+                       name="newPassword"
+                       class="input input-bordered"
+                       placeholder="Enter new password"
+                       required
+                       minlength="8"/>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Confirm New Password</span>
+                </label>
+                <input type="password"
+                       name="confirmPassword"
+                       class="input input-bordered"
+                       placeholder="Confirm new password"
+                       required
+                       minlength="8"/>
+            </div>
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Reset Password</button>
+                <button type="button" class="btn" onclick="closePasswordDialog()">Cancel</button>
+            </div>
+        </form>
     </div>
 </dialog>
 
@@ -151,11 +201,13 @@
     </th>
 </div>
 
-<!-- Dialog handling script -->
+<!-- Completely separate JavaScript handlers -->
 <script>
+    // Admin functionality
     document.body.addEventListener('htmx:beforeSwap', function(evt) {
-        // Check if the response contains a redirect URL
-        if (evt.detail.xhr.responseURL.includes('success=User%20admin%20status%20updated%20successfully')) {
+        // Only handle admin-related redirects
+        if (evt.detail.target && evt.detail.target.id === 'adminDialogContainer' &&
+            evt.detail.xhr.responseURL.includes('success=User%20admin%20status%20updated%20successfully')) {
             // Cancel the HTMX swap
             evt.detail.shouldSwap = false;
             // Redirect to the success page
@@ -164,13 +216,55 @@
     });
 
     document.body.addEventListener('htmx:afterSwap', function(evt) {
-        if (evt.detail.target.id === 'dialogContainer') {
-            const dialog = document.getElementById('adminConfirmDialog');
-            if (dialog) {
-                dialog.showModal();
+        // Only handle admin dialog
+        if (evt.detail.target && evt.detail.target.id === 'adminDialogContainer') {
+            const adminConfirmDialog = document.getElementById('adminConfirmDialog');
+            if (adminConfirmDialog) {
+                adminConfirmDialog.showModal();
             }
         }
     });
+
+    function closeAdminDialog() {
+        const dialog = document.getElementById('adminConfirmDialog');
+        if (dialog) {
+            dialog.close();
+        }
+        document.getElementById('adminDialogContainer').innerHTML = '';
+    }
+</script>
+
+<!-- Completely separate script for password reset -->
+<script>
+    // Password reset functionality
+    document.body.addEventListener('htmx:beforeSwap', function(evt) {
+        // Only handle password-related redirects
+        if (evt.detail.target && evt.detail.target.id === 'passwordDialogContainer' &&
+            evt.detail.xhr.responseURL.includes('success=Password%20reset%20successfully')) {
+            // Cancel the HTMX swap
+            evt.detail.shouldSwap = false;
+            // Redirect to the success page
+            window.location.href = evt.detail.xhr.responseURL;
+        }
+    });
+
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        // Only handle password dialog
+        if (evt.detail.target && evt.detail.target.id === 'passwordDialogContainer') {
+            const passwordResetDialog = document.getElementById('passwordResetDialog');
+            if (passwordResetDialog) {
+                passwordResetDialog.showModal();
+            }
+        }
+    });
+
+    function closePasswordDialog() {
+        const dialog = document.getElementById('passwordResetDialog');
+        if (dialog) {
+            dialog.close();
+        }
+        document.getElementById('passwordDialogContainer').innerHTML = '';
+    }
 </script>
 
 </body>

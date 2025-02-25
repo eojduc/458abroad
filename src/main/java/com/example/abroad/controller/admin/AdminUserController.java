@@ -136,4 +136,58 @@ public record AdminUserController(
     private boolean isHtmxRequest(HttpServletRequest request) {
         return request.getHeader("HX-Request") != null;
     }
+
+    // Add these methods to your AdminUserController class
+
+    @GetMapping("/{username}/show-reset-password")
+    public String showPasswordResetForm(
+            HttpSession session,
+            @PathVariable String username,
+            Model model,
+            HttpServletRequest request
+    ) {
+        var result = adminUserService.validatePasswordReset(session, username);
+
+        return switch (result) {
+            case AdminUserService.PasswordResetValidationResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.PasswordResetValidationResult.UserNotAdmin() ->
+                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.PasswordResetValidationResult.CannotResetSSOUser() ->
+                    "redirect:/admin/users?error=Cannot reset password for SSO user";
+            case AdminUserService.PasswordResetValidationResult.CannotResetSuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot reset password for super admin";
+            case AdminUserService.PasswordResetValidationResult.Valid() -> {
+                model.addAttribute("username", username);
+                yield "admin/users :: passwordResetDialog";
+            }
+        };
+    }
+
+    @PostMapping("/{username}/reset-password")
+    public String resetPassword(
+            HttpSession session,
+            @PathVariable String username,
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword
+    ) {
+        var result = adminUserService.resetUserPassword(session, username, newPassword, confirmPassword);
+
+        return switch (result) {
+            case AdminUserService.PasswordResetResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.PasswordResetResult.UserNotAdmin() ->
+                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.PasswordResetResult.CannotResetSSOUser() ->
+                    "redirect:/admin/users?error=Cannot reset password for SSO user";
+            case AdminUserService.PasswordResetResult.CannotResetSuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot reset password for super admin";
+            case AdminUserService.PasswordResetResult.PasswordsDoNotMatch() ->
+                    "redirect:/admin/users?error=Passwords do not match";
+            case AdminUserService.PasswordResetResult.PasswordTooShort() ->
+                    "redirect:/admin/users?error=Password must be at least 8 characters";
+            case AdminUserService.PasswordResetResult.Success() ->
+                    "redirect:/admin/users?success=Password reset successfully";
+        };
+    }
 }

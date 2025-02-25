@@ -8,6 +8,8 @@ import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.SSOUserRepository;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -23,12 +25,14 @@ public class AdminUserService{
         private final FacultyLeadRepository facultyLeadRepository;
         private final ProgramRepository programRepository;
         private final UserService userService;
+        private final PasswordEncoder passwordEncoder;
 
         public AdminUserService(
         LocalUserRepository localUserRepository,
         SSOUserRepository ssoUserRepository,
         FacultyLeadRepository facultyLeadRepository,
         ProgramRepository programRepository,
+        @Lazy PasswordEncoder passwordEncoder,
         UserService userService
     ) {
         this.localUserRepository = localUserRepository;
@@ -36,6 +40,7 @@ public class AdminUserService{
         this.facultyLeadRepository = facultyLeadRepository;
         this.programRepository = programRepository;
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
 }
     public enum Sort {
         NAME, EMAIL, ROLE, USER_TYPE
@@ -212,6 +217,121 @@ public class AdminUserService{
                 facultyLeadRepository.save(new Program.FacultyLead(userLead.programId(), "admin"));
             }
         });
+    }
+
+    // Add these interfaces and methods to your AdminUserService class
+
+    public sealed interface PasswordResetValidationResult {
+        record Valid() implements PasswordResetValidationResult {}
+        record UserNotFound() implements PasswordResetValidationResult {}
+        record UserNotAdmin() implements PasswordResetValidationResult {}
+        record CannotResetSSOUser() implements PasswordResetValidationResult {}
+        record CannotResetSuperAdmin() implements PasswordResetValidationResult {}
+    }
+
+    public sealed interface PasswordResetResult {
+        record Success() implements PasswordResetResult {}
+        record UserNotFound() implements PasswordResetResult {}
+        record UserNotAdmin() implements PasswordResetResult {}
+        record CannotResetSSOUser() implements PasswordResetResult {}
+        record CannotResetSuperAdmin() implements PasswordResetResult {}
+        record PasswordsDoNotMatch() implements PasswordResetResult {}
+        record PasswordTooShort() implements PasswordResetResult {}
+    }
+
+    /**
+     * Validates if the password reset operation is allowed
+     */
+    public PasswordResetValidationResult validatePasswordReset(
+            HttpSession session,
+            String targetUsername
+    ) {
+        // Check if requesting user is admin
+        var adminUser = userService.findUserFromSession(session).orElse(null);
+        if (adminUser == null) {
+            return new PasswordResetValidationResult.UserNotFound();
+        }
+        if (!adminUser.isAdmin()) {
+            return new PasswordResetValidationResult.UserNotAdmin();
+        }
+
+        // Find target user
+        var targetUser = userService.findByUsername(targetUsername).orElse(null);
+        if (targetUser == null) {
+            return new PasswordResetValidationResult.UserNotFound();
+        }
+
+        // Prevent resetting super admin's password
+        if ("admin".equals(targetUsername)) {
+            return new PasswordResetValidationResult.CannotResetSuperAdmin();
+        }
+
+        // Check if user is local
+        if (!targetUser.isLocal()) {
+            return new PasswordResetValidationResult.CannotResetSSOUser();
+        }
+
+        return new PasswordResetValidationResult.Valid();
+    }
+
+    /**
+     * Resets a user's password
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public PasswordResetResult resetUserPassword(
+            HttpSession session,
+            String targetUsername,
+            String newPassword,
+            String confirmPassword
+    ) {
+        // Validate the reset operation
+        var validationResult = validatePasswordReset(session, targetUsername);
+        if (validationResult instanceof PasswordResetValidationResult.UserNotFound) {
+            return new PasswordResetResult.UserNotFound();
+        } else if (validationResult instanceof PasswordResetValidationResult.UserNotAdmin) {
+            return new PasswordResetResult.UserNotAdmin();
+        } else if (validationResult instanceof PasswordResetValidationResult.CannotResetSSOUser) {
+            return new PasswordResetResult.CannotResetSSOUser();
+        } else if (validationResult instanceof PasswordResetValidationResult.CannotResetSuperAdmin) {
+            return new PasswordResetResult.CannotResetSuperAdmin();
+        }
+
+        // Validate passwords match
+        if (!newPassword.equals(confirmPassword)) {
+            return new PasswordResetResult.PasswordsDoNotMatch();
+        }
+
+        // Validate password length (minimum 8 characters)
+        if (newPassword.length() < 8) {
+            return new PasswordResetResult.PasswordTooShort();
+        }
+
+        // Get the local user
+        User.LocalUser localUser = (User.LocalUser) userService.findByUsername(targetUsername).orElse(null);
+        if (localUser == null) {
+            return new PasswordResetResult.UserNotFound();
+        }
+
+        // Update the password - assuming you have a way to hash passwords
+        String hashedPassword = hashPassword(newPassword);
+        User.LocalUser updatedUser = new User.LocalUser(
+                localUser.username(),
+                hashedPassword,
+                localUser.email(),
+                localUser.role(),
+                localUser.displayName(),
+                localUser.theme()
+        );
+
+        // Save the updated user
+        localUserRepository.save(updatedUser);
+
+        return new PasswordResetResult.Success();
+    }
+
+
+    private String hashPassword(String plainPassword) {
+        return passwordEncoder.encode(plainPassword);
     }
 
 }
