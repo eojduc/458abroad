@@ -19,9 +19,11 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   private final AuthSuccessHandler authSuccessHandler;
+  private final ShibbolethSSOFilter shibbolethSSOFilter;
 
-  public SecurityConfig(AuthSuccessHandler authSuccessHandler) {
+  public SecurityConfig(AuthSuccessHandler authSuccessHandler, ShibbolethSSOFilter shibbolethSSOFilter) {
     this.authSuccessHandler = authSuccessHandler;
+    this.shibbolethSSOFilter = shibbolethSSOFilter;
   }
 
   @Bean
@@ -45,7 +47,7 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
       .csrf(csrf -> csrf.disable())
-      // .addFilterBefore(ssoFilter, UsernamePasswordAuthenticationFilter.class)
+      .addFilterBefore(shibbolethSSOFilter, UsernamePasswordAuthenticationFilter.class)
       .authorizeHttpRequests(auth -> auth
         .anyRequest()
         .permitAll()
