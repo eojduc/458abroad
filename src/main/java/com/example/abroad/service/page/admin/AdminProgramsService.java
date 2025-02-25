@@ -51,9 +51,12 @@ public record AdminProgramsService(
     }
     return processAuthorizedRequest(sort, nameFilter, leadFilter, timeFilter, user, ascending);
   }
+
   public List<String> getKnownFacultyLeads() {
     return facultyLeadRepository.findAll().stream()
         .map(FacultyLead::username)
+        .collect(Collectors.toSet())
+        .stream()
         .toList();
   }
 
@@ -79,21 +82,19 @@ public record AdminProgramsService(
     );
   }
 
-
   public Function<Program, ProgramAndStatuses> getProgramAndStatuses() {
     return program -> {
       var applications = applicationRepository.findByProgramId(program.id());
       var counts = applications.stream()
-        .collect(Collectors.groupingBy(Application::status, Collectors.counting()));
-
+          .collect(Collectors.groupingBy(Application::status, Collectors.counting()));
       return new ProgramAndStatuses(
-        program,
-        getFacultyLeads(program.id()).map(FacultyLead::username).toList(),
-        counts.getOrDefault(Application.Status.APPLIED, 0L),
-        counts.getOrDefault(Application.Status.ENROLLED, 0L),
-        counts.getOrDefault(Application.Status.CANCELLED, 0L),
-        counts.getOrDefault(Application.Status.WITHDRAWN, 0L),
-        (long) applications.size()
+          program,
+          getFacultyLeads(program.id()).map(FacultyLead::username).toList(),
+          counts.getOrDefault(Application.Status.APPLIED, 0L),
+          counts.getOrDefault(Application.Status.ENROLLED, 0L),
+          counts.getOrDefault(Application.Status.CANCELLED, 0L),
+          counts.getOrDefault(Application.Status.WITHDRAWN, 0L),
+          (long) applications.size()
       );
     };
   }

@@ -9,6 +9,7 @@ import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -46,6 +47,13 @@ public record AddProgramService(UserService userService, ProgramService programS
       case SaveProgram.Success(var p) -> new AddProgramInfo.Success(p.id());
      case SaveProgram.DatabaseError(var message) -> new AddProgramInfo.DatabaseError(message);
     };
+  }
+
+  public List<String> getAdminList() {
+    return userService.findAll().stream()
+        .filter(User::isAdmin)
+        .map(User::username)
+        .toList();
   }
 
 

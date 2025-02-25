@@ -27,7 +27,7 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
       @RequestParam Optional<String> info
   ) {
 
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, "");
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, "", "");
 
     return switch (programsInfo) {
       case UserNotFound() -> "redirect:/login?error=You are not logged in";
@@ -38,8 +38,9 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
                 "user", user,
                 "alerts", new Alerts(error, success, warning, info),
                 "programAndStatuses", programAndStatuses,
+                "knownFacultyLeads", service.getKnownFacultyLeads(),
                 "formatter", formatter,
-              "theme", userService.getTheme(session)
+                "theme", userService.getTheme(session)
             )
         );
         yield "student/programs :: page";
@@ -50,20 +51,22 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
 
   @GetMapping("/programs/search")
   public String searchPrograms(HttpSession session, Model model,
-    @RequestParam String nameFilter
+      @RequestParam String nameFilter,
+      @RequestParam String leadFilter
   ) {
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, nameFilter);
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, nameFilter, leadFilter);
 
     return switch (programsInfo) {
       case UserNotFound() -> "redirect:/login?error=You are not logged in";
       case Success(var programsAndStatuses, var user) -> {
         model.addAllAttributes(
-          Map.of(
-            "user", user,
-            "formatter", formatter,
-            "theme", userService.getTheme(session),
-            "programAndStatuses", programsAndStatuses
-          )
+            Map.of(
+                "user", user,
+                "formatter", formatter,
+                "theme", userService.getTheme(session),
+                "programAndStatuses", programsAndStatuses,
+                "knownFacultyLeads", service.getKnownFacultyLeads()
+            )
         );
         yield "student/programs :: programTable";
       }

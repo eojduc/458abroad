@@ -8,6 +8,7 @@ import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminUserService;
 import com.example.abroad.service.page.admin.AdminUserService.GetAllUsersInfo;
 import com.example.abroad.service.page.admin.AdminUserService.Sort;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +23,22 @@ public record AdminUserController(
         FormatService formatter,
         UserService userService
 ) {
+    // Add a mapping for the root URL that redirects to /page
     @GetMapping
+    public String redirectToPage(
+            @RequestParam Optional<String> error,
+            @RequestParam Optional<String> success,
+            @RequestParam Optional<String> warning,
+            @RequestParam Optional<String> info
+    ) {
+        return String.format("redirect:/admin/users/page?%s%s%s%s",
+                error.map(e -> "error=" + e + "&").orElse(""),
+                success.map(s -> "success=" + s + "&").orElse(""),
+                warning.map(w -> "warning=" + w + "&").orElse(""),
+                info.map(i -> "info=" + i).orElse(""));
+    }
+
+    @GetMapping("/page")
     public String getUsers(
             HttpSession session,
             Model model,
@@ -81,5 +97,43 @@ public record AdminUserController(
                 yield "admin/users :: userTable";
             }
         };
+    }
+
+    @PostMapping("/{username}/admin-status")
+    public String modifyAdminStatus(
+            HttpSession session,
+            @PathVariable String username,
+            @RequestParam boolean grantAdmin,
+            @RequestParam(required = false) boolean confirmed,
+            Model model,
+            HttpServletRequest request
+    ) {
+        var result = adminUserService.modifyUserAdminStatus(session, username, grantAdmin, confirmed);
+
+        return switch (result) {
+            case AdminUserService.ModifyUserResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.ModifyUserResult.UserNotAdmin() ->
+                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.ModifyUserResult.CannotModifySuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot modify super admin account";
+            case AdminUserService.ModifyUserResult.RequiresConfirmation(var targetUser, var programs) -> {
+                model.addAttribute("username", targetUser);
+                model.addAttribute("programs", programs);
+                model.addAttribute("formatter", formatter);
+                // Return just the dialog fragment for HTMX requests
+                if (isHtmxRequest(request)) {
+                    yield "admin/users :: confirmationDialog";
+                }
+                // Redirect to main page for regular form submissions
+                yield "redirect:/admin/users";
+            }
+            case AdminUserService.ModifyUserResult.Success(var user) ->
+                    "redirect:/admin/users?success=User admin status updated successfully";
+        };
+    }
+
+    private boolean isHtmxRequest(HttpServletRequest request) {
+        return request.getHeader("HX-Request") != null;
     }
 }
