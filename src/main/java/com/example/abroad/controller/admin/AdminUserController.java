@@ -10,6 +10,8 @@ import com.example.abroad.service.page.admin.AdminUserService.GetAllUsersInfo;
 import com.example.abroad.service.page.admin.AdminUserService.Sort;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
@@ -136,4 +138,112 @@ public record AdminUserController(
     private boolean isHtmxRequest(HttpServletRequest request) {
         return request.getHeader("HX-Request") != null;
     }
+
+    // Add these methods to your AdminUserController class
+
+    @GetMapping("/{username}/show-reset-password")
+    public String showPasswordResetForm(
+            HttpSession session,
+            @PathVariable String username,
+            Model model,
+            HttpServletRequest request
+    ) {
+        var result = adminUserService.validatePasswordReset(session, username);
+
+        return switch (result) {
+            case AdminUserService.PasswordResetValidationResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.PasswordResetValidationResult.UserNotAdmin() ->
+                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.PasswordResetValidationResult.CannotResetSSOUser() ->
+                    "redirect:/admin/users?error=Cannot reset password for SSO user";
+            case AdminUserService.PasswordResetValidationResult.CannotResetSuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot reset password for super admin";
+            case AdminUserService.PasswordResetValidationResult.Valid() -> {
+                model.addAttribute("username", username);
+                yield "admin/users :: passwordResetDialog";
+            }
+        };
+    }
+
+    @PostMapping("/{username}/reset-password")
+    public String resetPassword(
+            HttpSession session,
+            @PathVariable String username,
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword
+    ) {
+        var result = adminUserService.resetUserPassword(session, username, newPassword, confirmPassword);
+
+        return switch (result) {
+            case AdminUserService.PasswordResetResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.PasswordResetResult.UserNotAdmin() ->
+                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.PasswordResetResult.CannotResetSSOUser() ->
+                    "redirect:/admin/users?error=Cannot reset password for SSO user";
+            case AdminUserService.PasswordResetResult.CannotResetSuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot reset password for super admin";
+            case AdminUserService.PasswordResetResult.PasswordsDoNotMatch() ->
+                    "redirect:/admin/users?error=Passwords do not match";
+            case AdminUserService.PasswordResetResult.PasswordTooShort() ->
+                    "redirect:/admin/users?error=Password must be at least 8 characters";
+            case AdminUserService.PasswordResetResult.Success() ->
+                    "redirect:/admin/users?success=Password reset successfully";
+        };
+    }
+
+    @GetMapping("/{username}/show-delete-user")
+    public String showDeleteUserConfirmation(
+            HttpSession session,
+            @PathVariable String username,
+            Model model,
+            HttpServletRequest request
+    ) {
+        var result = adminUserService.validateUserDeletion(session, username);
+
+        return switch (result) {
+            case AdminUserService.DeleteUserValidationResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.DeleteUserValidationResult.UserNotAdmin() ->
+                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.DeleteUserValidationResult.CannotDeleteSSOUser() ->
+                    "redirect:/admin/users?error=Cannot delete SSO user";
+            case AdminUserService.DeleteUserValidationResult.CannotDeleteSuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot delete super admin";
+            case AdminUserService.DeleteUserValidationResult.CannotDeleteSelf() ->
+                    "redirect:/admin/users?error=You cannot delete your own account";
+            case AdminUserService.DeleteUserValidationResult.Valid(var targetUsername, var facultyLeadPrograms, var applications) -> {
+                model.addAttribute("username", targetUsername);
+                model.addAttribute("facultyLeadPrograms", facultyLeadPrograms != null ? facultyLeadPrograms : List.of());
+                model.addAttribute("applications", applications != null ? applications : List.of());
+                model.addAttribute("formatter", formatter);
+                yield "admin/users :: deleteUserDialog";
+            }
+        };
+    }
+
+    @PostMapping("/{username}/delete-user")
+    public String deleteUser(
+            HttpSession session,
+            @PathVariable String username
+    ) {
+        var result = adminUserService.deleteUser(session, username);
+
+        return switch (result) {
+            case AdminUserService.DeleteUserResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.DeleteUserResult.UserNotAdmin() ->
+                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.DeleteUserResult.CannotDeleteSSOUser() ->
+                    "redirect:/admin/users?error=Cannot delete SSO user";
+            case AdminUserService.DeleteUserResult.CannotDeleteSuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot delete super admin";
+            case AdminUserService.DeleteUserResult.CannotDeleteSelf() ->
+                    "redirect:/admin/users?error=You cannot delete your own account";
+            case AdminUserService.DeleteUserResult.Success() ->
+                    "redirect:/admin/users?success=User deleted successfully";
+        };
+    }
+
 }

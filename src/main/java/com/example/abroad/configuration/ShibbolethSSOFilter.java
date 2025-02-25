@@ -1,28 +1,27 @@
 package com.example.abroad.configuration;
 
 import java.io.IOException;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.abroad.model.User;
+import com.example.abroad.controller.admin.EditProgramPageController;
 import com.example.abroad.service.UserService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
 
 @Component
 public class ShibbolethSSOFilter extends OncePerRequestFilter {
 
     private final UserService userService;
+    private static final Logger logger = LoggerFactory.getLogger(EditProgramPageController.class);
 
     public ShibbolethSSOFilter(UserService userService) {
         this.userService = userService;
@@ -33,32 +32,32 @@ public class ShibbolethSSOFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
                                     throws ServletException, IOException {
-        // Check if there's a session and a user in it
-        HttpSession session = request.getSession(false);
-        if (session == null || userService.findUserFromSession(session).isEmpty()) {
-            // Look for the SSO header – adjust header names as needed
-            String ssoUsername = request.getHeader("REMOTE_USER");
-            if (ssoUsername != null) {
-                // Optionally, grab additional attributes
-                String email = request.getHeader("Shib-Email");
-                String displayName = request.getHeader("Shib-DisplayName");
+        logger.debug("Entered Filter");
+        
+        // Check if Shibboleth provided authentication headers exist.
+        String remoteUser = request.getHeader("REMOTE_USER");
+        if (remoteUser != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // Extract additional attributes
+            String email = request.getHeader("Shib-Email");
+            String displayName = request.getHeader("Shib-DisplayName");
 
-                // Check if this user already exists in our DB
-                Optional<? extends User> userOpt = userService.findByUsername(ssoUsername);
-                User user;
-                if (userOpt.isEmpty()) {
-                    // Create a new SSOUser (use defaults or additional header values as needed)
-                    user = new User.SSOUser(ssoUsername, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
-                    userService.save(user);
-                } else {
-                    user = userOpt.get();
-                }
-                // Make sure there is a session and add the user
-                request.getSession(true);
-                userService.saveUserToSession(user, request.getSession());
-            }
+            logger.debug("Email Info received: " + email);
+            logger.debug("Display Name Info received: " + displayName);
+            
+            // // Create SSO User
+            // SSOUser ssoUser = new SSOUser(remoteUser, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
+
+            // // Save user to session
+            // userService.saveUserToSession(ssoUser, request.getSession());
+            
+            // // Create an authentication token and set it in the SecurityContext
+            // UsernamePasswordAuthenticationToken auth =
+            //         new UsernamePasswordAuthenticationToken(
+            //                 ssoUser,
+            //                 null,
+            //                 List.of());
+            // SecurityContextHolder.getContext().setAuthentication(auth);
         }
-        // Continue processing the request
         filterChain.doFilter(request, response);
     }
 }
