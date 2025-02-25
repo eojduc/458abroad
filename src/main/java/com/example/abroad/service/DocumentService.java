@@ -1,11 +1,10 @@
-package com.example.abroad.service.page;
+package com.example.abroad.service;
 
 import com.example.abroad.model.Application.Document.Type;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.model.Application;
 import com.example.abroad.respository.DocumentRepository;
 import com.example.abroad.respository.ProgramRepository;
-import com.example.abroad.service.FormatService;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

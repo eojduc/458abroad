@@ -2,9 +2,8 @@ package com.example.abroad.controller.student;
 
 import com.example.abroad.model.Application.Document;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.abroad.respository.DocumentRepository;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.DocumentService;
+import com.example.abroad.service.DocumentService;
 import java.io.IOException;
 import java.net.URI;
 import org.slf4j.Logger;
@@ -23,19 +22,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/applications/{applicationId}/documents")
-public class DocumentController {
-    private final DocumentService documentService;
-    private final UserService userService;
+public record DocumentController(DocumentService documentService, UserService userService) {
     private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
-
-    public DocumentController(DocumentService documentService, UserService userService) {
-        this.documentService = documentService;
-        this.userService = userService;
-    }
 
     @PostMapping
     public String uploadDocument(
@@ -63,7 +54,6 @@ public class DocumentController {
     }
 
     @GetMapping("/{type}/view")
-    @Transactional
     public ResponseEntity<?> viewDocument(
             @PathVariable String applicationId,
             @PathVariable Document.Type type,
@@ -119,7 +109,7 @@ public class DocumentController {
         }
 
         try {
-            String formPath = this.documentService.getBlankFormPath(type);
+            String formPath = DocumentService.getBlankFormPath(type);
             Resource resource = new ClassPathResource("static" + formPath);
 
             if (!resource.exists()) {

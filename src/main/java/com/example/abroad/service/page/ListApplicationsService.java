@@ -6,17 +6,15 @@ import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 
+import com.example.abroad.service.DocumentService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public record ListApplicationsService(
