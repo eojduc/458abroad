@@ -158,6 +158,16 @@
 
 <!-- Dialog handling script -->
 <script>
+    document.body.addEventListener('htmx:beforeSwap', function(evt) {
+        // Check if the response contains a redirect URL
+        if (evt.detail.xhr.responseURL.includes('success=User%20admin%20status%20updated%20successfully')) {
+            // Cancel the HTMX swap
+            evt.detail.shouldSwap = false;
+            // Redirect to the success page
+            window.location.href = evt.detail.xhr.responseURL;
+        }
+    });
+
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         if (evt.detail.target.id === 'dialogContainer') {
             const dialog = document.getElementById('adminConfirmDialog');

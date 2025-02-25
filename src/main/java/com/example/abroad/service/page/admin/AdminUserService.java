@@ -153,7 +153,20 @@ public class AdminUserService{
         // If revoking admin privileges, check faculty lead status
         if (!grantAdmin) {
             var facultyLeadPrograms = getFacultyLeadPrograms(targetUsername);
-            if (!facultyLeadPrograms.isEmpty() && !confirmed) {
+            System.out.println("FACULTY LEAD PRGRAM SIZE IS " + facultyLeadPrograms.size());
+            if(facultyLeadPrograms.isEmpty()){
+                var updateUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
+                if (targetUser.isLocal()) {
+                    localUserRepository.save((User.LocalUser) updateUser);
+                } else {
+                    ssoUserRepository.save((User.SSOUser) updateUser);
+                }
+                return new ModifyUserResult.Success(targetUser);
+            }
+
+            //will only proceed past this point if user is faculty lead
+            if (!confirmed) {
+                System.out.println("GOINT TO REQUIRES CONFIRMATION, EVENTHOUGH FACULTY LEAD PRGRAM SIZE IS " + facultyLeadPrograms.size());
                 return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
             }
 
