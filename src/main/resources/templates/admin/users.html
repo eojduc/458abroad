@@ -100,6 +100,15 @@
                                                 hx-swap="innerHTML">
                                             Reset Password
                                         </button>
+
+                                        <!-- Delete User Button (only for LOCAL users, not for current user) -->
+                                        <button th:if="${userInfo.userType == 'LOCAL' && userInfo.user.username != 'admin' && userInfo.user.username != user.username()}"
+                                                class="btn btn-sm btn-error"
+                                                th:hx-get="@{/admin/users/{username}/show-delete-user(username=${userInfo.user.username})}"
+                                                hx-target="#deleteUserDialogContainer"
+                                                hx-swap="innerHTML">
+                                            Delete User
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -121,6 +130,7 @@
 <!-- Completely separate dialog containers -->
 <div id="adminDialogContainer"></div>
 <div id="passwordDialogContainer"></div>
+<div id="deleteUserDialogContainer"></div>
 
 <!-- Confirmation Dialog Fragment -->
 <dialog th:fragment="confirmationDialog" id="adminConfirmDialog" class="modal">
@@ -187,6 +197,45 @@
     </div>
 </dialog>
 
+<!-- Delete User Dialog Fragment -->
+<dialog th:fragment="deleteUserDialog" id="deleteUserDialog" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg text-error">Confirm User Deletion</h3>
+        <div class="py-4">
+            <p class="mb-2 font-semibold">WARNING: This action cannot be undone!</p>
+            <p>You are about to permanently delete this user account.</p>
+
+            <!-- Show faculty lead programs if any -->
+            <div th:if="${facultyLeadPrograms != null and !facultyLeadPrograms.isEmpty()}" class="mt-4">
+                <p class="font-semibold">This user is currently a faculty lead for the following programs:</p>
+                <ul class="list-disc list-inside mb-2 mt-1">
+                    <li th:each="program : ${facultyLeadPrograms}" th:text="${program.title()}"></li>
+                </ul>
+                <p class="text-sm">If they are the only faculty lead for any program, the admin account will be assigned as the faculty lead.</p>
+            </div>
+
+            <!-- Show applications if any - FIXED: Changed "application" to "userApp" -->
+            <div th:if="${applications != null and !applications.isEmpty()}" class="mt-4">
+                <p class="font-semibold">This user has submitted the following applications:</p>
+                <ul class="list-disc list-inside mb-2 mt-1">
+                    <li th:each="userApp : ${applications}"
+                        th:text="'Application ID: ' + ${userApp.id()} + ' (Program ID: ' + ${userApp.programId()} + ')'"></li>
+                </ul>
+                <p class="text-sm">These applications will remain in the system but will be associated with a deleted user.</p>
+            </div>
+
+            <p class="mt-4">Any notes authored by this user will be preserved but marked as authored by "DELETED USER".</p>
+        </div>
+        <div class="modal-action">
+            <form th:action="@{/admin/users/{username}/delete-user(username=${username})}"
+                  method="POST">
+                <button type="submit" class="btn btn-error">Delete User</button>
+            </form>
+            <button class="btn" onclick="closeDeleteUserDialog()">Cancel</button>
+        </div>
+    </div>
+</dialog>
+
 <!-- Sortable Header Fragment -->
 <div th:fragment="sortableHeader(label, path, column, target)" th:remove="tag">
     <th th:class="${sort == column ? 'bg-base-300 cursor-pointer' : 'bg-base-200 cursor-pointer'}"
@@ -201,9 +250,8 @@
     </th>
 </div>
 
-<!-- Completely separate JavaScript handlers -->
+<!-- Admin functionality script -->
 <script>
-    // Admin functionality
     document.body.addEventListener('htmx:beforeSwap', function(evt) {
         // Only handle admin-related redirects
         if (evt.detail.target && evt.detail.target.id === 'adminDialogContainer' &&
@@ -234,9 +282,8 @@
     }
 </script>
 
-<!-- Completely separate script for password reset -->
+<!-- Password reset script -->
 <script>
-    // Password reset functionality
     document.body.addEventListener('htmx:beforeSwap', function(evt) {
         // Only handle password-related redirects
         if (evt.detail.target && evt.detail.target.id === 'passwordDialogContainer' &&
@@ -265,6 +312,47 @@
         }
         document.getElementById('passwordDialogContainer').innerHTML = '';
     }
+</script>
+
+<!-- Delete user script -->
+<script>
+    document.body.addEventListener('htmx:beforeSwap', function(evt) {
+        // Only handle delete user-related redirects
+        if (evt.detail.target && evt.detail.target.id === 'deleteUserDialogContainer' &&
+            evt.detail.xhr.responseURL && evt.detail.xhr.responseURL.includes('success=User%20deleted%20successfully')) {
+            // Cancel the HTMX swap
+            evt.detail.shouldSwap = false;
+            // Redirect to the success page
+            window.location.href = evt.detail.xhr.responseURL;
+        }
+    });
+
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        // Only handle delete user dialog
+        if (evt.detail.target && evt.detail.target.id === 'deleteUserDialogContainer') {
+            const deleteUserDialog = document.getElementById('deleteUserDialog');
+            if (deleteUserDialog) {
+                deleteUserDialog.showModal();
+            }
+        }
+    });
+
+    function closeDeleteUserDialog() {
+        const dialog = document.getElementById('deleteUserDialog');
+        if (dialog) {
+            dialog.close();
+        }
+        document.getElementById('deleteUserDialogContainer').innerHTML = '';
+    }
+
+    // Debug HTMX requests
+    document.addEventListener('htmx:beforeRequest', function(evt) {
+        console.log('HTMX Request:', evt.detail);
+    });
+
+    document.addEventListener('htmx:responseError', function(evt) {
+        console.error('HTMX Response Error:', evt.detail);
+    });
 </script>
 
 </body>

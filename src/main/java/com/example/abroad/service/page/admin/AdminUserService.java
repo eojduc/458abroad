@@ -1,11 +1,9 @@
 package com.example.abroad.service.page.admin;
 
+import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.FacultyLeadRepository;
-import com.example.abroad.respository.LocalUserRepository;
-import com.example.abroad.respository.ProgramRepository;
-import com.example.abroad.respository.SSOUserRepository;
+import com.example.abroad.respository.*;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.context.annotation.Lazy;
@@ -19,29 +17,42 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Service
-public class AdminUserService{
-        private final LocalUserRepository localUserRepository;
-        private final SSOUserRepository ssoUserRepository;
-        private final FacultyLeadRepository facultyLeadRepository;
-        private final ProgramRepository programRepository;
-        private final UserService userService;
-        private final PasswordEncoder passwordEncoder;
+public class AdminUserService {
+    private final LocalUserRepository localUserRepository;
+    private final SSOUserRepository ssoUserRepository;
+    private final FacultyLeadRepository facultyLeadRepository;
+    private final ProgramRepository programRepository;
+    private final ApplicationRepository applicationRepository;
+    private final NoteRepository noteRepository;
+    private final DocumentRepository documentRepository;
+    private final ResponseRepository responseRepository;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
-        public AdminUserService(
-        LocalUserRepository localUserRepository,
-        SSOUserRepository ssoUserRepository,
-        FacultyLeadRepository facultyLeadRepository,
-        ProgramRepository programRepository,
-        @Lazy PasswordEncoder passwordEncoder,
-        UserService userService
+    public AdminUserService(
+            LocalUserRepository localUserRepository,
+            SSOUserRepository ssoUserRepository,
+            FacultyLeadRepository facultyLeadRepository,
+            ProgramRepository programRepository,
+            ApplicationRepository applicationRepository,
+            NoteRepository noteRepository,
+            DocumentRepository documentRepository,
+            ResponseRepository responseRepository,
+            @Lazy PasswordEncoder passwordEncoder,
+            UserService userService
     ) {
         this.localUserRepository = localUserRepository;
         this.ssoUserRepository = ssoUserRepository;
         this.facultyLeadRepository = facultyLeadRepository;
         this.programRepository = programRepository;
+        this.applicationRepository = applicationRepository;
+        this.noteRepository = noteRepository;
+        this.documentRepository = documentRepository;
+        this.responseRepository = responseRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-}
+    }
+
     public enum Sort {
         NAME, EMAIL, ROLE, USER_TYPE
     }
@@ -50,16 +61,21 @@ public class AdminUserService{
         record Success(
                 List<UserInfo> users,
                 User adminUser
-        ) implements GetAllUsersInfo {}
+        ) implements GetAllUsersInfo {
+        }
 
-        record UserNotFound() implements GetAllUsersInfo {}
-        record UserNotAdmin() implements GetAllUsersInfo {}
+        record UserNotFound() implements GetAllUsersInfo {
+        }
+
+        record UserNotAdmin() implements GetAllUsersInfo {
+        }
     }
 
     public record UserInfo(
             User user,
             String userType // "LOCAL" or "SSO"
-    ) {}
+    ) {
+    }
 
     public GetAllUsersInfo getUsersInfo(
             HttpSession session,
@@ -118,14 +134,23 @@ public class AdminUserService{
     }
 
     public sealed interface ModifyUserResult {
-        record Success(User modifiedUser) implements ModifyUserResult {}
-        record UserNotFound() implements ModifyUserResult {}
-        record UserNotAdmin() implements ModifyUserResult {}
-        record CannotModifySuperAdmin() implements ModifyUserResult {}
+        record Success(User modifiedUser) implements ModifyUserResult {
+        }
+
+        record UserNotFound() implements ModifyUserResult {
+        }
+
+        record UserNotAdmin() implements ModifyUserResult {
+        }
+
+        record CannotModifySuperAdmin() implements ModifyUserResult {
+        }
+
         record RequiresConfirmation(
                 String username,
                 List<Program> affectedPrograms
-        ) implements ModifyUserResult {}
+        ) implements ModifyUserResult {
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -159,7 +184,7 @@ public class AdminUserService{
         if (!grantAdmin) {
             var facultyLeadPrograms = getFacultyLeadPrograms(targetUsername);
             System.out.println("FACULTY LEAD PRGRAM SIZE IS " + facultyLeadPrograms.size());
-            if(facultyLeadPrograms.isEmpty()){
+            if (facultyLeadPrograms.isEmpty()) {
                 var updateUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
                 if (targetUser.isLocal()) {
                     localUserRepository.save((User.LocalUser) updateUser);
@@ -200,6 +225,7 @@ public class AdminUserService{
                         .orElseThrow(() -> new RuntimeException("Program not found")))
                 .toList();
     }
+
     private void handleFacultyLeadTransfer(String username, List<Program> programs) {
         // Get all faculty leads for this username directly
         List<Program.FacultyLead> userLeads = facultyLeadRepository.findById_Username(username);
@@ -222,21 +248,43 @@ public class AdminUserService{
     // Add these interfaces and methods to your AdminUserService class
 
     public sealed interface PasswordResetValidationResult {
-        record Valid() implements PasswordResetValidationResult {}
-        record UserNotFound() implements PasswordResetValidationResult {}
-        record UserNotAdmin() implements PasswordResetValidationResult {}
-        record CannotResetSSOUser() implements PasswordResetValidationResult {}
-        record CannotResetSuperAdmin() implements PasswordResetValidationResult {}
+        record Valid() implements PasswordResetValidationResult {
+        }
+
+        record UserNotFound() implements PasswordResetValidationResult {
+        }
+
+        record UserNotAdmin() implements PasswordResetValidationResult {
+        }
+
+        record CannotResetSSOUser() implements PasswordResetValidationResult {
+        }
+
+        record CannotResetSuperAdmin() implements PasswordResetValidationResult {
+        }
     }
 
     public sealed interface PasswordResetResult {
-        record Success() implements PasswordResetResult {}
-        record UserNotFound() implements PasswordResetResult {}
-        record UserNotAdmin() implements PasswordResetResult {}
-        record CannotResetSSOUser() implements PasswordResetResult {}
-        record CannotResetSuperAdmin() implements PasswordResetResult {}
-        record PasswordsDoNotMatch() implements PasswordResetResult {}
-        record PasswordTooShort() implements PasswordResetResult {}
+        record Success() implements PasswordResetResult {
+        }
+
+        record UserNotFound() implements PasswordResetResult {
+        }
+
+        record UserNotAdmin() implements PasswordResetResult {
+        }
+
+        record CannotResetSSOUser() implements PasswordResetResult {
+        }
+
+        record CannotResetSuperAdmin() implements PasswordResetResult {
+        }
+
+        record PasswordsDoNotMatch() implements PasswordResetResult {
+        }
+
+        record PasswordTooShort() implements PasswordResetResult {
+        }
     }
 
     /**
@@ -334,5 +382,121 @@ public class AdminUserService{
         return passwordEncoder.encode(plainPassword);
     }
 
-}
+    public sealed interface DeleteUserValidationResult {
+        record Valid(
+                String username,
+                List<Program> facultyLeadPrograms,
+                List<Application> applications
+        ) implements DeleteUserValidationResult {}
+        record UserNotFound() implements DeleteUserValidationResult {}
+        record UserNotAdmin() implements DeleteUserValidationResult {}
+        record CannotDeleteSelf() implements DeleteUserValidationResult {}
+        record CannotDeleteSSOUser() implements DeleteUserValidationResult {}
+        record CannotDeleteSuperAdmin() implements DeleteUserValidationResult {}
+    }
 
+    public sealed interface DeleteUserResult {
+        record Success() implements DeleteUserResult {}
+        record UserNotFound() implements DeleteUserResult {}
+        record UserNotAdmin() implements DeleteUserResult {}
+        record CannotDeleteSelf() implements DeleteUserResult {}
+        record CannotDeleteSSOUser() implements DeleteUserResult {}
+        record CannotDeleteSuperAdmin() implements DeleteUserResult {}
+    }
+
+    /**
+     * Validates if a user can be deleted
+     */
+    public DeleteUserValidationResult validateUserDeletion(
+            HttpSession session,
+            String targetUsername
+    ) {
+        // Check if requesting user is admin
+        var adminUser = userService.findUserFromSession(session).orElse(null);
+        if (adminUser == null) {
+            return new DeleteUserValidationResult.UserNotFound();
+        }
+        if (!adminUser.isAdmin()) {
+            return new DeleteUserValidationResult.UserNotAdmin();
+        }
+
+        // Find target user
+        var targetUser = userService.findByUsername(targetUsername).orElse(null);
+        if (targetUser == null) {
+            return new DeleteUserValidationResult.UserNotFound();
+        }
+
+        // Prevent deleting super admin
+        if ("admin".equals(targetUsername)) {
+            return new DeleteUserValidationResult.CannotDeleteSuperAdmin();
+        }
+
+        // Prevent deleting self
+        if (adminUser.username().equals(targetUsername)) {
+            return new DeleteUserValidationResult.CannotDeleteSelf();
+        }
+
+        // Prevent deleting SSO user
+        if (!targetUser.isLocal()) {
+            return new DeleteUserValidationResult.CannotDeleteSSOUser();
+        }
+
+        // Find relevant data for confirmation dialog
+        List<Program> facultyLeadPrograms = getFacultyLeadPrograms(targetUsername);
+        List<Application> applications = applicationRepository.findByStudent(targetUsername);
+
+        return new DeleteUserValidationResult.Valid(targetUsername, facultyLeadPrograms, applications);
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public DeleteUserResult deleteUser(
+            HttpSession session,
+            String targetUsername
+    ) {
+        var validationResult = validateUserDeletion(session, targetUsername);
+
+        if (validationResult instanceof DeleteUserValidationResult.UserNotFound) {
+            return new DeleteUserResult.UserNotFound();
+        } else if (validationResult instanceof DeleteUserValidationResult.UserNotAdmin) {
+            return new DeleteUserResult.UserNotAdmin();
+        } else if (validationResult instanceof DeleteUserValidationResult.CannotDeleteSSOUser) {
+            return new DeleteUserResult.CannotDeleteSSOUser();
+        } else if (validationResult instanceof DeleteUserValidationResult.CannotDeleteSuperAdmin) {
+            return new DeleteUserResult.CannotDeleteSuperAdmin();
+        } else if (validationResult instanceof DeleteUserValidationResult.CannotDeleteSelf) {
+            return new DeleteUserResult.CannotDeleteSelf();
+        }
+
+        // Handle faculty lead transfers
+        DeleteUserValidationResult.Valid valid = (DeleteUserValidationResult.Valid) validationResult;
+        if (valid.facultyLeadPrograms() != null && !valid.facultyLeadPrograms().isEmpty()) {
+            handleFacultyLeadTransfer(targetUsername, valid.facultyLeadPrograms());
+        }
+
+        // Update all notes authored by this user to show "DELETED USER"
+        List<Application.Note> userNotes = noteRepository.findAll().stream()
+                .filter(note -> note.username().equals(targetUsername))
+                .toList();
+
+        for (Application.Note note : userNotes) {
+            // Create a new note with the same properties but with "DELETED USER" as the username
+            Application.Note updatedNote = new Application.Note(
+                    note.applicationId(),
+                    "DELETED USER",
+                    note.content(),
+                    note.timestamp()
+            );
+            noteRepository.delete(note);
+            noteRepository.save(updatedNote);
+        }
+
+        // Delete the user (this will cascade to delete all owned records)
+        localUserRepository.deleteById(targetUsername);
+
+        return new DeleteUserResult.Success();
+    }
+
+
+
+}
