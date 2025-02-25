@@ -1,5 +1,6 @@
 package com.example.abroad.service.page;
 
+import com.example.abroad.model.Application.Document.Type;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.model.Application;
 import com.example.abroad.respository.DocumentRepository;
@@ -51,7 +52,7 @@ public class DocumentService {
         var documents = this.documentRepository.findById_ApplicationId(applicationId);
         var program = this.programRepository.findById(programId).orElseThrow();
 
-        LocalDate deadline = program.startDate().minusDays(30);
+        LocalDate deadline = program.documentDeadline();
 
         return Arrays.stream(Application.Document.Type.values())
                 .map(type -> {
@@ -87,7 +88,7 @@ public class DocumentService {
     }
 
     @Transactional
-    public boolean uploadDocument(String applicationId, Application.Document.Type type, MultipartFile file) {
+    public void uploadDocument(String applicationId, Type type, MultipartFile file) {
         ValidationResult validation = validatePDF(file);
         if (!validation.valid()) {
             throw new IllegalArgumentException(validation.errorMessage());
@@ -118,14 +119,13 @@ public class DocumentService {
                 logger.info("Created new document for type: {}", type);
             }
 
-            return true;
         } catch (IOException e) {
             logger.error("Failed to store document", e);
             throw new RuntimeException("Failed to store document", e);
         }
     }
 
-    public ValidationResult validatePDF(MultipartFile file) {
+    private ValidationResult validatePDF(MultipartFile file) {
         if (file.isEmpty()) {
             return new ValidationResult(false, "File is empty");
         }
