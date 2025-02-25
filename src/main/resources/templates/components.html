@@ -120,12 +120,13 @@
   <div class="flex-1">
     <a href="/" class="btn btn-ghost text-xl">
       <div class="w-8 h-8 flex items-center">
-        <svg th:replace="this :: logo"/>
+        <svg th:replace="~{this :: logo}"/>
       </div>
       HCC Abroad
     </a>
     <a href="/programs" class="btn btn-ghost">Browse Programs</a>
     <a href="/applications" class="btn btn-ghost">My Applications</a>
+    <a th:if="${user != null && user.isAdmin()}" href="/admin/programs" class="btn btn-ghost">Admin View</a>
   </div>
   <div class="flex-none gap-2">
     <a href="/profile"
@@ -143,13 +144,14 @@
   <div class="flex-1">
     <a href="/" class="btn btn-ghost text-xl">
       <div class="w-8 h-8 flex items-center">
-        <svg th:replace="this :: logo"/>
+        <svg th:replace="~{this :: logo}"/>
       </div>
       HCC Abroad
     </a>
     <a href="/admin/programs" class="btn btn-ghost">Programs</a>
     <a href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
     <a href="/programs" class="btn btn-ghost">Student View</a>
+    <a href="/admin/users/page" class="btn btn-ghost">All Users</a>
   </div>
   <div class="flex-none gap-2">
     <a href="/profile"  class="avatar placeholder">
@@ -161,70 +163,11 @@
   </div>
 </div>
 
-<!-- Sortable Column w/ HTMX Actions -->
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, path, activeSort)">
-  <th th:classappend="${activeSort == #strings.substringAfter(path, 'sort=') ? 'bg-base-300' : 'bg-base-200'}">
-  <div class="flex items-center gap-2 cursor-pointer"
-         th:hx-get="@{${path}}"
-         hx-target="#programTable"
-         hx-swap="outerHTML">
-      <span th:text="${label}"></span>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-      </svg>
-    </div>
-  </th>
-</div>
-
-<!-- Filter Form -->
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="filterForm(path, showTimeFilter)">
-  <div class="flex gap-4">
-    <!-- Keyword search -->
-    <label>
-      <input
-          type="text"
-          name="nameFilter"
-          placeholder="Search programs..."
-          class="input"
-          th:value="${keyword}"
-          th:hx-get="@{${path}}"
-          hx-target="#programTable"
-          hx-swap="outerHTML"
-          hx-trigger="input delay:300ms"
-          autocomplete="off"
-      />
-    </label>
-
-    <!-- Time filter -->
-    <label>
-      <select
-          th:if="${showTimeFilter}"
-          name="timeFilter"
-          class="select"
-          th:value="${timeFilter}"
-          th:hx-get="@{${path}}"
-          hx-target="#programTable"
-          hx-swap="outerHTML"
-          hx-trigger="change"
-          autocomplete="off"
-      >
-        <option value="future" th:selected="${timeFilter == 'future'}">Current & Future Programs
-        </option>
-        <option value="open" th:selected="${timeFilter == 'open'}">Programs Open to Applications
-        </option>
-        <option value="review" th:selected="${timeFilter == 'review'}">Programs in Review</option>
-        <option value="running" th:selected="${timeFilter == 'running'}">Programs Running Now</option>
-        <option value="all" th:selected="${timeFilter == 'all'}">All Programs</option>
-      </select>
-    </label>
-  </div>
-</div>
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="logged-out-navbar" class="bg-base-100 navbar">
   <a href="/" class="btn btn-ghost text-xl">
     <div class="w-8 h-8 flex items-center">
-      <svg th:replace="this :: logo"/>
+      <svg th:replace="~{this :: logo}"></svg>
     </div>
     HCC Abroad
   </a>
@@ -237,14 +180,17 @@
   <span th:case="ENROLLED" class="badge badge-success">Enrolled</span>
   <span th:case="CANCELLED" class="badge badge-error">Cancelled</span>
   <span th:case="WITHDRAWN" class="badge badge-warning">Withdrawn</span>
+  <span th:case="COMPLETED" class="badge badge-success">Completed</span>
+  <span th:case="ELIGIBLE" class="badge badge-info">Eligible</span>
+  <span th:case="APPROVED" class="badge badge-success">Approved</span>
   <span th:case="NOT_APPLIED" class="badge badge-neutral">Not Applied</span>
 </div>
 
 <form action="/profile/theme" method="post" class="flex flex-row gap-2" th:fragment="theme-form(theme)">
   <select class="select" name="theme">
-    <option value="DEFAULT" th:selected="${theme == 'default'}">Default</option>
-    <option value="LIGHT" th:selected="${theme == 'light'}">Light</option>
-    <option value="DARK" th:selected="${theme == 'dark'}">Dark</option>
+    <option value="DEFAULT" th:selected="${user.theme.name == 'DEFAULT'}">Default</option>
+    <option value="LIGHT" th:selected="${user.theme.name == 'LIGHT'}">Light</option>
+    <option value="DARK" th:selected="${user.theme.name == 'DARK'}">Dark</option>
     <option value="CUPCAKE" th:selected="${theme == 'cupcake'}">Cupcake</option>
     <option value="BUMBLEBEE" th:selected="${theme == 'bumblebee'}">Bumblebee</option>
     <option value="EMERALD" th:selected="${theme == 'emerald'}">Emerald</option>
@@ -278,6 +224,8 @@
   </select>
   <button class="btn btn-primary" type="submit">Save</button>
 </form>
+
+
 
 
 

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:fragment="page(program, applicants, user, alerts, formatter)" th:data-theme="${theme}">
+      th:fragment="page(program, applicants, user, alerts, formatter)" th:data-theme="${user.theme.name.toLowerCase}">
 
 <head th:replace="~{components :: head(${program.title})}"></head>
 <body>
 
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
 
-<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-2/5 md:w-3/5 sm:w-full gap-5">
 
   <div th:replace="~{components :: alerts(${alerts})}"></div>
 
@@ -43,18 +43,25 @@
           <textarea class="textarea w-full"
                     name="description"
                     required
+                    rows="10"
                     th:text="${program.description}"></textarea>
         </label>
 
         <label class="form-control">
           <div class="label">
-            <span class="label-text">Faculty Lead</span>
+            <span class="label-text">Faculty Leads</span>
           </div>
-          <input class="input w-full"
-                 type="text"
-                 name="facultyLead"
-                 th:value="${program.facultyLead}"
-                 required />
+          <select class="select select-bordered w-full"
+                  name="facultyLeads"
+                  multiple>
+            <option th:each="facultyLead : ${facultyLeads}"
+                    th:value="${facultyLead.username}"
+                    th:text="${formatter.displayUser(facultyLead)}"
+                    selected></option>
+            <option th:each="nonFacultyLead : ${nonFacultyLeads}"
+                    th:value="${nonFacultyLead.username}"
+                    th:text="${formatter.displayUser(nonFacultyLead)}"></option>
+          </select>
         </label>
 
         <label class="form-control">
@@ -82,6 +89,38 @@
                  required />
         </label>
 
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Application Open</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="applicationOpen"
+                 th:value="${program.applicationOpen}"
+                 required />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Application Deadline</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="applicationClose"
+                 th:value="${program.applicationClose}"
+                 required />
+        </label>
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Document Deadline</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="documentDeadline"
+                 th:value="${program.documentDeadline}"
+                 required />
+        </label>
         <label class="form-control">
           <div class="label">
             <span class="label-text">Start Date</span>
@@ -100,28 +139,6 @@
                  type="date"
                  name="endDate"
                  th:value="${program.endDate}"
-                 required />
-        </label>
-
-        <label class="form-control">
-          <div class="label">
-            <span class="label-text">Application Open</span>
-          </div>
-          <input class="input w-full"
-                 type="datetime-local"
-                 name="applicationOpen"
-                 th:value="${formatter.formatInstantToIso(program.applicationOpen)}"
-                 required />
-        </label>
-
-        <label class="form-control">
-          <div class="label">
-            <span class="label-text">Application Deadline</span>
-          </div>
-          <input class="input w-full"
-                 type="datetime-local"
-                 name="applicationClose"
-                 th:value="${formatter.formatInstantToIso(program.applicationClose)}"
                  required />
         </label>
 

@@ -1,12 +1,13 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.service.AuthService;
-import com.example.abroad.service.AuthService.CheckLoginStatus;
-import com.example.abroad.service.AuthService.RegisterResult;
+import com.example.abroad.service.page.AuthService;
+import com.example.abroad.service.page.AuthService.CheckLoginStatus;
+import com.example.abroad.service.page.AuthService.RegisterResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,19 +58,11 @@ public record AuthController(AuthService authService) {
           @RequestParam String displayName,
           @RequestParam String email,
           @RequestParam String password,
-          HttpServletRequest request,
-          HttpServletResponse response,
+          HttpSession session,
           Model model) {
 
-    return switch (authService.registerUser(username, displayName, email, password, request)) {
-      case RegisterResult.Success(var authentication) -> {
-        try {
-          authService.handleSuccessfulAuthentication(request, response, authentication);
-          yield null; // Redirect is handled by authentication success handler
-        } catch (Exception e) {
-          yield "redirect:/login";
-        }
-      }
+    return switch (authService.registerUser(username, displayName, email, password, session)) {
+      case RegisterResult.Success() ->  "redirect:/";
       case RegisterResult.UsernameExists() -> {
         model.addAttribute("error", "Username is already taken");
         yield "auth/register";

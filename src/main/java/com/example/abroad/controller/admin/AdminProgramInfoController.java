@@ -2,14 +2,14 @@ package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.admin.AdminProgramInfoService;
-import com.example.abroad.service.admin.AdminProgramInfoService.Column;
-import com.example.abroad.service.admin.AdminProgramInfoService.DeleteProgram;
-import com.example.abroad.service.admin.AdminProgramInfoService.DeleteProgram.ProgramNotFound;
-import com.example.abroad.service.admin.AdminProgramInfoService.Filter;
-import com.example.abroad.service.admin.AdminProgramInfoService.GetProgramInfo;
+import com.example.abroad.service.page.admin.AdminProgramInfoService;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.Column;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.DeleteProgram;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.DeleteProgram.ProgramNotFound;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.Filter;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.GetProgramInfo;
 import com.example.abroad.service.FormatService;
-import com.example.abroad.service.admin.AdminProgramInfoService.Sort;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.Sort;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.Optional;
@@ -32,14 +32,9 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
     return switch (service.getProgramInfo(programId, session, Optional.empty(), Optional.empty(), Optional.empty())) {
       case GetProgramInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetProgramInfo.UserNotAdmin() -> String.format("redirect:/programs/%s?error=You are not an admin", programId);
-      case GetProgramInfo.ProgramNotFound() -> {
-        model.addAllAttributes(Map.of(
-          "title", "Program not found",
-          "message", "That program does not exist"
-        ));
-        yield "error :: page";
-      }
-      case GetProgramInfo.Success(var program, var applicants, var user) -> {
+      case GetProgramInfo.ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
+      case GetProgramInfo.Success(var program, var applicants, var user, var documentDeadlinePassed,
+                                  var programisDone, var facultyLeads) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "applicants", applicants,
@@ -48,8 +43,11 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "alerts", new Alerts(error, success, warning, info),
           "column", Column.NONE.name(),
           "filter", Filter.NONE.name(),
-          "theme", userService.getTheme(session)
+          "theme", userService.getTheme(session),
+          "documentDeadlinePassed", documentDeadlinePassed,
+          "programIsDone", programisDone
         ));
+        model.addAllAttributes(Map.of("facultyLeads", facultyLeads));
         yield "admin/program-info :: page";
       }
     };
@@ -73,14 +71,16 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
       case GetProgramInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetProgramInfo.UserNotAdmin() -> String.format("redirect:/programs/%s?error=You are not an admin", programId);
       case GetProgramInfo.ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
-      case GetProgramInfo.Success(var program, var applicants, var user) -> {
+      case GetProgramInfo.Success(var program, var applicants, var user, var documentDeadlinePassed, var programIsDone, var facultyLeads) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "applicants", applicants,
           "formatter", formatter,
           "column", column.orElse(Column.NONE).name(),
           "filter", filter.orElse(Filter.NONE).name(),
-          "sort", sort.orElse(Sort.ASCENDING).name()
+          "sort", sort.orElse(Sort.ASCENDING).name(),
+          "documentDeadlinePassed", documentDeadlinePassed,
+          "programIsDone", programIsDone
         ));
         yield "admin/program-info :: applicant-table";
       }

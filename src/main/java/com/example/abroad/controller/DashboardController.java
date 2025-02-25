@@ -1,14 +1,13 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.service.DashboardService;
-import com.example.abroad.service.DashboardService.GetDashboard;
+import com.example.abroad.service.page.DashboardService;
+import com.example.abroad.service.page.DashboardService.GetDashboard;
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
@@ -36,10 +35,12 @@ public record DashboardController(
       case GetDashboard.StudentDashboard(var user) -> {
         model.addAttribute("displayName", user.displayName());
         model.addAttribute("student", user.username());
+        model.addAttribute("user", user);
         yield "student/student-dashboard :: page";
       }
       case GetDashboard.AdminDashboard(var user) -> {
         model.addAttribute("displayName", user.displayName());
+        model.addAttribute("user", user);
         yield "admin/admin-dashboard :: page";
       }
     };

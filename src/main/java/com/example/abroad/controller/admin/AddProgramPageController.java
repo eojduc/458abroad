@@ -2,16 +2,17 @@ package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Program.Semester;
-import com.example.abroad.service.AddProgramService;
-import com.example.abroad.service.AddProgramService.AddProgramInfo;
-import com.example.abroad.service.AddProgramService.GetAddProgramInfo;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.AddProgramService;
+import com.example.abroad.service.page.AddProgramService.AddProgramInfo;
+import com.example.abroad.service.page.AddProgramService.GetAddProgramInfo;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public record AddProgramPageController(AddProgramService service, FormatService formatter,
                                        UserService userService) {
 
+  static Logger logger = LoggerFactory.getLogger(AddProgramPageController.class);
+
 
   @GetMapping("/admin/programs/new")
   public String addProgramPage(HttpSession session,
@@ -33,10 +36,11 @@ public record AddProgramPageController(AddProgramService service, FormatService 
       case GetAddProgramInfo.Success(var user) -> {
         model.addAllAttributes(
             Map.of("user", user,
-                "referer", referer != null ? referer : "/admin/programs", // Fallback URL if page directly accessed
+                "referer", Optional.ofNullable(referer).orElse("/admin/programs"),
                 "alerts", new Alerts(error, success, warning, info),
                 "formatter", formatter,
-                "theme", userService.getTheme(session)));
+                "theme", userService.getTheme(session),
+                "adminList", service.getAdminList()));
         return "admin/add-program :: page";
       }
       case GetAddProgramInfo.NotLoggedIn() -> {
@@ -51,17 +55,25 @@ public record AddProgramPageController(AddProgramService service, FormatService 
   @PostMapping("/admin/programs/new")
   public String addProgramPage(@RequestParam String title, @RequestParam String description,
       @RequestParam Integer year, @RequestParam LocalDate startDate,
-      @RequestParam LocalDate endDate, @RequestParam String facultyLead,
-      @RequestParam Semester semester, @RequestParam LocalDateTime applicationOpen,
-      @RequestParam LocalDateTime applicationClose, HttpSession session, Model model) {
-    return switch (service.addProgramInfo(title, description, year, startDate, endDate, facultyLead,
+      @RequestParam LocalDate endDate,
+      @RequestParam Semester semester, @RequestParam LocalDate applicationOpen,
+      @RequestParam LocalDate applicationClose, HttpSession session, Model model) {
+    return switch (service.addProgramInfo(title, description, year, startDate, endDate,
         semester, applicationOpen, applicationClose, session)) {
       case AddProgramInfo.Success(Integer programId) ->
           String.format("redirect:/admin/programs/%d?success=Program created", programId);
       case AddProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
       case AddProgramInfo.UserNotAdmin() -> "redirect:/?error=You are not an admin";
       case AddProgramInfo.InvalidProgramInfo(var message) -> {
-        model.addAttribute("alerts", new Alerts(Optional.of(message), Optional.empty(), Optional.empty(), Optional.empty()));
+        model.addAttribute("alerts",
+            new Alerts(Optional.of(message), Optional.empty(), Optional.empty(), Optional.empty()));
+        yield "components :: alerts";
+      }
+      case AddProgramInfo.DatabaseError(var message) -> {
+        logger.error("Error saving program: {}", message);
+        model.addAttribute("alerts",
+            new Alerts(Optional.of("An unknown error occurred"), Optional.empty(), Optional.empty(),
+                Optional.empty()));
         yield "components :: alerts";
       }
     };
