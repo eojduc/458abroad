@@ -3,6 +3,7 @@ package com.example.abroad.controller;
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.page.DashboardService;
 import com.example.abroad.service.page.SSOService;
+import com.example.abroad.service.page.SSOService.SSOResult;
 import com.example.abroad.service.page.DashboardService.GetDashboard;
 import com.example.abroad.service.FormatService;
 
@@ -13,9 +14,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -34,7 +32,11 @@ public record DashboardController(
       @RequestParam Optional<String> info) {
 
     if (dashboardService.getDashboard(session) instanceof DashboardService.GetDashboard.NotLoggedIn) {
-      ssoService.authenticateSSO(request, session);
+      SSOResult ssoResult = ssoService.authenticateSSO(request, session);
+      if (ssoResult instanceof SSOResult.UsernameTaken usernameTaken) {
+        String redirectUrl = SSOService.buildLogoutUrl("/register", usernameTaken.message());
+        return "redirect:/Shibboleth.sso/Logout?return=" + redirectUrl;
+      }
     }
 
     model.addAttribute("formatter", formatter);
@@ -54,19 +56,5 @@ public record DashboardController(
         yield "admin/admin-dashboard :: page";
       }
     };
-  }
-
-  @GetMapping("/ssoauthsession")
-  public String home(HttpServletRequest request, Model model) {
-    // Create a LinkedHashMap to preserve insertion order
-    Map<String, String> headers = new LinkedHashMap<>();
-    Enumeration<String> headerNames = request.getHeaderNames();
-    while (headerNames.hasMoreElements()) {
-      String headerName = headerNames.nextElement();
-      String headerValue = request.getHeader(headerName);
-      headers.put(headerName, headerValue);
-    }
-    model.addAttribute("headers", headers);
-    return "home"; // Renders templates/headers.html
   }
 }

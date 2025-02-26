@@ -1,5 +1,9 @@
 package com.example.abroad.service.page;
 
+import java.nio.charset.StandardCharsets;
+
+import java.net.URLEncoder;
+
 import org.springframework.stereotype.Service;
 
 import com.example.abroad.model.User;
@@ -19,7 +23,7 @@ public class SSOService {
     }
 
     public sealed interface SSOResult {
-        record Success() implements SSOResult {}
+        record Success(User user) implements SSOResult {}
         record AlreadyLoggedIn() implements SSOResult {}
         record SSOSessionNotPresent() implements SSOResult {}
         record UsernameTaken(String message) implements SSOResult {}
@@ -30,30 +34,43 @@ public class SSOService {
         if (user != null) {
             return new SSOResult.AlreadyLoggedIn();
         }
-        
+
         String uid = request.getHeader("uid");
         if (uid == null || uid.isBlank()) {
             return new SSOResult.SSOSessionNotPresent();
         }
         String displayName = request.getHeader("displayname");
         String email = request.getHeader("mail");
-        
-        User existingUser  = userService.findByUsername(uid).orElse(null);
+
+        User existingUser = userService.findByUsername(uid).orElse(null);
         if (existingUser != null) {
             if (existingUser instanceof LocalUser) {
                 return new SSOResult.UsernameTaken(
-                    "A local account already exists with username '" + uid + "'. " +
-                    "Please log in using local authentication or contact support."
-                );
+                        "A local account already exists with username '" + uid + "'. " +
+                                "Please register using local authentication");
             } else if (existingUser instanceof SSOUser) {
                 userService.saveUserToSession(existingUser, session);
-                return new SSOResult.Success();
+                return new SSOResult.Success(existingUser);
             }
         }
-        
+
         SSOUser newUser = new SSOUser(uid, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
         userService.save(newUser);
         userService.saveUserToSession(newUser, session);
-        return new SSOResult.Success();
+        return new SSOResult.Success(newUser);
+    }
+
+    public static String buildLogoutUrl(String location, String errorMessage) {
+        String targetUrl = "https://beta.colab.duke.edu" + location;
+        String shibLogoutUrl = "https://shib.oit.duke.edu/cgi-bin/logout.pl";
+        if (errorMessage != null && !errorMessage.isBlank()) {
+            targetUrl += "?error=" + encode(errorMessage);
+        }
+        String logoutPlUrl = shibLogoutUrl + "?logoutWithoutPrompt=1&returnto=" + targetUrl;
+        return encode(logoutPlUrl);
+    }
+
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }

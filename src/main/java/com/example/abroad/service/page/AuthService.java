@@ -7,11 +7,10 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
 @Service
 public record AuthService(
   UserService userService,
+  SSOService ssoService,
   PasswordEncoder passwordEncoder
 ) {
 
@@ -46,6 +45,26 @@ public record AuthService(
       return new CheckLoginStatus.AlreadyLoggedIn();
     }
     return new CheckLoginStatus.NotLoggedIn();
+  }
+
+  public sealed interface Logout {
+    record LocalUserSuccess() implements Logout {}
+    record SSOUserSuccess(String redirectUrl) implements Logout {}
+    record NotLoggedIn() implements Logout {}
+  }
+
+  public Logout logout(HttpSession session) {
+    User user = userService.findUserFromSession(session).orElse(null);
+    if (user == null) {
+      return new Logout.NotLoggedIn();
+    }
+    
+    session.invalidate();
+    if (user instanceof User.SSOUser) {
+      String redirectUrl = SSOService.buildLogoutUrl("/login", "You have been logged out");
+      return new Logout.SSOUserSuccess(redirectUrl);
+    }
+    return new Logout.LocalUserSuccess();
   }
 
   public sealed interface RegisterResult {
