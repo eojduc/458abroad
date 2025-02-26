@@ -67,7 +67,8 @@ public class SSOService {
         return new SSOResult.Success();
     }
 
-    public static String buildLogoutUrl(String targetUrl, String errorMessage) {
+    public static String buildLogoutUrl(String location, String errorMessage) {
+        String targetUrl = "https://beta.colab.duke.edu" + location;
         String shibLogoutUrl = "https://shib.oit.duke.edu/cgi-bin/logout.pl";
         if (errorMessage != null && !errorMessage.isBlank()) {
             targetUrl += "?error=" + encode(errorMessage);

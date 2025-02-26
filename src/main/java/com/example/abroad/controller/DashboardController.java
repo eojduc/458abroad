@@ -33,9 +33,7 @@ public record DashboardController(
     if (dashboardService.getDashboard(session) instanceof DashboardService.GetDashboard.NotLoggedIn) {
       SSOService.SSOResult ssoResult = ssoService.authenticateSSO(request, session);
       if (ssoResult instanceof SSOService.SSOResult.UsernameTaken usernameTaken) {
-        String redirectUrl = SSOService.buildLogoutUrl(
-            "https://beta.colab.duke.edu/register",
-            usernameTaken.message());
+        String redirectUrl = SSOService.buildLogoutUrl("/register", usernameTaken.message());
         return "redirect:/Shibboleth.sso/Logout?return=" + redirectUrl;
       }
     }
