@@ -13,8 +13,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Controller
@@ -33,17 +31,13 @@ public record DashboardController(
       @RequestParam Optional<String> info) {
 
     if (dashboardService.getDashboard(session) instanceof DashboardService.GetDashboard.NotLoggedIn) {
-        SSOService.SSOResult ssoResult = ssoService.authenticateSSO(request, session);
-        if (ssoResult instanceof SSOService.SSOResult.UsernameTaken usernameTaken) {
-            String errorMessage = usernameTaken.message();
-            String encodedError = URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
-            // String returnUrl = URLEncoder.encode("https://beta.colab.duke.edu/register?error=" + encodedError, StandardCharsets.UTF_8);
-            // return "redirect:/Shibboleth.sso/Logout?return=https://shib.oit.duke.edu/cgi-bin/logout.pl?logoutWithoutPrompt=1&returnto=" + returnUrl;
-            String targetUrl = "https://beta.colab.duke.edu/register?error=" + encodedError;
-            String logoutPlUrl = "https://shib.oit.duke.edu/cgi-bin/logout.pl?logoutWithoutPrompt=1&returnto=" + targetUrl;
-            String encodedLogoutPlUrl = URLEncoder.encode(logoutPlUrl, StandardCharsets.UTF_8);
-            return "redirect:/Shibboleth.sso/Logout?return=" + encodedLogoutPlUrl;
-        }
+      SSOService.SSOResult ssoResult = ssoService.authenticateSSO(request, session);
+      if (ssoResult instanceof SSOService.SSOResult.UsernameTaken usernameTaken) {
+        String redirectUrl = SSOService.buildLogoutUrl(
+            "https://beta.colab.duke.edu/register",
+            usernameTaken.message());
+        return "redirect:/Shibboleth.sso/Logout?return=" + redirectUrl;
+      }
     }
 
     model.addAttribute("theme", dashboardService.getTheme(session));
