@@ -36,7 +36,7 @@ public record DashboardController(
         SSOService.SSOResult ssoResult = ssoService.authenticateSSO(request, session);
         if (ssoResult instanceof SSOService.SSOResult.UsernameTaken usernameTaken) {
             String encodedError = URLEncoder.encode(usernameTaken.message(), StandardCharsets.UTF_8);
-            return "redirect:/?error=" + encodedError;
+            return "redirect:/register?error=" + encodedError;
         }
     }
 
