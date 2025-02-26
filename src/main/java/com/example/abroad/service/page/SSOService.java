@@ -23,17 +23,10 @@ public class SSOService {
     }
 
     public sealed interface SSOResult {
-        record Success() implements SSOResult {
-        }
-
-        record AlreadyLoggedIn() implements SSOResult {
-        }
-
-        record SSOSessionNotPresent() implements SSOResult {
-        }
-
-        record UsernameTaken(String message) implements SSOResult {
-        }
+        record Success(User user) implements SSOResult {}
+        record AlreadyLoggedIn() implements SSOResult {}
+        record SSOSessionNotPresent() implements SSOResult {}
+        record UsernameTaken(String message) implements SSOResult {}
     }
 
     public SSOResult authenticateSSO(HttpServletRequest request, HttpSession session) {
@@ -57,14 +50,14 @@ public class SSOService {
                                 "Please register using local authentication");
             } else if (existingUser instanceof SSOUser) {
                 userService.saveUserToSession(existingUser, session);
-                return new SSOResult.Success();
+                return new SSOResult.Success(existingUser);
             }
         }
 
         SSOUser newUser = new SSOUser(uid, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
         userService.save(newUser);
         userService.saveUserToSession(newUser, session);
-        return new SSOResult.Success();
+        return new SSOResult.Success(newUser);
     }
 
     public static String buildLogoutUrl(String location, String errorMessage) {

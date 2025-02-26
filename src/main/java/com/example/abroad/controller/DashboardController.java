@@ -3,6 +3,7 @@ package com.example.abroad.controller;
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.page.DashboardService;
 import com.example.abroad.service.page.SSOService;
+import com.example.abroad.service.page.SSOService.SSOResult;
 import com.example.abroad.service.page.DashboardService.GetDashboard;
 import com.example.abroad.service.FormatService;
 
@@ -31,8 +32,8 @@ public record DashboardController(
       @RequestParam Optional<String> info) {
 
     if (dashboardService.getDashboard(session) instanceof DashboardService.GetDashboard.NotLoggedIn) {
-      SSOService.SSOResult ssoResult = ssoService.authenticateSSO(request, session);
-      if (ssoResult instanceof SSOService.SSOResult.UsernameTaken usernameTaken) {
+      SSOResult ssoResult = ssoService.authenticateSSO(request, session);
+      if (ssoResult instanceof SSOResult.UsernameTaken usernameTaken) {
         String redirectUrl = SSOService.buildLogoutUrl("/register", usernameTaken.message());
         return "redirect:/Shibboleth.sso/Logout?return=" + redirectUrl;
       }

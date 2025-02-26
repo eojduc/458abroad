@@ -4,11 +4,9 @@ import com.example.abroad.model.Alerts;
 import com.example.abroad.service.page.AuthService;
 import com.example.abroad.service.page.AuthService.CheckLoginStatus;
 import com.example.abroad.service.page.AuthService.Login;
+import com.example.abroad.service.page.AuthService.Logout;
 import com.example.abroad.service.page.AuthService.RegisterResult;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,8 +50,11 @@ public record AuthController(AuthService authService) {
 
   @GetMapping("/logout")
   public String logout(HttpSession session) {
-    session.invalidate();
-    return "redirect:/login?info=You have been logged out";
+    return switch (authService.logout(session)) {
+      case Logout.LocalUserSuccess() -> "redirect:/login?info=You have been logged out";
+      case Logout.SSOUserSuccess(String redirectUrl) -> "redirect:/Shibboleth.sso/Logout?return=" + redirectUrl;
+      case Logout.NotLoggedIn() -> "redirect:/";
+    };
   }
 
   @GetMapping("/register")
