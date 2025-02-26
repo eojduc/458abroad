@@ -38,8 +38,11 @@ public record DashboardController(
             String errorMessage = usernameTaken.message();
             String encodedError = URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
             // String returnUrl = URLEncoder.encode("https://beta.colab.duke.edu/register?error=" + encodedError, StandardCharsets.UTF_8);
-            String returnUrl = URLEncoder.encode("https://beta.colab.duke.edu/register", StandardCharsets.UTF_8);
-            return "redirect:/Shibboleth.sso/Logout?return=https://shib.oit.duke.edu/cgi-bin/logout.pl?logoutWithoutPrompt=1&returnto=" + returnUrl;
+            // return "redirect:/Shibboleth.sso/Logout?return=https://shib.oit.duke.edu/cgi-bin/logout.pl?logoutWithoutPrompt=1&returnto=" + returnUrl;
+            String targetUrl = "https://beta.colab.duke.edu/register?error=" + encodedError;
+            String logoutPlUrl = "https://shib.oit.duke.edu/cgi-bin/logout.pl?logoutWithoutPrompt=1&returnto=" + targetUrl;
+            String encodedLogoutPlUrl = URLEncoder.encode(logoutPlUrl, StandardCharsets.UTF_8);
+            return "redirect:/Shibboleth.sso/Logout?return=" + encodedLogoutPlUrl;
         }
     }
 
