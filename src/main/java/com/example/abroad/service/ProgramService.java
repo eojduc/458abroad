@@ -72,8 +72,26 @@ public record ProgramService(ProgramRepository programRepository, ApplicationRep
       .stream().filter(u -> facultyLeadUsernames.contains(u.username())).toList();
   }
 
+  public List<Program> findFacultyPrograms(User user) {
+    var facultyLeadProgramIds = facultyLeadRepository.findById_Username(user.username())
+      .stream()
+      .map(FacultyLead::programId)
+      .toList();
+    return programRepository.findAllById(facultyLeadProgramIds);
+  }
+
   public void deleteById(Integer programId) {
     programRepository.deleteById(programId);
+  }
+
+  public void removeFacultyLead(Program program, String username1) {
+    var facultyLeads = facultyLeadRepository.findById_ProgramId(program.id())
+      .stream()
+      .map(FacultyLead::username)
+      .filter(username -> !username.equals(username1))
+      .toList();
+    setFacultyLeads(program, facultyLeads);
+
   }
 
   public void setFacultyLeads(Program program, List<String> usernames) {

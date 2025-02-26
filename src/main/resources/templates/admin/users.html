@@ -152,7 +152,9 @@
                 <input type="hidden" name="grantAdmin" value="false"/>
                 <button type="submit" class="btn btn-warning">Proceed</button>
             </form>
-            <button class="btn" onclick="closeAdminDialog()">Cancel</button>
+            <form method="dialog">
+                <button class="btn">Cancel</button>
+            </form>
         </div>
     </div>
 </dialog>
@@ -191,7 +193,9 @@
             </div>
             <div class="modal-action">
                 <button type="submit" class="btn btn-secondary">Reset Password</button>
-                <button type="button" class="btn" onclick="closePasswordDialog()">Cancel</button>
+                <form method="dialog">
+                    <button class="btn">Cancel</button>
+                </form>
             </div>
         </form>
     </div>
@@ -231,7 +235,9 @@
                   method="POST">
                 <button type="submit" class="btn btn-error">Delete User</button>
             </form>
-            <button class="btn" onclick="closeDeleteUserDialog()">Cancel</button>
+            <form method="dialog">
+                <button class="btn">Cancel</button>
+            </form>
         </div>
     </div>
 </dialog>
@@ -272,14 +278,6 @@
             }
         }
     });
-
-    function closeAdminDialog() {
-        const dialog = document.getElementById('adminConfirmDialog');
-        if (dialog) {
-            dialog.close();
-        }
-        document.getElementById('adminDialogContainer').innerHTML = '';
-    }
 </script>
 
 <!-- Password reset script -->
@@ -304,14 +302,6 @@
             }
         }
     });
-
-    function closePasswordDialog() {
-        const dialog = document.getElementById('passwordResetDialog');
-        if (dialog) {
-            dialog.close();
-        }
-        document.getElementById('passwordDialogContainer').innerHTML = '';
-    }
 </script>
 
 <!-- Delete user script -->
@@ -335,23 +325,6 @@
                 deleteUserDialog.showModal();
             }
         }
-    });
-
-    function closeDeleteUserDialog() {
-        const dialog = document.getElementById('deleteUserDialog');
-        if (dialog) {
-            dialog.close();
-        }
-        document.getElementById('deleteUserDialogContainer').innerHTML = '';
-    }
-
-    // Debug HTMX requests
-    document.addEventListener('htmx:beforeRequest', function(evt) {
-        console.log('HTMX Request:', evt.detail);
-    });
-
-    document.addEventListener('htmx:responseError', function(evt) {
-        console.error('HTMX Response Error:', evt.detail);
     });
 </script>
 

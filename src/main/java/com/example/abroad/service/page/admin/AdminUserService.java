@@ -4,6 +4,8 @@ import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.*;
+import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.context.annotation.Lazy;
@@ -17,41 +19,12 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Service
-public class AdminUserService {
-    private final LocalUserRepository localUserRepository;
-    private final SSOUserRepository ssoUserRepository;
-    private final FacultyLeadRepository facultyLeadRepository;
-    private final ProgramRepository programRepository;
-    private final ApplicationRepository applicationRepository;
-    private final NoteRepository noteRepository;
-    private final DocumentRepository documentRepository;
-    private final ResponseRepository responseRepository;
-    private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
-
-    public AdminUserService(
-            LocalUserRepository localUserRepository,
-            SSOUserRepository ssoUserRepository,
-            FacultyLeadRepository facultyLeadRepository,
-            ProgramRepository programRepository,
-            ApplicationRepository applicationRepository,
-            NoteRepository noteRepository,
-            DocumentRepository documentRepository,
-            ResponseRepository responseRepository,
-            @Lazy PasswordEncoder passwordEncoder,
-            UserService userService
-    ) {
-        this.localUserRepository = localUserRepository;
-        this.ssoUserRepository = ssoUserRepository;
-        this.facultyLeadRepository = facultyLeadRepository;
-        this.programRepository = programRepository;
-        this.applicationRepository = applicationRepository;
-        this.noteRepository = noteRepository;
-        this.documentRepository = documentRepository;
-        this.responseRepository = responseRepository;
-        this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
-    }
+public record AdminUserService(
+  ProgramService programService,
+  ApplicationService applicationService,
+  UserService userService,
+  PasswordEncoder passwordEncoder
+) {
 
     public enum Sort {
         NAME, EMAIL, ROLE, USER_TYPE
@@ -99,15 +72,13 @@ public class AdminUserService {
             Boolean ascending,
             User adminUser
     ) {
-        var usersInfo = Stream.concat(
-                        localUserRepository.findAll().stream()
-                                .map(user -> new UserInfo(user, "LOCAL")),
-                        ssoUserRepository.findAll().stream()
-                                .map(user -> new UserInfo(user, "SSO"))
-                )
-                .filter(matchesSearchFilter(searchFilter))
-                .sorted(getSortComparator(sort, ascending))
-                .toList();
+        var usersInfo =
+          userService.findAll()
+            .stream()
+            .map(user -> new UserInfo(user, user.isLocal() ? "LOCAL" : "SSO"))
+            .filter(matchesSearchFilter(searchFilter))
+            .sorted(getSortComparator(sort, ascending))
+            .toList();
 
         return new GetAllUsersInfo.Success(usersInfo, adminUser);
     }
@@ -153,7 +124,6 @@ public class AdminUserService {
         }
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public ModifyUserResult modifyUserAdminStatus(
             HttpSession session,
             String targetUsername,
@@ -182,21 +152,15 @@ public class AdminUserService {
 
         // If revoking admin privileges, check faculty lead status
         if (!grantAdmin) {
-            var facultyLeadPrograms = getFacultyLeadPrograms(targetUsername);
-            System.out.println("FACULTY LEAD PRGRAM SIZE IS " + facultyLeadPrograms.size());
+            var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
             if (facultyLeadPrograms.isEmpty()) {
-                var updateUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
-                if (targetUser.isLocal()) {
-                    localUserRepository.save((User.LocalUser) updateUser);
-                } else {
-                    ssoUserRepository.save((User.SSOUser) updateUser);
-                }
+                var updateUser = targetUser.withRole(User.Role.STUDENT);
+                userService.save(updateUser);
                 return new ModifyUserResult.Success(targetUser);
             }
 
             //will only proceed past this point if user is faculty lead
             if (!confirmed) {
-                System.out.println("GOINT TO REQUIRES CONFIRMATION, EVENTHOUGH FACULTY LEAD PRGRAM SIZE IS " + facultyLeadPrograms.size());
                 return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
             }
 
@@ -209,40 +173,16 @@ public class AdminUserService {
 
         // Modify user admin status
         var updatedUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
-        if (targetUser.isLocal()) {
-            localUserRepository.save((User.LocalUser) updatedUser);
-        } else {
-            ssoUserRepository.save((User.SSOUser) updatedUser);
-        }
+        userService.save(updatedUser);
 
         return new ModifyUserResult.Success(updatedUser);
     }
 
-    private List<Program> getFacultyLeadPrograms(String username) {
-        var facultyLeads = facultyLeadRepository.findById_Username(username);
-        return facultyLeads.stream()
-                .map(lead -> programRepository.findById(lead.programId())
-                        .orElseThrow(() -> new RuntimeException("Program not found")))
-                .toList();
-    }
 
     private void handleFacultyLeadTransfer(String username, List<Program> programs) {
-        // Get all faculty leads for this username directly
-        List<Program.FacultyLead> userLeads = facultyLeadRepository.findById_Username(username);
-
-        // For each of the user's leads
-        userLeads.forEach(userLead -> {
-            // Delete the current user's lead entry
-            facultyLeadRepository.delete(userLead);
-
-            // Check how many leads remain for this program after deletion
-            List<Program.FacultyLead> remainingLeads = facultyLeadRepository.findById_ProgramId(userLead.programId());
-
-            // If no leads remain for this program, make admin the lead
-            if (remainingLeads.isEmpty()) {
-                facultyLeadRepository.save(new Program.FacultyLead(userLead.programId(), "admin"));
-            }
-        });
+        for (Program program : programs) {
+            programService.removeFacultyLead(program, username);
+        }
     }
 
     // Add these interfaces and methods to your AdminUserService class
@@ -325,7 +265,6 @@ public class AdminUserService {
     /**
      * Resets a user's password
      */
-    @Transactional(rollbackFor = Exception.class)
     public PasswordResetResult resetUserPassword(
             HttpSession session,
             String targetUsername,
@@ -372,7 +311,7 @@ public class AdminUserService {
         );
 
         // Save the updated user
-        localUserRepository.save(updatedUser);
+        userService.save(updatedUser);
 
         return new PasswordResetResult.Success();
     }
@@ -442,14 +381,13 @@ public class AdminUserService {
         }
 
         // Find relevant data for confirmation dialog
-        List<Program> facultyLeadPrograms = getFacultyLeadPrograms(targetUsername);
-        List<Application> applications = applicationRepository.findByStudent(targetUsername);
+        List<Program> facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
+        List<Application> applications = applicationService.findByStudentUsername(targetUsername);
 
         return new DeleteUserValidationResult.Valid(targetUsername, facultyLeadPrograms, applications);
     }
 
 
-    @Transactional(rollbackFor = Exception.class)
     public DeleteUserResult deleteUser(
             HttpSession session,
             String targetUsername
@@ -473,26 +411,21 @@ public class AdminUserService {
         if (valid.facultyLeadPrograms() != null && !valid.facultyLeadPrograms().isEmpty()) {
             handleFacultyLeadTransfer(targetUsername, valid.facultyLeadPrograms());
         }
-
-        // Update all notes authored by this user to show "DELETED USER"
-        List<Application.Note> userNotes = noteRepository.findAll().stream()
-                .filter(note -> note.username().equals(targetUsername))
-                .toList();
+        List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUsername);
 
         for (Application.Note note : userNotes) {
-            // Create a new note with the same properties but with "DELETED USER" as the username
             Application.Note updatedNote = new Application.Note(
                     note.applicationId(),
                     "DELETED USER",
                     note.content(),
                     note.timestamp()
             );
-            noteRepository.delete(note);
-            noteRepository.save(updatedNote);
+            applicationService.deleteNote(note.id());
+            applicationService.saveNote(updatedNote);
         }
 
         // Delete the user (this will cascade to delete all owned records)
-        localUserRepository.deleteById(targetUsername);
+        userService.deleteByUsername(targetUsername);
 
         return new DeleteUserResult.Success();
     }
