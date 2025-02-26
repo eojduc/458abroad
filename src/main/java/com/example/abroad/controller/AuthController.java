@@ -1,5 +1,6 @@
 package com.example.abroad.controller;
 
+import com.example.abroad.controller.admin.AddProgramPageController;
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.page.AuthService;
 import com.example.abroad.service.page.AuthService.CheckLoginStatus;
@@ -13,10 +14,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Optional;
 
 @Controller
 public record AuthController(AuthService authService) {
+
+  public static Logger logger = LoggerFactory.getLogger(AuthController.class);
 
   @GetMapping("/login")
   public String showLoginForm(
