@@ -1,11 +1,7 @@
 package com.example.abroad.configuration;
 
-import com.example.abroad.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+<<<<<<< Updated upstream
   private final AuthSuccessHandler authSuccessHandler;
   private final ShibbolethSSOFilter shibbolethSSOFilter;
 
@@ -26,26 +23,17 @@ public class SecurityConfig {
     this.shibbolethSSOFilter = shibbolethSSOFilter;
   }
 
+=======
+>>>>>>> Stashed changes
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(HttpSecurity http,
-    CustomUserDetailsService userDetailsService,
-    PasswordEncoder passwordEncoder) throws Exception {
-    var builder = http.getSharedObject(AuthenticationManagerBuilder.class);
-    builder
-      .userDetailsService(userDetailsService)
-      .passwordEncoder(passwordEncoder);
-    return builder.build();
-  }
-
-
-  @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
+<<<<<<< Updated upstream
       .csrf(csrf -> csrf.disable())
       // .addFilterBefore(shibbolethSSOFilter, UsernamePasswordAuthenticationFilter.class)
       .authorizeHttpRequests(auth -> auth
@@ -60,22 +48,11 @@ public class SecurityConfig {
         .permitAll()
       )
       .logout(AbstractHttpConfigurer::disable);
+=======
+      .csrf(AbstractHttpConfigurer::disable)
+      // .addFilterBefore(ssoFilter, UsernamePasswordAuthenticationFilter.class)
+      .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+>>>>>>> Stashed changes
     return http.build();
   }
 }
-
-/*
-* Comment on how this works:
-* .loginPage("/login")  Where users SEE the login form, my defined page
-* .loginProcessingUrl("/login")  Where the form SUBMITS to, spring security filter intercepts POST requests to /login
-* The filter creates an Authentication object containing:
-* Username from the form
-* Password from the form
-* List of authorities (initially empty)
-* This Authentication object is passed to the AuthenticationManager which:
-
-*Uses my CustomUserDetailsService to load the user by username
-*Uses my configured PasswordEncoder to verify the submitted password
-* If successful, creates a fully populated Authentication object with the user's authorities/roles
-* .successHandler(authSuccessHandler) my custom authentication success handler
-*/

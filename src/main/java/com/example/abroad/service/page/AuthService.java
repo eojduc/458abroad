@@ -14,6 +14,25 @@ public record AuthService(
   UserService userService,
   PasswordEncoder passwordEncoder
 ) {
+
+  public sealed interface Login {
+    record Success(User user) implements Login {}
+    record InvalidCredentials() implements Login {}
+  }
+
+  public Login login(String username, String password, HttpSession session) {
+    var user = userService.findByUsername(username).orElse(null);
+    if (
+      user == null ||
+      !(user instanceof User.LocalUser localUser) ||
+      !passwordEncoder.matches(password, localUser.password())
+    ) {
+      return new Login.InvalidCredentials();
+    }
+    userService.saveUserToSession(localUser, session);
+    return new Login.Success(localUser);
+  }
+
   public sealed interface CheckLoginStatus permits
     CheckLoginStatus.AlreadyLoggedIn,
     CheckLoginStatus.NotLoggedIn {
