@@ -12,6 +12,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -49,9 +52,16 @@ public record DashboardController(
   }
 
   @GetMapping("/ssoauthsession")
-    public String home(HttpServletRequest request) {
-        // Read the header that Apache/Shibboleth sets (e.g., REMOTE_USER or X-Firstname)
-        String user = request.getHeader("REMOTE_USER");
-        return "Hello, " + (user != null ? user : "guest") + "!";
+    public String home(HttpServletRequest request, Model model) {
+        // Create a LinkedHashMap to preserve insertion order
+        Map<String, String> headers = new LinkedHashMap<>();
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String headerValue = request.getHeader(headerName);
+            headers.put(headerName, headerValue);
+        }
+        model.addAttribute("headers", headers);
+        return "home"; // Renders templates/headers.html
     }
 }

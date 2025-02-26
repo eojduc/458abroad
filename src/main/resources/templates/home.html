@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Request Headers</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <h1>All Request Headers</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Header Name</th>
+                <th>Header Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="entry : ${headers}">
+                <td th:text="${entry.key}">Header Name</td>
+                <td th:text="${entry.value}">Header Value</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
