@@ -6,7 +6,6 @@
 <body>
 <div th:replace="~{components :: logged-out-navbar}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
     <div class="card card-normal w-96 bg-base-200">
         <div class="card-body">
             <h1 class="card-title text-center">Login</h1>
@@ -20,6 +19,8 @@
             <div th:if="${param.registered}" class="alert alert-success mb-4">
                 <span>Registration successful! Please login.</span>
             </div>
+
+            <div th:replace="~{components :: alerts(${alerts})}"></div>
 
             <form class="form-control gap-4" action="/login" method="post">
                 <div>

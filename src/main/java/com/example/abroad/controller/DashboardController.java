@@ -35,8 +35,10 @@ public record DashboardController(
     if (dashboardService.getDashboard(session) instanceof DashboardService.GetDashboard.NotLoggedIn) {
         SSOService.SSOResult ssoResult = ssoService.authenticateSSO(request, session);
         if (ssoResult instanceof SSOService.SSOResult.UsernameTaken usernameTaken) {
-            String encodedError = URLEncoder.encode(usernameTaken.message(), StandardCharsets.UTF_8);
-            return "redirect:/register?error=" + encodedError;
+            String errorMessage = usernameTaken.message();
+            String encodedError = URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
+            String returnUrl = URLEncoder.encode("https://beta.colab.duke.edu/register?error=" + encodedError, StandardCharsets.UTF_8);
+            return "redirect:/Shibboleth.sso/Logout?logoutWithoutPrompt=1&returnto=" + returnUrl;
         }
     }
 
