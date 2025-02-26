@@ -31,7 +31,6 @@ public record DashboardController(
           @RequestParam Optional<String> warning,
           @RequestParam Optional<String> info) {
 
-    model.addAttribute("theme", dashboardService.getTheme(session));
     model.addAttribute("formatter", formatter);
     model.addAttribute("alerts", new Alerts(error, success, warning, info));
 

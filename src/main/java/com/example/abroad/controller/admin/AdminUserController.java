@@ -27,20 +27,6 @@ public record AdminUserController(
 ) {
   // Add a mapping for the root URL that redirects to /page
   @GetMapping
-  public String redirectToPage(
-    @RequestParam Optional<String> error,
-    @RequestParam Optional<String> success,
-    @RequestParam Optional<String> warning,
-    @RequestParam Optional<String> info
-  ) {
-    return String.format("redirect:/admin/users/page?%s%s%s%s",
-      error.map(e -> "error=" + e + "&").orElse(""),
-      success.map(s -> "success=" + s + "&").orElse(""),
-      warning.map(w -> "warning=" + w + "&").orElse(""),
-      info.map(i -> "info=" + i).orElse(""));
-  }
-
-  @GetMapping("/page")
   public String getUsers(
     HttpSession session,
     Model model,
@@ -61,7 +47,6 @@ public record AdminUserController(
             entry("alerts", new Alerts(error, success, warning, info)),
             entry("formatter", formatter),
             entry("searchFilter", ""),
-            entry("theme", userService.getTheme(session)),
             entry("user", adminUser),
             entry("ascending", true),
             entry("users", users)
@@ -91,7 +76,6 @@ public record AdminUserController(
             entry("sort", sort.name()),
             entry("searchFilter", searchFilter),
             entry("formatter", formatter),
-            entry("theme", userService.getTheme(session)),
             entry("ascending", ascending),
             entry("users", users)
           )

@@ -21,7 +21,4 @@ public record DashboardService(UserService userService) {
           .orElse(new GetDashboard.NotLoggedIn());
     }
 
-    public String getTheme(HttpSession session) {
-        return userService.getTheme(session);
-    }
 }

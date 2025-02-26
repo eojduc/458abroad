@@ -26,6 +26,10 @@ public class ShibbolethSSOFilter extends OncePerRequestFilter {
     private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(ShibbolethSSOFilter.class);
 
+    public ShibbolethSSOFilter(UserService userService) {
+        this.userService = userService;
+    }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

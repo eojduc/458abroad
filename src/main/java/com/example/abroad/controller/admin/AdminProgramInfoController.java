@@ -43,7 +43,6 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "alerts", new Alerts(error, success, warning, info),
           "column", Column.NONE.name(),
           "filter", Filter.NONE.name(),
-          "theme", userService.getTheme(session),
           "documentDeadlinePassed", documentDeadlinePassed,
           "programIsDone", programisDone
         ));

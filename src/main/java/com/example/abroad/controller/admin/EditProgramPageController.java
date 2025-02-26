@@ -40,7 +40,6 @@ public record EditProgramPageController(EditProgramService service, FormatServic
           "user", user,
           "alerts", new Alerts(error, success, warning, info),
           "formatter", formatter,
-          "theme", userService.getTheme(session),
           "facultyLeads", facultyLeads,
           "nonFacultyLeads", nonFacultyLeads
         ));

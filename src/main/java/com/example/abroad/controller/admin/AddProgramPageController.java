@@ -39,7 +39,6 @@ public record AddProgramPageController(AddProgramService service, FormatService 
                 "referer", Optional.ofNullable(referer).orElse("/admin/programs"),
                 "alerts", new Alerts(error, success, warning, info),
                 "formatter", formatter,
-                "theme", userService.getTheme(session),
                 "adminList", service.getAdminList()));
         return "admin/add-program :: page";
       }

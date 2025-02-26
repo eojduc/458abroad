@@ -11,7 +11,7 @@
     <div class="card card-normal w-full bg-base-200">
         <div class="card-body gap-10">
             <div class="flex justify-between items-center">
-                <h1 class="card-title">All Users</h1>
+                <h1 class="card-title">Users</h1>
             </div>
 
             <!-- Filter Form -->
@@ -55,14 +55,14 @@
                             </thead>
                             <tbody>
                             <tr th:each="userInfo : ${users}"
-                                th:class="${userInfo.user.isAdmin() ? 'bg-primary bg-opacity-10 border-base-300 border-y-2' : 'border-base-300 border-y-2'}"
+                                class="border-base-300 border-y-2"
                                 th:data-user-type="${userInfo.userType}">
                                 <td th:text="${userInfo.user.displayName()}"></td>
                                 <td th:text="${userInfo.user.email()}"></td>
                                 <td th:text="${userInfo.user.role()}"></td>
                                 <td>
                                     <span th:text="${userInfo.userType}"
-                                          th:class="${userInfo.userType == 'SSO' ? 'badge badge-info' : 'badge badge-accent'}">
+                                          th:class="${userInfo.userType == 'SSO' ? 'badge badge-neutral' : 'badge badge-accent'}">
                                     </span>
                                 </td>
                                 <td>
@@ -87,7 +87,7 @@
                                               method="POST"
                                               class="inline">
                                             <input type="hidden" name="grantAdmin" value="false"/>
-                                            <button type="submit" class="btn btn-sm btn-warning">
+                                            <button type="submit" class="btn btn-sm btn-primary">
                                                 Revoke Admin
                                             </button>
                                         </form>
@@ -103,7 +103,7 @@
 
                                         <!-- Delete User Button (only for LOCAL users, not for current user) -->
                                         <button th:if="${userInfo.userType == 'LOCAL' && userInfo.user.username != 'admin' && userInfo.user.username != user.username()}"
-                                                class="btn btn-sm btn-error"
+                                                class="btn btn-sm btn-secondary"
                                                 th:hx-get="@{/admin/users/{username}/show-delete-user(username=${userInfo.user.username})}"
                                                 hx-target="#deleteUserDialogContainer"
                                                 hx-swap="innerHTML">
@@ -190,7 +190,7 @@
                        minlength="8"/>
             </div>
             <div class="modal-action">
-                <button type="submit" class="btn btn-primary">Reset Password</button>
+                <button type="submit" class="btn btn-secondary">Reset Password</button>
                 <button type="button" class="btn" onclick="closePasswordDialog()">Cancel</button>
             </div>
         </form>
