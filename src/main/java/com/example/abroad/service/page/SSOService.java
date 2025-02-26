@@ -43,7 +43,7 @@ public class SSOService {
             if (existingUser instanceof LocalUser) {
                 return new SSOResult.UsernameTaken(
                     "A local account already exists with username '" + uid + "'. " +
-                    "Please log in using local authentication or contact support."
+                    "Please register using local authentication"
                 );
             } else if (existingUser instanceof SSOUser) {
                 userService.saveUserToSession(existingUser, session);

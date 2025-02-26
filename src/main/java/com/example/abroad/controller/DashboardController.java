@@ -13,9 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Controller
@@ -34,7 +33,11 @@ public record DashboardController(
       @RequestParam Optional<String> info) {
 
     if (dashboardService.getDashboard(session) instanceof DashboardService.GetDashboard.NotLoggedIn) {
-      ssoService.authenticateSSO(request, session);
+        SSOService.SSOResult ssoResult = ssoService.authenticateSSO(request, session);
+        if (ssoResult instanceof SSOService.SSOResult.UsernameTaken usernameTaken) {
+            String encodedError = URLEncoder.encode(usernameTaken.message(), StandardCharsets.UTF_8);
+            return "redirect:/?error=" + encodedError;
+        }
     }
 
     model.addAttribute("theme", dashboardService.getTheme(session));
@@ -55,19 +58,5 @@ public record DashboardController(
         yield "admin/admin-dashboard :: page";
       }
     };
-  }
-
-  @GetMapping("/ssoauthsession")
-  public String home(HttpServletRequest request, Model model) {
-    // Create a LinkedHashMap to preserve insertion order
-    Map<String, String> headers = new LinkedHashMap<>();
-    Enumeration<String> headerNames = request.getHeaderNames();
-    while (headerNames.hasMoreElements()) {
-      String headerName = headerNames.nextElement();
-      String headerValue = request.getHeader(headerName);
-      headers.put(headerName, headerValue);
-    }
-    model.addAttribute("headers", headers);
-    return "home"; // Renders templates/headers.html
   }
 }
