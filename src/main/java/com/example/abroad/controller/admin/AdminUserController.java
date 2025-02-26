@@ -177,36 +177,6 @@ public record AdminUserController(
         };
     }
 
-    @GetMapping("/{username}/show-delete-user")
-    public String showDeleteUserConfirmation(
-            HttpSession session,
-            @PathVariable String username,
-            Model model,
-            HttpServletRequest request
-    ) {
-        var result = adminUserService.validateUserDeletion(session, username);
-
-        return switch (result) {
-            case AdminUserService.DeleteUserValidationResult.UserNotFound() ->
-                    "redirect:/login?error=User not found";
-            case AdminUserService.DeleteUserValidationResult.UserNotAdmin() ->
-                    "redirect:/home?error=You are not an admin";
-            case AdminUserService.DeleteUserValidationResult.CannotDeleteSSOUser() ->
-                    "redirect:/admin/users?error=Cannot delete SSO user";
-            case AdminUserService.DeleteUserValidationResult.CannotDeleteSuperAdmin() ->
-                    "redirect:/admin/users?error=Cannot delete super admin";
-            case AdminUserService.DeleteUserValidationResult.CannotDeleteSelf() ->
-                    "redirect:/admin/users?error=You cannot delete your own account";
-            case AdminUserService.DeleteUserValidationResult.Valid(var targetUsername, var facultyLeadPrograms, var applications) -> {
-                model.addAttribute("username", targetUsername);
-                model.addAttribute("facultyLeadPrograms", facultyLeadPrograms != null ? facultyLeadPrograms : List.of());
-                model.addAttribute("applications", applications != null ? applications : List.of());
-                model.addAttribute("formatter", formatter);
-                yield "admin/users :: deleteUserDialog";
-            }
-        };
-    }
-
     @PostMapping("/{username}/delete-user")
     public String deleteUser(
             HttpSession session,

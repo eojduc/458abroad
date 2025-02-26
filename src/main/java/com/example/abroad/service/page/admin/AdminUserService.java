@@ -46,7 +46,9 @@ public record AdminUserService(
 
     public record UserInfo(
             User user,
-            String userType // "LOCAL" or "SSO"
+            String userType, // "LOCAL" or "SSO",
+            List<Program> facultyLeadPrograms,
+            List<Application> applications
     ) {
     }
 
@@ -75,12 +77,18 @@ public record AdminUserService(
         var usersInfo =
           userService.findAll()
             .stream()
-            .map(user -> new UserInfo(user, user.isLocal() ? "LOCAL" : "SSO"))
+            .map(this::getUserInfo)
             .filter(matchesSearchFilter(searchFilter))
             .sorted(getSortComparator(sort, ascending))
             .toList();
 
         return new GetAllUsersInfo.Success(usersInfo, adminUser);
+    }
+
+    private UserInfo getUserInfo(User user) {
+        var facultyLeadPrograms = programService.findFacultyPrograms(user);
+        var applications = applicationService.findByStudentUsername(user.username());
+        return new UserInfo(user, user.isLocal() ? "LOCAL" : "SSO", facultyLeadPrograms, applications);
     }
 
     private Predicate<UserInfo> matchesSearchFilter(String searchTerm) {
@@ -321,19 +329,6 @@ public record AdminUserService(
         return passwordEncoder.encode(plainPassword);
     }
 
-    public sealed interface DeleteUserValidationResult {
-        record Valid(
-                String username,
-                List<Program> facultyLeadPrograms,
-                List<Application> applications
-        ) implements DeleteUserValidationResult {}
-        record UserNotFound() implements DeleteUserValidationResult {}
-        record UserNotAdmin() implements DeleteUserValidationResult {}
-        record CannotDeleteSelf() implements DeleteUserValidationResult {}
-        record CannotDeleteSSOUser() implements DeleteUserValidationResult {}
-        record CannotDeleteSuperAdmin() implements DeleteUserValidationResult {}
-    }
-
     public sealed interface DeleteUserResult {
         record Success() implements DeleteUserResult {}
         record UserNotFound() implements DeleteUserResult {}
@@ -346,79 +341,54 @@ public record AdminUserService(
     /**
      * Validates if a user can be deleted
      */
-    public DeleteUserValidationResult validateUserDeletion(
-            HttpSession session,
-            String targetUsername
-    ) {
+    public DeleteUserResult deleteUser(HttpSession session, String targetUsername) {
         // Check if requesting user is admin
         var adminUser = userService.findUserFromSession(session).orElse(null);
         if (adminUser == null) {
-            return new DeleteUserValidationResult.UserNotFound();
+            return new DeleteUserResult.UserNotFound();
         }
         if (!adminUser.isAdmin()) {
-            return new DeleteUserValidationResult.UserNotAdmin();
+            return new DeleteUserResult.UserNotAdmin();
         }
 
         // Find target user
         var targetUser = userService.findByUsername(targetUsername).orElse(null);
         if (targetUser == null) {
-            return new DeleteUserValidationResult.UserNotFound();
+            return new DeleteUserResult.UserNotFound();
         }
 
         // Prevent deleting super admin
         if ("admin".equals(targetUsername)) {
-            return new DeleteUserValidationResult.CannotDeleteSuperAdmin();
+            return new DeleteUserResult.CannotDeleteSuperAdmin();
         }
 
         // Prevent deleting self
         if (adminUser.username().equals(targetUsername)) {
-            return new DeleteUserValidationResult.CannotDeleteSelf();
+            return new DeleteUserResult.CannotDeleteSelf();
         }
 
         // Prevent deleting SSO user
         if (!targetUser.isLocal()) {
-            return new DeleteUserValidationResult.CannotDeleteSSOUser();
+            return new DeleteUserResult.CannotDeleteSSOUser();
         }
 
         // Find relevant data for confirmation dialog
         List<Program> facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
         List<Application> applications = applicationService.findByStudentUsername(targetUsername);
 
-        return new DeleteUserValidationResult.Valid(targetUsername, facultyLeadPrograms, applications);
-    }
-
-
-    public DeleteUserResult deleteUser(
-            HttpSession session,
-            String targetUsername
-    ) {
-        var validationResult = validateUserDeletion(session, targetUsername);
-
-        if (validationResult instanceof DeleteUserValidationResult.UserNotFound) {
-            return new DeleteUserResult.UserNotFound();
-        } else if (validationResult instanceof DeleteUserValidationResult.UserNotAdmin) {
-            return new DeleteUserResult.UserNotAdmin();
-        } else if (validationResult instanceof DeleteUserValidationResult.CannotDeleteSSOUser) {
-            return new DeleteUserResult.CannotDeleteSSOUser();
-        } else if (validationResult instanceof DeleteUserValidationResult.CannotDeleteSuperAdmin) {
-            return new DeleteUserResult.CannotDeleteSuperAdmin();
-        } else if (validationResult instanceof DeleteUserValidationResult.CannotDeleteSelf) {
-            return new DeleteUserResult.CannotDeleteSelf();
-        }
-
         // Handle faculty lead transfers
-        DeleteUserValidationResult.Valid valid = (DeleteUserValidationResult.Valid) validationResult;
-        if (valid.facultyLeadPrograms() != null && !valid.facultyLeadPrograms().isEmpty()) {
-            handleFacultyLeadTransfer(targetUsername, valid.facultyLeadPrograms());
+        if (facultyLeadPrograms != null && !facultyLeadPrograms.isEmpty()) {
+            handleFacultyLeadTransfer(targetUsername, facultyLeadPrograms);
         }
-        List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUsername);
 
+        // Update any application notes authored by the user
+        List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUsername);
         for (Application.Note note : userNotes) {
             Application.Note updatedNote = new Application.Note(
-                    note.applicationId(),
-                    "DELETED USER",
-                    note.content(),
-                    note.timestamp()
+              note.applicationId(),
+              "DELETED USER",
+              note.content(),
+              note.timestamp()
             );
             applicationService.deleteNote(note.id());
             applicationService.saveNote(updatedNote);
@@ -429,7 +399,4 @@ public record AdminUserService(
 
         return new DeleteUserResult.Success();
     }
-
-
-
 }
