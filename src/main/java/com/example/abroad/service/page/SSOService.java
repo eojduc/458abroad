@@ -60,11 +60,16 @@ public class SSOService {
         return new SSOResult.Success(newUser);
     }
 
-    public static String buildLogoutUrl(String location, String errorMessage) {
+    public static String buildLogoutUrl(String location, String infoMessage, String errorMessage) {
+        if (errorMessage != null && !errorMessage.isBlank() && infoMessage != null && !infoMessage.isBlank()) {
+            throw new IllegalArgumentException("Only one of errorMessage or infoMessage can be provided.");
+        }
         String targetUrl = "https://beta.colab.duke.edu" + location;
         String shibLogoutUrl = "https://shib.oit.duke.edu/cgi-bin/logout.pl";
         if (errorMessage != null && !errorMessage.isBlank()) {
             targetUrl += "?error=" + encode(errorMessage);
+        } else if (infoMessage != null && !infoMessage.isBlank()) {
+            targetUrl += "?info=" + encode(infoMessage);
         }
         String logoutPlUrl = shibLogoutUrl + "?logoutWithoutPrompt=1&returnto=" + targetUrl;
         return encode(logoutPlUrl);

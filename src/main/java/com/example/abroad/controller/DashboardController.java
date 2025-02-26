@@ -34,7 +34,7 @@ public record DashboardController(
     if (dashboardService.getDashboard(session) instanceof DashboardService.GetDashboard.NotLoggedIn) {
       SSOResult ssoResult = ssoService.authenticateSSO(request, session);
       if (ssoResult instanceof SSOResult.UsernameTaken usernameTaken) {
-        String redirectUrl = SSOService.buildLogoutUrl("/register", usernameTaken.message());
+        String redirectUrl = SSOService.buildLogoutUrl("/register", "", usernameTaken.message());
         return "redirect:/Shibboleth.sso/Logout?return=" + redirectUrl;
       }
     }
