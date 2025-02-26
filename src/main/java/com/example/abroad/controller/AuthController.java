@@ -3,6 +3,7 @@ package com.example.abroad.controller;
 import com.example.abroad.model.Alerts;
 import com.example.abroad.service.page.AuthService;
 import com.example.abroad.service.page.AuthService.CheckLoginStatus;
+import com.example.abroad.service.page.AuthService.Login;
 import com.example.abroad.service.page.AuthService.RegisterResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,6 +36,17 @@ public record AuthController(AuthService authService) {
         model.addAttribute("alerts", new Alerts(error, success, warning, info));
         yield "auth/login";
       }
+    };
+  }
+
+  @PostMapping("/login")
+  public String login(
+          @RequestParam String username,
+          @RequestParam String password,
+          HttpSession session) {
+    return switch (authService.login(username, password, session)) {
+      case Login.Success(var user) -> "redirect:/";
+      case Login.InvalidCredentials() -> "redirect:/login?error=Invalid username or password";
     };
   }
 

@@ -33,7 +33,8 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
     Model model, @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     return switch (service.getApplicationInfo(applicationId, session)) {
-      case Success(var program, var student, var application, var user, var notes, var documents, var status, var facultyLeads, var responses) -> {
+      case Success(var program, var student, var application, var user, var notes, var documents,
+                   var status, var facultyLeads, var responses) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "programIsPast", program.endDate().isBefore(LocalDate.now()),
