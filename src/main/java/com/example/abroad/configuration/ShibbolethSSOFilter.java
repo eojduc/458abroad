@@ -24,28 +24,31 @@ import org.slf4j.Logger;
 public class ShibbolethSSOFilter extends OncePerRequestFilter {
 
     private final UserService userService;
-    private static final Logger logger = LoggerFactory.getLogger(EditProgramPageController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ShibbolethSSOFilter.class);
 
 
-  public ShibbolethSSOFilter(UserService userService) {
-    this.userService = userService;
-  }
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+                                    throws ServletException, IOException {
+        logger.debug("Entered Filter");
 
-  @Override
-  protected void doFilterInternal(HttpServletRequest request,
-    HttpServletResponse response,
-    FilterChain filterChain)
-    throws ServletException, IOException {
-    HttpSession session = request.getSession(false);
-    if (session == null || userService.findUserFromSession(session).isEmpty()) {
-      // Look for the SSO header – adjust header names as needed
-      String ssoUsername = request.getHeader("REMOTE_USER");
-      if (ssoUsername != null) {
-        // Optionally, grab additional attributes
-        String email = request.getHeader("Shib-Email");
-        String displayName = request.getHeader("Shib-DisplayName");
+        // Check if Shibboleth provided authentication headers exist.
+        String remoteUser = request.getHeader("REMOTE_USER");
+        if (remoteUser != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // Extract additional attributes
+            String email = request.getHeader("Shib-Email");
+            String displayName = request.getHeader("Shib-DisplayName");
+
+            logger.info("Email Info received: " + email);
+            logger.info("Display Name Info received: " + displayName);
+            
+            // // Create SSO User
+            // SSOUser ssoUser = new SSOUser(remoteUser, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
 
         // Check if this user already exists in our DB
+        var ssoUsername = "";
         Optional<? extends User> userOpt = userService.findByUsername(ssoUsername);
         User user;
         if (userOpt.isEmpty()) {
@@ -58,7 +61,7 @@ public class ShibbolethSSOFilter extends OncePerRequestFilter {
         request.getSession(true);
         userService.saveUserToSession(user, request.getSession());
       }
-    }
+
     filterChain.doFilter(request, response);
   }
 }
