@@ -49,9 +49,10 @@ public record DashboardController(
   }
 
   @GetMapping("/ssoauthsession")
-    public String home(HttpServletRequest request) {
+    public String home(HttpServletRequest request, Model model) {
         // Read the header that Apache/Shibboleth sets (e.g., REMOTE_USER or X-Firstname)
         String user = request.getHeader("REMOTE_USER");
-        return "Hello, " + (user != null ? user : "guest") + "!";
+        model.addAttribute("username", (user != null ? user : "guest"));
+        return "home"; 
     }
 }
