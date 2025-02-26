@@ -1,28 +1,31 @@
 package com.example.abroad.configuration;
 
+import com.example.abroad.model.User;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
+import java.util.Optional;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.abroad.model.User;
+import com.example.abroad.controller.admin.EditProgramPageController;
 import com.example.abroad.service.UserService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
 
 @Component
 public class ShibbolethSSOFilter extends OncePerRequestFilter {
 
-  private final UserService userService;
+    private final UserService userService;
+    private static final Logger logger = LoggerFactory.getLogger(EditProgramPageController.class);
+
 
   public ShibbolethSSOFilter(UserService userService) {
     this.userService = userService;
