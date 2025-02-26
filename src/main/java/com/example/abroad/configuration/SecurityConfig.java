@@ -47,7 +47,7 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
       .csrf(csrf -> csrf.disable())
-      .addFilterBefore(shibbolethSSOFilter, UsernamePasswordAuthenticationFilter.class)
+      // .addFilterBefore(shibbolethSSOFilter, UsernamePasswordAuthenticationFilter.class)
       .authorizeHttpRequests(auth -> auth
         .anyRequest()
         .permitAll()

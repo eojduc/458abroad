@@ -4,6 +4,8 @@ import com.example.abroad.model.Alerts;
 import com.example.abroad.service.page.DashboardService;
 import com.example.abroad.service.page.DashboardService.GetDashboard;
 import com.example.abroad.service.FormatService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,4 +47,11 @@ public record DashboardController(
       }
     };
   }
+
+  @GetMapping("/ssoauthsession")
+    public String home(HttpServletRequest request) {
+        // Read the header that Apache/Shibboleth sets (e.g., REMOTE_USER or X-Firstname)
+        String user = request.getHeader("REMOTE_USER");
+        return "Hello, " + (user != null ? user : "guest") + "!";
+    }
 }

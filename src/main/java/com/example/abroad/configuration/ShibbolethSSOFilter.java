@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 public class ShibbolethSSOFilter extends OncePerRequestFilter {
 
     private final UserService userService;
-    private static final Logger logger = LoggerFactory.getLogger(EditProgramPageController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ShibbolethSSOFilter.class);
 
     public ShibbolethSSOFilter(UserService userService) {
         this.userService = userService;
@@ -33,7 +33,7 @@ public class ShibbolethSSOFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
                                     throws ServletException, IOException {
         logger.debug("Entered Filter");
-        
+
         // Check if Shibboleth provided authentication headers exist.
         String remoteUser = request.getHeader("REMOTE_USER");
         if (remoteUser != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -41,8 +41,8 @@ public class ShibbolethSSOFilter extends OncePerRequestFilter {
             String email = request.getHeader("Shib-Email");
             String displayName = request.getHeader("Shib-DisplayName");
 
-            logger.debug("Email Info received: " + email);
-            logger.debug("Display Name Info received: " + displayName);
+            logger.info("Email Info received: " + email);
+            logger.info("Display Name Info received: " + displayName);
             
             // // Create SSO User
             // SSOUser ssoUser = new SSOUser(remoteUser, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
