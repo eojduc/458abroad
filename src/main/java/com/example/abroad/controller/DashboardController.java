@@ -37,7 +37,8 @@ public record DashboardController(
         if (ssoResult instanceof SSOService.SSOResult.UsernameTaken usernameTaken) {
             String errorMessage = usernameTaken.message();
             String encodedError = URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
-            String returnUrl = URLEncoder.encode("https://beta.colab.duke.edu/register?error=" + encodedError, StandardCharsets.UTF_8);
+            // String returnUrl = URLEncoder.encode("https://beta.colab.duke.edu/register?error=" + encodedError, StandardCharsets.UTF_8);
+            String returnUrl = URLEncoder.encode("https://beta.colab.duke.edu/register", StandardCharsets.UTF_8);
             return "redirect:/Shibboleth.sso/Logout?return=https://shib.oit.duke.edu/cgi-bin/logout.pl?logoutWithoutPrompt=1&returnto=" + returnUrl;
         }
     }
