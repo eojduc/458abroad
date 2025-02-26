@@ -14,12 +14,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-  private final ShibbolethSSOFilter shibbolethSSOFilter;
-
-  public SecurityConfig(ShibbolethSSOFilter shibbolethSSOFilter) {
-    this.shibbolethSSOFilter = shibbolethSSOFilter;
-  }
-
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
@@ -29,7 +23,6 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
       .csrf(AbstractHttpConfigurer::disable)
-      // .addFilterBefore(ssoFilter, UsernamePasswordAuthenticationFilter.class)
       .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
     return http.build();
   }
