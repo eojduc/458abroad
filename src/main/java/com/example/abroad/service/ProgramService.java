@@ -15,8 +15,12 @@ import org.springframework.stereotype.Service;
  * Service class for Program. wraps the ProgramRepository and provides additional functionality.
  */
 @Service
-public record ProgramService(ProgramRepository programRepository, ApplicationRepository applicationRepository,
-  FacultyLeadRepository facultyLeadRepository, UserService userService) {
+public record ProgramService(
+  ProgramRepository programRepository,
+  ApplicationRepository applicationRepository,
+  FacultyLeadRepository facultyLeadRepository,
+  UserService userService
+) {
 
 
   public SaveProgram saveProgram(Program program) {

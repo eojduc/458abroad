@@ -107,10 +107,6 @@ public record AdminUserController(
         model.addAttribute("username", targetUser);
         model.addAttribute("programs", programs);
         model.addAttribute("formatter", formatter);
-        // Return just the dialog fragment for HTMX requests
-        if (isHtmxRequest(request)) {
-          yield "admin/users :: confirmationDialog";
-        }
         // Redirect to main page for regular form submissions
         yield "redirect:/admin/users";
       }
@@ -118,37 +114,6 @@ public record AdminUserController(
         "redirect:/admin/users?success=User admin status updated successfully";
     };
   }
-
-    private boolean isHtmxRequest(HttpServletRequest request) {
-        return request.getHeader("HX-Request") != null;
-    }
-
-    // Add these methods to your AdminUserController class
-
-    @GetMapping("/{username}/show-reset-password")
-    public String showPasswordResetForm(
-            HttpSession session,
-            @PathVariable String username,
-            Model model,
-            HttpServletRequest request
-    ) {
-        var result = adminUserService.validatePasswordReset(session, username);
-
-        return switch (result) {
-            case AdminUserService.PasswordResetValidationResult.UserNotFound() ->
-                    "redirect:/login?error=User not found";
-            case AdminUserService.PasswordResetValidationResult.UserNotAdmin() ->
-                    "redirect:/home?error=You are not an admin";
-            case AdminUserService.PasswordResetValidationResult.CannotResetSSOUser() ->
-                    "redirect:/admin/users?error=Cannot reset password for SSO user";
-            case AdminUserService.PasswordResetValidationResult.CannotResetSuperAdmin() ->
-                    "redirect:/admin/users?error=Cannot reset password for super admin";
-            case AdminUserService.PasswordResetValidationResult.Valid() -> {
-                model.addAttribute("username", username);
-                yield "admin/users :: passwordResetDialog";
-            }
-        };
-    }
 
     @PostMapping("/{username}/reset-password")
     public String resetPassword(

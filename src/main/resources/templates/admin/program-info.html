@@ -24,10 +24,7 @@
             <td>Faculty Leads</td>
             <td>
               <ul class="list-disc list-inside">
-                <li th:each="facultyLead : ${facultyLeads}">
-                  <a class="link link-primary"
-                     th:href="@{/admin/users/{id}(id=${facultyLead.username})}"
-                     th:text="${facultyLead.displayName}"></a>
+                <li th:each="facultyLead : ${facultyLeads}" th:text="${formatter.displayUser(facultyLead)}">
                 </li>
               </ul>
             </td>
@@ -264,7 +261,7 @@
         <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
         <td>
           <div th:id="'status-badge-' + ${applicant.username}">
-            <div th:replace="~{components :: statusBadge(${applicant.displayStatus})}">
+            <div th:replace="~{components :: statusBadge(${applicant.displayStatus})}" ></div>
           </div>
         </td>
         <td>
@@ -302,7 +299,7 @@
         </td>
         <td>
           <span th:if="${applicant.documents.assumptionOfRisk.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.documents.assumptionOfRisk.get().timestamp}">
+            <span class="badge badge-success" th:text="${applicant.documents.assumptionOfRisk.get().timestamp}"></span>
           </span>
           <span th:if ="${applicant.documents.assumptionOfRisk.isEmpty() && documentDeadlinePassed}">
             <span class="badge badge-error">Late</span>

@@ -143,7 +143,7 @@
       hx-target="#programTable"
       hx-swap="outerHTML">
     <div class="flex items-center gap-2">
-      <span th:if="${sort == column}" th:text="${ascending} ? '▲' : '▼'"></span>
+      <span th:if="${sort == column}" th:text="${ascending} ? '▼' : '▲'"></span>
       <div th:unless="${sort == column}" class="invisible">▼</div>
       <span th:text="${label}"></span>
     </div>

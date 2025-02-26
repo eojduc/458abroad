@@ -55,14 +55,13 @@
               </thead>
               <tbody>
               <tr th:each="userInfo : ${users}"
-                  class="border-base-300 border-y-2"
-                  th:data-user-type="${userInfo.userType}">
+                  class="border-base-300 border-y-2">
                 <td th:text="${userInfo.user.displayName()}"></td>
                 <td th:text="${userInfo.user.email()}"></td>
                 <td th:text="${userInfo.user.role()}"></td>
                 <td>
-                  <span th:text="${userInfo.userType}"
-                        th:class="${userInfo.userType == 'SSO' ? 'badge badge-neutral' : 'badge badge-accent'}">
+                  <span th:text="${userInfo.user.isLocal() ? 'Local' : 'Duke'}"
+                        th:class="${userInfo.user.isLocal() ? 'badge badge-accent' : 'badge badge-neutral'}">
                   </span>
                 </td>
                 <td>
@@ -113,7 +112,7 @@
                     </dialog>
 
                     <!-- Reset Password Button (only for LOCAL users) -->
-                    <button th:if="${userInfo.userType == 'LOCAL' && userInfo.user.username != 'admin'}"
+                    <button th:if="${userInfo.user.isLocal() && userInfo.user.username != 'admin'}"
                             class="btn btn-sm btn-primary"
                             th:attr="onclick=|document.getElementById('resetPasswordModal-${userInfo.user.username}').showModal()|">
                       Reset Password
@@ -162,7 +161,7 @@
                     </dialog>
 
                     <!-- Delete User Button (only for LOCAL users, not for current user) -->
-                    <button th:if="${userInfo.userType == 'LOCAL' && userInfo.user.username != 'admin' && userInfo.user.username != user.username()}"
+                    <button th:if="${userInfo.user.isLocal()  && userInfo.user.username != 'admin' && userInfo.user.username != user.username()}"
                             class="btn btn-sm btn-secondary"
                             th:attr="onclick=|document.getElementById('deleteUser-${userInfo.user.username}').showModal()|">
                       Delete User
@@ -223,15 +222,9 @@
 </div>
 
 <div th:replace="~{components :: footer}"></div>
+</body>
+</html>
 
-<!-- Completely separate dialog containers -->
-<div id="adminDialogContainer"></div>
-<div id="passwordDialogContainer"></div>
-<div id="deleteUserDialogContainer"></div>
-
-<!-- Confirmation Dialog Fragment -->
-
-<!-- Sortable Header Fragment -->
 <div th:fragment="sortableHeader(label, path, column, target)" th:remove="tag">
   <th th:class="${sort == column ? 'bg-base-300 cursor-pointer' : 'bg-base-200 cursor-pointer'}"
       th:hx-get="@{${path}(sort=${column}, ascending=${!ascending}, searchFilter=${searchFilter})}"
@@ -244,55 +237,3 @@
     </div>
   </th>
 </div>
-
-<!-- Admin functionality script -->
-<script>
-  document.body.addEventListener('htmx:beforeSwap', function(evt) {
-    // Only handle admin-related redirects
-    if (evt.detail.target && evt.detail.target.id === 'adminDialogContainer' &&
-        evt.detail.xhr.responseURL.includes('success=User%20admin%20status%20updated%20successfully')) {
-      // Cancel the HTMX swap
-      evt.detail.shouldSwap = false;
-      // Redirect to the success page
-      window.location.href = evt.detail.xhr.responseURL;
-    }
-  });
-
-  document.body.addEventListener('htmx:afterSwap', function(evt) {
-    // Only handle admin dialog
-    if (evt.detail.target && evt.detail.target.id === 'adminDialogContainer') {
-      const adminConfirmDialog = document.getElementById('adminConfirmDialog');
-      if (adminConfirmDialog) {
-        adminConfirmDialog.showModal();
-      }
-    }
-  });
-</script>
-
-<!-- Password reset script -->
-<script>
-  document.body.addEventListener('htmx:beforeSwap', function(evt) {
-    // Only handle password-related redirects
-    if (evt.detail.target && evt.detail.target.id === 'passwordDialogContainer' &&
-        evt.detail.xhr.responseURL.includes('success=Password%20reset%20successfully')) {
-      // Cancel the HTMX swap
-      evt.detail.shouldSwap = false;
-      // Redirect to the success page
-      window.location.href = evt.detail.xhr.responseURL;
-    }
-  });
-
-  document.body.addEventListener('htmx:afterSwap', function(evt) {
-    // Only handle password dialog
-    if (evt.detail.target && evt.detail.target.id === 'passwordDialogContainer') {
-      const passwordResetDialog = document.getElementById('passwordResetDialog');
-      if (passwordResetDialog) {
-        passwordResetDialog.showModal();
-      }
-    }
-  });
-</script>
-
-
-</body>
-</html>

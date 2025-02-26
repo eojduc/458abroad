@@ -34,10 +34,7 @@
             <td>Faculty Leads</td>
             <td>
               <ul class="list-disc list-inside">
-                <li th:each="facultyLead : ${facultyLeads}">
-                  <a class="link link-primary"
-                     th:href="@{/admin/users/{id}(id=${facultyLead.username})}"
-                     th:text="${facultyLead.displayName}"></a>
+                <li th:each="facultyLead : ${facultyLeads}" th:text="${formatter.displayUser(facultyLead)}">
                 </li>
               </ul>
             </td>
@@ -102,11 +99,8 @@
               </td>
             </tr>
             <tr class="border-base-300">
-              <td>Username</td>
-              <td>
-                <a class="link link-primary"
-                   th:href="@{/admin/users/{id}(id=${student.username})}"
-                   th:text="${student.username}"></a>
+              <td>User</td>
+              <td th:text="${formatter.displayUser(student)}"></td>
               </td>
             </tr>
             <tr class="border-base-300">
