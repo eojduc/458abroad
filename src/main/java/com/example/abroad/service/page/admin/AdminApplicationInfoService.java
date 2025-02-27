@@ -45,7 +45,7 @@ public record AdminApplicationInfoService(
       .sorted(Comparator.comparing(Note::timestamp).reversed())
       .toList();
     var responses = applicationService.getResponses(application);
-    var documents = applicationService.getLatestDocuments(application);
+    var documents = applicationService.getDocuments(application);
     if (program == null || student == null) {
       return new GetApplicationInfo.ApplicationNotFound();
     }

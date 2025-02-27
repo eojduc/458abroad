@@ -23,8 +23,7 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
       .csrf(AbstractHttpConfigurer::disable)
-      .logout(AbstractHttpConfigurer::disable)
-      .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+      .logout(AbstractHttpConfigurer::disable);
     return http.build();
   }
 }

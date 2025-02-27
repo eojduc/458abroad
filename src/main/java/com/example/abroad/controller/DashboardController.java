@@ -31,21 +31,11 @@ public record DashboardController(
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info) {
 
-    if (dashboardService.getDashboard(session) instanceof DashboardService.GetDashboard.NotLoggedIn) {
-      SSOResult ssoResult = ssoService.authenticateSSO(request, session);
-      if (ssoResult instanceof SSOResult.UsernameTaken usernameTaken) {
-        String redirectUrl = SSOService.buildLogoutUrl("/register", "", usernameTaken.message());
-        return "redirect:/Shibboleth.sso/Logout?return=" + redirectUrl;
-      }
-    }
-
     model.addAttribute("formatter", formatter);
     model.addAttribute("alerts", new Alerts(error, success, warning, info));
-
-    return switch (dashboardService.getDashboard(session)) {
+    return switch (dashboardService.getDashboard(session, request)) {
       case GetDashboard.NotLoggedIn() -> "homepage";
       case GetDashboard.StudentDashboard(var user) -> {
-        model.addAttribute("displayName", user.displayName());
         model.addAttribute("student", user.username());
         model.addAttribute("user", user);
         yield "student/student-dashboard :: page";
@@ -55,6 +45,7 @@ public record DashboardController(
         model.addAttribute("user", user);
         yield "admin/admin-dashboard :: page";
       }
+      case GetDashboard.SSOUsernameTaken(var redirect) -> "redirect:" + redirect;
     };
   }
 }

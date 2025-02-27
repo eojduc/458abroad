@@ -6,7 +6,6 @@ import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
-import com.example.abroad.model.User.Role;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ApplicationService.Documents;
 import com.example.abroad.service.ProgramService;
@@ -125,7 +124,7 @@ public record AdminProgramInfoService(
   }
 
   private Stream<Applicant> applicants(Stream<? extends User> students, Application application) {
-    var documents = applicationService.getLatestDocuments(application);
+    var documents = applicationService.getDocuments(application);
     var notes = applicationService.getNotes(application);
     var program = programService.findById(application.programId()).orElse(null);
     var displayStatus = switch (application.status()) {

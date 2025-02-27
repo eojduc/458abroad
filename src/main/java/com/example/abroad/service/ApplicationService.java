@@ -55,13 +55,17 @@ public record ApplicationService(
     applicationRepository.save(application);
   }
 
-  public Documents getLatestDocuments(Application application) {
+  public Documents getDocuments(Application application) {
     return new Documents(
       documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.MEDICAL_HISTORY),
       documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.CODE_OF_CONDUCT),
       documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.HOUSING),
       documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.ASSUMPTION_OF_RISK)
     );
+  }
+
+  public Optional<Document> getDocument(Application application, Type type) {
+    return documentRepository.findById_ApplicationIdAndId_Type(application.id(), type);
   }
 
   public record Documents(
