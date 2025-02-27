@@ -48,43 +48,59 @@
 
 
             <!-- Change Password -->
-            <div class="card bg-base-300">
+            <div th:if="${isLocalUser}">
+                <div class="card bg-base-300">
                 <div class="card-body">
                     <h2 class="card-title">Change Password</h2>
                     <form th:action="@{/profile/change-password}" method="POST" class="flex flex-col gap-4 m-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Current Password</span>
-                            </label>
-                            <input type="password" name="currentPassword" class="input" required />
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">New Password</span>
-                            </label>
-                            <input type="password" name="newPassword" class="input" required />
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Confirm New Password</span>
-                            </label>
-                            <input type="password" name="confirmPassword" class="input" required />
-                        </div>
-
-                        <div class="card-actions justify-end">
-                            <button class="btn btn-primary w-1/4" type="submit">Save Password</button>
-                        </div>
+                    <div class="form-control">
+                        <label class="label">
+                        <span class="label-text">Current Password</span>
+                        </label>
+                        <input type="password" name="currentPassword" class="input" required />
+                    </div>
+            
+                    <div class="form-control">
+                        <label class="label">
+                        <span class="label-text">New Password</span>
+                        </label>
+                        <input type="password" name="newPassword" class="input" required />
+                    </div>
+            
+                    <div class="form-control">
+                        <label class="label">
+                        <span class="label-text">Confirm New Password</span>
+                        </label>
+                        <input type="password" name="confirmPassword" class="input" required />
+                    </div>
+            
+                    <div class="card-actions justify-end">
+                        <button class="btn btn-primary w-1/4" type="submit">Save Password</button>
+                    </div>
                     </form>
                 </div>
+                </div>
             </div>
+            
+            <!-- Message for SSO Users -->
+            <div th:if="${!isLocalUser}">
+                <div class="card bg-base-300">
+                <div class="card-body">
+                    <h2 class="card-title">Change Password</h2>
+                    <p class="text-sm text-gray-500">
+                    Password changes are not available for SSO users.
+                    </p>
+                </div>
+                </div>
+            </div>
+
             <div class="card bg-base-300">
                 <div class="card-body">
                     <h2 class="card-title">Choose Theme</h2>
                     <form th:replace="~{components :: theme-form(${theme})}"></form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>

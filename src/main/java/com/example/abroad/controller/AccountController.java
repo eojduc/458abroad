@@ -1,6 +1,7 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.Alerts;
+import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.service.page.AccountService;
 import com.example.abroad.service.page.AccountService.ChangePassword.IncorrectPassword;
@@ -39,6 +40,7 @@ public record AccountController(
                 model.addAttribute("user", user);
                 model.addAttribute("alerts", new Alerts(error, success, warning, info));
                 model.addAttribute("formatter", formatter);
+                model.addAttribute("isLocalUser", user instanceof User.LocalUser);
                 yield "profile :: page";
             }
         };
