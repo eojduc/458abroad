@@ -2,7 +2,6 @@ package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Document;
-import com.example.abroad.model.Application.Document.Type;
 import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
@@ -38,7 +37,7 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new UserNotFound();
     }
-    if (user.role() != Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);
@@ -78,7 +77,7 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new GetProgramInfo.UserNotFound();
     }
-    if (user.role() != Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new GetProgramInfo.UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);

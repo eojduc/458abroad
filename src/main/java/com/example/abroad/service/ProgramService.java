@@ -63,6 +63,10 @@ public record ProgramService(
     record DatabaseError(String message) implements SaveProgram {}
   }
 
+  public List<Program> findAll() {
+    return programRepository.findAll();
+  }
+
 
   public Optional<Program> findById(Integer id) {
     return programRepository.findById(id);
@@ -82,6 +86,17 @@ public record ProgramService(
       .map(FacultyLead::programId)
       .toList();
     return programRepository.findAllById(facultyLeadProgramIds);
+  }
+
+  public List<? extends User> findAllFacultyLeads() {
+    var facultyLeadUsernames = facultyLeadRepository.findAll()
+      .stream()
+      .map(FacultyLead::username)
+      .toList();
+    return userService.findAll()
+      .stream()
+      .filter(u -> facultyLeadUsernames.contains(u.username()))
+      .toList();
   }
 
   public void deleteById(Integer programId) {

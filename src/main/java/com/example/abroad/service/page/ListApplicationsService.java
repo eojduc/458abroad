@@ -6,7 +6,9 @@ import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.ProgramRepository;
 
+import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.DocumentService;
+import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 
@@ -18,10 +20,11 @@ import java.util.List;
 
 @Service
 public record ListApplicationsService(
-    ApplicationRepository applicationRepository,
-    ProgramRepository programRepository,
+  ApplicationService applicationService,
+    ProgramService programService,
     DocumentService documentService,
-    UserService userService) {
+    UserService userService
+) {
 
   public GetApplicationsResult getApplications(HttpSession session, Sort sort, Boolean ascending) {
     // Check user authentication
@@ -31,8 +34,8 @@ public record ListApplicationsService(
     }
 
     // Fetch base data
-    List<Application> applications = applicationRepository.findByStudent(user.username());
-    List<Program> programs = programRepository.findAll();
+    List<Application> applications = applicationService.findByStudentUsername(user.username());
+    List<Program> programs = programService.findAll();
 
     // Create sorter based on selected column
     Comparator<PairWithDocuments> sorter = switch (sort) {
@@ -50,18 +53,11 @@ public record ListApplicationsService(
     // Join and enrich data with document information
     List<PairWithDocuments> enrichedPairs = join(programs, applications)
             .map(pair -> {
-              boolean isDocumentRelevant = pair.app().status() == Application.Status.APPROVED ||
-                      pair.app().status() == Application.Status.ENROLLED;
-
               // Get document statuses if application is approved or enrolled
-              var documentStatuses = isDocumentRelevant
-                      ? documentService.getDocumentStatuses(pair.app().id(), pair.prog().id())
-                      : List.<DocumentService.DocumentStatus>of();
+              var documentStatuses = documentService.getDocumentStatuses(pair.app().id(), pair.prog().id());
 
               // Count missing documents
-              var missingCount = isDocumentRelevant
-                      ? documentService.getMissingDocumentsCount(pair.app().id())
-                      : 0;
+              var missingCount = documentService.getMissingDocumentsCount(pair.app().id());
 
               // Create enriched pair with document information
               return new PairWithDocuments(

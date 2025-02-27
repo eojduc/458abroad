@@ -8,6 +8,8 @@ import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -23,9 +25,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public record AdminProgramsService(
-    ProgramRepository programRepository,
-    FacultyLeadRepository facultyLeadRepository,
-    ApplicationRepository applicationRepository,
+    ProgramService programService,
+    ApplicationService applicationService,
     UserService userService
 ) {
   static Logger logger = LoggerFactory.getLogger(AdminProgramsService.class);
@@ -53,11 +54,10 @@ public record AdminProgramsService(
   }
 
   public List<String> getKnownFacultyLeads() {
-    return facultyLeadRepository.findAll().stream()
-        .map(FacultyLead::username)
-        .collect(Collectors.toSet())
-        .stream()
-        .toList();
+    return programService.findAllFacultyLeads()
+      .stream()
+      .map(User::username)
+      .toList();
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
@@ -68,7 +68,7 @@ public record AdminProgramsService(
       User user,
       Boolean ascending
   ) {
-    var programsAndStatuses = programRepository.findAll()
+    var programsAndStatuses = programService.findAll()
       .stream()
       .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
       .filter(matchesNamePredicate(leadFilter, program -> extractFacultyLeadUsername(program)))
@@ -84,12 +84,12 @@ public record AdminProgramsService(
 
   public Function<Program, ProgramAndStatuses> getProgramAndStatuses() {
     return program -> {
-      var applications = applicationRepository.findByProgramId(program.id());
+      var applications = applicationService.findByProgramId(program.id());
       var counts = applications.stream()
           .collect(Collectors.groupingBy(Application::status, Collectors.counting()));
       return new ProgramAndStatuses(
           program,
-          getFacultyLeads(program.id()).map(FacultyLead::username).toList(),
+          extractFacultyLeadUsername(program),
           counts.getOrDefault(Application.Status.APPLIED, 0L),
           counts.getOrDefault(Application.Status.ENROLLED, 0L),
           counts.getOrDefault(Application.Status.CANCELLED, 0L),
@@ -110,13 +110,9 @@ public record AdminProgramsService(
   ) {
   }
 
-  private Stream<FacultyLead> getFacultyLeads(int programId) {
-    return facultyLeadRepository.findById_ProgramId(programId).stream();
-  }
-
   private List<String> extractFacultyLeadUsername(Program program) {
-    return getFacultyLeads(program.id())
-        .map(FacultyLead::username)
+    return programService.findFacultyLeads(program).stream()
+        .map(User::username)
         .toList();
   }
   private Predicate<Program> matchesNamePredicate(String searchTerm, Function<Program, List<String>> fieldExtractor) {
@@ -143,7 +139,7 @@ public record AdminProgramsService(
       case APP_CLOSES -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().applicationClose());
       case START_DATE -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().startDate());
       case END_DATE -> Comparator.comparing(programAndStatuses -> programAndStatuses.program().endDate());
-      case FACULTY_LEAD -> Comparator.comparing(programAndStatuses -> facultyLeadRepository.findById_ProgramId(programAndStatuses.program().id()).size());
+      case FACULTY_LEAD -> Comparator.comparing(programAndStatuses -> programService.findFacultyLeads(programAndStatuses.program()).size());
       case APPLIED -> Comparator.comparing(ProgramAndStatuses::applied);
       case ENROLLED -> Comparator.comparing(ProgramAndStatuses::enrolled);
       case CANCELED -> Comparator.comparing(ProgramAndStatuses::canceled);
