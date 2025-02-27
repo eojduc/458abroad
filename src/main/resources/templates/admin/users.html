@@ -55,23 +55,23 @@
               </thead>
               <tbody>
               <tr th:each="userInfo : ${users}"
-                  class="border-base-300 border-y-2">
+                  th:class="${userInfo.user.isAdmin() ? 'bg-accent text-accent-content' : 'border-base-300 border-y-2'}">
                 <td th:text="${userInfo.user.displayName()}"></td>
                 <td th:text="${userInfo.user.email()}"></td>
                 <td th:text="${userInfo.user.role()}"></td>
                 <td>
                   <span th:text="${userInfo.user.isLocal() ? 'Local' : 'Duke'}"
-                        th:class="${userInfo.user.isLocal() ? 'badge badge-accent' : 'badge badge-neutral'}">
+                        class="badge badge-neutral">
                   </span>
                 </td>
                 <td>
                   <!-- Don't show any buttons for the admin user -->
-                  <div th:if="${userInfo.user.username != 'admin'}" class="flex gap-2">
+                  <div th:if="${userInfo.user.username != 'admin'}" class="flex flex-row gap-2 items-center">
                     <!-- For non-admin users, show Grant Admin button -->
                     <form th:if="${!userInfo.user.isAdmin()}"
                           th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
                           method="POST"
-                          class="inline">
+                          class="contents">
                       <input type="hidden" name="grantAdmin" value="true"/>
                       <button type="submit" class="btn btn-sm btn-primary">
                         Grant Admin
@@ -83,7 +83,21 @@
                             th:attr="onclick=|document.getElementById('adminConfirm-${userInfo.user.username}').showModal()|">
                       Revoke Admin
                     </button>
-                    <dialog th:id="|adminConfirm-${userInfo.user.username}|" class="modal">
+
+                    <!-- Reset Password Button (only for LOCAL users) -->
+                    <button th:if="${userInfo.user.isLocal() && userInfo.user.username != 'admin'}"
+                            class="btn btn-sm btn-primary"
+                            th:attr="onclick=|document.getElementById('resetPasswordModal-${userInfo.user.username}').showModal()|">
+                      Reset Password
+                    </button>
+
+                    <!-- Delete User Button (only for LOCAL users, not for current user) -->
+                    <button th:if="${userInfo.user.isLocal()  && userInfo.user.username != 'admin' && userInfo.user.username != user.username()}"
+                            class="btn btn-sm btn-error"
+                            th:attr="onclick=|document.getElementById('deleteUser-${userInfo.user.username}').showModal()|">
+                      Delete User
+                    </button>
+                    <dialog th:id="|adminConfirm-${userInfo.user.username}|" class="modal text-base-content">
                       <div class="modal-box">
                         <h3 class="font-bold text-lg">Confirm Admin Privilege Removal</h3>
                         <div th:unless="${userInfo.facultyLeadPrograms.isEmpty()}">
@@ -113,14 +127,7 @@
                         <button>close</button>
                       </form>
                     </dialog>
-
-                    <!-- Reset Password Button (only for LOCAL users) -->
-                    <button th:if="${userInfo.user.isLocal() && userInfo.user.username != 'admin'}"
-                            class="btn btn-sm btn-primary"
-                            th:attr="onclick=|document.getElementById('resetPasswordModal-${userInfo.user.username}').showModal()|">
-                      Reset Password
-                    </button>
-                    <dialog th:id="|resetPasswordModal-${userInfo.user.username}|" class="modal">
+                    <dialog th:id="|resetPasswordModal-${userInfo.user.username}|" class="modal text-base-content">
                       <div class="modal-box">
                         <h3 class="font-bold text-lg">Reset User Password</h3>
                         <p class="py-4">
@@ -165,14 +172,7 @@
                         <button>close</button>
                       </form>
                     </dialog>
-
-                    <!-- Delete User Button (only for LOCAL users, not for current user) -->
-                    <button th:if="${userInfo.user.isLocal()  && userInfo.user.username != 'admin' && userInfo.user.username != user.username()}"
-                            class="btn btn-sm btn-secondary"
-                            th:attr="onclick=|document.getElementById('deleteUser-${userInfo.user.username}').showModal()|">
-                      Delete User
-                    </button>
-                    <dialog th:id="|deleteUser-${userInfo.user.username}|" class="modal">
+                    <dialog th:id="|deleteUser-${userInfo.user.username}|" class="modal text-base-content">
                       <div class="modal-box">
                         <h3 class="font-bold text-lg text-error">Confirm User Deletion</h3>
                         <div class="py-4">
