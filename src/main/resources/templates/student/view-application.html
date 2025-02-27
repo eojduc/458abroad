@@ -9,6 +9,9 @@
     <div
       th:replace="~{components :: student-navbar(${user.displayName()})}"
     ></div>
+    <div class="m-4 w-3/4 mx-auto bg-base-200">
+      <div th:replace="~{components :: alerts(${alerts})}"></div>
+    </div>
     <div
       id="applicationContent"
       class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-4"
