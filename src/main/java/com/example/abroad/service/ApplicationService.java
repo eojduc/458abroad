@@ -5,6 +5,8 @@ import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Document.Type;
 import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Response;
+import com.example.abroad.model.Program;
+import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.DocumentRepository;
 import com.example.abroad.respository.NoteRepository;
@@ -26,26 +28,23 @@ public record ApplicationService(
     noteRepository.deleteById(noteId);
   }
 
-  public List<Note> findNotesByAuthor(String author) {
-    return noteRepository.findByUsername(author);
+  public List<Note> findNotesByAuthor(User author) {
+    return noteRepository.findByUsername(author.username());
   }
 
-  public List<Note> getNotes(String applicationId) {
-    return noteRepository.findByApplicationId(applicationId);
+  public List<Note> getNotes(Application application) {
+    return noteRepository.findByApplicationId(application.id());
   }
 
-  public List<Application> findByProgramId(Integer programId) {
-    return applicationRepository.findByProgramId(programId);
+  public List<Application> findByProgram(Program program) {
+    return applicationRepository.findByProgramId(program.id());
   }
 
-  public Optional<Application> findByProgramIdAndStudent(Integer programId, String student) {
-    return applicationRepository.findByProgramIdAndStudent(programId, student);
+  public Optional<Application> findByProgramAndStudent(Program program, User student) {
+    return applicationRepository.findByProgramIdAndStudent(program.id(), student.username());
   }
-  public void updateStatus(String applicationId, Application.Status status) {
-    var application = applicationRepository.findById(applicationId).orElse(null);
-    if (application != null) {
-      applicationRepository.save(application.withStatus(status));;
-    }
+  public void updateStatus(Application application, Application.Status status) {
+    applicationRepository.save(application.withStatus(status));
   }
 
   public Optional<Application> findById(String applicationId) {
@@ -56,12 +55,12 @@ public record ApplicationService(
     applicationRepository.save(application);
   }
 
-  public Documents getLatestDocuments(String applicationId) {
+  public Documents getLatestDocuments(Application application) {
     return new Documents(
-      documentRepository.findById_ApplicationIdAndId_Type(applicationId, Type.MEDICAL_HISTORY),
-      documentRepository.findById_ApplicationIdAndId_Type(applicationId, Type.CODE_OF_CONDUCT),
-      documentRepository.findById_ApplicationIdAndId_Type(applicationId, Type.HOUSING),
-      documentRepository.findById_ApplicationIdAndId_Type(applicationId, Type.ASSUMPTION_OF_RISK)
+      documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.MEDICAL_HISTORY),
+      documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.CODE_OF_CONDUCT),
+      documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.HOUSING),
+      documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.ASSUMPTION_OF_RISK)
     );
   }
 
@@ -73,24 +72,24 @@ public record ApplicationService(
   ) {
 
   }
-  public List<Response> getResponses(String applicationId) {
-    return responseRepository.findById_ApplicationId(applicationId)
+  public List<Response> getResponses(Application application) {
+    return responseRepository.findById_ApplicationId(application.id())
       .stream()
       .sorted(Comparator.comparing(Response::question))
       .toList();
   }
 
-  public void saveResponse(String applicationId, Response.Question question, String answer) {
-    responseRepository.save(new Response(applicationId, question, answer));
+  public void saveResponse(Application application, Response.Question question, String answer) {
+    responseRepository.save(new Response(application.id(), question, answer));
   }
 
-  public List<Application> findByStudentUsername(String username) {
-    return applicationRepository.findByStudent(username);
+  public List<Application> findByStudent(User user) {
+    return applicationRepository.findByStudent(user.username());
   }
 
 
 
-    public Note saveNote(Note note) {
-    return noteRepository.save(note);
-  }
+    public void saveNote(Note note) {
+      noteRepository.save(note);
+    }
 }

@@ -44,7 +44,7 @@ public record AdminProgramInfoService(
     if (program == null) {
       return new ProgramNotFound();
     }
-    programService.deleteById(programId);
+    programService.deleteProgram(program);
     return new Success();
   }
   public sealed interface GetProgramInfo permits GetProgramInfo.Success,
@@ -113,7 +113,7 @@ public record AdminProgramInfoService(
     };
 
     var users = userService.findAll();
-    var applicants = applicationService.findByProgramId(programId).stream()
+    var applicants = applicationService.findByProgram(program).stream()
       .flatMap(application -> applicants(users.stream(), application))
       .sorted(reversed ? sorter.reversed() : sorter)
       .filter(filterer)
@@ -125,8 +125,8 @@ public record AdminProgramInfoService(
   }
 
   private Stream<Applicant> applicants(Stream<? extends User> students, Application application) {
-    var documents = applicationService.getLatestDocuments(application.id());
-    var notes = applicationService.getNotes(application.id());
+    var documents = applicationService.getLatestDocuments(application);
+    var notes = applicationService.getNotes(application);
     var program = programService.findById(application.programId()).orElse(null);
     var displayStatus = switch (application.status()) {
       case ENROLLED -> program.endDate().isBefore(LocalDate.now()) ? "COMPLETED" : "ENROLLED";

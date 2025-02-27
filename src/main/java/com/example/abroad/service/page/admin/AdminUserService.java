@@ -3,20 +3,15 @@ package com.example.abroad.service.page.admin;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.*;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 @Service
 public record AdminUserService(
@@ -86,7 +81,7 @@ public record AdminUserService(
 
   private UserInfo getUserInfo(User user) {
     var facultyLeadPrograms = programService.findFacultyPrograms(user);
-    var applications = applicationService.findByStudentUsername(user.username());
+    var applications = applicationService.findByStudent(user);
     return new UserInfo(user, facultyLeadPrograms, applications);
   }
 
@@ -171,7 +166,7 @@ public record AdminUserService(
         return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
       }
       for (Program program : facultyLeadPrograms) {
-        programService.removeFacultyLead(program, targetUsername);
+        programService.removeFacultyLead(program, targetUser);
       }
     }
 
@@ -318,11 +313,11 @@ public record AdminUserService(
 
     // Handle faculty lead transfers
     for (Program program : facultyLeadPrograms) {
-      programService.removeFacultyLead(program, targetUsername);
+      programService.removeFacultyLead(program, targetUser);
     }
 
     // Update any application notes authored by the user
-    List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUsername);
+    List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUser);
     for (Application.Note note : userNotes) {
       Application.Note updatedNote = new Application.Note(
         note.applicationId(),
@@ -333,9 +328,8 @@ public record AdminUserService(
       applicationService.deleteNote(note.id());
       applicationService.saveNote(updatedNote);
     }
-
-    // Delete the user (this will cascade to delete all owned records)
-    userService.deleteByUsername(targetUsername);
+    userService.findByUsername(targetUsername)
+      .ifPresent(userService::deleteUser);
 
     return new DeleteUserResult.Success();
   }

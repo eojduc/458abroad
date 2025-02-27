@@ -45,7 +45,10 @@ public class DocumentService {
             String formattedTimestamp
     ) {}
 
-    public record ValidationResult(boolean valid, String errorMessage) {}
+    public sealed interface Validation {
+        record Valid() implements Validation {}
+        record Invalid(String errorMessage) implements Validation {}
+    }
 
     public List<DocumentStatus> getDocumentStatuses(String applicationId, Integer programId) {
         var documents = this.documentRepository.findById_ApplicationId(applicationId);
@@ -84,9 +87,9 @@ public class DocumentService {
 
     @Transactional
     public void uploadDocument(String applicationId, Type type, MultipartFile file) {
-        ValidationResult validation = validatePDF(file);
-        if (!validation.valid()) {
-            throw new IllegalArgumentException(validation.errorMessage());
+        var validation = validatePDF(file);
+        if (validation instanceof Validation.Invalid(String errorMessage)) {
+            throw new IllegalArgumentException(errorMessage);
         }
 
         try {
@@ -120,33 +123,33 @@ public class DocumentService {
         }
     }
 
-    private ValidationResult validatePDF(MultipartFile file) {
+    private Validation validatePDF(MultipartFile file) {
         if (file.isEmpty()) {
-            return new ValidationResult(false, "File is empty");
+            return new Validation.Invalid("File is empty");
         }
 
         if (file.getSize() > MAX_PDF_SIZE) {
-            return new ValidationResult(false, "File size exceeds 10MB limit");
+            return new Validation.Invalid("File is too large");
         }
 
         if (file.getContentType() == null || !file.getContentType().equals("application/pdf")) {
-            return new ValidationResult(false, "File must be a PDF");
+            return new Validation.Invalid("File must be a PDF");
         }
 
         try {
             byte[] bytes = file.getBytes();
             if (bytes.length < 5) {
-                return new ValidationResult(false, "Invalid PDF file");
+                return new Validation.Invalid("Invalid PDF file format");
             }
             String magicNumber = new String(bytes, 0, 5, StandardCharsets.UTF_8);
             if (!magicNumber.equals(PDF_MAGIC_NUMBER)) {
-                return new ValidationResult(false, "Invalid PDF file format");
+                return new Validation.Invalid("Invalid PDF file format");
             }
         } catch (IOException e) {
-            return new ValidationResult(false, "Error reading file");
+            return new Validation.Invalid("Failed to read file");
         }
 
-        return new ValidationResult(true, null);
+        return new Validation.Valid();
     }
 
     @Transactional

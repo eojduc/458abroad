@@ -40,12 +40,12 @@ public record AdminApplicationInfoService(
     }
     var program = programService.findById(application.programId()).orElse(null);
     var student = userService.findByUsername(application.student()).orElse(null);
-    var notes = applicationService.getNotes(application.id())
+    var notes = applicationService.getNotes(application)
       .stream()
       .sorted(Comparator.comparing(Note::timestamp).reversed())
       .toList();
-    var responses = applicationService.getResponses(application.id());
-    var documents = applicationService.getLatestDocuments(application.id());
+    var responses = applicationService.getResponses(application);
+    var documents = applicationService.getLatestDocuments(application);
     if (program == null || student == null) {
       return new GetApplicationInfo.ApplicationNotFound();
     }
@@ -73,7 +73,7 @@ public record AdminApplicationInfoService(
     if (application == null) {
       return new UpdateApplicationStatus.ApplicationNotFound();
     }
-    applicationService.updateStatus(applicationId, status);
+    applicationService.updateStatus(application, status);
     var program = programService.findById(application.programId()).orElse(null);
     if (program == null) {
       return new UpdateApplicationStatus.ProgramNotFound();
@@ -101,7 +101,7 @@ public record AdminApplicationInfoService(
       note,
       Instant.now()
     ));
-    var notes = applicationService.getNotes(applicationId)
+    var notes = applicationService.getNotes(application)
       .stream()
       .sorted(Comparator.comparing(Note::timestamp))
       .toList()

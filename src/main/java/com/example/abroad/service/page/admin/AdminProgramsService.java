@@ -84,7 +84,7 @@ public record AdminProgramsService(
 
   public Function<Program, ProgramAndStatuses> getProgramAndStatuses() {
     return program -> {
-      var applications = applicationService.findByProgramId(program.id());
+      var applications = applicationService.findByProgram(program);
       var counts = applications.stream()
           .collect(Collectors.groupingBy(Application::status, Collectors.counting()));
       return new ProgramAndStatuses(

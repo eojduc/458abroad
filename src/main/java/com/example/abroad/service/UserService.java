@@ -49,9 +49,11 @@ public record UserService(
     };
   }
 
-  public void deleteByUsername(String username) {
-    localUserRepository.deleteById(username);
-    ssoUserRepository.deleteById(username);
+  public void deleteUser(User user) {
+    switch (user) {
+      case User.LocalUser localUser -> localUserRepository.delete(localUser);
+      case User.SSOUser ssoUser -> ssoUserRepository.delete(ssoUser);
+    }
   }
 
   public void setTheme(User.Theme theme, HttpSession session) {

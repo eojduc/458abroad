@@ -31,26 +31,25 @@ public record DocumentController(DocumentService documentService, UserService us
     @PostMapping
     public String uploadDocument(
             @PathVariable String applicationId,
-            @RequestParam("type") Document.Type type,
-            @RequestParam("file") MultipartFile file,
-            RedirectAttributes redirectAttributes,
+            @RequestParam Document.Type type,
+            @RequestParam MultipartFile file,
             HttpSession session
     ) {
-        if (this.userService.findUserFromSession(session).isEmpty()) {
+        logger.info("Attempting to upload document for application {} type {}", applicationId, type);
+        if (userService.findUserFromSession(session).isEmpty()) {
             return "redirect:/login?error=Not logged in";
         }
-        boolean isUpdate = this.documentService.getDocument(applicationId, type).isPresent();
+        boolean isUpdate = documentService.getDocument(applicationId, type).isPresent();
         try {
-            this.documentService.uploadDocument(applicationId, type, file);
+            documentService.uploadDocument(applicationId, type, file);
             String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
-            redirectAttributes.addFlashAttribute("message", message);
+            return "redirect:/applications?success=" + message;
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/applications?error=" + e.getMessage();
         } catch (RuntimeException e) {
             String errorMessage = isUpdate ? "Failed to update document" : "Failed to upload document";
-            redirectAttributes.addFlashAttribute("error", errorMessage);
+            return "redirect:/applications?error=" + errorMessage;
         }
-        return "redirect:/applications";
     }
 
     @GetMapping("/{type}/view")

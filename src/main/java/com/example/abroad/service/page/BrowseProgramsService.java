@@ -88,7 +88,7 @@ public record BrowseProgramsService(
 
   public Function<Program, ProgramAndStatus> getProgramAndStatus(User user) {
     return program -> {
-      var applicationStatus = applicationService.findByProgramIdAndStudent(program.id(), user.username())
+      var applicationStatus = applicationService.findByProgramAndStudent(program, user)
           .map(Application::status)
           .orElse(null);
 

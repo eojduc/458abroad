@@ -36,7 +36,7 @@ public record ApplyToProgramService(
     if (program == null) {
       return new GetApplyPageData.ProgramNotFound();
     }
-    var existingApplication = applicationService.findByProgramIdAndStudent(programId, user.username());
+    var existingApplication = applicationService.findByProgramAndStudent(program, user);
     if (existingApplication.isPresent()) {
       return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().id());
     }
@@ -61,11 +61,11 @@ public record ApplyToProgramService(
       programId, dob, gpa, major, Status.APPLIED
     );
     applicationService.save(application);
-    applicationService.saveResponse(application.id(), Response.Question.WHY_THIS_PROGRAM, answer1);
-    applicationService.saveResponse(application.id(), Response.Question.ALIGN_WITH_CAREER, answer2);
-    applicationService.saveResponse(application.id(), Response.Question.ANTICIPATED_CHALLENGES, answer3);
-    applicationService.saveResponse(application.id(), Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
-    applicationService.saveResponse(application.id(), Response.Question.UNIQUE_PERSPECTIVE, answer5);
+    applicationService.saveResponse(application, Response.Question.WHY_THIS_PROGRAM, answer1);
+    applicationService.saveResponse(application, Response.Question.ALIGN_WITH_CAREER, answer2);
+    applicationService.saveResponse(application, Response.Question.ANTICIPATED_CHALLENGES, answer3);
+    applicationService.saveResponse(application, Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
+    applicationService.saveResponse(application, Response.Question.UNIQUE_PERSPECTIVE, answer5);
 
     return new ApplyToProgram.Success(application.id());
   }

@@ -99,21 +99,21 @@ public record ProgramService(
       .toList();
   }
 
-  public void deleteById(Integer programId) {
-    programRepository.deleteById(programId);
+  public void deleteProgram(Program program) {
+    programRepository.delete(program);
   }
 
-  public void removeFacultyLead(Program program, String username1) {
+  public void removeFacultyLead(Program program, User user) {
     var facultyLeads = facultyLeadRepository.findById_ProgramId(program.id())
       .stream()
-      .map(FacultyLead::username)
-      .filter(username -> !username.equals(username1))
+      .filter(lead -> !lead.username().equals(user.username()))
+      .flatMap(lead -> userService.findByUsername(lead.username()).stream())
       .toList();
     setFacultyLeads(program, facultyLeads);
 
   }
 
-  public void setFacultyLeads(Program program, List<String> usernames) {
+  public void setFacultyLeads(Program program, List<? extends User> users) {
     var facultyLeads = facultyLeadRepository.findById_ProgramId(program.id());
     facultyLeadRepository.deleteAll(facultyLeads);
     var adminUsernames = userService.findAll()
@@ -121,7 +121,8 @@ public record ProgramService(
       .filter(User::isAdmin)
       .map(User::username)
       .toList();
-    var newFacultyLeads = usernames.stream()
+    var newFacultyLeads = users.stream()
+      .map(User::username)
       .filter(adminUsernames::contains)
       .map(username -> new FacultyLead(program.id(), username))
       .toList();

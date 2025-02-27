@@ -71,7 +71,10 @@ public record EditProgramService(UserService userService, ProgramService program
       .withDocumentDeadline(documentDeadline);
     return switch (programService.saveProgram(newProgram)) {
       case SaveProgram.Success(var prog) -> {
-        programService.setFacultyLeads(prog, facultyLeads);
+        var leadUsers = userService.findAll().stream()
+          .filter(u -> facultyLeads.contains(u.username()))
+          .toList();
+        programService.setFacultyLeads(prog, leadUsers);
         yield new UpdateProgramInfo.Success();
       }
       case SaveProgram.InvalidProgramInfo(var message) -> new UpdateProgramInfo.InvalidProgramInfo(message);

@@ -8,6 +8,7 @@ import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.model.User;
 
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 
@@ -20,8 +21,9 @@ import java.util.Optional;
 @Service
 public record ViewApplicationService(
     ApplicationService applicationService,
-    ProgramRepository programRepository,
-    UserService userService) {
+    ProgramService programService,
+    UserService userService
+) {
 
   public GetApplicationResult getApplication(String applicationId, HttpSession session) {
     var userOpt = userService.findUserFromSession(session);
@@ -40,7 +42,7 @@ public record ViewApplicationService(
       return new GetApplicationResult.AccessDenied();
     }
 
-    Optional<Program> progOpt = programRepository.findById(app.programId());
+    Optional<Program> progOpt = programService.findById(app.programId());
     if (progOpt.isEmpty()) {
       return new GetApplicationResult.ProgramNotFound();
     }
@@ -53,7 +55,7 @@ public record ViewApplicationService(
       today.isBefore(prog.applicationClose())) {
       editable = true;
     }
-    var responses = applicationService.getResponses(app.id());
+    var responses = applicationService.getResponses(app);
 
     return new GetApplicationResult.Success(app, prog, user, editable, responses);
   }
@@ -85,12 +87,12 @@ public record ViewApplicationService(
       .withDateOfBirth(dateOfBirth);
 
     applicationService.save(newApp);
-    applicationService.saveResponse(newApp.id(), Application.Response.Question.WHY_THIS_PROGRAM, answer1);
-    applicationService.saveResponse(newApp.id(), Application.Response.Question.ALIGN_WITH_CAREER, answer2);
-    applicationService.saveResponse(newApp.id(), Application.Response.Question.ANTICIPATED_CHALLENGES, answer3);
-    applicationService.saveResponse(newApp.id(), Application.Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
-    applicationService.saveResponse(newApp.id(), Application.Response.Question.UNIQUE_PERSPECTIVE, answer5);
-    var responses = applicationService.getResponses(newApp.id());
+    applicationService.saveResponse(newApp, Application.Response.Question.WHY_THIS_PROGRAM, answer1);
+    applicationService.saveResponse(newApp, Application.Response.Question.ALIGN_WITH_CAREER, answer2);
+    applicationService.saveResponse(newApp, Application.Response.Question.ANTICIPATED_CHALLENGES, answer3);
+    applicationService.saveResponse(newApp, Application.Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
+    applicationService.saveResponse(newApp, Application.Response.Question.UNIQUE_PERSPECTIVE, answer5);
+    var responses = applicationService.getResponses(newApp);
     return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses);
   }
 
@@ -121,7 +123,7 @@ public record ViewApplicationService(
       today.isBefore(success.program().applicationClose())) {
       editable = true;
     }
-    var responses = applicationService.getResponses(app.id());
+    var responses = applicationService.getResponses(app);
 
     return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responses);
   }
