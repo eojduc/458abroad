@@ -76,7 +76,7 @@ public record EditProgramPageController(EditProgramService service, FormatServic
       case UpdateProgramInfo.InvalidProgramInfo(var m) ->
         String.format("redirect:/admin/programs/%d/edit?error=%s", programId, m);
       case UpdateProgramInfo.DatabaseError(var m) -> {
-        logger.error("Dtabase error", m);
+        logger.error("Database error", m);
         yield "redirect:/admin/programs?error=An unexpected error occurred";
       }
     };

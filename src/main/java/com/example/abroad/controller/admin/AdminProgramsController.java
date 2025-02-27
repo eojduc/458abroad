@@ -10,6 +10,7 @@ import com.example.abroad.service.page.admin.AdminProgramsService.GetAllPrograms
 import com.example.abroad.service.page.admin.AdminProgramsService.Sort;
 import com.example.abroad.service.page.admin.AdminProgramsService.TimeFilter;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
@@ -29,7 +30,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info
   ) {
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, Sort.TITLE, "", "",
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, Sort.TITLE, "", List.of(),
         TimeFilter.FUTURE, true);
     return switch (programsInfo) {
       case GetAllProgramsInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
@@ -43,7 +44,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
                 entry("alerts", new Alerts(error, success, warning, info)),
                 entry("formatter", formatter),
                 entry("nameFilter", ""),
-                entry("leadFilter", ""),
+                entry("leadFilter", List.of()),
                 entry("timeFilter", "FUTURE"),
                 entry("user", user),
                 entry("ascending", true),
@@ -59,7 +60,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
   public String getProgramsInfo3(HttpSession session, Model model,
       @RequestParam Sort sort,
       @RequestParam String nameFilter,
-      @RequestParam String leadFilter,
+      @RequestParam(defaultValue = "") List<String> leadFilter,
       @RequestParam TimeFilter timeFilter,
       @RequestParam Boolean ascending
   ) {
