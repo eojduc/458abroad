@@ -26,18 +26,18 @@ public record SSOService(UserService userService) {
       return new SSOResult.AlreadyLoggedIn();
     }
 
-    String uid = request.getHeader("uid");
-    if (uid == null || uid.isBlank()) {
+    String username = request.getHeader("uid");
+    if (username == null || username.isBlank()) {
       return new SSOResult.SSOSessionNotPresent();
     }
     String displayName = request.getHeader("displayname");
     String email = request.getHeader("mail");
 
-    User existingUser = userService.findByUsername(uid).orElse(null);
+    User existingUser = userService.findByUsername(username).orElse(null);
     if (existingUser != null) {
       if (existingUser instanceof LocalUser) {
         return new SSOResult.UsernameTaken(
-          "A local account already exists with username '" + uid + "'. " +
+          "A local account already exists with username '" + username + "'. " +
             "Please register using local authentication");
       } else if (existingUser instanceof SSOUser) {
         userService.saveUserToSession(existingUser, session);
@@ -45,7 +45,7 @@ public record SSOService(UserService userService) {
       }
     }
 
-    SSOUser newUser = new SSOUser(uid, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
+    SSOUser newUser = new SSOUser(username, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
     userService.save(newUser);
     userService.saveUserToSession(newUser, session);
     return new SSOResult.Success(newUser);

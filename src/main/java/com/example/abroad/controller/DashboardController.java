@@ -30,18 +30,15 @@ public record DashboardController(
       @RequestParam Optional<String> success,
       @RequestParam Optional<String> warning,
       @RequestParam Optional<String> info) {
-
     model.addAttribute("formatter", formatter);
     model.addAttribute("alerts", new Alerts(error, success, warning, info));
     return switch (dashboardService.getDashboard(session, request)) {
       case GetDashboard.NotLoggedIn() -> "homepage";
       case GetDashboard.StudentDashboard(var user) -> {
-        model.addAttribute("student", user.username());
         model.addAttribute("user", user);
         yield "student/student-dashboard :: page";
       }
       case GetDashboard.AdminDashboard(var user) -> {
-        model.addAttribute("displayName", user.displayName());
         model.addAttribute("user", user);
         yield "admin/admin-dashboard :: page";
       }
