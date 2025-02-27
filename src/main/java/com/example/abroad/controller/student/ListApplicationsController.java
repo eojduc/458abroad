@@ -28,8 +28,7 @@ public record ListApplicationsController(
                 "pairs", pairs,
                 "user", user,
                 "sort", Sort.TITLE,
-                "formatter", formatter,
-                "theme", userService.getTheme(session)));
+                "formatter", formatter));
         yield "student/list-application :: page";
       }
       case GetApplicationsResult.UserNotFound() ->
@@ -52,7 +51,6 @@ public record ListApplicationsController(
                 "user", user,
                 "sort", sort,
                 "formatter", formatter,
-                "theme", userService.getTheme(session),
                 "ascending", ascending
         ));
         yield "student/list-application :: programTable";

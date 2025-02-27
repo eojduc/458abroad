@@ -27,20 +27,6 @@ public record AdminUserController(
 ) {
   // Add a mapping for the root URL that redirects to /page
   @GetMapping
-  public String redirectToPage(
-    @RequestParam Optional<String> error,
-    @RequestParam Optional<String> success,
-    @RequestParam Optional<String> warning,
-    @RequestParam Optional<String> info
-  ) {
-    return String.format("redirect:/admin/users/page?%s%s%s%s",
-      error.map(e -> "error=" + e + "&").orElse(""),
-      success.map(s -> "success=" + s + "&").orElse(""),
-      warning.map(w -> "warning=" + w + "&").orElse(""),
-      info.map(i -> "info=" + i).orElse(""));
-  }
-
-  @GetMapping("/page")
   public String getUsers(
     HttpSession session,
     Model model,
@@ -61,7 +47,6 @@ public record AdminUserController(
             entry("alerts", new Alerts(error, success, warning, info)),
             entry("formatter", formatter),
             entry("searchFilter", ""),
-            entry("theme", userService.getTheme(session)),
             entry("user", adminUser),
             entry("ascending", true),
             entry("users", users)
@@ -91,7 +76,6 @@ public record AdminUserController(
             entry("sort", sort.name()),
             entry("searchFilter", searchFilter),
             entry("formatter", formatter),
-            entry("theme", userService.getTheme(session)),
             entry("ascending", ascending),
             entry("users", users)
           )
@@ -123,10 +107,6 @@ public record AdminUserController(
         model.addAttribute("username", targetUser);
         model.addAttribute("programs", programs);
         model.addAttribute("formatter", formatter);
-        // Return just the dialog fragment for HTMX requests
-        if (isHtmxRequest(request)) {
-          yield "admin/users :: confirmationDialog";
-        }
         // Redirect to main page for regular form submissions
         yield "redirect:/admin/users";
       }
@@ -134,37 +114,6 @@ public record AdminUserController(
         "redirect:/admin/users?success=User admin status updated successfully";
     };
   }
-
-    private boolean isHtmxRequest(HttpServletRequest request) {
-        return request.getHeader("HX-Request") != null;
-    }
-
-    // Add these methods to your AdminUserController class
-
-    @GetMapping("/{username}/show-reset-password")
-    public String showPasswordResetForm(
-            HttpSession session,
-            @PathVariable String username,
-            Model model,
-            HttpServletRequest request
-    ) {
-        var result = adminUserService.validatePasswordReset(session, username);
-
-        return switch (result) {
-            case AdminUserService.PasswordResetValidationResult.UserNotFound() ->
-                    "redirect:/login?error=User not found";
-            case AdminUserService.PasswordResetValidationResult.UserNotAdmin() ->
-                    "redirect:/home?error=You are not an admin";
-            case AdminUserService.PasswordResetValidationResult.CannotResetSSOUser() ->
-                    "redirect:/admin/users?error=Cannot reset password for SSO user";
-            case AdminUserService.PasswordResetValidationResult.CannotResetSuperAdmin() ->
-                    "redirect:/admin/users?error=Cannot reset password for super admin";
-            case AdminUserService.PasswordResetValidationResult.Valid() -> {
-                model.addAttribute("username", username);
-                yield "admin/users :: passwordResetDialog";
-            }
-        };
-    }
 
     @PostMapping("/{username}/reset-password")
     public String resetPassword(
@@ -190,36 +139,6 @@ public record AdminUserController(
                     "redirect:/admin/users?error=Password must be at least 8 characters";
             case AdminUserService.PasswordResetResult.Success() ->
                     "redirect:/admin/users?success=Password reset successfully";
-        };
-    }
-
-    @GetMapping("/{username}/show-delete-user")
-    public String showDeleteUserConfirmation(
-            HttpSession session,
-            @PathVariable String username,
-            Model model,
-            HttpServletRequest request
-    ) {
-        var result = adminUserService.validateUserDeletion(session, username);
-
-        return switch (result) {
-            case AdminUserService.DeleteUserValidationResult.UserNotFound() ->
-                    "redirect:/login?error=User not found";
-            case AdminUserService.DeleteUserValidationResult.UserNotAdmin() ->
-                    "redirect:/home?error=You are not an admin";
-            case AdminUserService.DeleteUserValidationResult.CannotDeleteSSOUser() ->
-                    "redirect:/admin/users?error=Cannot delete SSO user";
-            case AdminUserService.DeleteUserValidationResult.CannotDeleteSuperAdmin() ->
-                    "redirect:/admin/users?error=Cannot delete super admin";
-            case AdminUserService.DeleteUserValidationResult.CannotDeleteSelf() ->
-                    "redirect:/admin/users?error=You cannot delete your own account";
-            case AdminUserService.DeleteUserValidationResult.Valid(var targetUsername, var facultyLeadPrograms, var applications) -> {
-                model.addAttribute("username", targetUsername);
-                model.addAttribute("facultyLeadPrograms", facultyLeadPrograms != null ? facultyLeadPrograms : List.of());
-                model.addAttribute("applications", applications != null ? applications : List.of());
-                model.addAttribute("formatter", formatter);
-                yield "admin/users :: deleteUserDialog";
-            }
         };
     }
 

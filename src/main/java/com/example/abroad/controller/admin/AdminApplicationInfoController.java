@@ -45,7 +45,6 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
           "responses", responses,
           "user", user,
           "alerts", new Alerts(error, success, warning, info),
-          "theme", userService.getTheme(session),
           "notes", notes
         ));
         model.addAllAttributes(Map.of(

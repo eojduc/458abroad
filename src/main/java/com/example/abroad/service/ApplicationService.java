@@ -22,6 +22,14 @@ public record ApplicationService(
   ResponseRepository responseRepository
 ) {
 
+  public void deleteNote(Integer noteId) {
+    noteRepository.deleteById(noteId);
+  }
+
+  public List<Note> findNotesByAuthor(String author) {
+    return noteRepository.findByUsername(author);
+  }
+
   public List<Note> getNotes(String applicationId) {
     return noteRepository.findByApplicationId(applicationId);
   }
@@ -74,6 +82,10 @@ public record ApplicationService(
 
   public void saveResponse(String applicationId, Response.Question question, String answer) {
     responseRepository.save(new Response(applicationId, question, answer));
+  }
+
+  public List<Application> findByStudentUsername(String username) {
+    return applicationRepository.findByStudent(username);
   }
 
 

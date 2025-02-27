@@ -15,12 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Service
-public class SSOService {
-    private final UserService userService;
-
-    public SSOService(UserService userService) {
-        this.userService = userService;
-    }
+public record SSOService(UserService userService) {
 
     public sealed interface SSOResult {
         record Success(User user) implements SSOResult {}

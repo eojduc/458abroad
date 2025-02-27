@@ -39,8 +39,7 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
                 "alerts", new Alerts(error, success, warning, info),
                 "programAndStatuses", programAndStatuses,
                 "knownFacultyLeads", service.getKnownFacultyLeads(),
-                "formatter", formatter,
-                "theme", userService.getTheme(session)
+                "formatter", formatter
             )
         );
         yield "student/programs :: page";
@@ -63,7 +62,6 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
             Map.of(
                 "user", user,
                 "formatter", formatter,
-                "theme", userService.getTheme(session),
                 "programAndStatuses", programsAndStatuses,
                 "knownFacultyLeads", service.getKnownFacultyLeads()
             )

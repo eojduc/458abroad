@@ -39,7 +39,6 @@ public record AccountController(
                 model.addAttribute("user", user);
                 model.addAttribute("alerts", new Alerts(error, success, warning, info));
                 model.addAttribute("formatter", formatter);
-                model.addAttribute("theme", userService.getTheme(session));
                 yield "profile :: page";
             }
         };

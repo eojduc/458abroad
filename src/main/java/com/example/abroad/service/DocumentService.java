@@ -76,10 +76,6 @@ public class DocumentService {
                 .toList();
     }
 
-    public boolean hasAllRequiredDocuments(String applicationId) {
-        var documents = this.documentRepository.findById_ApplicationId(applicationId);
-        return documents.size() == Application.Document.Type.values().length;
-    }
 
     public long getMissingDocumentsCount(String applicationId) {
         var documents = this.documentRepository.findById_ApplicationId(applicationId);

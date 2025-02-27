@@ -2,16 +2,18 @@
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${theme}">
 <head th:replace="~{components :: head('Home')}"></head>
 <body>
-  <div th:replace="~{components :: logged-out-navbar}"></div>
-
-  <div class="hero min-h-screen bg-base-200">
-    <div class="hero-content text-center">
-      <div class="max-w-2xl">
-        <div class="mb-6">
-          <figure class="w-32 mx-auto">
-            <svg th:replace="~{components :: logo}"></svg>
-          </figure>
-        </div>
+<div th:replace="~{components :: logged-out-navbar}"></div>
+<div class="m-4 w-3/4 mx-auto bg-base-200">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+</div>
+<div class="hero min-h-screen bg-base-200">
+  <div class="hero-content text-center">
+    <div class="max-w-2xl">
+      <div class="mb-6">
+        <figure class="w-32 mx-auto">
+          <svg th:replace="~{components :: logo}"></svg>
+        </figure>
+      </div>
 
         <h1 class="text-4xl font-bold mb-6">Welcome to HCC Study Abroad</h1>
         <p class="text-xl mb-8">Transform Your Education Through Global Experience</p>

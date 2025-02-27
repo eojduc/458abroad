@@ -15,8 +15,12 @@ import org.springframework.stereotype.Service;
  * Service class for Program. wraps the ProgramRepository and provides additional functionality.
  */
 @Service
-public record ProgramService(ProgramRepository programRepository, ApplicationRepository applicationRepository,
-  FacultyLeadRepository facultyLeadRepository, UserService userService) {
+public record ProgramService(
+  ProgramRepository programRepository,
+  ApplicationRepository applicationRepository,
+  FacultyLeadRepository facultyLeadRepository,
+  UserService userService
+) {
 
 
   public SaveProgram saveProgram(Program program) {
@@ -59,6 +63,10 @@ public record ProgramService(ProgramRepository programRepository, ApplicationRep
     record DatabaseError(String message) implements SaveProgram {}
   }
 
+  public List<Program> findAll() {
+    return programRepository.findAll();
+  }
+
 
   public Optional<Program> findById(Integer id) {
     return programRepository.findById(id);
@@ -72,8 +80,37 @@ public record ProgramService(ProgramRepository programRepository, ApplicationRep
       .stream().filter(u -> facultyLeadUsernames.contains(u.username())).toList();
   }
 
+  public List<Program> findFacultyPrograms(User user) {
+    var facultyLeadProgramIds = facultyLeadRepository.findById_Username(user.username())
+      .stream()
+      .map(FacultyLead::programId)
+      .toList();
+    return programRepository.findAllById(facultyLeadProgramIds);
+  }
+
+  public List<? extends User> findAllFacultyLeads() {
+    var facultyLeadUsernames = facultyLeadRepository.findAll()
+      .stream()
+      .map(FacultyLead::username)
+      .toList();
+    return userService.findAll()
+      .stream()
+      .filter(u -> facultyLeadUsernames.contains(u.username()))
+      .toList();
+  }
+
   public void deleteById(Integer programId) {
     programRepository.deleteById(programId);
+  }
+
+  public void removeFacultyLead(Program program, String username1) {
+    var facultyLeads = facultyLeadRepository.findById_ProgramId(program.id())
+      .stream()
+      .map(FacultyLead::username)
+      .filter(username -> !username.equals(username1))
+      .toList();
+    setFacultyLeads(program, facultyLeads);
+
   }
 
   public void setFacultyLeads(Program program, List<String> usernames) {

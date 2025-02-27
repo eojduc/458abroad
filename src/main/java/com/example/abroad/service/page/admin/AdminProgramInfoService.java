@@ -2,7 +2,6 @@ package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Document;
-import com.example.abroad.model.Application.Document.Type;
 import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
@@ -38,7 +37,7 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new UserNotFound();
     }
-    if (user.role() != Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);
@@ -78,15 +77,13 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new GetProgramInfo.UserNotFound();
     }
-    if (user.role() != Role.ADMIN) {
+    if (!user.isAdmin()) {
       return new GetProgramInfo.UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);
     if (program == null) {
       return new GetProgramInfo.ProgramNotFound();
     }
-    var students = userService.findAll().stream().filter(student -> student.role() == Role.STUDENT).toList();
-
     Comparator<Applicant> sorter = switch (column.orElse(Column.NONE)) {
       case USERNAME, NONE -> Comparator.comparing(Applicant::username);
       case DISPLAY_NAME -> Comparator.comparing(Applicant::displayName);
@@ -114,8 +111,10 @@ public record AdminProgramInfoService(
       case ELIGIBLE -> applicant -> applicant.status() == Status.ELIGIBLE;
       case APPROVED -> applicant -> applicant.status() == Status.APPROVED;
     };
+
+    var users = userService.findAll();
     var applicants = applicationService.findByProgramId(programId).stream()
-      .flatMap(application -> applicants(students.stream(), application))
+      .flatMap(application -> applicants(users.stream(), application))
       .sorted(reversed ? sorter.reversed() : sorter)
       .filter(filterer)
       .toList();

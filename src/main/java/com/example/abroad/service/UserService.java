@@ -49,42 +49,18 @@ public record UserService(
     };
   }
 
+  public void deleteByUsername(String username) {
+    localUserRepository.deleteById(username);
+    ssoUserRepository.deleteById(username);
+  }
+
   public void setTheme(User.Theme theme, HttpSession session) {
     var user = findUserFromSession(session).orElse(null);
     if (user == null) {
       return;
     }
-    var newUser = switch (user) {
-      case User.LocalUser localUser -> save(new User.LocalUser(
-        localUser.username(),
-        localUser.password(),
-        localUser.email(),
-        localUser.role(),
-        localUser.displayName(),
-        theme
-      ));
-      case User.SSOUser ssoUser -> save(new User.SSOUser(
-        ssoUser.username(),
-        ssoUser.email(),
-        ssoUser.role(),
-        ssoUser.displayName(),
-        theme
-      ));
-    };
+    var newUser = user.withTheme(theme);
+    save(newUser);
     saveUserToSession(newUser, session);
   }
-
-  public String getTheme(HttpSession session) {
-    if (session.getAttribute("theme") == null) {
-      return "";
-    }
-    else if (session.getAttribute("theme") instanceof String string) {
-      return string.toLowerCase();
-    }
-    else {
-      return "";
-    }
-  }
-
-
 }

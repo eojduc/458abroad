@@ -37,8 +37,8 @@ public record ViewApplicationController(
             "user", success.user(),
             "editable", success.editable(),
             "responses", success.responses(),
-            "formatter", formatter,
-            "theme", userService.getTheme(session)));
+            "formatter", formatter
+            ));
         yield "student/view-application :: page";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
@@ -78,8 +78,8 @@ public record ViewApplicationController(
             "user", success.user(),
             "editable", success.editable(),
             "formatter", formatter,
-            "responses", success.responses(),
-            "theme", userService.getTheme(session)));
+            "responses", success.responses()
+        ));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
@@ -110,8 +110,7 @@ public record ViewApplicationController(
             "user", success.user(),
             "editable", success.editable(),
             "formatter", formatter,
-            "responses", success.responses(),
-            "theme", userService.getTheme(session)));
+            "responses", success.responses()));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
@@ -142,8 +141,7 @@ public record ViewApplicationController(
             "user", success.user(),
             "editable", success.editable(),
             "responses", success.responses(),
-            "formatter", formatter,
-            "theme", userService.getTheme(session)));
+            "formatter", formatter));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";

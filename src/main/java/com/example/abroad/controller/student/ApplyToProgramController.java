@@ -32,8 +32,7 @@ public record ApplyToProgramController(ApplyToProgramService service, FormatServ
           "alerts", new Alerts(error, success, warning, info),
           "questions", questions,
           "maxDayOfBirth", maxDayOfBirth,
-          "formatter", formatter,
-          "theme", userService.getTheme(session)
+          "formatter", formatter
         ));
         yield "student/apply-to-program :: page";
       }

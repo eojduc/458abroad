@@ -29,6 +29,7 @@ public sealed interface User extends Serializable {
   default boolean isStudent() {return role() == Role.STUDENT;}
 
   User withRole(Role role);
+  User withTheme(Theme theme);
 
   default boolean isLocal() {
     return this instanceof LocalUser;
@@ -101,6 +102,17 @@ public sealed interface User extends Serializable {
               this.theme
       );
     }
+    @Override
+    public User withTheme(Theme theme) {
+      return new LocalUser(
+              this.username,
+              this.password,
+              this.email,
+              this.role,
+              this.displayName,
+              theme
+      );
+    }
   }
 
   @Entity
@@ -157,6 +169,17 @@ public sealed interface User extends Serializable {
               role,
               this.displayName,
               this.theme
+      );
+    }
+
+    @Override
+    public User withTheme(Theme theme) {
+      return new SSOUser(
+              this.username,
+              this.email,
+              this.role,
+              this.displayName,
+              theme
       );
     }
 

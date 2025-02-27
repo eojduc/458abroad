@@ -22,7 +22,8 @@ public record AdminApplicationInfoService(
   FormatService formatService,
   UserService userService,
   ProgramService programService,
-  ApplicationService applicationService) {
+  ApplicationService applicationService
+) {
 
 
   public GetApplicationInfo getApplicationInfo(String applicationId, HttpSession session) {

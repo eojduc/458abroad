@@ -9,5 +9,7 @@ public interface NoteRepository extends JpaRepository<Application.Note, Integer>
 
   List<Note> findByApplicationId(String applicationId);
 
+  List<Note> findByUsername(String author);
+
 
 }

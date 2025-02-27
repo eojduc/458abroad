@@ -3,11 +3,9 @@ package com.example.abroad.service.page;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
-import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.User;
-import com.example.abroad.respository.ApplicationRepository;
-import com.example.abroad.respository.FacultyLeadRepository;
-import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.BrowseProgramsService.GetAllProgramsInfo.Success;
 import com.example.abroad.service.page.BrowseProgramsService.GetAllProgramsInfo.UserNotFound;
@@ -23,9 +21,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public record BrowseProgramsService(
-    ProgramRepository programRepository,
-    ApplicationRepository applicationRepository,
-    FacultyLeadRepository facultyLeadRepository,
+    ProgramService programService,
+    ApplicationService applicationService,
     UserService userService
 ) {
 
@@ -40,11 +37,10 @@ public record BrowseProgramsService(
   }
 
   public List<String> getKnownFacultyLeads() {
-    return facultyLeadRepository.findAll().stream()
-        .map(FacultyLead::username)
-        .collect(Collectors.toSet())
+    return programService.findAllFacultyLeads()
         .stream()
-        .toList();
+        .map(User::username)
+        .collect(Collectors.toList());
   }
 
   // Default: sort by application close date. If the dates are the same, sort by program title.
@@ -56,8 +52,12 @@ public record BrowseProgramsService(
         .thenComparing(pas -> pas.program().title());
   }
 
-  private Stream<FacultyLead> getFacultyLeads(int programId) {
-    return facultyLeadRepository.findById_ProgramId(programId).stream();
+  private Stream<? extends User> getFacultyLeads(int programId) {
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return Stream.empty();
+    }
+    return programService.findFacultyLeads(program).stream();
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
@@ -67,9 +67,9 @@ public record BrowseProgramsService(
   ) {
 
     return new Success(
-        programRepository.findAll().stream()
+        programService.findAll().stream()
             .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
-            .filter(matchesNamePredicate(leadFilter, program -> extractFacultyLeadUsername(program)))
+            .filter(matchesNamePredicate(leadFilter, this::extractFacultyLeadUsername))
             .map(getProgramAndStatus(user))
             .sorted(getStudentDateComparator())
             .toList(),
@@ -79,7 +79,7 @@ public record BrowseProgramsService(
 
   private List<String> extractFacultyLeadUsername(Program program) {
     return getFacultyLeads(program.id())
-        .map(FacultyLead::username)
+        .map(User::username)
         .toList();
   }
   private Predicate<Program> matchesNamePredicate(String searchTerm, Function<Program, List<String>> fieldExtractor) {
@@ -88,14 +88,13 @@ public record BrowseProgramsService(
 
   public Function<Program, ProgramAndStatus> getProgramAndStatus(User user) {
     return program -> {
-      var applicationStatus = applicationRepository.findByProgramIdAndStudent(program.id(),
-              user.username())
+      var applicationStatus = applicationService.findByProgramIdAndStudent(program.id(), user.username())
           .map(Application::status)
           .orElse(null);
 
       return new ProgramAndStatus(
           program,
-          getFacultyLeads(program.id()).map(FacultyLead::username).toList(),
+          getFacultyLeads(program.id()).map(User::username).toList(),
           switch (applicationStatus) {
             case APPLIED -> ProgramStatus.APPLIED;
             case ELIGIBLE -> ProgramStatus.ELIGIBLE;
