@@ -18,19 +18,16 @@ public record DashboardService(UserService userService, SSOService ssoService) {
   }
 
   public GetDashboard getDashboard(HttpSession session, HttpServletRequest request) {
+    SSOResult ssoResult = ssoService.authenticateSSO(request, session);
+    if (ssoResult instanceof SSOResult.UsernameTaken(String message)) {
+      String redirectUrl = SSOService.buildLogoutUrl("/register", "", message);
+      return new SSOUsernameTaken("/Shibboleth.sso/Logout?return=" + redirectUrl);
+    }
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
-      SSOResult ssoResult = ssoService.authenticateSSO(request, session);
-      if (ssoResult instanceof SSOResult.UsernameTaken(String message)) {
-        String redirectUrl = SSOService.buildLogoutUrl("/register", "", message);
-        return new SSOUsernameTaken("/Shibboleth.sso/Logout?return=" + redirectUrl);
-      }
-    }
-    var newUser = userService.findUserFromSession(session).orElse(null);
-    if (newUser == null) {
       return new GetDashboard.NotLoggedIn();
     }
-    if (newUser.isAdmin()) {
+    if (user.isAdmin()) {
       return new GetDashboard.AdminDashboard(user);
     }
     return new GetDashboard.StudentDashboard(user);
