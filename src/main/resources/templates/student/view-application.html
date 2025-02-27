@@ -99,6 +99,7 @@
                         name="gpa"
                         th:value="${app.gpa()}"
                         th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}"
                       />
                     </div>
 
@@ -112,6 +113,7 @@
                         name="major"
                         th:value="${app.major()}"
                         th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}"
                       />
                     </div>
 
@@ -125,17 +127,26 @@
                         name="dateOfBirth"
                         th:value="${app.dateOfBirth()}"
                         th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}"
                       />
                     </div>
-                    <div class="form-control mb-4" th:each="response: ${responses}">
+                    <div
+                      class="form-control mb-4"
+                      th:each="response: ${responses}"
+                    >
                       <label class="label">
-                        <span class="label-text" th:text="${response.question().text()}"></span>
+                        <span
+                          class="label-text"
+                          th:text="${response.question().text()}"
+                        ></span>
                       </label>
                       <textarea
                         class="textarea"
                         th:name="${response.question().field()}"
                         th:text="${response.response()}"
-                        th:disabled="${!editable}"></textarea>
+                        th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}"
+                      ></textarea>
                     </div>
                   </div>
                 </form>
