@@ -8,6 +8,7 @@ import com.example.abroad.service.page.BrowseProgramsService.GetAllProgramsInfo;
 import com.example.abroad.service.page.BrowseProgramsService.GetAllProgramsInfo.Success;
 import com.example.abroad.service.page.BrowseProgramsService.GetAllProgramsInfo.UserNotFound;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
@@ -27,7 +28,7 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
       @RequestParam Optional<String> info
   ) {
 
-    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, "", "");
+    GetAllProgramsInfo programsInfo = service.getProgramInfo(session, "", List.of());
 
     return switch (programsInfo) {
       case UserNotFound() -> "redirect:/login?error=You are not logged in";
@@ -51,7 +52,7 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
   @GetMapping("/programs/search")
   public String searchPrograms(HttpSession session, Model model,
       @RequestParam String nameFilter,
-      @RequestParam String leadFilter
+      @RequestParam(defaultValue = "") List<String> leadFilter
   ) {
     GetAllProgramsInfo programsInfo = service.getProgramInfo(session, nameFilter, leadFilter);
 

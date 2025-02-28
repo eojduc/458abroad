@@ -18,10 +18,10 @@ import java.util.List;
 
 @Service
 public record ListApplicationsService(
-  ApplicationService applicationService,
-    ProgramService programService,
-    DocumentService documentService,
-    UserService userService
+        ApplicationService applicationService,
+        ProgramService programService,
+        DocumentService documentService,
+        UserService userService
 ) {
 
   public GetApplicationsResult getApplications(HttpSession session, Sort sort, Boolean ascending) {
@@ -46,6 +46,7 @@ public record ListApplicationsService(
       case APPLICATION_OPEN -> Comparator.comparing(pair -> pair.prog().applicationOpen());
       case APPLICATION_CLOSED -> Comparator.comparing(pair -> pair.prog().applicationClose());
       case STATUS -> Comparator.comparing(pair -> pair.app().status().toString());
+      case DOCUMENTS -> documentComparator(ascending);
     };
 
     // Join and enrich data with document information
@@ -65,11 +66,72 @@ public record ListApplicationsService(
                       missingCount
               );
             })
-            .sorted(ascending ? sorter : sorter.reversed()) // Apply sorting
+            .sorted(sort == Sort.DOCUMENTS ? sorter : (ascending ? sorter : sorter.reversed())) // Apply sorting
             .toList();
 
     return new GetApplicationsResult.Success(enrichedPairs, user);
   }
+
+
+  private Comparator<PairWithDocuments> documentComparator(boolean ascending) {
+    if (ascending) {
+      // Ascending order: applications without doc requirements come first,
+      // then least to greatest missing docs
+      return (pair1, pair2) -> {
+        // Check if applications need documents (are approved or enrolled)
+        boolean pair1NeedsDocuments = needsDocuments(pair1.app());
+        boolean pair2NeedsDocuments = needsDocuments(pair2.app());
+
+        // If different needs
+        if (pair1NeedsDocuments != pair2NeedsDocuments) {
+          return pair1NeedsDocuments ? 1 : -1; // Applications without doc needs come first
+        }
+
+        // If neither needs documents, sort by title
+        if (!pair1NeedsDocuments) {
+          return pair1.prog().title().compareTo(pair2.prog().title());
+        }
+
+        // Both need documents, compare by missing document count (ascending)
+        int countComparison = Long.compare(pair1.missingDocumentsCount(), pair2.missingDocumentsCount());
+
+        // If missing counts are the same, sort by title
+        return countComparison != 0 ? countComparison : pair1.prog().title().compareTo(pair2.prog().title());
+      };
+    } else {
+      // Descending order: applications with most missing docs come first,
+      // then those without doc requirements at the bottom
+      return (pair1, pair2) -> {
+        // Check if applications need documents (are approved or enrolled)
+        boolean pair1NeedsDocuments = needsDocuments(pair1.app());
+        boolean pair2NeedsDocuments = needsDocuments(pair2.app());
+
+        // If different needs
+        if (pair1NeedsDocuments != pair2NeedsDocuments) {
+          return pair1NeedsDocuments ? -1 : 1; // Applications with doc needs come first
+        }
+
+        // If neither needs documents, sort by title
+        if (!pair1NeedsDocuments) {
+          return pair1.prog().title().compareTo(pair2.prog().title());
+        }
+
+        // Both need documents, compare by missing document count (descending)
+        int countComparison = Long.compare(pair2.missingDocumentsCount(), pair1.missingDocumentsCount());
+
+        // If missing counts are the same, sort by title
+        return countComparison != 0 ? countComparison : pair1.prog().title().compareTo(pair2.prog().title());
+      };
+    }
+  }
+
+  /**
+   * Determines if an application needs documents based on its status
+   */
+  private boolean needsDocuments(Application app) {
+    return app.status() == Application.Status.APPROVED || app.status() == Application.Status.ENROLLED;
+  }
+
   public record PairWithDocuments(
           Application app,
           Program prog,
@@ -86,7 +148,8 @@ public record ListApplicationsService(
     END_DATE,
     APPLICATION_OPEN,
     APPLICATION_CLOSED,
-    STATUS
+    STATUS,
+    DOCUMENTS
   }
 
 

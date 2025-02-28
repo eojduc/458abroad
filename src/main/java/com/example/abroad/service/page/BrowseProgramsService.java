@@ -12,6 +12,7 @@ import com.example.abroad.service.page.BrowseProgramsService.GetAllProgramsInfo.
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,18 +30,15 @@ public record BrowseProgramsService(
   public GetAllProgramsInfo getProgramInfo(
       HttpSession session,
       String nameFilter,
-      String leadFilter
+      List<String> leadFilter
   ) {
     return userService.findUserFromSession(session)
         .map(user -> processAuthorizedRequest(nameFilter, leadFilter, user))
         .orElse(new UserNotFound());
   }
 
-  public List<String> getKnownFacultyLeads() {
-    return programService.findAllFacultyLeads()
-        .stream()
-        .map(User::username)
-        .collect(Collectors.toList());
+  public List<? extends  User> getKnownFacultyLeads() {
+    return programService.findAllFacultyLeads();
   }
 
   // Default: sort by application close date. If the dates are the same, sort by program title.
@@ -62,14 +60,14 @@ public record BrowseProgramsService(
 
   private GetAllProgramsInfo processAuthorizedRequest(
       String nameFilter,
-      String leadFilter,
+      List<String> leadFilter,
       User user
   ) {
 
     return new Success(
         programService.findAll().stream()
             .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
-            .filter(matchesNamePredicate(leadFilter, this::extractFacultyLeadUsername))
+            .filter(program -> new HashSet<>(extractFacultyLeadUsername(program, User::username)).containsAll(leadFilter))
             .map(getProgramAndStatus(user))
             .sorted(getStudentDateComparator())
             .toList(),
@@ -77,9 +75,9 @@ public record BrowseProgramsService(
     );
   }
 
-  private List<String> extractFacultyLeadUsername(Program program) {
+  private List<String> extractFacultyLeadUsername(Program program, Function<User, String> mapper) {
     return getFacultyLeads(program.id())
-        .map(User::username)
+        .map(mapper)
         .toList();
   }
   private Predicate<Program> matchesNamePredicate(String searchTerm, Function<Program, List<String>> fieldExtractor) {
@@ -94,7 +92,7 @@ public record BrowseProgramsService(
 
       return new ProgramAndStatus(
           program,
-          getFacultyLeads(program.id()).map(User::username).toList(),
+          getFacultyLeads(program.id()).map(User::displayName).toList(),
           switch (applicationStatus) {
             case APPLIED -> ProgramStatus.APPLIED;
             case ELIGIBLE -> ProgramStatus.ELIGIBLE;

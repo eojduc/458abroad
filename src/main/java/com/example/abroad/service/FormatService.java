@@ -41,6 +41,10 @@ public record FormatService() {
     return String.format("%s (%s)", user.displayName(), user.username());
   }
 
+  public String displayUserClean(User user) {
+    return user.displayName();
+  }
+
 
   public String formatYear(Year year) {
     return year.toString();

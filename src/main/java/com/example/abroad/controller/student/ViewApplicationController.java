@@ -2,11 +2,13 @@ package com.example.abroad.controller.student;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Application;
+import com.example.abroad.service.DocumentService;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.ViewApplicationService;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,66 +25,82 @@ import jakarta.servlet.http.HttpSession;
 
 @Controller
 public record ViewApplicationController(
-    ViewApplicationService applicationService,
-    FormatService formatter,
-    UserService userService) {
+        ViewApplicationService applicationService,
+        FormatService formatter,
+        UserService userService,
+        DocumentService documentService) {
 
   @GetMapping("/applications/{applicationId}")
   public String viewApplication(
-      @PathVariable String applicationId,
-      HttpSession session,
-      Model model,
-      @RequestParam Optional<String> error,
-      @RequestParam Optional<String> info,
-      @RequestParam Optional<String> success,
-      @RequestParam Optional<String> warning) {
+          @PathVariable String applicationId,
+          HttpSession session,
+          Model model,
+          @RequestParam Optional<String> error,
+          @RequestParam Optional<String> info,
+          @RequestParam Optional<String> success,
+          @RequestParam Optional<String> warning) {
 
     var result = applicationService.getApplication(applicationId, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success successRes -> {
-        model.addAllAttributes(Map.of(
-            "app", successRes.application(),
-            "prog", successRes.program(),
-            "user", successRes.user(),
-            "editable", successRes.editable(),
-            "responses", successRes.responses(),
-            "formatter", formatter,
-            "alerts", new Alerts(error, success, warning, info)));
+        // Get document information for the application
+        var documentStatuses = documentService.getDocumentStatuses(applicationId, successRes.program().id());
+        var missingCount = documentService.getMissingDocumentsCount(applicationId);
+
+        // Create a map for the application-document pair similar to what's in ListApplicationsService
+        var pair = new HashMap<String, Object>();
+        pair.put("app", successRes.application());
+        pair.put("prog", successRes.program());
+        pair.put("documents", documentStatuses);
+        pair.put("missingDocumentsCount", missingCount);
+
+        // Create a map for all model attributes
+        var allAttributes = new HashMap<String, Object>();
+        allAttributes.put("app", successRes.application());
+        allAttributes.put("prog", successRes.program());
+        allAttributes.put("user", successRes.user());
+        allAttributes.put("editable", successRes.editable());
+        allAttributes.put("responses", successRes.responses());
+        allAttributes.put("formatter", formatter);
+        allAttributes.put("alerts", new Alerts(error, success, warning, info));
+        allAttributes.put("pair", pair);
+
+        model.addAllAttributes(allAttributes);
         yield "student/view-application :: page";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
-        "redirect:/login?error=Not logged in";
+              "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
-        "redirect:/?error=Application not found";
+              "redirect:/?error=Application not found";
       case ViewApplicationService.GetApplicationResult.AccessDenied() ->
-        "redirect:/?error=Access denied";
+              "redirect:/?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
-        "redirect:/dashboard?error=Program not found";
+              "redirect:/dashboard?error=Program not found";
       case ViewApplicationService.GetApplicationResult.NotEditable ne ->
-        "redirect:/dashboard?error=Application Not Editable";
+              "redirect:/dashboard?error=Application Not Editable";
       case ViewApplicationService.GetApplicationResult.IllegalStatusChange isc ->
-        "redirect:/dashboard?error=Illegal Status Change";
+              "redirect:/dashboard?error=Illegal Status Change";
     };
   }
 
   @PostMapping("/applications/{id}/update")
   public String updateApplication(
-      @PathVariable("id") String id,
-      @RequestParam("answer1") String answer1,
-      @RequestParam("answer2") String answer2,
-      @RequestParam("answer3") String answer3,
-      @RequestParam("answer4") String answer4,
-      @RequestParam("answer5") String answer5,
-      @RequestParam("gpa") double gpa,
-      @RequestParam("major") String major,
-      @RequestParam("dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
-      HttpSession session,
-      Model model,
-      HttpServletResponse response) {
+          @PathVariable("id") String id,
+          @RequestParam("answer1") String answer1,
+          @RequestParam("answer2") String answer2,
+          @RequestParam("answer3") String answer3,
+          @RequestParam("answer4") String answer4,
+          @RequestParam("answer5") String answer5,
+          @RequestParam("gpa") double gpa,
+          @RequestParam("major") String major,
+          @RequestParam("dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
+          HttpSession session,
+          Model model,
+          HttpServletResponse response) {
 
     var result = applicationService.updateResponses(id, answer1, answer2, answer3, answer4, answer5, gpa, major,
-        dateOfBirth, session);
+            dateOfBirth, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {
@@ -90,83 +108,107 @@ public record ViewApplicationController(
         yield null;
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
-        "redirect:/login?error=Not logged in";
+              "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
-        "redirect:/dashboard?error=Application not found";
+              "redirect:/dashboard?error=Application not found";
       case ViewApplicationService.GetApplicationResult.AccessDenied() ->
-        "redirect:/dashboard?error=Access denied";
+              "redirect:/dashboard?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
-        "redirect:/dashboard?error=Program not found";
+              "redirect:/dashboard?error=Program not found";
       case ViewApplicationService.GetApplicationResult.NotEditable ne ->
-        "redirect:/dashboard?error=Application Not Editable";
+              "redirect:/dashboard?error=Application Not Editable";
       case ViewApplicationService.GetApplicationResult.IllegalStatusChange isc ->
-        "redirect:/dashboard?error=Illegal Status Change";
+              "redirect:/dashboard?error=Illegal Status Change";
     };
   }
 
   @PostMapping("/applications/{id}/withdraw")
   public String withdrawApplication(@PathVariable("id") String id,
-      HttpSession session,
-      Model model) {
+                                    HttpSession session,
+                                    Model model) {
 
     var result = applicationService.changeStatus(id, Application.Status.WITHDRAWN, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {
+        // Get document information for the application
+        var documentStatuses = documentService.getDocumentStatuses(id, success.program().id());
+        var missingCount = documentService.getMissingDocumentsCount(id);
+
+        // Create a map for the application-document pair
+        var pair = new HashMap<String, Object>();
+        pair.put("app", success.application());
+        pair.put("prog", success.program());
+        pair.put("documents", documentStatuses);
+        pair.put("missingDocumentsCount", missingCount);
+
         model.addAllAttributes(Map.of(
-            "app", success.application(),
-            "prog", success.program(),
-            "user", success.user(),
-            "editable", success.editable(),
-            "formatter", formatter,
-            "responses", success.responses()));
+                "app", success.application(),
+                "prog", success.program(),
+                "user", success.user(),
+                "editable", success.editable(),
+                "formatter", formatter,
+                "pair", pair,
+                "responses", success.responses()));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
-        "redirect:/login?error=Not logged in";
+              "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
-        "redirect:/dashboard?error=Application not found";
+              "redirect:/dashboard?error=Application not found";
       case ViewApplicationService.GetApplicationResult.AccessDenied() ->
-        "redirect:/dashboard?error=Access denied";
+              "redirect:/dashboard?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
-        "redirect:/dashboard?error=Program not found";
+              "redirect:/dashboard?error=Program not found";
       case ViewApplicationService.GetApplicationResult.NotEditable ne ->
-        "redirect:/dashboard?error=Application Not Editable";
+              "redirect:/dashboard?error=Application Not Editable";
       case ViewApplicationService.GetApplicationResult.IllegalStatusChange isc ->
-        "redirect:/dashboard?error=Illegal Status Change";
+              "redirect:/dashboard?error=Illegal Status Change";
     };
   }
 
   @PostMapping("/applications/{id}/reactivate")
   public String reactivateApplication(@PathVariable("id") String id,
-      HttpSession session,
-      Model model) {
+                                      HttpSession session,
+                                      Model model) {
 
     var result = applicationService.changeStatus(id, Application.Status.APPLIED, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {
+        // Get document information for the application
+        var documentStatuses = documentService.getDocumentStatuses(id, success.program().id());
+        var missingCount = documentService.getMissingDocumentsCount(id);
+
+        // Create a map for the application-document pair
+        var pair = new HashMap<String, Object>();
+        pair.put("app", success.application());
+        pair.put("prog", success.program());
+        pair.put("documents", documentStatuses);
+        pair.put("missingDocumentsCount", missingCount);
+
         model.addAllAttributes(Map.of(
-            "app", success.application(),
-            "prog", success.program(),
-            "user", success.user(),
-            "editable", success.editable(),
-            "responses", success.responses(),
-            "formatter", formatter));
+                "app", success.application(),
+                "prog", success.program(),
+                "user", success.user(),
+                "editable", success.editable(),
+                "responses", success.responses(),
+                "pair", pair,
+                "formatter", formatter));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
-        "redirect:/login?error=Not logged in";
+              "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
-        "redirect:/dashboard?error=Application not found";
+              "redirect:/dashboard?error=Application not found";
       case ViewApplicationService.GetApplicationResult.AccessDenied() ->
-        "redirect:/dashboard?error=Access denied";
+              "redirect:/dashboard?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
-        "redirect:/dashboard?error=Program not found";
+              "redirect:/dashboard?error=Program not found";
       case ViewApplicationService.GetApplicationResult.NotEditable ne ->
-        "redirect:/dashboard?error=Application Not Editable";
+              "redirect:/dashboard?error=Application Not Editable";
       case ViewApplicationService.GetApplicationResult.IllegalStatusChange isc ->
-        "redirect:/dashboard?error=Illegal Status Change";
+              "redirect:/dashboard?error=Illegal Status Change";
     };
   }
 }

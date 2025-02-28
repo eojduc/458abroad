@@ -9,7 +9,7 @@
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
 
 <div
-    class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-2/5 md:w-3/5 sm:w-full gap-5">
+    class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
 
   <div id="alerts-bar">
     <div th:replace="~{components :: alerts(${alerts})}"></div>
@@ -28,7 +28,7 @@
       <form class="contents"
             hx-post="/admin/programs/new"
             hx-target="#alerts-bar"
-            hx-swap="innerHTML"
+            hx-swap="innerHTML show:window:top"
             hx-history="false">
 
         <label class="form-control">
@@ -51,72 +51,17 @@
                     required></textarea>
         </label>
 
-        <!-- Assisted Faculty Lead -->
-<!--        <label class="form-control">-->
-<!--          <div class="label">-->
-<!--            <span class="label-text">Faculty Lead</span>-->
-<!--          </div>-->
-<!--          <input type="text"-->
-<!--                 name="facultyLead"-->
-<!--                 class="input w-full"-->
-<!--                 th:list="adminsList"-->
-<!--                 required/>-->
-<!--        </label>-->
-<!--        <datalist id="adminsList">-->
-<!--          <option th:each="lead : ${adminList}" th:value="${lead}"></option>-->
-<!--        </datalist>-->
-
-        <!-- Multiple Assisted Faculty Lead Selection -->
-        <div class="form-control">
+        <label class="form-control">
           <div class="label">
-            <span class="label-text">Faculty Leads</span>
+            <span class="label-text">Faculty Lead</span>
           </div>
-
-          <!-- Selected Faculty Leads (displayed as badges) -->
-          <div class="flex flex-wrap gap-2 mb-4" id="faculty-badges">
-            <div th:each="lead : ${selectedLeads}" class="badge badge-primary gap-1">
-              <span th:text="${lead}"></span>
-              <!-- Form for removing a faculty lead -->
-              <form method="post" th:action="@{/remove-faculty}" class="inline">
-                <input type="hidden" name="facultyLeadToRemove" th:value="${lead}" />
-                <input type="hidden" name="redirectUrl" th:value="${currentUrl}" />
-                <button type="submit" class="btn btn-xs btn-ghost">×</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Form for adding a new faculty lead -->
-          <form hx-post="@{/add-faculty}" hx-target="#faculty-badges" hx-swap="outerHTML" class="flex gap-2">
-            <input type="text"
-                   name="newFacultyLead"
-                   placeholder="Add faculty lead..."
-                   class="input input-bordered w-full"
-                   list="adminsList"
-                   autocomplete="off"
-                   required />
-
-            <div th:each="lead : ${selectedLeads}">
-              <input type="hidden" name="existingFacultyLeads" th:value="${lead}" />
-            </div>
-            <input type="hidden" name="redirectUrl" th:value="${currentUrl}" />
-          </form>
-
-          <datalist id="adminsList">
-            <option th:each="lead : ${adminList}" th:value="${lead}"></option>
-          </datalist>
-        </div>
-<!--        &lt;!&ndash; Hidden form for final submission with all faculty leads &ndash;&gt;-->
-<!--        <form id="mainForm" method="post" th:action="@{/save-program}" class="mt-4">-->
-<!--          &lt;!&ndash; Other form fields go here &ndash;&gt;-->
-
-<!--          &lt;!&ndash; All selected faculty leads as hidden inputs &ndash;&gt;-->
-<!--          <div th:each="lead : ${selectedLeads}">-->
-<!--            <input type="hidden" name="facultyLeads" th:value="${lead}" />-->
-<!--          </div>-->
-
-<!--          &lt;!&ndash; Submit button for the entire form &ndash;&gt;-->
-<!--          <button type="submit" class="btn btn-primary mt-4">Save Program</button>-->
-<!--        </form>-->
+          <select name="facultyLeads" multiple required
+                  size="5"
+                  class="select w-full">
+            <option th:each="lead : ${adminList}" th:value="${lead.username}"
+                    th:text="${formatter.displayUser(lead)}"></option>
+          </select>
+        </label>
 
         <label class="form-control">
           <div class="label">
@@ -158,6 +103,16 @@
           <input class="input w-full"
                  type="date"
                  name="applicationClose"
+                 required/>
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Essential Documents Deadline</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="essentialDocsDate"
                  required/>
         </label>
 
