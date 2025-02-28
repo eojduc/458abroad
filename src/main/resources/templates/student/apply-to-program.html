@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:fragment="page(program, user, alerts, questions, maxDayOfBirth)"
-      th:data-theme="${theme}">
+      th:data-theme="${user.theme.name.toLowerCase}">
 <head th:replace="~{components :: head('Apply to ' + ${program.title})}"></head>
 <body>
 <div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-2/5 md:w-3/5 sm:w-full gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body flex flex-col gap-4">
       <div class="card-actions justify-between">
         <h1 class="card-title" th:text="'Apply to ' + ${program.title}"></h1>
-        <a href="/programs" class="btn btn-secondary">Back to Programs</a>
+        <a href="/programs" class="btn btn-primary">Back to Programs</a>
       </div>
       <!-- The apply form (with id="applyForm") is inserted here -->
       <div th:replace="~{this :: apply-form(${program}, ${user}, ${questions})}"></div>
@@ -26,16 +26,16 @@
     <p>Are you sure you want to submit this application?</p>
     <div class="modal-action gap-2">
       <!-- Cancel button automatically closes the modal -->
-      <form method="dialog" class="contents">
-        <button class="btn btn-secondary w-1/4">Cancel</button>
-      </form>
-      <!-- Confirm button submits the application form (by referencing its id) -->
       <button class="btn btn-primary w-1/4"
               type="submit"
               form="applyForm"
               onclick="submit_modal.close()">
         Submit
       </button>
+      <form method="dialog" class="contents">
+        <button class="btn btn-outline w-1/4">Cancel</button>
+      </form>
+      <!-- Confirm button submits the application form (by referencing its id) -->
     </div>
   </div>
   <!-- Optional modal backdrop that also closes the dialog when clicked -->
@@ -81,7 +81,7 @@
     <div class="label">
       <span class="label-text" th:text="${question.text}"></span>
     </div>
-    <textarea th:name="${question.field}" class="textarea" required></textarea>
+    <textarea th:name="${question.field}" class="textarea" required maxlength="10000" rows="20"></textarea>
   </label>
 
   <div class="card-actions justify-end">

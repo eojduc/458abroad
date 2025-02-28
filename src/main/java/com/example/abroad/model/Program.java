@@ -1,6 +1,7 @@
 package com.example.abroad.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -8,12 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
-import java.util.Objects;
-
 @Entity
 @Table(name = "programs")
 public final class Program {
@@ -21,23 +18,32 @@ public final class Program {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Integer id;
+
   @Column(nullable = false)
   private String title;
+
   @Column(nullable = false)
   private Year year;
+
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
   private Semester semester;
+
   @Column(nullable = false)
-  private Instant applicationOpen;
+  private LocalDate applicationOpen;
+
   @Column(nullable = false)
-  private Instant applicationClose;
+  private LocalDate applicationClose;
+
+  @Column(nullable = false)
+  private LocalDate documentDeadline;
+
   @Column(nullable = false)
   private LocalDate startDate;
+
   @Column(nullable = false)
   private LocalDate endDate;
-  @Column(nullable = false)
-  private String facultyLead;
+
   @Column(nullable = false, length = 10000)
   private String description;
 
@@ -50,41 +56,25 @@ public final class Program {
     this.applicationClose = null;
     this.startDate = null;
     this.endDate = null;
-    this.facultyLead = null;
     this.description = null;
   }
 
 
-  public Program(String title, Year year, Semester semester, Instant applicationOpen,
-    Instant applicationClose, LocalDate startDate, LocalDate endDate, String facultyLead,
+  public Program(Integer id, String title, Year year, Semester semester, LocalDate applicationOpen,
+    LocalDate applicationClose, LocalDate documentDeadline,
+    LocalDate startDate, LocalDate endDate,
     String description) {
+    this.id = id;
     this.title = title;
     this.year = year;
     this.semester = semester;
     this.applicationOpen = applicationOpen;
     this.applicationClose = applicationClose;
+    this.documentDeadline = documentDeadline;
     this.startDate = startDate;
     this.endDate = endDate;
-    this.facultyLead = facultyLead;
     this.description = description;
   }
-
-  @Override
-  public String toString() {
-    return "Program{" +
-      "id='" + id + '\'' +
-      ", title='" + title + '\'' +
-      ", year=" + year +
-      ", semester=" + semester +
-      ", applicationOpen=" + applicationOpen +
-      ", applicationClose=" + applicationClose +
-      ", startDate=" + startDate +
-      ", endDate=" + endDate +
-      ", facultyLead='" + facultyLead + '\'' +
-      ", description='" + description + '\'' +
-      '}';
-  }
-
 
   public Integer id() {
     return id;
@@ -102,11 +92,11 @@ public final class Program {
     return semester;
   }
 
-  public Instant applicationOpen() {
+  public LocalDate applicationOpen() {
     return applicationOpen;
   }
 
-  public Instant applicationClose() {
+  public LocalDate applicationClose() {
     return applicationClose;
   }
 
@@ -117,96 +107,101 @@ public final class Program {
   public LocalDate endDate() {
     return endDate;
   }
-
-  public String facultyLead() {
-    return facultyLead;
-  }
-
   public String description() {
     return description;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    Program program = (Program) o;
-
-    if (!Objects.equals(id, program.id)) {
-      return false;
-    }
-    if (!Objects.equals(title, program.title)) {
-      return false;
-    }
-    if (!Objects.equals(year, program.year)) {
-      return false;
-    }
-    if (semester != program.semester) {
-      return false;
-    }
-    if (!Objects.equals(applicationOpen, program.applicationOpen)) {
-      return false;
-    }
-    if (!Objects.equals(applicationClose, program.applicationClose)) {
-      return false;
-    }
-    if (!Objects.equals(startDate, program.startDate)) {
-      return false;
-    }
-    if (!Objects.equals(endDate, program.endDate)) {
-      return false;
-    }
-    if (!Objects.equals(facultyLead, program.facultyLead)) {
-      return false;
-    }
-    return Objects.equals(description, program.description);
-  }
-  // ONLY FOR INITIALIZING SAMPLE DATA
-  public void setId(Integer id) {
-    this.id = id;
-  }
-  public void setTitle(String title) {
-    this.title = title;
+  public LocalDate documentDeadline() {
+    return documentDeadline;
   }
 
-  public void setYear(Year of) {
-    this.year = of;
+  public Program withTitle(String title) {
+    return new Program(
+      this.id, title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
   }
 
-  public void setSemester(Semester semester) {
-    this.semester = semester;
+  public Program withYear(Year year) {
+    return new Program(
+      this.id, this.title, year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
+  }
+  public Program withSemester(Semester semester) {
+    return new Program(
+      this.id, this.title, this.year, semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
+  }
+  public Program withApplicationOpen(LocalDate applicationOpen) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
+  }
+  public Program withApplicationClose(LocalDate applicationClose) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description
+    );
+  }
+  public Program withStartDate(LocalDate startDate) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, startDate, this.endDate, this.description
+    );
+  }
+  public Program withEndDate(LocalDate endDate) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, endDate, this.description
+    );
   }
 
-  public void setApplicationOpen(Instant applicationOpen) {
-    this.applicationOpen = applicationOpen;
+  public Program withDescription(String description) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, description
+    );
   }
-
-  public void setApplicationClose(Instant applicationClose) {
-    this.applicationClose = applicationClose;
-  }
-
-  public void setStartDate(LocalDate startDate) {
-    this.startDate = startDate;
-  }
-
-  public void setEndDate(LocalDate endDate) {
-    this.endDate = endDate;
-  }
-
-  public void setFacultyLead(String facultyLead) {
-    this.facultyLead = facultyLead;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
+  public Program withDocumentDeadline(LocalDate documentDeadline) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      documentDeadline, this.startDate, this.endDate, this.description
+    );
   }
 
   public enum Semester {
     FALL, SPRING, SUMMER
   }
+
+
+  @Entity
+  @Table(name = "faculty_leads")
+  public static class FacultyLead {
+
+    @Embeddable
+    public record AppUser(Integer programId, String username) { }
+
+    @Id
+    private AppUser id;
+
+
+    public FacultyLead() {
+      this.id = null;
+    }
+
+    public FacultyLead(Integer programId, String username) {
+      this.id = new AppUser(programId, username);
+    }
+
+    public Integer programId() {
+      return id.programId();
+    }
+    public String username() {
+      return id.username();
+    }
+  }
+
 }

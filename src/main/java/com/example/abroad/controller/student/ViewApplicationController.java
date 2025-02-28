@@ -1,12 +1,14 @@
 package com.example.abroad.controller.student;
 
+import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Application;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.ViewApplicationService;
+import com.example.abroad.service.page.ViewApplicationService;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -25,25 +28,35 @@ public record ViewApplicationController(
     UserService userService) {
 
   @GetMapping("/applications/{applicationId}")
-  public String viewApplication(@PathVariable String applicationId, HttpSession session, Model model) {
+  public String viewApplication(
+      @PathVariable String applicationId,
+      HttpSession session,
+      Model model,
+      @RequestParam Optional<String> error,
+      @RequestParam Optional<String> info,
+      @RequestParam Optional<String> success,
+      @RequestParam Optional<String> warning) {
 
     var result = applicationService.getApplication(applicationId, session);
 
     return switch (result) {
-      case ViewApplicationService.GetApplicationResult.Success success -> {
+      case ViewApplicationService.GetApplicationResult.Success successRes -> {
         model.addAllAttributes(Map.of(
-            "app", success.application(),
-            "prog", success.program(),
-            "user", success.user(),
-            "editable", success.editable(),
+            "app", successRes.application(),
+            "prog", successRes.program(),
+            "user", successRes.user(),
+            "editable", successRes.editable(),
+            "responses", successRes.responses(),
             "formatter", formatter,
-            "theme", userService.getTheme(session)));
+            "alerts", new Alerts(error, success, warning, info)));
         yield "student/view-application :: page";
       }
-      case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
+      case ViewApplicationService.GetApplicationResult.UserNotFound() ->
+        "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
         "redirect:/?error=Application not found";
-      case ViewApplicationService.GetApplicationResult.AccessDenied() -> "redirect:/?error=Access denied";
+      case ViewApplicationService.GetApplicationResult.AccessDenied() ->
+        "redirect:/?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
         "redirect:/dashboard?error=Program not found";
       case ViewApplicationService.GetApplicationResult.NotEditable ne ->
@@ -65,25 +78,23 @@ public record ViewApplicationController(
       @RequestParam("major") String major,
       @RequestParam("dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
       HttpSession session,
-      Model model) {
+      Model model,
+      HttpServletResponse response) {
 
-    var result = applicationService.updateResponses(id, answer1, answer2, answer3, answer4, answer5, gpa, major, dateOfBirth, session);
+    var result = applicationService.updateResponses(id, answer1, answer2, answer3, answer4, answer5, gpa, major,
+        dateOfBirth, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {
-        model.addAllAttributes(Map.of(
-            "app", success.application(),
-            "prog", success.program(),
-            "user", success.user(),
-            "editable", success.editable(),
-            "formatter", formatter,
-            "theme", userService.getTheme(session)));
-        yield "student/view-application :: applicationContent";
+        response.setHeader("HX-Redirect", "/applications/" + id + "?success=Your responses have been saved!");
+        yield null;
       }
-      case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
+      case ViewApplicationService.GetApplicationResult.UserNotFound() ->
+        "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
         "redirect:/dashboard?error=Application not found";
-      case ViewApplicationService.GetApplicationResult.AccessDenied() -> "redirect:/dashboard?error=Access denied";
+      case ViewApplicationService.GetApplicationResult.AccessDenied() ->
+        "redirect:/dashboard?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
         "redirect:/dashboard?error=Program not found";
       case ViewApplicationService.GetApplicationResult.NotEditable ne ->
@@ -108,13 +119,15 @@ public record ViewApplicationController(
             "user", success.user(),
             "editable", success.editable(),
             "formatter", formatter,
-            "theme", userService.getTheme(session)));
+            "responses", success.responses()));
         yield "student/view-application :: applicationContent";
       }
-      case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
+      case ViewApplicationService.GetApplicationResult.UserNotFound() ->
+        "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
         "redirect:/dashboard?error=Application not found";
-      case ViewApplicationService.GetApplicationResult.AccessDenied() -> "redirect:/dashboard?error=Access denied";
+      case ViewApplicationService.GetApplicationResult.AccessDenied() ->
+        "redirect:/dashboard?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
         "redirect:/dashboard?error=Program not found";
       case ViewApplicationService.GetApplicationResult.NotEditable ne ->
@@ -138,14 +151,16 @@ public record ViewApplicationController(
             "prog", success.program(),
             "user", success.user(),
             "editable", success.editable(),
-            "formatter", formatter,
-            "theme", userService.getTheme(session)));
+            "responses", success.responses(),
+            "formatter", formatter));
         yield "student/view-application :: applicationContent";
       }
-      case ViewApplicationService.GetApplicationResult.UserNotFound() -> "redirect:/login?error=Not logged in";
+      case ViewApplicationService.GetApplicationResult.UserNotFound() ->
+        "redirect:/login?error=Not logged in";
       case ViewApplicationService.GetApplicationResult.ApplicationNotFound() ->
         "redirect:/dashboard?error=Application not found";
-      case ViewApplicationService.GetApplicationResult.AccessDenied() -> "redirect:/dashboard?error=Access denied";
+      case ViewApplicationService.GetApplicationResult.AccessDenied() ->
+        "redirect:/dashboard?error=Access denied";
       case ViewApplicationService.GetApplicationResult.ProgramNotFound() ->
         "redirect:/dashboard?error=Program not found";
       case ViewApplicationService.GetApplicationResult.NotEditable ne ->

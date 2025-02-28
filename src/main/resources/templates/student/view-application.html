@@ -2,13 +2,16 @@
 <html
   xmlns:th="http://www.thymeleaf.org"
   th:fragment="page"
-  th:data-theme="${theme}"
+  th:data-theme="${user.theme.name.toLowerCase}"
 >
   <head th:replace="~{components :: head('Application Details')}"></head>
   <body>
     <div
       th:replace="~{components :: student-navbar(${user.displayName()})}"
     ></div>
+    <div class="m-4 w-3/4 mx-auto bg-base-200">
+      <div th:replace="~{components :: alerts(${alerts})}"></div>
+    </div>
     <div
       id="applicationContent"
       class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-4"
@@ -26,7 +29,7 @@
                 <tbody>
                   <tr class="border-base-100 border-y-2">
                     <td>Faculty Lead</td>
-                    <td th:text="${prog.facultyLead}"></td>
+                    <td>TODO</td>
                   </tr>
                   <tr class="border-base-100 border-y-2">
                     <td>Term</td>
@@ -49,13 +52,13 @@
                   <tr class="border-base-100 border-y-2">
                     <td>Application Open</td>
                     <td
-                      th:text="${formatter.formatInstant(prog.applicationOpen)}"
+                      th:text="${formatter.formatLocalDate(prog.applicationOpen)}"
                     ></td>
                   </tr>
                   <tr class="border-base-100 border-y-2">
                     <td>Application Deadline</td>
                     <td
-                      th:text="${formatter.formatInstant(prog.applicationClose)}"
+                      th:text="${formatter.formatLocalDate(prog.applicationClose)}"
                     ></td>
                   </tr>
                 </tbody>
@@ -99,6 +102,7 @@
                         name="gpa"
                         th:value="${app.gpa()}"
                         th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}"
                       />
                     </div>
 
@@ -112,6 +116,7 @@
                         name="major"
                         th:value="${app.major()}"
                         th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}"
                       />
                     </div>
 
@@ -125,68 +130,26 @@
                         name="dateOfBirth"
                         th:value="${app.dateOfBirth()}"
                         th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}"
                       />
                     </div>
-
-                    <div class="form-control mb-4">
+                    <div
+                      class="form-control mb-4"
+                      th:each="response: ${responses}"
+                    >
                       <label class="label">
-                        <span class="label-text">Answer 1</span>
+                        <span
+                          class="label-text"
+                          th:text="${response.question().text()}"
+                        ></span>
                       </label>
                       <textarea
                         class="textarea"
-                        name="answer1"
-                        th:text="${app.answer1()}"
+                        th:name="${response.question().field()}"
+                        th:text="${response.response()}"
                         th:disabled="${!editable}"
-                      >
-                      </textarea>
-                    </div>
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Answer 2</span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        name="answer2"
-                        th:text="${app.answer2()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
-                    </div>
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Answer 3</span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        name="answer3"
-                        th:text="${app.answer3()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
-                    </div>
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Answer 4</span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        name="answer4"
-                        th:text="${app.answer4()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
-                    </div>
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Answer 5</span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        name="answer5"
-                        th:text="${app.answer5()}"
-                        th:disabled="${!editable}"
-                      >
-                      </textarea>
+                        th:attr="required=${editable ? 'required' : null}"
+                      ></textarea>
                     </div>
                   </div>
                 </form>
@@ -219,7 +182,7 @@
                       th:if="${app.status.name() != 'CANCELLED' and app.status.name() != 'WITHDRAWN'}"
                     >
                       <button
-                        class="btn btn-warning"
+                        class="btn btn-secondary"
                         type="button"
                         onclick="withdraw_modal.showModal()"
                       >
@@ -280,10 +243,10 @@
         </p>
         <div class="modal-action gap-2">
           <form method="dialog" class="contents">
-            <button class="btn btn-secondary w-1/4">Cancel</button>
+            <button class="btn btn-primary w-1/4">Cancel</button>
           </form>
           <button
-            class="btn btn-warning w-1/4"
+            class="btn btn-secondary w-1/4"
             type="submit"
             form="withdrawForm"
             onclick="withdraw_modal.close()"

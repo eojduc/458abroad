@@ -1,10 +1,16 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.model.Alerts;
-import com.example.abroad.service.AccountService;
-import com.example.abroad.service.AccountService.GetProfile;
-import com.example.abroad.service.AccountService.UpdateProfile;
-import com.example.abroad.service.AccountService.ChangePassword;
+import com.example.abroad.model.User;
+import com.example.abroad.model.User.Theme;
+import com.example.abroad.service.page.AccountService;
+import com.example.abroad.service.page.AccountService.ChangePassword.IncorrectPassword;
+import com.example.abroad.service.page.AccountService.ChangePassword.NotLocalUser;
+import com.example.abroad.service.page.AccountService.ChangePassword.PasswordMismatch;
+import com.example.abroad.service.page.AccountService.GetProfile.Success;
+import com.example.abroad.service.page.AccountService.GetProfile.UserNotFound;
+import com.example.abroad.service.page.AccountService.UpdateProfile;
+import com.example.abroad.service.page.AccountService.ChangePassword;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -29,12 +35,12 @@ public record AccountController(
                              @RequestParam Optional<String> info) {
 
         return switch (accountService.getProfile(session)) {
-            case GetProfile.UserNotFound() -> "redirect:/login";
-            case GetProfile.Success(var user) -> {
+            case UserNotFound() -> "redirect:/login";
+            case Success(var user) -> {
                 model.addAttribute("user", user);
                 model.addAttribute("alerts", new Alerts(error, success, warning, info));
                 model.addAttribute("formatter", formatter);
-                model.addAttribute("theme", userService.getTheme(session));
+                model.addAttribute("isLocalUser", user instanceof User.LocalUser);
                 yield "profile :: page";
             }
         };
@@ -68,18 +74,19 @@ public record AccountController(
 
         return switch (accountService.changePassword(currentPassword, newPassword, confirmPassword, session)) {
             case ChangePassword.UserNotFound() -> "redirect:/login";
-            case ChangePassword.IncorrectPassword() -> "redirect:/profile?error=Current password is incorrect";
-            case ChangePassword.PasswordMismatch() -> "redirect:/profile?error=New passwords do not match";
+            case IncorrectPassword() -> "redirect:/profile?error=Current password is incorrect";
+            case PasswordMismatch() -> "redirect:/profile?error=New passwords do not match";
             case ChangePassword.Success(var updatedUser) -> {
                 session.setAttribute("user", updatedUser);
                 yield "redirect:/profile?success=Password updated successfully";
             }
+          case NotLocalUser() -> "redirect:/profile?error=Cannot change password for SSO user";
         };
     }
 
 
     @PostMapping("/profile/theme")
-    public String setTheme(@RequestParam String theme, HttpSession session) {
+    public String setTheme(@RequestParam Theme theme, HttpSession session) {
         userService.setTheme(theme, session);
         return "redirect:/profile";
     }
