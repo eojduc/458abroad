@@ -56,7 +56,8 @@
             <span class="label-text">Faculty Lead</span>
           </div>
           <select name="facultyLeads" multiple required
-                  class="input w-full">
+                  size="5"
+                  class="select w-full">
             <option th:each="lead : ${adminList}" th:value="${lead.username}"
                     th:text="${formatter.displayUser(lead)}"></option>
           </select>

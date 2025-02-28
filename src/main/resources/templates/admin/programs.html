@@ -140,7 +140,8 @@
       <!-- Keyword search Faculty Lead -->
       <label>
         <select name="leadFilter" multiple
-                class="input"
+                class="select"
+                size="5"
                 th:value="${leadKeyword}"
                 th:hx-get="@{${path}}"
                 hx-trigger="change"
