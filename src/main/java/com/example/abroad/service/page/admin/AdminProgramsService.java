@@ -2,6 +2,7 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
 import com.example.abroad.service.ApplicationService;
@@ -29,8 +30,8 @@ public record AdminProgramsService(
   static Logger logger = LoggerFactory.getLogger(AdminProgramsService.class);
 
   public enum Sort {
-    TITLE, SEM_DATE, APP_OPENS, APP_CLOSES, START_DATE, END_DATE, FACULTY_LEAD, APPLIED, ENROLLED,
-    CANCELED, WITHDRAWN, TOTAL_ACTIVE
+    TITLE, SEM_DATE, APP_OPENS, APP_CLOSES, START_DATE, END_DATE, FACULTY_LEAD, APPLIED, ELIGIBLE, ENROLLED,
+    APPROVED, CANCELED, WITHDRAWN, TOTAL_ACTIVE, COMPLETED
   }
 
   public enum TimeFilter {FUTURE, OPEN, REVIEW, RUNNING, ALL}
@@ -84,15 +85,24 @@ public record AdminProgramsService(
       var applications = applicationService.findByProgram(program);
       var counts = applications.stream()
           .collect(Collectors.groupingBy(Application::status, Collectors.counting()));
+      long completedCount = applications.stream()
+          .filter(app -> app.status() == Application.Status.ENROLLED && LocalDate.now().isAfter(program.endDate()))
+          .count();
+      long enrolledCount = counts.getOrDefault(Application.Status.ENROLLED, 0L) - completedCount;
+      long activeCount = applications.stream()
+          .filter(app -> app.status() != Application.Status.CANCELLED && app.status() != Application.Status.WITHDRAWN)
+          .count();
       return new ProgramAndStatuses(
           program,
           extractFacultyLeadUsername(program, User::displayName),
           counts.getOrDefault(Application.Status.APPLIED, 0L),
-          counts.getOrDefault(Application.Status.ENROLLED, 0L),
+          counts.getOrDefault(Application.Status.ELIGIBLE, 0L),
+          counts.getOrDefault(Application.Status.APPROVED, 0L),
+          enrolledCount,
           counts.getOrDefault(Application.Status.CANCELLED, 0L),
           counts.getOrDefault(Application.Status.WITHDRAWN, 0L),
-          counts.getOrDefault(Application.Status.APPLIED, 0L) + counts.getOrDefault(
-              Application.Status.ENROLLED, 0L)
+          completedCount,
+          activeCount
       );
     };
   }
@@ -101,9 +111,12 @@ public record AdminProgramsService(
       Program program,
       List<String> facultyLeads,
       Long applied,
+      Long eligible,
+      Long approved,
       Long enrolled,
       Long canceled,
       Long withdrawn,
+      Long completed,
       Long totalActive
   ) {
 
@@ -155,9 +168,12 @@ public record AdminProgramsService(
           programAndStatuses -> programService.findFacultyLeads(programAndStatuses.program())
               .size());
       case APPLIED -> Comparator.comparing(ProgramAndStatuses::applied);
+      case ELIGIBLE -> Comparator.comparing(ProgramAndStatuses::eligible);
+      case APPROVED -> Comparator.comparing(ProgramAndStatuses::approved);
       case ENROLLED -> Comparator.comparing(ProgramAndStatuses::enrolled);
       case CANCELED -> Comparator.comparing(ProgramAndStatuses::canceled);
       case WITHDRAWN -> Comparator.comparing(ProgramAndStatuses::withdrawn);
+      case COMPLETED -> Comparator.comparing(ProgramAndStatuses::completed);
       case TOTAL_ACTIVE -> Comparator.comparing(ProgramAndStatuses::totalActive);
     };
     return ascending ? comparator : comparator.reversed();
