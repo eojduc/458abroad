@@ -7,102 +7,102 @@
 <div th:replace="~{components :: ${user.isAdmin() ? 'admin-navbar' : 'student-navbar'}(${user.displayName()})}"></div>
 
 <div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-2/5 md:w-3/5 sm:w-full gap-5">
-    <div th:if="${alerts != null}" th:replace="~{components :: alerts(${alerts})}"></div>
-    <div class="card card-normal w-full bg-base-200">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="card card-normal w-full bg-base-200">
 
-        <!-- Profile Information -->
-        <div class="card-body flex flex-col gap-4">
-            <h2 class="card-title">Profile Information</h2>
-            <div  class="card card-normal w-full bg-base-300">
-                <div class="card-body">
+    <!-- Profile Information -->
+    <div class="card-body flex flex-col gap-4">
+      <h2 class="card-title">Profile Information</h2>
+      <div  class="card card-normal w-full bg-base-300">
+        <div class="card-body">
 
-                    <h2 class="card-title">Profile Settings</h2>
-                    <form th:action="@{/profile/update}" method="POST" class="flex flex-col gap-4 m-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Username</span>
-                            </label>
-                            <input type="text" th:value="${user.username()}" class="input" readonly disabled />
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Display Name</span>
-                            </label>
-                            <input type="text" name="displayName" th:value="${user.displayName()}" class="input" />
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Email</span>
-                            </label>
-                            <input type="email" name="email" th:value="${user.email()}" class="input" />
-                        </div>
-
-                        <div class="card-actions justify-end">
-                            <button class="btn btn-primary w-1/4" type="submit">Update Profile</button>
-                        </div>
-                    </form>
-                </div>
+          <h2 class="card-title">Profile Settings</h2>
+          <form th:action="@{/profile/update}" method="POST" class="flex flex-col gap-4 m-4">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Username</span>
+              </label>
+              <input type="text" th:value="${user.username()}" class="input" readonly disabled />
             </div>
 
-
-            <!-- Change Password -->
-            <div th:if="${isLocalUser}">
-                <div class="card bg-base-300">
-                <div class="card-body">
-                    <h2 class="card-title">Change Password</h2>
-                    <form th:action="@{/profile/change-password}" method="POST" class="flex flex-col gap-4 m-4">
-                    <div class="form-control">
-                        <label class="label">
-                        <span class="label-text">Current Password</span>
-                        </label>
-                        <input type="password" name="currentPassword" class="input" required />
-                    </div>
-            
-                    <div class="form-control">
-                        <label class="label">
-                        <span class="label-text">New Password</span>
-                        </label>
-                        <input type="password" name="newPassword" class="input" required />
-                    </div>
-            
-                    <div class="form-control">
-                        <label class="label">
-                        <span class="label-text">Confirm New Password</span>
-                        </label>
-                        <input type="password" name="confirmPassword" class="input" required />
-                    </div>
-            
-                    <div class="card-actions justify-end">
-                        <button class="btn btn-primary w-1/4" type="submit">Save Password</button>
-                    </div>
-                    </form>
-                </div>
-                </div>
-            </div>
-            
-            <!-- Message for SSO Users -->
-            <div th:if="${!isLocalUser}">
-                <div class="card bg-base-300">
-                <div class="card-body">
-                    <h2 class="card-title">Change Password</h2>
-                    <p class="text-sm text-gray-500">
-                    Password changes are not available for SSO users.
-                    </p>
-                </div>
-                </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Display Name</span>
+              </label>
+              <input type="text" name="displayName" th:value="${user.displayName()}" class="input" />
             </div>
 
-            <div class="card bg-base-300">
-                <div class="card-body">
-                    <h2 class="card-title">Choose Theme</h2>
-                    <form th:replace="~{components :: theme-form(${theme})}"></form>
-                </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Email</span>
+              </label>
+              <input type="email" name="email" th:value="${user.email()}" class="input" />
             </div>
-            
+
+            <div class="card-actions justify-end">
+              <button class="btn btn-primary w-1/4" type="submit">Update Profile</button>
+            </div>
+          </form>
         </div>
+      </div>
+
+
+      <!-- Change Password -->
+      <div th:if="${isLocalUser}">
+        <div class="card bg-base-300">
+          <div class="card-body">
+            <h2 class="card-title">Change Password</h2>
+            <form th:action="@{/profile/change-password}" method="POST" class="flex flex-col gap-4 m-4">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">Current Password</span>
+                </label>
+                <input type="password" name="currentPassword" class="input" required />
+              </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">New Password</span>
+                </label>
+                <input type="password" name="newPassword" class="input" required />
+              </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">Confirm New Password</span>
+                </label>
+                <input type="password" name="confirmPassword" class="input" required />
+              </div>
+
+              <div class="card-actions justify-end">
+                <button class="btn btn-primary w-1/4" type="submit">Save Password</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message for SSO Users -->
+      <div th:if="${!isLocalUser}">
+        <div class="card bg-base-300">
+          <div class="card-body">
+            <h2 class="card-title">Change Password</h2>
+            <p class="text-sm text-gray-500">
+              Password changes are not available for SSO users.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-300">
+        <div class="card-body">
+          <h2 class="card-title">Choose Theme</h2>
+          <form th:replace="~{components :: theme-form(${theme})}"></form>
+        </div>
+      </div>
+
     </div>
+  </div>
 </div>
 
 <div th:replace="~{components :: footer}"></div>

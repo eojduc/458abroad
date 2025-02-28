@@ -67,10 +67,10 @@
             <div th:unless="${applicants.size() > 0}">Are you sure you want to delete this program?</div>
             <div class="modal-action gap-2">
               <form method="dialog" class="contents">
-                <button class="btn btn-primary w-1/4">Cancel</button>
+                <button class="btn btn-outline w-1/4">Cancel</button>
               </form>
               <form th:action="@{/admin/programs/{programId}/delete(programId=${program.id})}" method="post" class="contents">
-                <button class="btn btn-secondary w-1/4" type="submit">Delete</button>
+                <button class="btn btn-error w-1/4" type="submit">Delete</button>
               </form>
             </div>
           </div>
@@ -321,7 +321,6 @@
             <select name="status" class="select select-sm">
               <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
               <option value="ENROLLED"
-                      th:if="${!programIsDone}"
                       th:selected="${applicant.status.name() == 'ENROLLED'}"
                       th:text="${programIsDone ? 'Completed' : 'Enrolled'}"></option>
               <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
