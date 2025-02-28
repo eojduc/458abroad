@@ -178,3 +178,72 @@ sudo systemctl start abroad
 ```bash
 sudo systemctl status abroad
 ```
+
+## 3.6 Configure Shibboleth for SSO Authentication
+
+The following steps describe how to install and configure the Shibboleth Service Provider (SP) to handle SSO authentication.
+
+### 3.6.1 Install Shibboleth SP
+
+For Ubuntu-based systems, install the Shibboleth SP packages:
+
+```bash
+sudo apt update
+sudo apt install shibboleth-sp2-common shibboleth-sp2-utils -y
+```
+
+### 3.6.2 Configure Shibboleth SP
+
+Edit the main Shibboleth configuration file (typically located at /etc/shibboleth/shibboleth2.xml) to include your Identity Provider (IdP) settings. For example:
+
+```xml
+<SSO entityID="https://your-idp.example.com/idp/shibboleth">
+    SAML2 SAML1
+</SSO>
+```
+
+Ensure that your IdP metadata, certificate, and key paths are correctly configured in this file.
+
+### 3.6.3 Set Up an Apache Virtual Host on Port 8080
+
+Create an Apache virtual host configuration to handle SSO-related traffic. For example, create a new file at /etc/apache2/sites-available/shibboleth.conf with the following content:
+
+```xml
+<VirtualHost *:8080>
+    ServerName sso.yourdomain.com
+
+    # DocumentRoot can be a placeholder if Apache is used solely for routing SSO requests
+    DocumentRoot /var/www/html
+
+    # Enable the Shibboleth handler for SSO endpoints
+    <Location /Shibboleth.sso>
+        SetHandler shib
+    </Location>
+
+    # Optional: Additional logging for troubleshooting
+    ErrorLog ${APACHE_LOG_DIR}/sso_error.log
+    CustomLog ${APACHE_LOG_DIR}/sso_access.log combined
+</VirtualHost>
+```
+
+Enable the site and reload Apache:
+
+```bash
+sudo a2ensite shibboleth
+sudo systemctl reload apache2
+```
+
+### 3.6.4 Reroute SSO Authentication Traffic
+
+Update your network or reverse proxy configuration (e.g., in Nginx) to forward SSO-related traffic to the Apache server on port 8080. For example, add the following location block to your Nginx configuration:
+
+```nginx
+location /sso/ {
+    proxy_pass http://127.0.0.1:8080/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+This ensures that any requests intended for SSO (e.g., paths starting with /sso/) are rerouted to the Apache virtual host handling Shibboleth.
