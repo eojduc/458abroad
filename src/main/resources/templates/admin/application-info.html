@@ -82,7 +82,8 @@
                     >Applied</option>
                     <option value="ENROLLED"
                             th:selected="${_application.status.name() == 'ENROLLED'}"
-                    >Enrolled</option>
+                            th:text="${programIsPast ? 'Completed' : 'Enrolled'}"
+                    ></option>
                     <option value="CANCELLED"
                             th:selected="${_application.status.name() == 'CANCELLED'}"
                     >Cancelled</option>
@@ -113,7 +114,7 @@
             </tr>
             <tr class="border-base-300">
               <td>GPA</td>
-              <td th:text="${#numbers.formatDecimal(_application.gpa, 1, 3)}"></td>
+              <td th:text="${#numbers.formatDecimal(_application.gpa, 1, 2)}"></td>
             </tr>
             <tr class="border-base-300">
               <td>Date of Birth</td>

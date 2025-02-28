@@ -138,7 +138,7 @@
                         <form th:action="@{/admin/users/{username}/reset-password(username=${userInfo.user.username})}"
                               method="POST"
                               class="flex flex-col gap-4"
-                              id="resetPasswordForm-${userInfo.user.username}">
+                              th:id="|resetPasswordForm-${userInfo.user.username}|">
                           <div class="form-control">
                             <label class="label">
                               <span class="label-text">New Password</span>
@@ -163,7 +163,7 @@
                           </div>
                         </form>
                         <div class="modal-action">
-                          <button type="submit" form="resetPasswordForm-${userInfo.user.username}"
+                          <button type="submit" th:form="|resetPasswordForm-${userInfo.user.username}|"
                                   class="btn btn-secondary">Reset Password</button>
                           <form method="dialog">
                             <button class="btn btn-outline">Cancel</button>

@@ -11,23 +11,26 @@ Repository Layer: This layer is responsible for interacting with the database. I
 # Database Schema
 The following schema was generated from the Spring Data JPA entities. The schema is for a PostgreSQL database.
 
-## Table: `admins`
-| Column       | Type         | Constraints                  |
-|-------------|-------------|------------------------------|
-| `username`  | VARCHAR(255) | PRIMARY KEY                 |
-| `password`  | VARCHAR(255) | NOT NULL                    |
-| `email`     | VARCHAR(255) | NOT NULL                    |
-| `displayName` | VARCHAR(255) | NOT NULL                    |
+## Table: `local_users`
+| Column       | Type         | Constraints                      |
+|-------------|-------------|----------------------------------|
+| `username`  | VARCHAR(255) | PRIMARY KEY                     |
+| `password`  | VARCHAR(255) | NOT NULL                        |
+| `email`     | VARCHAR(255) | NOT NULL                        |
+| `role`      | VARCHAR(255) | NOT NULL, ENUM(`STUDENT`, `ADMIN`) |
+| `displayName` | VARCHAR(255) | NOT NULL                        |
+| `theme`     | VARCHAR(255) | NOT NULL, ENUM(...)             |
 
 ---
 
-## Table: `students`
-| Column       | Type         | Constraints                  |
-|-------------|-------------|------------------------------|
-| `username`  | VARCHAR(255) | PRIMARY KEY                 |
-| `password`  | VARCHAR(255) | NOT NULL                    |
-| `email`     | VARCHAR(255) | NOT NULL                    |
-| `displayName` | VARCHAR(255) | NOT NULL                    |
+## Table: `sso_users`
+| Column       | Type         | Constraints                      |
+|-------------|-------------|----------------------------------|
+| `username`  | VARCHAR(255) | PRIMARY KEY                     |
+| `email`     | VARCHAR(255) | NOT NULL                        |
+| `role`      | VARCHAR(255) | NOT NULL, ENUM(`STUDENT`, `ADMIN`) |
+| `displayName` | VARCHAR(255) | NOT NULL                        |
+| `theme`     | VARCHAR(255) | NOT NULL, ENUM(...)             |
 
 ---
 
@@ -35,17 +38,44 @@ The following schema was generated from the Spring Data JPA entities. The schema
 | Column        | Type         | Constraints                                      |
 |--------------|-------------|--------------------------------------------------|
 | `id`         | VARCHAR(255) | PRIMARY KEY                                     |
-| `student`    | VARCHAR(255) | NOT NULL, FOREIGN KEY (`students.username`)    |
+| `student`    | VARCHAR(255) | NOT NULL, FOREIGN KEY (`local_users.username`)  |
 | `programId`  | INT          | NOT NULL, FOREIGN KEY (`programs.id`)          |
 | `dateOfBirth`| DATE         | NOT NULL                                        |
 | `gpa`        | DOUBLE       | NOT NULL                                        |
 | `major`      | VARCHAR(255) | NOT NULL                                        |
-| `answer1`    | TEXT         | NOT NULL (length = 10000)                       |
-| `answer2`    | TEXT         | NOT NULL (length = 10000)                       |
-| `answer3`    | TEXT         | NOT NULL (length = 10000)                       |
-| `answer4`    | TEXT         | NOT NULL (length = 10000)                       |
-| `answer5`    | TEXT         | NOT NULL (length = 10000)                       |
-| `status`     | VARCHAR(255) | NOT NULL, ENUM (`APPLIED`, `ENROLLED`, `CANCELLED`, `WITHDRAWN`) |
+| `status`     | VARCHAR(255) | NOT NULL, ENUM (`APPLIED`, `ENROLLED`, `CANCELLED`, `WITHDRAWN`, `ELIGIBLE`, `APPROVED`) |
+
+---
+
+## Table: `responses`
+| Column        | Type         | Constraints                                      |
+|--------------|-------------|--------------------------------------------------|
+| `applicationId` | VARCHAR(255) | NOT NULL, FOREIGN KEY (`applications.id`)    |
+| `question`   | VARCHAR(255) | NOT NULL, ENUM (`WHY_THIS_PROGRAM`, `ALIGN_WITH_CAREER`, `ANTICIPATED_CHALLENGES`, `ADAPTED_TO_ENVIRONMENT`, `UNIQUE_PERSPECTIVE`) |
+| `response`   | TEXT         | NOT NULL (length = 10000)                       |
+| **Primary Key** | (`applicationId`, `question`) | Composite Primary Key |
+
+---
+
+## Table: `documents`
+| Column          | Type         | Constraints                                      |
+|----------------|-------------|--------------------------------------------------|
+| `applicationId` | VARCHAR(255) | NOT NULL, FOREIGN KEY (`applications.id`)      |
+| `type`         | VARCHAR(255) | NOT NULL, ENUM (`ASSUMPTION_OF_RISK`, `CODE_OF_CONDUCT`, `MEDICAL_HISTORY`, `HOUSING`) |
+| `timestamp`    | TIMESTAMP    | NOT NULL                                        |
+| `file`         | BLOB         | NOT NULL                                        |
+| **Primary Key** | (`applicationId`, `type`) | Composite Primary Key |
+
+---
+
+## Table: `notes`
+| Column          | Type         | Constraints                                      |
+|----------------|-------------|--------------------------------------------------|
+| `id`          | INT          | PRIMARY KEY, AUTO_INCREMENT (SEQUENCE)         |
+| `applicationId` | VARCHAR(255) | NOT NULL, FOREIGN KEY (`applications.id`)      |
+| `username`    | VARCHAR(255) | NOT NULL, FOREIGN KEY (`local_users.username`)  |
+| `content`     | TEXT         | NOT NULL (length = 10000)                       |
+| `timestamp`   | TIMESTAMP    | NOT NULL                                        |
 
 ---
 
@@ -56,13 +86,21 @@ The following schema was generated from the Spring Data JPA entities. The schema
 | `title`            | VARCHAR(255) | NOT NULL                                     |
 | `year`             | INT          | NOT NULL (Stored as numeric year, e.g., 2025) |
 | `semester`         | VARCHAR(255) | NOT NULL, ENUM (`FALL`, `SPRING`, `SUMMER`)  |
-| `applicationOpen`  | TIMESTAMP    | NOT NULL                                     |
-| `applicationClose` | TIMESTAMP    | NOT NULL                                     |
+| `applicationOpen`  | DATE         | NOT NULL                                     |
+| `applicationClose` | DATE         | NOT NULL                                     |
+| `documentDeadline` | DATE         | NOT NULL                                     |
 | `startDate`        | DATE         | NOT NULL                                     |
 | `endDate`          | DATE         | NOT NULL                                     |
-| `facultyLead`      | VARCHAR(255) | NOT NULL                                     |
 | `description`      | TEXT         | NOT NULL (length = 10000)                    |
 
+---
+
+## Table: `faculty_leads`
+| Column       | Type         | Constraints                                      |
+|-------------|-------------|--------------------------------------------------|
+| `programId` | INT          | NOT NULL, FOREIGN KEY (`programs.id`)           |
+| `username`  | VARCHAR(255) | NOT NULL, FOREIGN KEY (`local_users.username`)  |
+| **Primary Key** | (`programId`, `username`) | Composite Primary Key |
 
 
 
