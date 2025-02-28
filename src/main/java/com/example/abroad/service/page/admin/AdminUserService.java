@@ -22,7 +22,7 @@ public record AdminUserService(
 ) {
 
   public enum Sort {
-    NAME, EMAIL, ROLE, USER_TYPE
+    NAME, USERNAME, EMAIL, ROLE, USER_TYPE
   }
 
   public sealed interface GetAllUsersInfo {
@@ -92,13 +92,15 @@ public record AdminUserService(
       }
       String lowercaseSearch = searchTerm.toLowerCase();
       return userInfo.user().displayName().toLowerCase().contains(lowercaseSearch) ||
-        userInfo.user().email().toLowerCase().contains(lowercaseSearch);
+              userInfo.user().username().toLowerCase().contains(lowercaseSearch) ||
+              userInfo.user().email().toLowerCase().contains(lowercaseSearch);
     };
   }
 
   private Comparator<UserInfo> getSortComparator(Sort sort, Boolean ascending) {
     Comparator<UserInfo> comparator = switch (sort) {
       case NAME -> Comparator.comparing(userInfo -> userInfo.user().displayName());
+      case USERNAME -> Comparator.comparing(userInfo -> userInfo.user().username());
       case EMAIL -> Comparator.comparing(userInfo -> userInfo.user().email());
       case ROLE -> Comparator.comparing(userInfo -> userInfo.user().role().toString());
       case USER_TYPE -> Comparator.comparing(userInfo -> userInfo.user().isLocal() ? "Local" : "SSO");

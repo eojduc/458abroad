@@ -47,6 +47,7 @@
               <thead>
               <tr>
                 <th th:replace="~{this :: sortableHeader('Name', '/admin/users/table', 'NAME', '#userTableContainer')}"></th>
+                <th th:replace="~{this :: sortableHeader('Username', '/admin/users/table', 'USERNAME', '#userTableContainer')}"></th>
                 <th th:replace="~{this :: sortableHeader('Email', '/admin/users/table', 'EMAIL', '#userTableContainer')}"></th>
                 <th th:replace="~{this :: sortableHeader('Role', '/admin/users/table', 'ROLE', '#userTableContainer')}"></th>
                 <th th:replace="~{this :: sortableHeader('Type', '/admin/users/table', 'USER_TYPE', '#userTableContainer')}"></th>
@@ -57,6 +58,7 @@
               <tr th:each="userInfo : ${users}"
                   th:class="${userInfo.user.isAdmin() ? 'bg-accent text-accent-content' : 'border-base-300 border-y-2'}">
                 <td th:text="${userInfo.user.displayName()}"></td>
+                <td th:text="${userInfo.user.username()}"></td>
                 <td th:text="${userInfo.user.email()}"></td>
                 <td th:text="${userInfo.user.role()}"></td>
                 <td>
