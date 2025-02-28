@@ -440,5 +440,24 @@
         hx-swap="outerHTML"
         class="hidden"
 ></form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('error') || urlParams.has('success') || urlParams.has('warning') || urlParams.has('info')) {
+      // Scroll to top immediately when page loads
+      window.scrollTo(0, 0);
+
+      // And again after a slight delay to handle any dynamic content
+      setTimeout(function() {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'auto' // Using 'auto' for immediate scrolling
+        });
+      }, 100);
+    }
+  });
+</script>
 </body>
 </html>

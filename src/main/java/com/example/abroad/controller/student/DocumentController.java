@@ -25,8 +25,16 @@ import java.sql.SQLException;
 
 @Controller
 @RequestMapping("/applications/{applicationId}/documents")
-public record DocumentController(DocumentService documentService, UserService userService) {
+public class DocumentController {
     private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
+
+    private final DocumentService documentService;
+    private final UserService userService;
+
+    public DocumentController(DocumentService documentService, UserService userService) {
+        this.documentService = documentService;
+        this.userService = userService;
+    }
 
     @PostMapping
     public String uploadDocument(
@@ -43,17 +51,21 @@ public record DocumentController(DocumentService documentService, UserService us
         try {
             documentService.uploadDocument(applicationId, type, file);
             String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
-            // Redirect back to the application detail page instead of the list view
             return "redirect:/applications/" + applicationId + "?success=" + message + "#documents";
         } catch (IllegalArgumentException e) {
+            // This correctly handles validation errors
             return "redirect:/applications/" + applicationId + "?error=" + e.getMessage() + "#documents";
         } catch (RuntimeException e) {
-            String errorMessage = isUpdate ? "Failed to update document" : "Failed to upload document";
+            // This is a generic error handler
+            logger.error("Error uploading document", e);
+            String errorMessage = isUpdate ? "Failed to update document: " : "Failed to upload document: ";
+            errorMessage += e.getMessage();
             return "redirect:/applications/" + applicationId + "?error=" + errorMessage + "#documents";
         }
     }
 
     @GetMapping("/{type}/view")
+    @Transactional
     public ResponseEntity<?> viewDocument(
             @PathVariable String applicationId,
             @PathVariable Document.Type type,
