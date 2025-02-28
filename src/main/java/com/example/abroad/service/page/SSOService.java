@@ -2,6 +2,8 @@ package com.example.abroad.service.page;
 
 import java.nio.charset.StandardCharsets;
 import java.net.URLEncoder;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.LocalUser;
@@ -11,7 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Service
-public record SSOService(UserService userService) {
+public record SSOService(UserService userService, @Value("${redirect.url}") String redirectUrl) {
 
   public sealed interface SSOResult {
     record Success(User user) implements SSOResult {}
@@ -51,11 +53,11 @@ public record SSOService(UserService userService) {
     return new SSOResult.Success(newUser);
   }
 
-  public static String buildLogoutUrl(String location, String infoMessage, String errorMessage) {
+  public String buildLogoutUrl(String location, String infoMessage, String errorMessage) {
     if (errorMessage != null && !errorMessage.isBlank() && infoMessage != null && !infoMessage.isBlank()) {
       throw new IllegalArgumentException("Only one of errorMessage or infoMessage can be provided.");
     }
-    String targetUrl = "https://beta.colab.duke.edu" + location;
+    String targetUrl = redirectUrl + location;
     String shibLogoutUrl = "https://shib.oit.duke.edu/cgi-bin/logout.pl";
     if (errorMessage != null && !errorMessage.isBlank()) {
       targetUrl += "?error=" + encode(errorMessage);
