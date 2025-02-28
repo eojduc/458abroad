@@ -61,7 +61,7 @@ public record AuthService(
     
     session.invalidate();
     if (user instanceof User.SSOUser) {
-      String redirectUrl = SSOService.buildLogoutUrl("/login", "You have been logged out", "");
+      String redirectUrl = ssoService.buildLogoutUrl("/login", "You have been logged out", "");
       return new Logout.SSOUserSuccess(redirectUrl);
     }
     return new Logout.LocalUserSuccess();

@@ -1,272 +1,463 @@
 <!DOCTYPE html>
 <html
-  xmlns:th="http://www.thymeleaf.org"
-  th:fragment="page"
-  th:data-theme="${user.theme.name.toLowerCase}"
+        xmlns:th="http://www.thymeleaf.org"
+        th:fragment="page"
+        th:data-theme="${user.theme.name.toLowerCase}"
 >
-  <head th:replace="~{components :: head('Application Details')}"></head>
-  <body>
-    <div
-      th:replace="~{components :: student-navbar(${user.displayName()})}"
-    ></div>
-    <div class="m-4 w-3/4 mx-auto bg-base-200">
-      <div th:replace="~{components :: alerts(${alerts})}"></div>
-    </div>
-    <div
-      id="applicationContent"
-      class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-4"
-      th:fragment="applicationContent"
-    >
-      <div class="card bg-base-200 w-full">
+<head th:replace="~{components :: head('Application Details')}"></head>
+<body>
+<div
+        th:replace="~{components :: student-navbar(${user.displayName()})}"
+></div>
+<div class="m-4 w-3/4 mx-auto bg-base-200">
+  <div th:replace="~{components :: alerts(${alerts})}"></div>
+</div>
+<div
+        id="applicationContent"
+        class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-4"
+        th:fragment="applicationContent"
+>
+  <div class="card bg-base-200 w-full">
+    <div class="card-body gap-4">
+      <h1 class="card-title" th:text="${prog.title()}">Program Title</h1>
+      <!-- Program Information Card -->
+      <div class="card bg-base-300">
         <div class="card-body gap-4">
-          <h1 class="card-title" th:text="${prog.title()}">Program Title</h1>
-          <!-- Program Information Card -->
-          <div class="card bg-base-300">
-            <div class="card-body gap-4">
-              <h1 class="card-title">Program Information</h1>
-              <p class="text-sm" th:text="${prog.description()}"></p>
-              <table class="table table-sm border-collapse w-fit">
-                <tbody>
-                  <tr class="border-base-100 border-y-2">
-                    <td>Faculty Lead</td>
-                    <td>TODO</td>
-                  </tr>
-                  <tr class="border-base-100 border-y-2">
-                    <td>Term</td>
-                    <td
+          <h1 class="card-title">Program Information</h1>
+          <p class="text-sm" th:text="${prog.description()}"></p>
+          <table class="table table-sm border-collapse w-fit">
+            <tbody>
+            <tr class="border-base-100 border-y-2">
+              <td>Faculty Lead</td>
+              <td>TODO</td>
+            </tr>
+            <tr class="border-base-100 border-y-2">
+              <td>Term</td>
+              <td
                       th:text="${formatter.formatSemester(prog.semester)} + ' ' + ${formatter.formatYear(prog.year)}"
-                    ></td>
-                  </tr>
-                  <tr class="border-base-100 border-y-2">
-                    <td>Start Date</td>
-                    <td
+              ></td>
+            </tr>
+            <tr class="border-base-100 border-y-2">
+              <td>Start Date</td>
+              <td
                       th:text="${formatter.formatLocalDate(prog.startDate)}"
-                    ></td>
-                  </tr>
-                  <tr class="border-base-100 border-y-2">
-                    <td>End Date</td>
-                    <td
+              ></td>
+            </tr>
+            <tr class="border-base-100 border-y-2">
+              <td>End Date</td>
+              <td
                       th:text="${formatter.formatLocalDate(prog.endDate)}"
-                    ></td>
-                  </tr>
-                  <tr class="border-base-100 border-y-2">
-                    <td>Application Open</td>
-                    <td
+              ></td>
+            </tr>
+            <tr class="border-base-100 border-y-2">
+              <td>Application Open</td>
+              <td
                       th:text="${formatter.formatLocalDate(prog.applicationOpen)}"
-                    ></td>
-                  </tr>
-                  <tr class="border-base-100 border-y-2">
-                    <td>Application Deadline</td>
-                    <td
+              ></td>
+            </tr>
+            <tr class="border-base-100 border-y-2">
+              <td>Application Deadline</td>
+              <td
                       th:text="${formatter.formatLocalDate(prog.applicationClose)}"
-                    ></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+              ></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Application Details Card -->
+      <div
+              id="applicationResponses"
+              th:fragment="applicationResponses"
+              class="card bg-base-300"
+      >
+        <div class="card-body gap-4">
+          <div class="card-actions justify-between">
+            <h2 class="card-title">My Application</h2>
+            <div
+                    th:replace="~{components :: statusBadge(${app.status.name()})}"
+            ></div>
           </div>
 
-          <!-- Application Details Card -->
-          <div
-            id="applicationResponses"
-            th:fragment="applicationResponses"
-            class="card bg-base-300"
-          >
-            <div class="card-body gap-4">
-              <div class="card-actions justify-between">
-                <h2 class="card-title">My Application</h2>
+          <!-- Application Responses -->
+          <div>
+            <form
+                    id="responsesForm"
+                    th:attr="hx-post=@{'/applications/' + ${app.id()} + '/update'}"
+                    hx-target="#applicationContent"
+                    hx-swap="outerHTML"
+            >
+              <div id="responsesContainer">
+                <div class="form-control mb-4">
+                  <label class="label">
+                    <span class="label-text">GPA</span>
+                  </label>
+                  <input
+                          type="number"
+                          step="0.01"
+                          min="0.0"
+                          max="4.0"
+                          class="input input-bordered"
+                          name="gpa"
+                          th:value="${app.gpa()}"
+                          th:disabled="${!editable}"
+                          th:attr="required=${editable ? 'required' : null}"
+                  />
+                </div>
+
+                <div class="form-control mb-4">
+                  <label class="label">
+                    <span class="label-text">Major</span>
+                  </label>
+                  <input
+                          type="text"
+                          class="input input-bordered"
+                          name="major"
+                          th:value="${app.major()}"
+                          th:disabled="${!editable}"
+                          th:attr="required=${editable ? 'required' : null}"
+                  />
+                </div>
+
+                <div class="form-control mb-4">
+                  <label class="label">
+                    <span class="label-text">Birthdate</span>
+                  </label>
+                  <input
+                          type="date"
+                          class="input input-bordered"
+                          name="dateOfBirth"
+                          th:value="${app.dateOfBirth()}"
+                          th:disabled="${!editable}"
+                          th:attr="required=${editable ? 'required' : null}"
+                  />
+                </div>
                 <div
-                  th:replace="~{components :: statusBadge(${app.status.name()})}"
-                ></div>
-              </div>
-
-              <!-- Application Responses -->
-              <div>
-                <form
-                  id="responsesForm"
-                  th:attr="hx-post=@{'/applications/' + ${app.id()} + '/update'}"
-                  hx-target="#applicationContent"
-                  hx-swap="outerHTML"
+                        class="form-control mb-4"
+                        th:each="response: ${responses}"
                 >
-                  <div id="responsesContainer">
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">GPA</span>
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0.0"
-                        max="4.0"
-                        class="input input-bordered"
-                        name="gpa"
-                        th:value="${app.gpa()}"
-                        th:disabled="${!editable}"
-                        th:attr="required=${editable ? 'required' : null}"
-                      />
-                    </div>
-
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Major</span>
-                      </label>
-                      <input
-                        type="text"
-                        class="input input-bordered"
-                        name="major"
-                        th:value="${app.major()}"
-                        th:disabled="${!editable}"
-                        th:attr="required=${editable ? 'required' : null}"
-                      />
-                    </div>
-
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text">Birthdate</span>
-                      </label>
-                      <input
-                        type="date"
-                        class="input input-bordered"
-                        name="dateOfBirth"
-                        th:value="${app.dateOfBirth()}"
-                        th:disabled="${!editable}"
-                        th:attr="required=${editable ? 'required' : null}"
-                      />
-                    </div>
-                    <div
-                      class="form-control mb-4"
-                      th:each="response: ${responses}"
-                    >
-                      <label class="label">
+                  <label class="label">
                         <span
-                          class="label-text"
-                          th:text="${response.question().text()}"
+                                class="label-text"
+                                th:text="${response.question().text()}"
                         ></span>
-                      </label>
-                      <textarea
-                        class="textarea"
-                        th:name="${response.question().field()}"
-                        th:text="${response.response()}"
-                        th:disabled="${!editable}"
-                        th:attr="required=${editable ? 'required' : null}"
-                      ></textarea>
-                    </div>
-                  </div>
-                </form>
+                  </label>
+                  <textarea
+                          class="textarea"
+                          th:name="${response.question().field()}"
+                          th:text="${response.response()}"
+                          th:disabled="${!editable}"
+                          th:attr="required=${editable ? 'required' : null}"
+                  ></textarea>
+                </div>
               </div>
+            </form>
+          </div>
 
-              <!-- Withdraw / Reactivate Actions -->
-              <div class="card-actions gap-4">
+          <!-- Withdraw / Reactivate Actions -->
+          <div class="card-actions gap-4">
+            <button
+                    type="submit"
+                    class="btn btn-primary"
+                    form="responsesForm"
+                    th:disabled="${!editable}"
+            >
+              Save Responses
+            </button>
+            <div th:switch="${app.status.name()}">
+              <!-- When withdrawn, show Reactivate (modal-based) -->
+              <div th:case="'WITHDRAWN'">
                 <button
-                  type="submit"
-                  class="btn btn-primary"
-                  form="responsesForm"
-                  th:disabled="${!editable}"
-                >
-                  Save Responses
-                </button>
-                <div th:switch="${app.status.name()}">
-                  <!-- When withdrawn, show Reactivate (modal-based) -->
-                  <div th:case="'WITHDRAWN'">
-                    <button
-                      class="btn btn-success"
-                      type="button"
-                      onclick="reactivate_modal.showModal()"
-                    >
-                      Reactivate Application
-                    </button>
-                  </div>
-                  <!-- Otherwise, allow Save and Withdraw -->
-                  <div th:case="*">
-                    <div
-                      th:if="${app.status.name() != 'CANCELLED' and app.status.name() != 'WITHDRAWN'}"
-                    >
-                      <button
-                        class="btn btn-secondary"
+                        class="btn btn-success"
                         type="button"
-                        onclick="withdraw_modal.showModal()"
-                      >
-                        Withdraw Application
-                      </button>
-                    </div>
-                  </div>
+                        onclick="reactivate_modal.showModal()"
+                >
+                  Reactivate Application
+                </button>
+              </div>
+              <!-- Otherwise, allow Save and Withdraw -->
+              <div th:case="*">
+                <div
+                        th:if="${app.status.name() != 'CANCELLED' and app.status.name() != 'WITHDRAWN'}"
+                >
+                  <button
+                          class="btn btn-secondary"
+                          type="button"
+                          onclick="withdraw_modal.showModal()"
+                  >
+                    Withdraw Application
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Essential Documents Card - ENHANCED -->
+      <div id="documents"
+           class="card bg-base-300"
+           th:if="${app.status() == T(com.example.abroad.model.Application.Status).APPROVED ||
+                   app.status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
+      >
+        <div class="card-body gap-4">
+          <div class="card-actions justify-between">
+            <h2 class="card-title">Essential Documents</h2>
+            <div th:if="${pair != null && pair.missingDocumentsCount > 0}" class="badge badge-error">
+              [[${pair.missingDocumentsCount}]] Missing
+            </div>
+            <div th:if="${pair != null && pair.missingDocumentsCount == 0}" class="badge badge-success">
+              All Complete
+            </div>
+          </div>
+
+          <!-- Warning alert for missing documents -->
+          <div th:if="${pair != null && pair.missingDocumentsCount > 0}"
+               class="alert alert-error shadow-lg py-2 px-4">
+            <div class="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   class="stroke-current w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+              <span class="font-bold">
+                    [[${pair != null ? pair.missingDocumentsCount : 0}]] document(s) required - Your application is not complete!
+                  </span>
+            </div>
+          </div>
+
+          <!-- Success alert when all documents are submitted -->
+          <div th:if="${pair != null && pair.missingDocumentsCount == 0}"
+               class="alert alert-success shadow-lg py-2 px-4">
+            <div class="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   class="stroke-current w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="font-bold">
+                    All required documents have been submitted. Your application is complete!
+                  </span>
+            </div>
+          </div>
+
+          <!-- Document list -->
+          <div th:if="${pair != null && pair.documents != null}" class="space-y-4">
+            <div th:each="doc : ${pair.documents}"
+                 th:class="${doc.submitted} ? 'card bg-success bg-opacity-10 shadow-lg border border-success' : 'card bg-error bg-opacity-10 shadow-lg border border-error'">
+              <div class="card-body p-4">
+                <div class="flex items-center gap-2">
+                  <!-- Status icon -->
+                  <span th:if="${doc.submitted}" class="bg-success text-white rounded-full p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             class="w-5 h-5 stroke-current">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </span>
+                  <span th:unless="${doc.submitted}" class="bg-error text-white rounded-full p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             class="w-5 h-5 stroke-current">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </span>
+
+                  <!-- Document name -->
+                  <span th:text="${doc.type.text()}" class="text-base font-bold"></span>
+
+                  <!-- Status text -->
+                  <span th:if="${doc.submitted}" class="badge badge-success">Completed</span>
+                  <span th:unless="${doc.submitted}" class="badge badge-error">Required</span>
+
+                  <!-- View button and timestamp for submitted documents -->
+                  <div th:if="${doc.submitted}" class="flex items-center gap-2 ml-auto">
+                    <a th:href="@{/applications/{appId}/documents/{type}/view(appId=${app.id()},type=${doc.type})}"
+                       class="btn btn-sm btn-success"
+                       target="_blank">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                           class="w-4 h-4 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                      <span class="ml-1">View Document</span>
+                    </a>
+
+                    <!-- Display timestamp -->
+                    <span th:if="${doc.formattedTimestamp}" class="text-sm">
+                          Last updated: [[${doc.formattedTimestamp}]]
+                        </span>
+                  </div>
+                </div>
+
+                <!-- Deadline information for missing documents -->
+                <div th:unless="${doc.submitted}" class="mt-2 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-error">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-sm font-bold text-error">
+                        <span th:if="${doc.deadline.isAfter(T(java.time.LocalDate).now())}"
+                              th:text="'Due in: ' + ${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), doc.deadline)} + ' days'">
+                        </span>
+                        <span th:unless="${doc.deadline.isAfter(T(java.time.LocalDate).now())}"
+                              th:text="'OVERDUE by: ' + ${T(java.time.temporal.ChronoUnit).DAYS.between(doc.deadline, T(java.time.LocalDate).now())} + ' days'">
+                        </span>
+                      </span>
+                </div>
+
+                <!-- Document actions -->
+                <div class="mt-4">
+                  <!-- Download blank form button -->
+                  <a th:href="@{/applications/{appId}/documents/{type}/blank(appId=${app.id()},type=${doc.type})}"
+                     class="btn btn-sm btn-outline mb-2"
+                     target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    <span class="ml-1">Download Blank Form</span>
+                  </a>
+
+                  <!-- Upload/re-upload form section -->
+                  <form th:action="@{/applications/{id}/documents(id=${app.id()})}"
+                        method="POST"
+                        enctype="multipart/form-data"
+                        class="flex flex-col gap-2">
+                    <input type="hidden" name="type" th:value="${doc.type}"/>
+                    <div class="flex items-center gap-2">
+                      <input type="file"
+                             class="file-input file-input-bordered file-input-sm w-full max-w-xs"
+                             name="file"
+                             accept="application/pdf"
+                             required
+                             onchange="this.closest('form').querySelector('.btn-primary').classList.toggle('btn-secondary', this.files.length > 0)"
+                      />
+                      <button th:class="${doc.submitted} ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-error animate-pulse'">
+                        <span th:if="${doc.submitted}">Re-upload</span>
+                        <span th:unless="${doc.submitted}">Upload Now</span>
+                      </button>
+                    </div>
+                    <p class="text-xs text-base-content/70 mt-1">
+                      Please download the blank form, fill it out, and upload it as a PDF
+                    </p>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message for no documents -->
+          <div th:if="${pair == null || pair.documents == null || pair.documents.isEmpty()}" class="text-base-content/50 italic text-sm">
+            No documents required at this time.
+          </div>
+        </div>
+      </div>
+
+      <!-- Message for non-approved/enrolled applications -->
+      <div th:unless="${app.status() == T(com.example.abroad.model.Application.Status).APPROVED ||
+                           app.status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
+           class="card bg-base-300">
+        <div class="card-body">
+          <h2 class="card-title">Essential Documents</h2>
+          <div class="text-base-content/50 italic">
+            Documents required after approval
+          </div>
+        </div>
+      </div>
     </div>
-    <div th:replace="~{components :: footer}"></div>
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
 
-    <!-- Reactivate Modal -->
-    <dialog id="reactivate_modal" class="modal">
-      <div class="modal-box bg-base-200">
-        <p>
-          Are you sure you want to reactivate your application? This will set
-          your status to 'APPLIED'.
-        </p>
-        <div class="modal-action gap-2">
-          <form method="dialog" class="contents">
-            <button class="btn btn-secondary w-1/4">Cancel</button>
-          </form>
-          <button
-            class="btn btn-success w-1/4"
-            type="submit"
-            form="reactivateForm"
-            onclick="reactivate_modal.close()"
-          >
-            Reactivate
-          </button>
-        </div>
-      </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>close</button>
+<!-- Reactivate Modal -->
+<dialog id="reactivate_modal" class="modal">
+  <div class="modal-box bg-base-200">
+    <p>
+      Are you sure you want to reactivate your application? This will set
+      your status to 'APPLIED'.
+    </p>
+    <div class="modal-action gap-2">
+      <form method="dialog" class="contents">
+        <button class="btn btn-secondary w-1/4">Cancel</button>
       </form>
-    </dialog>
+      <button
+              class="btn btn-success w-1/4"
+              type="submit"
+              form="reactivateForm"
+              onclick="reactivate_modal.close()"
+      >
+        Reactivate
+      </button>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
 
-    <!-- Hidden Reactivate Form -->
-    <form
-      id="reactivateForm"
-      th:attr="hx-post=@{'/applications/' + ${app.id()} + '/reactivate'}"
-      hx-target="#applicationContent"
-      hx-swap="outerHTML"
-      class="hidden"
-    ></form>
+<!-- Hidden Reactivate Form -->
+<form
+        id="reactivateForm"
+        th:attr="hx-post=@{'/applications/' + ${app.id()} + '/reactivate'}"
+        hx-target="#applicationContent"
+        hx-swap="outerHTML"
+        class="hidden"
+></form>
 
-    <!-- Withdraw Modal -->
-    <dialog id="withdraw_modal" class="modal">
-      <div class="modal-box bg-base-200">
-        <p>
-          Are you sure you want to withdraw your application? This action cannot
-          be undone.
-        </p>
-        <div class="modal-action gap-2">
-          <form method="dialog" class="contents">
-            <button class="btn btn-primary w-1/4">Cancel</button>
-          </form>
-          <button
-            class="btn btn-secondary w-1/4"
-            type="submit"
-            form="withdrawForm"
-            onclick="withdraw_modal.close()"
-          >
-            Withdraw
-          </button>
-        </div>
-      </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>close</button>
+<!-- Withdraw Modal -->
+<dialog id="withdraw_modal" class="modal">
+  <div class="modal-box bg-base-200">
+    <p>
+      Are you sure you want to withdraw your application? This action cannot
+      be undone.
+    </p>
+    <div class="modal-action gap-2">
+      <form method="dialog" class="contents">
+        <button class="btn btn-primary w-1/4">Cancel</button>
       </form>
-    </dialog>
+      <button
+              class="btn btn-secondary w-1/4"
+              type="submit"
+              form="withdrawForm"
+              onclick="withdraw_modal.close()"
+      >
+        Withdraw
+      </button>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
 
-    <!-- Hidden Withdraw Form -->
-    <form
-      id="withdrawForm"
-      th:attr="hx-post=@{'/applications/' + ${app.id()} + '/withdraw'}"
-      hx-target="#applicationContent"
-      hx-swap="outerHTML"
-      class="hidden"
-    ></form>
-  </body>
+<!-- Hidden Withdraw Form -->
+<form
+        id="withdrawForm"
+        th:attr="hx-post=@{'/applications/' + ${app.id()} + '/withdraw'}"
+        hx-target="#applicationContent"
+        hx-swap="outerHTML"
+        class="hidden"
+></form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('error') || urlParams.has('success') || urlParams.has('warning') || urlParams.has('info')) {
+      // Scroll to top immediately when page loads
+      window.scrollTo(0, 0);
+
+      // And again after a slight delay to handle any dynamic content
+      setTimeout(function() {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'auto' // Using 'auto' for immediate scrolling
+        });
+      }, 100);
+    }
+  });
+</script>
+</body>
 </html>

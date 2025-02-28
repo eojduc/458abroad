@@ -57,33 +57,34 @@ public record AdminUserController(
     };
   }
 
-  @GetMapping("/table")
-  public String getUsersTable(
-    HttpSession session,
-    Model model,
-    @RequestParam Sort sort,
-    @RequestParam String searchFilter,
-    @RequestParam Boolean ascending
-  ) {
-    GetAllUsersInfo usersInfo = adminUserService.getUsersInfo(session, sort, searchFilter, ascending);
-    return switch (usersInfo) {
-      case AdminUserService.GetAllUsersInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
-      case GetAllUsersInfo.UserNotAdmin() -> "redirect:/home?error=You are not an admin";
-      case GetAllUsersInfo.Success(var users, var adminUser) -> {
-        model.addAllAttributes(
-          Map.ofEntries(
-            entry("name", adminUser.displayName()),
-            entry("sort", sort.name()),
-            entry("searchFilter", searchFilter),
-            entry("formatter", formatter),
-            entry("ascending", ascending),
-            entry("users", users)
-          )
-        );
-        yield "admin/users :: userTable";
-      }
-    };
-  }
+    @GetMapping("/table")
+    public String getUsersTable(
+            HttpSession session,
+            Model model,
+            @RequestParam Sort sort,
+            @RequestParam String searchFilter,
+            @RequestParam Boolean ascending
+    ) {
+        GetAllUsersInfo usersInfo = adminUserService.getUsersInfo(session, sort, searchFilter, ascending);
+        return switch (usersInfo) {
+            case AdminUserService.GetAllUsersInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
+            case GetAllUsersInfo.UserNotAdmin() -> "redirect:/home?error=You are not an admin";
+            case GetAllUsersInfo.Success(var users, var adminUser) -> {
+                model.addAllAttributes(
+                        Map.ofEntries(
+                                entry("name", adminUser.displayName()),
+                                entry("sort", sort.name()),
+                                entry("searchFilter", searchFilter),
+                                entry("formatter", formatter),
+                                entry("ascending", ascending),
+                                entry("users", users),
+                                entry("user", adminUser)  // Add this line
+                        )
+                );
+                yield "admin/users :: userTable";
+            }
+        };
+    }
 
   @PostMapping("/{username}/admin-status")
   public String modifyAdminStatus(

@@ -2,23 +2,52 @@
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name, alerts, formatter)"
       th:data-theme="${user.theme.name.toLowerCase}">
 <head th:replace="~{components :: head('Admin Programs')}"></head>
+<style>
+  /* Initially hide eligible columns */
+  .count-col {
+    display: none;
+  }
+
+  .date-col {
+    display: none;
+  }
+
+  /* Use :has() to display eligible columns when the checkbox is checked */
+  .card-body:has(#toggleCount:checked) .count-col {
+    display: table-cell;
+  }
+
+  .card-body:has(#toggleDate:checked) .date-col {
+    display: table-cell;
+  }
+</style>
 <body>
 <div th:replace="~{components :: admin-navbar(${name})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
-    <div class="card-body gap-10">
+    <div class="card-body gap-8">
       <div class="flex justify-between items-center">
         <h1 class="card-title">All Programs</h1>
-
-        <!-- Add Program Button -->
-        <a class="btn btn-primary" href="/admin/programs/new">Add Program</a>
+        <div class="relative flex flex-col items-center">
+          <!-- Add Program Button -->
+          <a class="btn btn-primary" href="/admin/programs/new">Add Program</a>
+          <!-- Show Counts and Dates Checkboxes -->
+          <div class="absolute top-full mt-4 flex flex-col items-start w-48 pr-3 space-y-3">
+            <label class="flex items-center gap-4">
+              <input type="checkbox" id="toggleCount" class="checkbox peer">
+              <span class="text-sm">Show Program Counts</span>
+            </label>
+            <label class="flex items-center gap-4">
+              <input type="checkbox" id="toggleDate" class="checkbox peer" checked>
+              <span class="text-sm">Show Program Dates</span>
+          </div>
+        </div>
       </div>
-
       <!-- Filter Form -->
       <div th:replace="~{this :: filterForm('/admin/programs/table')}"></div>
 
-      <div class="overflow-x-auto">
+      <div class="table-wrapper overflow-x-auto">
         <!-- Add fragment identifier to the table -->
         <div th:replace="~{this :: programTable(sort)}"></div>
       </div>
@@ -33,18 +62,22 @@
 <table class="table w-full" th:fragment="programTable(sort)" id="programTable">
   <thead>
   <tr>
-    <th th:replace="~{this :: sortableHeader('Title', 'TITLE')}"></th>
-    <th th:replace="~{this :: sortableHeader('Term', 'SEM_DATE')}"></th>
-    <th th:replace="~{this :: sortableHeader('Faculty Lead', 'FACULTY_LEAD')}"></th>
-    <th th:replace="~{this :: sortableHeader('App Opens', 'APP_OPENS')}"></th>
-    <th th:replace="~{this :: sortableHeader('App Closes', 'APP_CLOSES')}"></th>
-    <th th:replace="~{this :: sortableHeader('Start Date', 'START_DATE')}"></th>
-    <th th:replace="~{this :: sortableHeader('End Date', 'END_DATE')}"></th>
-    <th th:replace="~{this :: sortableHeader('Applied', 'APPLIED')}"></th>
-    <th th:replace="~{this :: sortableHeader('Enrolled', 'ENROLLED')}"></th>
-    <th th:replace="~{this :: sortableHeader('Canceled', 'CANCELED')}"></th>
-    <th th:replace="~{this :: sortableHeader('Withdrawn', 'WITHDRAWN')}"></th>
-    <th th:replace="~{this :: sortableHeader('Total Active', 'TOTAL_ACTIVE')}"></th>
+    <th th:replace="~{this :: sortableHeader('Title', 'TITLE', '')}"></th>
+    <th th:replace="~{this :: sortableHeader('Term', 'SEM_DATE', '')}"></th>
+    <th th:replace="~{this :: sortableHeader('Faculty Lead', 'FACULTY_LEAD', '')}"></th>
+    <th th:replace="~{this :: sortableHeader('App Opens', 'APP_OPENS', 'date-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('App Closes', 'APP_CLOSES', 'date-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Documents Due', 'ESSENTIAL_DOCS', 'date-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Start Date', 'START_DATE', 'date-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('End Date', 'END_DATE', 'date-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Applied', 'APPLIED', 'count-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Eligible', 'ELIGIBLE', 'count-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Approved', 'APPROVED', 'count-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Enrolled', 'ENROLLED', 'count-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Canceled', 'CANCELED', 'count-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Withdrawn', 'WITHDRAWN', 'count-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Completed', 'COMPLETED', 'count-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Total Active', 'TOTAL_ACTIVE', 'count-col')}"></th>
   </tr>
   </thead>
   <tbody th:fragment="programTableBody" id="programTableBody">
@@ -56,15 +89,19 @@
     </td>
     <td th:text="${formatter.formatTerm(programAndStatus.program.semester, programAndStatus.program.year)}"></td>
     <td th:text="${formatter.formatFacultyLeads(programAndStatus.facultyLeads)}"></td>
-    <td th:text="${formatter.formatLocalDate(programAndStatus.program.applicationOpen)}"></td>
-    <td th:text="${formatter.formatLocalDate(programAndStatus.program.applicationClose)}"></td>
-    <td th:text="${formatter.formatLocalDate(programAndStatus.program.startDate)}"></td>
-    <td th:text="${formatter.formatLocalDate(programAndStatus.program.endDate)}"></td>
-    <td th:text="${programAndStatus.applied}"></td>
-    <td th:text="${programAndStatus.enrolled}"></td>
-    <td th:text="${programAndStatus.canceled}"></td>
-    <td th:text="${programAndStatus.withdrawn}"></td>
-    <td th:text="${programAndStatus.totalActive}"></td>
+    <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.applicationOpen)}"></td>
+    <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.applicationClose)}"></td>
+    <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.documentDeadline)}"></td>
+    <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.startDate)}"></td>
+    <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.endDate)}"></td>
+    <td class="count-col text-center" th:text="${programAndStatus.applied}"></td>
+    <td class="count-col text-center" th:text="${programAndStatus.eligible}"></td>
+    <td class="count-col text-center" th:text="${programAndStatus.approved}"></td>
+    <td class="count-col text-center" th:text="${programAndStatus.enrolled}"></td>
+    <td class="count-col text-center" th:text="${programAndStatus.canceled}"></td>
+    <td class="count-col text-center" th:text="${programAndStatus.withdrawn}"></td>
+    <td class="count-col text-center" th:text="${programAndStatus.completed}"></td>
+    <td class="count-col text-center" th:text="${programAndStatus.totalActive}"></td>
   </tr>
   </tbody>
   <div hx-swap-oob="true" id="filterSortParams">
@@ -140,16 +177,19 @@
   </div>
 </form>
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, column)">
-  <th th:class="${sort == column ? 'bg-base-300 cursor-pointer' : 'bg-base-200 cursor-pointer'}"
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, column, class)">
+  <th th:with="isSorted=${sort == column || (sort == 'sort' && column == 'TITLE')}"
+      th:class="${isSorted ? class + ' bg-base-300 cursor-pointer' : class + ' bg-base-200 cursor-pointer'}"
       th:hx-get="@{'/admin/programs/table'(sort=${column}, ascending=${!ascending}, nameFilter=${nameFilter}, leadFilter=${leadFilter}, timeFilter=${timeFilter})}"
       hx-target="#programTable"
       hx-swap="outerHTML">
     <div class="flex items-center gap-2">
-      <span th:if="${sort == column}" th:text="${ascending} ? '▼' : '▲'"></span>
-      <div th:unless="${sort == column}" class="invisible">▼</div>
+      <span th:if="${isSorted}" th:text="${ascending} ? '▼' : '▲'"></span>
       <span th:text="${label}"></span>
     </div>
   </th>
 </div>
+<div th:fragment="emptyFragment"></div>
+
+
 
