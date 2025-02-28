@@ -1,6 +1,7 @@
 package com.example.abroad.service;
 
 import com.example.abroad.model.Application.Document.Type;
+import com.example.abroad.respository.ApplicationRepository;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.model.Application;
 import com.example.abroad.respository.DocumentRepository;
@@ -24,6 +25,7 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final ProgramRepository programRepository;
     private final FormatService formatService;
+    private final ApplicationRepository applicationRepository;
     private static final long MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB
     private static final String PDF_MAGIC_NUMBER = "%PDF-";
     private static final Logger logger = LoggerFactory.getLogger(DocumentService.class);
@@ -31,10 +33,12 @@ public class DocumentService {
     public DocumentService(
             DocumentRepository documentRepository,
             ProgramRepository programRepository,
+            ApplicationRepository applicationRepository,
             FormatService formatService) {
         this.documentRepository = documentRepository;
         this.programRepository = programRepository;
         this.formatService = formatService;
+        this.applicationRepository = applicationRepository;
     }
 
     public record DocumentStatus(
@@ -167,5 +171,9 @@ public class DocumentService {
             case MEDICAL_HISTORY -> "/forms/medical-history.pdf";
             case HOUSING -> "/forms/housing-form.pdf";
         };
+    }
+
+    public Optional<Application> getApplicationById(String applicationId) {
+        return applicationRepository.findById(applicationId);
     }
 }

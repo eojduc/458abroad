@@ -71,14 +71,37 @@ public class DocumentController {
             @PathVariable Document.Type type,
             HttpSession session
     ) {
-        if (this.userService.findUserFromSession(session).isEmpty()) {
+        // First check if user is logged in
+        var userOpt = this.userService.findUserFromSession(session);
+        if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create("/login?error=Not logged in"))
                     .build();
         }
 
-        logger.info("Attempting to view document for application {} type {}", applicationId, type);
+        // Get the current logged-in user
+        var user = userOpt.get();
 
+        logger.info("User {} attempting to view document for application {} type {}",
+                user.username(), applicationId, type);
+
+        // Get the application to check ownership
+        var applicationOpt = documentService.getApplicationById(applicationId);
+        if (applicationOpt.isEmpty()) {
+            logger.warn("Application not found: {}", applicationId);
+            return ResponseEntity.notFound().build();
+        }
+
+        // Check if the current user is the owner of the application
+        var application = applicationOpt.get();
+        if (!application.student().equals(user.username())) {
+            logger.warn("User {} attempted unauthorized access to application {} owned by {}",
+                    user.username(), applicationId, application.student());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You do not have permission to access this document");
+        }
+
+        // Now proceed with getting the document
         var document = this.documentService.getDocument(applicationId, type);
         if (document.isEmpty()) {
             logger.warn("Document not found");
