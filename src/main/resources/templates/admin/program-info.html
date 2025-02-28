@@ -42,6 +42,10 @@
             <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
           </tr>
           <tr class="border-base-300 border-y-2">
+            <td>Document Deadline</td>
+            <td th:text="${formatter.formatLocalDate(program.documentDeadline)}"></td>
+          </tr>
+          <tr class="border-base-300 border-y-2">
             <td>Application Open</td>
             <td th:text="${formatter.formatLocalDate(program.applicationOpen)}"></td>
           </tr>

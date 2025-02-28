@@ -9,8 +9,11 @@ import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.function.Predicate;
 
 @Service
@@ -22,7 +25,7 @@ public record AdminUserService(
 ) {
 
   public enum Sort {
-    NAME, EMAIL, ROLE, USER_TYPE
+    NAME, USERNAME, EMAIL, ROLE, USER_TYPE
   }
 
   public sealed interface GetAllUsersInfo {
@@ -42,7 +45,8 @@ public record AdminUserService(
   public record UserInfo(
     User user,
     List<Program> facultyLeadPrograms,
-    List<Application> applications
+    List<Application> applications,
+    Map<String, String> applicationPrograms
   ) {
   }
 
@@ -82,7 +86,16 @@ public record AdminUserService(
   private UserInfo getUserInfo(User user) {
     var facultyLeadPrograms = programService.findFacultyPrograms(user);
     var applications = applicationService.findByStudent(user);
-    return new UserInfo(user, facultyLeadPrograms, applications);
+
+    // Create a map of application ID to program name
+    Map<String, String> applicationPrograms = new HashMap<>();
+    for (Application app : applications) {
+      programService.findById(app.programId()).ifPresent(program ->
+              applicationPrograms.put(app.id(), program.title())
+      );
+    }
+
+    return new UserInfo(user, facultyLeadPrograms, applications, applicationPrograms);
   }
 
   private Predicate<UserInfo> matchesSearchFilter(String searchTerm) {
@@ -92,13 +105,15 @@ public record AdminUserService(
       }
       String lowercaseSearch = searchTerm.toLowerCase();
       return userInfo.user().displayName().toLowerCase().contains(lowercaseSearch) ||
-        userInfo.user().email().toLowerCase().contains(lowercaseSearch);
+              userInfo.user().username().toLowerCase().contains(lowercaseSearch) ||
+              userInfo.user().email().toLowerCase().contains(lowercaseSearch);
     };
   }
 
   private Comparator<UserInfo> getSortComparator(Sort sort, Boolean ascending) {
     Comparator<UserInfo> comparator = switch (sort) {
       case NAME -> Comparator.comparing(userInfo -> userInfo.user().displayName());
+      case USERNAME -> Comparator.comparing(userInfo -> userInfo.user().username());
       case EMAIL -> Comparator.comparing(userInfo -> userInfo.user().email());
       case ROLE -> Comparator.comparing(userInfo -> userInfo.user().role().toString());
       case USER_TYPE -> Comparator.comparing(userInfo -> userInfo.user().isLocal() ? "Local" : "SSO");

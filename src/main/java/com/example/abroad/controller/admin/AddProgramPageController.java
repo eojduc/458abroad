@@ -7,12 +7,16 @@ import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.AddProgramService;
 import com.example.abroad.service.page.AddProgramService.AddProgramInfo;
 import com.example.abroad.service.page.AddProgramService.GetAddProgramInfo;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,32 +54,45 @@ public record AddProgramPageController(AddProgramService service, FormatService 
       }
     }
   }
-
   @PostMapping("/admin/programs/new")
-  public String addProgramPage(@RequestParam String title, @RequestParam String description,
-      @RequestParam Integer year, @RequestParam LocalDate startDate,
+  public String addProgramPage(
+      @RequestParam String title,
+      @RequestParam String description,
+      @RequestParam List<String> facultyLeads,
+      @RequestParam LocalDate essentialDocsDate,
+      @RequestParam Integer year,
+      @RequestParam LocalDate startDate,
       @RequestParam LocalDate endDate,
-      @RequestParam Semester semester, @RequestParam LocalDate applicationOpen,
-      @RequestParam LocalDate applicationClose, HttpSession session, Model model) {
-    return switch (service.addProgramInfo(title, description, year, startDate, endDate,
-        semester, applicationOpen, applicationClose, session)) {
-      case AddProgramInfo.Success(Integer programId) ->
-          String.format("redirect:/admin/programs/%d?success=Program created", programId);
-      case AddProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
-      case AddProgramInfo.UserNotAdmin() -> "redirect:/?error=You are not an admin";
+      @RequestParam Semester semester,
+      @RequestParam LocalDate applicationOpen,
+      @RequestParam LocalDate applicationClose,
+      HttpSession session,
+      Model model,
+      HttpServletResponse response) {
+
+    return switch (service.addProgramInfo(title, description, facultyLeads, year, startDate, endDate,
+        essentialDocsDate, semester, applicationOpen, applicationClose, session)) {
+      case AddProgramInfo.Success(Integer programId) -> {
+        response.setHeader("HX-Redirect", String.format("/admin/programs/%d?success=Program created", programId));
+        yield "components :: empty";  // Return a minimal fragment
+      }
+      case AddProgramInfo.NotLoggedIn() -> {
+        response.setHeader("HX-Redirect", "/login?error=You are not logged in");
+        yield "components :: empty";  // Return a minimal fragment
+      }
+      case AddProgramInfo.UserNotAdmin() -> {
+        response.setHeader("HX-Redirect", "/?error=You are not an admin");
+        yield "components :: empty";  // Return a minimal fragment
+      }
       case AddProgramInfo.InvalidProgramInfo(var message) -> {
-        model.addAttribute("alerts",
-            new Alerts(Optional.of(message), Optional.empty(), Optional.empty(), Optional.empty()));
-        yield "components :: alerts";
+        model.addAttribute("alerts", new Alerts(Optional.of(message), Optional.empty(), Optional.empty(), Optional.empty()));
+        yield "components :: alerts";  // Return the alerts fragment
       }
       case AddProgramInfo.DatabaseError(var message) -> {
         logger.error("Error saving program: {}", message);
-        model.addAttribute("alerts",
-            new Alerts(Optional.of("An unknown error occurred"), Optional.empty(), Optional.empty(),
-                Optional.empty()));
-        yield "components :: alerts";
+        model.addAttribute("alerts", new Alerts(Optional.of("An unknown error occurred"), Optional.empty(), Optional.empty(), Optional.empty()));
+        yield "components :: alerts";  // Return the alerts fragment
       }
     };
   }
-
 }

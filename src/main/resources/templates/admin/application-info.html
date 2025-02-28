@@ -136,7 +136,7 @@
         <div class="m-4 flex flex-col gap-5">
           <div class="flex flex-col gap-2">
             <div th:if="${documents.medicalHistory.isPresent()}" class="flex flex-row gap-2 items-center">
-              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${documents.medicalHistory.get().id}, type='MEDICAL_HISTORY')}"
+              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${_application.id}, type='MEDICAL_HISTORY')}"
                  class="link link-secondary" th:text="${documents.medicalHistory.get().type.text()}"></a>
               <span class="text-xs" th:text="${formatter.formatInstant(documents.medicalHistory.get().timestamp)}"></span>
             </div>
@@ -144,7 +144,7 @@
               <span class="text-xs">No medical history document uploaded</span>
             </div>
             <div th:if="${documents.codeOfConduct.isPresent()}" class="flex flex-row gap-2 items-center">
-              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${documents.codeOfConduct.get().id}, type='CODE_OF_CONDUCT')}"
+              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${_application.id}, type='CODE_OF_CONDUCT')}"
                  class="link link-secondary" th:text="${documents.codeOfConduct.get().type.text()}"></a>
               <span class="text-xs" th:text="${formatter.formatInstant(documents.codeOfConduct.get().timestamp)}"></span>
             </div>
@@ -152,8 +152,8 @@
               <span class="text-xs">No code of conduct document uploaded</span>
             </div>
             <div th:if="${documents.housing.isPresent()}" class="flex flex-row gap-2 items-center">
-              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${documents.housing.get().id}, type='HOUSING')}"
-                 class="link link-secondary" th:text="${documents.housing.get().name.type.text()}"></a>
+              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${_application.id}, type='HOUSING')}"
+                 class="link link-secondary" th:text="${documents.housing.get().type.text()}"></a>
               <span class="text-xs" th:text="${formatter.formatInstant(documents.housing.get().timestamp)}"></span>
             </div>
             <div th:unless="${documents.housing.isPresent()}" class="flex flex-row gap-2">
@@ -161,7 +161,7 @@
             </div>
             <div th:if="${documents.assumptionOfRisk.isPresent()}" class="flex flex-row gap-2 items-center">
               <a
-                  th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${documents.assumptionOfRisk.get().id}, type='ASSUMPTION_OF_RISK')}"
+                  th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${_application.id}, type='ASSUMPTION_OF_RISK')}"
                  class="link link-secondary" th:text="${documents.assumptionOfRisk.get().type.text()}"></a>
               <span class="text-xs" th:text="${formatter.formatInstant(documents.assumptionOfRisk.get().timestamp)}"></span>
             </div>

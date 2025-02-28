@@ -25,8 +25,16 @@ import java.sql.SQLException;
 
 @Controller
 @RequestMapping("/applications/{applicationId}/documents")
-public record DocumentController(DocumentService documentService, UserService userService) {
+public class DocumentController {
     private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
+
+    private final DocumentService documentService;
+    private final UserService userService;
+
+    public DocumentController(DocumentService documentService, UserService userService) {
+        this.documentService = documentService;
+        this.userService = userService;
+    }
 
     @PostMapping
     public String uploadDocument(
@@ -43,29 +51,57 @@ public record DocumentController(DocumentService documentService, UserService us
         try {
             documentService.uploadDocument(applicationId, type, file);
             String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
-            return "redirect:/applications?success=" + message;
+            return "redirect:/applications/" + applicationId + "?success=" + message + "#documents";
         } catch (IllegalArgumentException e) {
-            return "redirect:/applications?error=" + e.getMessage();
+            // This correctly handles validation errors
+            return "redirect:/applications/" + applicationId + "?error=" + e.getMessage() + "#documents";
         } catch (RuntimeException e) {
-            String errorMessage = isUpdate ? "Failed to update document" : "Failed to upload document";
-            return "redirect:/applications?error=" + errorMessage;
+            // This is a generic error handler
+            logger.error("Error uploading document", e);
+            String errorMessage = isUpdate ? "Failed to update document: " : "Failed to upload document: ";
+            errorMessage += e.getMessage();
+            return "redirect:/applications/" + applicationId + "?error=" + errorMessage + "#documents";
         }
     }
 
     @GetMapping("/{type}/view")
+    @Transactional
     public ResponseEntity<?> viewDocument(
             @PathVariable String applicationId,
             @PathVariable Document.Type type,
             HttpSession session
     ) {
-        if (this.userService.findUserFromSession(session).isEmpty()) {
+        // First check if user is logged in
+        var userOpt = this.userService.findUserFromSession(session);
+        if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create("/login?error=Not logged in"))
                     .build();
         }
 
-        logger.info("Attempting to view document for application {} type {}", applicationId, type);
+        // Get the current logged-in user
+        var user = userOpt.get();
 
+        logger.info("User {} attempting to view document for application {} type {}",
+                user.username(), applicationId, type);
+
+        // Get the application to check ownership
+        var applicationOpt = documentService.getApplicationById(applicationId);
+        if (applicationOpt.isEmpty()) {
+            logger.warn("Application not found: {}", applicationId);
+            return ResponseEntity.notFound().build();
+        }
+
+        // Check if the current user is the owner of the application
+        var application = applicationOpt.get();
+        if (!application.student().equals(user.username())  && !user.isAdmin()) {
+            logger.warn("User {} attempted unauthorized access to application {} owned by {}",
+                    user.username(), applicationId, application.student());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You do not have permission to access this document");
+        }
+
+        // Now proceed with getting the document
         var document = this.documentService.getDocument(applicationId, type);
         if (document.isEmpty()) {
             logger.warn("Document not found");

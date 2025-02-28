@@ -38,7 +38,7 @@
               <p th:text="${formatter.formatDateRange(programAndStatus.program.startDate, programAndStatus.program.endDate)}"></p>
             </div>
             <div class="collapse-content flex flex-col gap-4">
-              <p class="text-sm" th:text="${programAndStatus.program.description}"></p>
+              <p class="whitespace-pre-line" th:text="${programAndStatus.program.description}"></p>
               <table class="table table-compact w-fit ">
                 <tbody>
                 <tr class="border-base-200 border-y-2">
@@ -48,6 +48,10 @@
                 <tr class="border-base-200 border-y-2">
                   <td>Application Opens</td>
                   <td th:text="${formatter.formatLocalDate(programAndStatus.program.applicationOpen)}"></td>
+                </tr>
+                <tr class="border-base-200 border-y-2">
+                  <td>All Documents Due</td>
+                  <td th:text="${formatter.formatLocalDate(programAndStatus.program.documentDeadline)}"></td>
                 </tr>
                 <tr class="border-base-200 border-y-2">
                   <td>Application Closes</td>
@@ -80,7 +84,8 @@
       th:fragment="filterForm(path)"
       id="filterForm">
   <div xmlns:th="http://www.thymeleaf.org" th:fragment="filterForm(path)">
-    <div class="flex flex-col gap-4">
+    <div class="flex gap-4 items-center">
+      <span class="text-lg">Filters:</span>
       <!-- Keyword search -->
       <label>
         <input type="text"
@@ -98,22 +103,20 @@
 
       <!-- Keyword search Faculty Lead -->
       <label>
-        <input type="text"
-               name="leadFilter"
-               placeholder="Search faculty..."
-               class="input"
-               th:value="${leadKeyword}"
-               th:list="facultyLeadsList"
-               th:hx-get="@{${path}}"
-               hx-trigger="input delay:300ms"
-               hx-include="#filterForm"
-               autocomplete="off"
-               hx-target="#programTable"
-               hx-swap="outerHTML"/>
+        <select name="leadFilter" multiple
+                class="select"
+                size="4"
+                th:value="${leadKeyword}"
+                th:hx-get="@{${path}}"
+                hx-trigger="change"
+                hx-include="#filterForm"
+                autocomplete="off"
+                hx-target="#programTable"
+                hx-swap="outerHTML">
+          <option th:each="lead : ${knownFacultyLeads}" th:value="${lead.username}"
+                  th:text="${formatter.displayUserClean(lead)}"></option>
+        </select>
       </label>
-      <datalist id="facultyLeadsList">
-        <option th:each="lead : ${knownFacultyLeads}" th:value="${lead}"></option>
-      </datalist>
     </div>
   </div>
 </form>

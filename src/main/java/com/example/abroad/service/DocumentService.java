@@ -1,6 +1,7 @@
 package com.example.abroad.service;
 
 import com.example.abroad.model.Application.Document.Type;
+import com.example.abroad.respository.ApplicationRepository;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.model.Application;
 import com.example.abroad.respository.DocumentRepository;
@@ -19,10 +20,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class DocumentService {
     private final DocumentRepository documentRepository;
     private final ProgramRepository programRepository;
     private final FormatService formatService;
+    private final ApplicationRepository applicationRepository;
     private static final long MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB
     private static final String PDF_MAGIC_NUMBER = "%PDF-";
     private static final Logger logger = LoggerFactory.getLogger(DocumentService.class);
@@ -30,10 +33,12 @@ public class DocumentService {
     public DocumentService(
             DocumentRepository documentRepository,
             ProgramRepository programRepository,
+            ApplicationRepository applicationRepository,
             FormatService formatService) {
         this.documentRepository = documentRepository;
         this.programRepository = programRepository;
         this.formatService = formatService;
+        this.applicationRepository = applicationRepository;
     }
 
     public record DocumentStatus(
@@ -88,14 +93,13 @@ public class DocumentService {
     @Transactional
     public void uploadDocument(String applicationId, Type type, MultipartFile file) {
         var validation = validatePDF(file);
-        if (validation instanceof Validation.Invalid(String errorMessage)) {
-            throw new IllegalArgumentException(errorMessage);
+        if (validation instanceof Validation.Invalid invalid) {
+            throw new IllegalArgumentException(invalid.errorMessage());
         }
 
         try {
             logger.info("Uploading document of size: {}", file.getSize());
 
-            // Check if document already exists
             Optional<Application.Document> existingDoc = documentRepository.findById(
                     new Application.Document.ID(type, applicationId)
             );
@@ -103,7 +107,7 @@ public class DocumentService {
             // Create new document with current timestamp
             Application.Document document = new Application.Document(
                     type,
-                    Instant.now(), // This will be the latest timestamp
+                    Instant.now(),
                     BlobProxy.generateProxy(file.getInputStream(), file.getSize()),
                     applicationId
             );
@@ -119,7 +123,10 @@ public class DocumentService {
 
         } catch (IOException e) {
             logger.error("Failed to store document", e);
-            throw new RuntimeException("Failed to store document", e);
+            throw new IllegalArgumentException("Failed to process the file: " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error storing document", e);
+            throw new IllegalArgumentException("Failed to save document: " + e.getMessage());
         }
     }
 
@@ -164,5 +171,9 @@ public class DocumentService {
             case MEDICAL_HISTORY -> "/forms/medical-history.pdf";
             case HOUSING -> "/forms/housing-form.pdf";
         };
+    }
+
+    public Optional<Application> getApplicationById(String applicationId) {
+        return applicationRepository.findById(applicationId);
     }
 }

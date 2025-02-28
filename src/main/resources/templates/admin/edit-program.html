@@ -51,8 +51,9 @@
           <div class="label">
             <span class="label-text">Faculty Leads</span>
           </div>
-          <select class="select select-bordered w-full"
+          <select class="select w-full"
                   name="facultyLeads"
+                  size="5"
                   multiple>
             <option th:each="facultyLead : ${facultyLeads}"
                     th:value="${facultyLead.username}"
