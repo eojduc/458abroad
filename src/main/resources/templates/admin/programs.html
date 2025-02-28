@@ -67,6 +67,7 @@
     <th th:replace="~{this :: sortableHeader('Faculty Lead', 'FACULTY_LEAD', '')}"></th>
     <th th:replace="~{this :: sortableHeader('App Opens', 'APP_OPENS', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('App Closes', 'APP_CLOSES', 'date-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Documents Due', 'ESSENTIAL_DOCS', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('Start Date', 'START_DATE', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('End Date', 'END_DATE', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('Applied', 'APPLIED', 'count-col')}"></th>
@@ -90,6 +91,7 @@
     <td th:text="${formatter.formatFacultyLeads(programAndStatus.facultyLeads)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.applicationOpen)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.applicationClose)}"></td>
+    <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.documentDeadline)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.startDate)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.endDate)}"></td>
     <td class="count-col text-center" th:text="${programAndStatus.applied}"></td>

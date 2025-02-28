@@ -30,7 +30,7 @@ public record AdminProgramsService(
   static Logger logger = LoggerFactory.getLogger(AdminProgramsService.class);
 
   public enum Sort {
-    TITLE, SEM_DATE, APP_OPENS, APP_CLOSES, START_DATE, END_DATE, FACULTY_LEAD, APPLIED, ELIGIBLE, ENROLLED,
+    TITLE, SEM_DATE, APP_OPENS, APP_CLOSES, START_DATE, END_DATE, ESSENTIAL_DOCS, FACULTY_LEAD, APPLIED, ELIGIBLE, ENROLLED,
     APPROVED, CANCELED, WITHDRAWN, TOTAL_ACTIVE, COMPLETED
   }
 
@@ -160,6 +160,8 @@ public record AdminProgramsService(
           programAndStatuses -> programAndStatuses.program().applicationOpen());
       case APP_CLOSES -> Comparator.comparing(
           programAndStatuses -> programAndStatuses.program().applicationClose());
+      case ESSENTIAL_DOCS -> Comparator.comparing(
+          programAndStatuses -> programAndStatuses.program().documentDeadline());
       case START_DATE ->
           Comparator.comparing(programAndStatuses -> programAndStatuses.program().startDate());
       case END_DATE ->

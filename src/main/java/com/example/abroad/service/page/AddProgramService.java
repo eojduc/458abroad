@@ -6,6 +6,7 @@ import com.example.abroad.model.User;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.ProgramService.SaveProgram;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.Year;
@@ -27,7 +28,7 @@ public record AddProgramService(UserService userService, ProgramService programS
   }
 
   public AddProgramInfo addProgramInfo(
-    String title, String description, Integer year, LocalDate startDate, LocalDate endDate,
+    String title, String description, List<String> facultyLeads, Integer year, LocalDate startDate, LocalDate endDate, LocalDate essentialDocsDate,
     Semester semester, LocalDate applicationOpen, LocalDate applicationClose, HttpSession session
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -39,21 +40,23 @@ public record AddProgramService(UserService userService, ProgramService programS
     }
     Program program = new Program(
       null, title, Year.of(year), semester, applicationOpen, applicationClose,
-      null, //TODO MAKE NOT NULL
-      startDate, endDate, description
+      essentialDocsDate, startDate, endDate, description
     );
    return switch (programService.saveProgram(program)) {
      case SaveProgram.InvalidProgramInfo(var message) -> new AddProgramInfo.InvalidProgramInfo(message);
-      case SaveProgram.Success(var p) -> new AddProgramInfo.Success(p.id());
+     case SaveProgram.Success(var prog) -> {
+       var leadUsers = userService.findAll().stream()
+           .filter(u -> facultyLeads.contains(u.username()))
+           .toList();
+       programService.setFacultyLeads(prog, leadUsers);
+       yield new AddProgramInfo.Success(prog.id());
+     }
      case SaveProgram.DatabaseError(var message) -> new AddProgramInfo.DatabaseError(message);
     };
   }
 
-  public List<String> getAdminList() {
-    return userService.findAll().stream()
-        .filter(User::isAdmin)
-        .map(User::username)
-        .toList();
+  public List<? extends User> getAdminList() {
+    return userService.findAll().stream().filter(User::isAdmin).toList();
   }
 
 
