@@ -20,7 +20,7 @@ public record DashboardService(UserService userService, SSOService ssoService) {
   public GetDashboard getDashboard(HttpSession session, HttpServletRequest request) {
     SSOResult ssoResult = ssoService.authenticateSSO(request, session);
     if (ssoResult instanceof SSOResult.UsernameTaken(String message)) {
-      String redirectUrl = SSOService.buildLogoutUrl("/register", "", message);
+      String redirectUrl = ssoService.buildLogoutUrl("/register", "", message);
       return new SSOUsernameTaken("/Shibboleth.sso/Logout?return=" + redirectUrl);
     }
     var user = userService.findUserFromSession(session).orElse(null);
