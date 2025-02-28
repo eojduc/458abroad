@@ -43,12 +43,13 @@ public record DocumentController(DocumentService documentService, UserService us
         try {
             documentService.uploadDocument(applicationId, type, file);
             String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
-            return "redirect:/applications?success=" + message;
+            // Redirect back to the application detail page instead of the list view
+            return "redirect:/applications/" + applicationId + "?success=" + message + "#documents";
         } catch (IllegalArgumentException e) {
-            return "redirect:/applications?error=" + e.getMessage();
+            return "redirect:/applications/" + applicationId + "?error=" + e.getMessage() + "#documents";
         } catch (RuntimeException e) {
             String errorMessage = isUpdate ? "Failed to update document" : "Failed to upload document";
-            return "redirect:/applications?error=" + errorMessage;
+            return "redirect:/applications/" + applicationId + "?error=" + errorMessage + "#documents";
         }
     }
 

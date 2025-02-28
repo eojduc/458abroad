@@ -1,5 +1,5 @@
 id,student,programId,dateOfBirth,gpa,major,status
-1-tylerharris352,tylerharris352,1,2011-05-12,3.08,Biology,APPLIED
+1-tylerharris352,tylerharris352,1,2011-05-12,3.08,Biology,ENROLLED
 7-tylerharris352,tylerharris352,7,2011-05-12,3.08,Biology,ENROLLED
 1-davidclark074,davidclark074,1,2006-09-23,2.69,Psychology,CANCELLED
 2-elizabethjohnson303,elizabethjohnson303,2,1995-06-09,3.43,Psychology,ENROLLED
