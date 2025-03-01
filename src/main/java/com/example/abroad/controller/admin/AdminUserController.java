@@ -104,6 +104,8 @@ public record AdminUserController(
         "redirect:/home?error=You are not an admin";
       case AdminUserService.ModifyUserResult.CannotModifySuperAdmin() ->
         "redirect:/admin/users?error=Cannot modify super admin account";
+      case AdminUserService.ModifyUserResult.CannotModifySelf() ->
+        "redirect:/admin/users?error=Cannot modify your own admin status";
       case AdminUserService.ModifyUserResult.RequiresConfirmation(var targetUser, var programs) -> {
         model.addAttribute("username", targetUser);
         model.addAttribute("programs", programs);

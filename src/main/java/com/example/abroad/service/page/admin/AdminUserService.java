@@ -134,6 +134,9 @@ public record AdminUserService(
     record CannotModifySuperAdmin() implements ModifyUserResult {
     }
 
+    record CannotModifySelf() implements ModifyUserResult {
+    }
+
     record RequiresConfirmation(
       String username,
       List<Program> affectedPrograms
@@ -165,6 +168,10 @@ public record AdminUserService(
     // Prevent modifying super admin
     if (targetUsername.equals("admin")) {
       return new ModifyUserResult.CannotModifySuperAdmin();
+    }
+
+    if(targetUsername.equals(adminUser.username())) {
+      return new ModifyUserResult.CannotModifySelf();
     }
 
     // If revoking admin privileges, check faculty lead status
