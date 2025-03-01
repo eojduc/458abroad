@@ -3,6 +3,8 @@ package com.example.abroad.service.page;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.AccountService.ChangePassword;
+
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -72,6 +74,7 @@ public record AuthService(
     record Success() implements RegisterResult {}
     record UsernameExists() implements RegisterResult {}
     record EmailExists() implements RegisterResult {}
+    record PasswordMismatch() implements RegisterResult {}
     record AuthenticationError(Exception error) implements RegisterResult {}
   }
 
@@ -80,8 +83,12 @@ public record AuthService(
     String displayName,
     String email,
     String password,
+    String confirmPassword,
     HttpSession session) {
 
+    if (!password.equals(confirmPassword)) {
+      return new RegisterResult.PasswordMismatch();
+    }
     var users = userService.findAll();
     if (users.stream().anyMatch(u -> u.username().equals(username))) {
       return new RegisterResult.UsernameExists();
