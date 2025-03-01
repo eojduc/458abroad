@@ -7,5 +7,5 @@ id,student,programId,dateOfBirth,gpa,major,status
 1-emilyharris658,emilyharris658,1,2001-04-12,3.64,Biology,WITHDRAWN
 3-elizabethlewis588,elizabethlewis588,3,2000-03-16,3.1,Psychology,ENROLLED
 3-jessicasmith684,jessicasmith684,3,2008-08-08,3.00,Engineering,WITHDRAWN
-2-jessicasmith684,jessicasmith684,2,2008-08-08,3.00,Engineering,CANCELED
+2-jessicasmith684,jessicasmith684,2,2008-08-08,3.00,Engineering,CANCELLED
 2-jessicasmith610,jessicasmith610,2,2001-07-07,3.60,Computer Science,APPLIED
