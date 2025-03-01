@@ -14,11 +14,11 @@ import jakarta.servlet.http.HttpSession;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 
 @Service
 public record ListApplicationsService(
@@ -55,6 +55,7 @@ public record ListApplicationsService(
       case DOCUMENT_CONDUCT -> documentTypeComparator(ascending, Application.Document.Type.CODE_OF_CONDUCT);
       case DOCUMENT_MEDICAL -> documentTypeComparator(ascending, Application.Document.Type.MEDICAL_HISTORY);
       case DOCUMENT_HOUSING -> documentTypeComparator(ascending, Application.Document.Type.HOUSING);
+      case DOCUMENT_DEADLINE -> documentDeadlineComparator(ascending);
       case DOCUMENTS -> documentComparator(ascending); // Keep for backward compatibility
     };
 
@@ -89,12 +90,82 @@ public record ListApplicationsService(
                     sort == Sort.DOCUMENT_RISK ||
                     sort == Sort.DOCUMENT_CONDUCT ||
                     sort == Sort.DOCUMENT_MEDICAL ||
-                    sort == Sort.DOCUMENT_HOUSING ? sorter : (ascending ? sorter : sorter.reversed())) // Apply sorting
+                    sort == Sort.DOCUMENT_HOUSING ||
+                    sort == Sort.DOCUMENT_DEADLINE ? sorter : (ascending ? sorter : sorter.reversed())) // Apply sorting
             .toList();
 
     return new GetApplicationsResult.Success(enrichedPairs, user);
   }
 
+  private Comparator<PairWithDocuments> documentDeadlineComparator(boolean ascending) {
+    if (ascending) {
+      // Ascending order: earlier deadlines first
+      return (pair1, pair2) -> {
+        // Check if applications need documents (are approved or enrolled)
+        boolean pair1NeedsDocuments = needsDocuments(pair1.app());
+        boolean pair2NeedsDocuments = needsDocuments(pair2.app());
+
+        // If different needs
+        if (pair1NeedsDocuments != pair2NeedsDocuments) {
+          return pair1NeedsDocuments ? 1 : -1; // Applications without doc needs come first
+        }
+
+        // If neither needs documents, sort by title
+        if (!pair1NeedsDocuments) {
+          return pair1.prog().title().compareTo(pair2.prog().title());
+        }
+
+        // Both need documents, compare by deadline
+        // Extract deadlines - if no documents, use maximum LocalDate value as default
+        LocalDate deadline1 = pair1.documents != null && !pair1.documents.isEmpty()
+                ? pair1.documents.get(0).deadline()
+                : LocalDate.MAX;
+
+        LocalDate deadline2 = pair2.documents != null && !pair2.documents.isEmpty()
+                ? pair2.documents.get(0).deadline()
+                : LocalDate.MAX;
+
+        // Compare deadlines
+        int deadlineComparison = deadline1.compareTo(deadline2);
+
+        // If deadlines are the same, sort by title
+        return deadlineComparison != 0 ? deadlineComparison : pair1.prog().title().compareTo(pair2.prog().title());
+      };
+    } else {
+      // Descending order: later deadlines first
+      return (pair1, pair2) -> {
+        // Check if applications need documents (are approved or enrolled)
+        boolean pair1NeedsDocuments = needsDocuments(pair1.app());
+        boolean pair2NeedsDocuments = needsDocuments(pair2.app());
+
+        // If different needs
+        if (pair1NeedsDocuments != pair2NeedsDocuments) {
+          return pair1NeedsDocuments ? -1 : 1; // Applications with doc needs come first
+        }
+
+        // If neither needs documents, sort by title
+        if (!pair1NeedsDocuments) {
+          return pair1.prog().title().compareTo(pair2.prog().title());
+        }
+
+        // Both need documents, compare by deadline
+        // Extract deadlines - if no documents, use minimum LocalDate value as default
+        LocalDate deadline1 = pair1.documents != null && !pair1.documents.isEmpty()
+                ? pair1.documents.get(0).deadline()
+                : LocalDate.MIN;
+
+        LocalDate deadline2 = pair2.documents != null && !pair2.documents.isEmpty()
+                ? pair2.documents.get(0).deadline()
+                : LocalDate.MIN;
+
+        // Compare deadlines (reversed for descending order)
+        int deadlineComparison = deadline2.compareTo(deadline1);
+
+        // If deadlines are the same, sort by title
+        return deadlineComparison != 0 ? deadlineComparison : pair1.prog().title().compareTo(pair2.prog().title());
+      };
+    }
+  }
 
   private Comparator<PairWithDocuments> documentTypeComparator(boolean ascending, Application.Document.Type docType) {
     if (ascending) {
@@ -244,13 +315,13 @@ public record ListApplicationsService(
     DOCUMENT_RISK,           // Assumption of Risk document
     DOCUMENT_CONDUCT,        // Code of Conduct document
     DOCUMENT_MEDICAL,        // Medical History document
-    DOCUMENT_HOUSING         // Housing Form document
+    DOCUMENT_HOUSING,        // Housing Form document
+    DOCUMENT_DEADLINE        // Document deadline
   }
 
 
   public record Pair(Application app, Program prog) {
   }
-
 
 
   public static Stream<Pair> join(List<Program> programs, List<Application> applications) {
