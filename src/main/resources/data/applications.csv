@@ -1,14 +1,11 @@
 id,student,programId,dateOfBirth,gpa,major,status
-1-tylerharris352,tylerharris352,1,2011-05-12,3.08,Biology,ENROLLED
-7-tylerharris352,tylerharris352,7,2011-05-12,3.08,Biology,ENROLLED
-1-davidclark074,davidclark074,1,2006-09-23,2.69,Psychology,CANCELLED
-2-elizabethjohnson303,elizabethjohnson303,2,1995-06-09,3.43,Psychology,ENROLLED
-1-jamestaylor121,jamestaylor121,1,2012-01-23,2.67,Psychology,APPLIED
-1-emilyharris658,emilyharris658,1,2010-03-09,3.93,Biology,WITHDRAWN
-3-elizabethlewis588,elizabethlewis588,3,2004-02-22,2.84,Psychology,ENROLLED
-3-elizabethlewis588,elizabethlewis588,1,2004-02-22,2.84,Biology,APPROVED
-3-jessicasmith684,jessicasmith684,3,2002-05-26,2.71,Engineering,APPROVED
-2-jessicasmith684,jessicasmith684,2,2002-05-26,2.71,Engineering,APPROVED
-4-jessicasmith684,jessicasmith684,2,2002-05-26,2.71,Engineering,APPROVED
-5-jessicasmith684,jessicasmith684,2,2002-05-26,2.71,Engineering,APPROVED
-2-jessicasmith610,jessicasmith610,2,1995-10-24,3.03,Computer Science,APPLIED
+1-tylerharris352,tylerharris352,1,2004-09-01,3.52,Biology,APPLIED
+7-tylerharris352,tylerharris352,7,2004-09-01,3.52,Biology,ENROLLED
+1-davidclark074,davidclark074,1,2004-06-15,2.54,Psychology,CANCELLED
+2-elizabethjohnson303,elizabethjohnson303,2,2008-03-20,3.95,Psychology,ENROLLED
+1-jamestaylor121,jamestaylor121,1,2000-02-29,2.6,Psychology,APPLIED
+1-emilyharris658,emilyharris658,1,2001-04-12,3.64,Biology,WITHDRAWN
+3-elizabethlewis588,elizabethlewis588,3,2000-03-16,3.1,Psychology,ENROLLED
+3-jessicasmith684,jessicasmith684,3,2008-08-08,3.00,Engineering,WITHDRAWN
+2-jessicasmith684,jessicasmith684,2,2008-08-08,3.00,Engineering,CANCELED
+2-jessicasmith610,jessicasmith610,2,2001-07-07,3.60,Computer Science,APPLIED
