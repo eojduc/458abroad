@@ -6,6 +6,9 @@ id,student,programId,dateOfBirth,gpa,major,status
 1-jamestaylor121,jamestaylor121,1,2012-01-23,2.67,Psychology,APPLIED
 1-emilyharris658,emilyharris658,1,2010-03-09,3.93,Biology,WITHDRAWN
 3-elizabethlewis588,elizabethlewis588,3,2004-02-22,2.84,Psychology,ENROLLED
-3-jessicasmith684,jessicasmith684,3,2002-05-26,2.71,Engineering,WITHDRAWN
-2-jessicasmith684,jessicasmith684,2,2002-05-26,2.71,Engineering,WITHDRAWN
+3-elizabethlewis588,elizabethlewis588,1,2004-02-22,2.84,Biology,APPROVED
+3-jessicasmith684,jessicasmith684,3,2002-05-26,2.71,Engineering,APPROVED
+2-jessicasmith684,jessicasmith684,2,2002-05-26,2.71,Engineering,APPROVED
+4-jessicasmith684,jessicasmith684,2,2002-05-26,2.71,Engineering,APPROVED
+5-jessicasmith684,jessicasmith684,2,2002-05-26,2.71,Engineering,APPROVED
 2-jessicasmith610,jessicasmith610,2,1995-10-24,3.03,Computer Science,APPLIED

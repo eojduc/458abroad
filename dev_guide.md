@@ -124,6 +124,9 @@ The following schema was generated from the Spring Data JPA entities. The schema
 * Styling: TailwindCSS, DaisyUI
     * TailwindCSS is a utility-first CSS framework for rapidly building custom designs.
     * DaisyUI is a component library for TailwindCSS that provides additional components and utilities.
+* SSO: Shibboleth
+    * Shibboleth provides Single Sign-On (SSO) capabilities, allowing users to authenticate once and access multiple applications seamlessly.
+	* It is integrated via Apache using the Shibboleth module, ensuring that SSO endpoints (e.g., /Shibboleth.sso) are securely handled
 
 # How to Run
 

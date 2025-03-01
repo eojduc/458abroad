@@ -28,8 +28,17 @@
           <table class="table table-sm border-collapse w-fit">
             <tbody>
             <tr class="border-base-100 border-y-2">
-              <td>Faculty Lead</td>
-              <td>TODO</td>
+              <td>Faculty Lead(s)</td>
+              <td>
+                <div class="flex flex-col gap-1">
+                  <div th:each="lead : ${facultyLeads}" class="text-sm">
+                    <span th:text="${lead.username()}"></span>
+                  </div>
+                  <div th:if="${facultyLeads.isEmpty()}" class="text-base-content/50 italic text-sm">
+                    No faculty leads assigned
+                  </div>
+                </div>
+              </td>
             </tr>
             <tr class="border-base-100 border-y-2">
               <td>Term</td>
@@ -169,7 +178,7 @@
               <!-- When withdrawn, show Reactivate (modal-based) -->
               <div th:case="'WITHDRAWN'">
                 <button
-                        class="btn btn-success"
+                        class="btn btn-primary"
                         type="button"
                         onclick="reactivate_modal.showModal()"
                 >
@@ -380,10 +389,10 @@
     </p>
     <div class="modal-action gap-2">
       <form method="dialog" class="contents">
-        <button class="btn btn-secondary w-1/4">Cancel</button>
+        <button class="btn btn-outline w-1/4">Cancel</button>
       </form>
       <button
-              class="btn btn-success w-1/4"
+              class="btn btn-primary w-1/4"
               type="submit"
               form="reactivateForm"
               onclick="reactivate_modal.close()"
@@ -415,7 +424,7 @@
     </p>
     <div class="modal-action gap-2">
       <form method="dialog" class="contents">
-        <button class="btn btn-primary w-1/4">Cancel</button>
+        <button class="btn btn-outline w-1/4">Cancel</button>
       </form>
       <button
               class="btn btn-secondary w-1/4"

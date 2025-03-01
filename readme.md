@@ -23,4 +23,12 @@
 
 # Deployment Guide
 
+For detailed development guide, refer to the [Development Guide](dev_guide.md).
+
+# Deployment Guide
+
 For detailed deployment instructions, refer to the [Deployment Guide](deployment.md).
+
+# Security Guide
+
+For detailed security guide, refer to the [Security Guide](security.md).
