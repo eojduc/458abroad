@@ -238,25 +238,25 @@
               </svg>
               <span class="font-bold">
                     All required documents have been submitted. Your application is complete!
-                  </span>
+              </span>
             </div>
           </div>
 
           <!-- Document list -->
           <div th:if="${pair != null && pair.documents != null}" class="space-y-4">
             <div th:each="doc : ${pair.documents}"
-                 th:class="${doc.submitted} ? 'card bg-success bg-opacity-10 shadow-lg border border-success' : 'card bg-error bg-opacity-10 shadow-lg border border-error'">
+                 th:class="${doc.submitted} ? 'card card-bordered border-success' : 'card  card-bordered border-error'">
               <div class="card-body p-4">
                 <div class="flex items-center gap-2">
                   <!-- Status icon -->
-                  <span th:if="${doc.submitted}" class="bg-success text-white rounded-full p-1">
+                  <span th:if="${doc.submitted}" class="bg-success text-success-content rounded-full p-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                              class="w-5 h-5 stroke-current">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 13l4 4L19 7"/>
                         </svg>
                       </span>
-                  <span th:unless="${doc.submitted}" class="bg-error text-white rounded-full p-1">
+                  <span th:unless="${doc.submitted}" class="bg-error text-success-content rounded-full p-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                              class="w-5 h-5 stroke-current">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -268,7 +268,7 @@
                   <span th:text="${doc.type.text()}" class="text-base font-bold"></span>
 
                   <!-- Status text -->
-                  <span th:if="${doc.submitted}" class="badge badge-success">Completed</span>
+                  <span th:if="${doc.submitted}" class="badge badge-success">Submitted</span>
                   <span th:unless="${doc.submitted}" class="badge badge-error">Required</span>
 
                   <!-- View button and timestamp for submitted documents -->
