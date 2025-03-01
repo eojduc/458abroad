@@ -4,6 +4,7 @@ import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
 
+import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.DocumentService;
 import com.example.abroad.service.ProgramService;
@@ -21,7 +22,8 @@ public record ListApplicationsService(
         ApplicationService applicationService,
         ProgramService programService,
         DocumentService documentService,
-        UserService userService
+        UserService userService,
+        FacultyLeadRepository facultyLeadRepository
 ) {
 
   public GetApplicationsResult getApplications(HttpSession session, Sort sort, Boolean ascending) {
@@ -58,12 +60,15 @@ public record ListApplicationsService(
               // Count missing documents
               var missingCount = documentService.getMissingDocumentsCount(pair.app().id());
 
+              var facultyLeads = facultyLeadRepository.findById_ProgramId(pair.prog().id());
+
               // Create enriched pair with document information
               return new PairWithDocuments(
                       pair.app(),
                       pair.prog(),
                       documentStatuses,
-                      missingCount
+                      missingCount,
+                      facultyLeads
               );
             })
             .sorted(sort == Sort.DOCUMENTS ? sorter : (ascending ? sorter : sorter.reversed())) // Apply sorting
@@ -136,7 +141,8 @@ public record ListApplicationsService(
           Application app,
           Program prog,
           List<DocumentService.DocumentStatus> documents,
-          long missingDocumentsCount
+          long missingDocumentsCount,
+          List<Program.FacultyLead> facultyLeads
   ) {}
 
 
