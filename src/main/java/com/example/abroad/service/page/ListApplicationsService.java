@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @Service
 public record ListApplicationsService(
@@ -48,7 +51,11 @@ public record ListApplicationsService(
       case APPLICATION_OPEN -> Comparator.comparing(pair -> pair.prog().applicationOpen());
       case APPLICATION_CLOSED -> Comparator.comparing(pair -> pair.prog().applicationClose());
       case STATUS -> Comparator.comparing(pair -> pair.app().status().toString());
-      case DOCUMENTS -> documentComparator(ascending);
+      case DOCUMENT_RISK -> documentTypeComparator(ascending, Application.Document.Type.ASSUMPTION_OF_RISK);
+      case DOCUMENT_CONDUCT -> documentTypeComparator(ascending, Application.Document.Type.CODE_OF_CONDUCT);
+      case DOCUMENT_MEDICAL -> documentTypeComparator(ascending, Application.Document.Type.MEDICAL_HISTORY);
+      case DOCUMENT_HOUSING -> documentTypeComparator(ascending, Application.Document.Type.HOUSING);
+      case DOCUMENTS -> documentComparator(ascending); // Keep for backward compatibility
     };
 
     // Join and enrich data with document information
@@ -56,6 +63,12 @@ public record ListApplicationsService(
             .map(pair -> {
               // Get document statuses if application is approved or enrolled
               var documentStatuses = documentService.getDocumentStatuses(pair.app().id(), pair.prog().id());
+
+              // Create a map of document types to their status for easier lookup
+              Map<String, Boolean> documentStatusMap = new HashMap<>();
+              for (DocumentService.DocumentStatus status : documentStatuses) {
+                documentStatusMap.put(status.type().name(), status.submitted());
+              }
 
               // Count missing documents
               var missingCount = documentService.getMissingDocumentsCount(pair.app().id());
@@ -68,17 +81,83 @@ public record ListApplicationsService(
                       pair.prog(),
                       documentStatuses,
                       missingCount,
-                      facultyLeads
+                      facultyLeads,
+                      documentStatusMap
               );
             })
-            .sorted(sort == Sort.DOCUMENTS ? sorter : (ascending ? sorter : sorter.reversed())) // Apply sorting
+            .sorted(sort == Sort.DOCUMENTS ||
+                    sort == Sort.DOCUMENT_RISK ||
+                    sort == Sort.DOCUMENT_CONDUCT ||
+                    sort == Sort.DOCUMENT_MEDICAL ||
+                    sort == Sort.DOCUMENT_HOUSING ? sorter : (ascending ? sorter : sorter.reversed())) // Apply sorting
             .toList();
 
     return new GetApplicationsResult.Success(enrichedPairs, user);
   }
 
 
+  private Comparator<PairWithDocuments> documentTypeComparator(boolean ascending, Application.Document.Type docType) {
+    if (ascending) {
+      // Ascending order: missing documents first, then submitted
+      return (pair1, pair2) -> {
+        // Check if applications need documents (are approved or enrolled)
+        boolean pair1NeedsDocuments = needsDocuments(pair1.app());
+        boolean pair2NeedsDocuments = needsDocuments(pair2.app());
+
+        // If different needs
+        if (pair1NeedsDocuments != pair2NeedsDocuments) {
+          return pair1NeedsDocuments ? 1 : -1; // Applications without doc needs come first
+        }
+
+        // If neither needs documents, sort by title
+        if (!pair1NeedsDocuments) {
+          return pair1.prog().title().compareTo(pair2.prog().title());
+        }
+
+        // Both need documents, check specific document status
+        boolean pair1HasDoc = pair1.getDocumentStatus(docType.name());
+        boolean pair2HasDoc = pair2.getDocumentStatus(docType.name());
+
+        if (pair1HasDoc != pair2HasDoc) {
+          return pair1HasDoc ? 1 : -1; // Missing documents come first in ascending order
+        }
+
+        // If document status is the same, sort by title
+        return pair1.prog().title().compareTo(pair2.prog().title());
+      };
+    } else {
+      // Descending order: submitted documents first, then missing
+      return (pair1, pair2) -> {
+        // Check if applications need documents (are approved or enrolled)
+        boolean pair1NeedsDocuments = needsDocuments(pair1.app());
+        boolean pair2NeedsDocuments = needsDocuments(pair2.app());
+
+        // If different needs
+        if (pair1NeedsDocuments != pair2NeedsDocuments) {
+          return pair1NeedsDocuments ? -1 : 1; // Applications with doc needs come first
+        }
+
+        // If neither needs documents, sort by title
+        if (!pair1NeedsDocuments) {
+          return pair1.prog().title().compareTo(pair2.prog().title());
+        }
+
+        // Both need documents, check specific document status
+        boolean pair1HasDoc = pair1.getDocumentStatus(docType.name());
+        boolean pair2HasDoc = pair2.getDocumentStatus(docType.name());
+
+        if (pair1HasDoc != pair2HasDoc) {
+          return pair1HasDoc ? -1 : 1; // Submitted documents come first in descending order
+        }
+
+        // If document status is the same, sort by title
+        return pair1.prog().title().compareTo(pair2.prog().title());
+      };
+    }
+  }
+
   private Comparator<PairWithDocuments> documentComparator(boolean ascending) {
+    // Keep existing implementation for backward compatibility
     if (ascending) {
       // Ascending order: applications without doc requirements come first,
       // then least to greatest missing docs
@@ -142,8 +221,14 @@ public record ListApplicationsService(
           Program prog,
           List<DocumentService.DocumentStatus> documents,
           long missingDocumentsCount,
-          List<Program.FacultyLead> facultyLeads
-  ) {}
+          List<Program.FacultyLead> facultyLeads,
+          Map<String, Boolean> documentStatusMap
+  ) {
+    // Helper method to get document status
+    public boolean getDocumentStatus(String documentType) {
+      return documentStatusMap.getOrDefault(documentType, false);
+    }
+  }
 
 
   public enum Sort {
@@ -155,7 +240,11 @@ public record ListApplicationsService(
     APPLICATION_OPEN,
     APPLICATION_CLOSED,
     STATUS,
-    DOCUMENTS
+    DOCUMENTS,               // Keep for backward compatibility
+    DOCUMENT_RISK,           // Assumption of Risk document
+    DOCUMENT_CONDUCT,        // Code of Conduct document
+    DOCUMENT_MEDICAL,        // Medical History document
+    DOCUMENT_HOUSING         // Housing Form document
   }
 
 

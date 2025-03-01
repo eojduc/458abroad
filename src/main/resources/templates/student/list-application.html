@@ -42,7 +42,10 @@
               <th th:replace="~{this :: sortableHeader('Application Open', '/applications/sort', 'APPLICATION_OPEN', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Application Closed', '/applications/sort', 'APPLICATION_CLOSED', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Status', '/applications/sort', 'STATUS', '#programTable')}"></th>
-              <th th:replace="~{this :: sortableHeader('Essential Documents', '/applications/sort', 'DOCUMENTS', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Assumption of Risk', '/applications/sort', 'DOCUMENT_RISK', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Code of Conduct', '/applications/sort', 'DOCUMENT_CONDUCT', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Medical History', '/applications/sort', 'DOCUMENT_MEDICAL', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Housing Form', '/applications/sort', 'DOCUMENT_HOUSING', '#programTable')}"></th>
             </tr>
             </thead>
             <tbody>
@@ -72,53 +75,118 @@
               <td>
                 <div th:replace="~{components :: statusBadge(${pair.app().status().name()})}"></div>
               </td>
-              <!-- Essential Documents Column - ENHANCED -->
+
+              <!-- Assumption of Risk Document Column -->
               <td>
-                <!-- Show documents status for APPROVED or ENROLLED applications -->
                 <div th:if="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
-                     class="flex flex-col gap-2">
-                  <!-- Document status badge -->
-                  <div class="flex items-center gap-2">
-                    <span th:if="${pair.missingDocumentsCount == 0}" class="badge badge-success">
-                      Complete
-                    </span>
-                    <span th:if="${pair.missingDocumentsCount > 0}" class="badge badge-error animate-pulse">
-                      [[${pair.missingDocumentsCount}]] Missing
-                    </span>
+                     class="flex items-center gap-2">
+                  <!-- Document Status (Submitted vs Missing) -->
+                  <span th:if="${pair.getDocumentStatus('ASSUMPTION_OF_RISK')}" class="badge badge-success">
+                    Submitted
+                  </span>
+                  <span th:unless="${pair.getDocumentStatus('ASSUMPTION_OF_RISK')}" class="badge badge-error animate-pulse">
+                    Missing
+                  </span>
 
-                    <!-- View documents link -->
-                    <a th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
-                       th:class="${pair.missingDocumentsCount > 0} ? 'btn btn-xs btn-error btn-outline' : 'btn btn-xs btn-ghost'">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                           class="w-4 h-4 stroke-current">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                      </svg>
-                      <span th:if="${pair.missingDocumentsCount > 0}" class="ml-1 font-bold">Upload Now</span>
-                      <span th:unless="${pair.missingDocumentsCount > 0}" class="ml-1">View Details</span>
-                    </a>
-                  </div>
-
-                  <!-- Deadline warning for missing documents -->
-                  <div th:if="${pair.missingDocumentsCount > 0 && pair.documents != null && !pair.documents.isEmpty()}"
-                       class="text-xs font-bold text-error">
-                    <span th:with="doc=${pair.documents[0]}">
-                      <span th:if="${doc.deadline.isAfter(T(java.time.LocalDate).now())}"
-                            th:text="'Due in: ' + ${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), doc.deadline)} + ' days'">
-                      </span>
-                      <span th:unless="${doc.deadline.isAfter(T(java.time.LocalDate).now())}"
-                            th:text="'OVERDUE by: ' + ${T(java.time.temporal.ChronoUnit).DAYS.between(doc.deadline, T(java.time.LocalDate).now())} + ' days'">
-                      </span>
-                    </span>
-                  </div>
+                  <!-- Upload/View Button -->
+                  <a th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
+                     th:class="${!pair.getDocumentStatus('ASSUMPTION_OF_RISK')} ? 'btn btn-xs btn-error btn-outline' : 'btn btn-xs btn-ghost'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <span th:unless="${pair.getDocumentStatus('ASSUMPTION_OF_RISK')}" class="ml-1 font-bold">Upload</span>
+                    <span th:if="${pair.getDocumentStatus('ASSUMPTION_OF_RISK')}" class="ml-1">View</span>
+                  </a>
                 </div>
 
-                <!-- Message for non-approved/enrolled applications -->
                 <div th:unless="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
                      class="text-base-content/50 italic text-sm">
-                  Documents required after approval
+                  N/A
+                </div>
+              </td>
+
+              <!-- Code of Conduct Document Column -->
+              <td>
+                <div th:if="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
+                     class="flex items-center gap-2">
+                  <span th:if="${pair.getDocumentStatus('CODE_OF_CONDUCT')}" class="badge badge-success">
+                    Submitted
+                  </span>
+                  <span th:unless="${pair.getDocumentStatus('CODE_OF_CONDUCT')}" class="badge badge-error animate-pulse">
+                    Missing
+                  </span>
+
+                  <a th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
+                     th:class="${!pair.getDocumentStatus('CODE_OF_CONDUCT')} ? 'btn btn-xs btn-error btn-outline' : 'btn btn-xs btn-ghost'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <span th:unless="${pair.getDocumentStatus('CODE_OF_CONDUCT')}" class="ml-1 font-bold">Upload</span>
+                    <span th:if="${pair.getDocumentStatus('CODE_OF_CONDUCT')}" class="ml-1">View</span>
+                  </a>
+                </div>
+
+                <div th:unless="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
+                     class="text-base-content/50 italic text-sm">
+                  N/A
+                </div>
+              </td>
+
+              <!-- Medical History Document Column -->
+              <td>
+                <div th:if="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
+                     class="flex items-center gap-2">
+                  <span th:if="${pair.getDocumentStatus('MEDICAL_HISTORY')}" class="badge badge-success">
+                    Submitted
+                  </span>
+                  <span th:unless="${pair.getDocumentStatus('MEDICAL_HISTORY')}" class="badge badge-error animate-pulse">
+                    Missing
+                  </span>
+
+                  <a th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
+                     th:class="${!pair.getDocumentStatus('MEDICAL_HISTORY')} ? 'btn btn-xs btn-error btn-outline' : 'btn btn-xs btn-ghost'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <span th:unless="${pair.getDocumentStatus('MEDICAL_HISTORY')}" class="ml-1 font-bold">Upload</span>
+                    <span th:if="${pair.getDocumentStatus('MEDICAL_HISTORY')}" class="ml-1">View</span>
+                  </a>
+                </div>
+
+                <div th:unless="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
+                     class="text-base-content/50 italic text-sm">
+                  N/A
+                </div>
+              </td>
+
+              <!-- Housing Form Document Column -->
+              <td>
+                <div th:if="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
+                     class="flex items-center gap-2">
+                  <span th:if="${pair.getDocumentStatus('HOUSING_FORM')}" class="badge badge-success">
+                    Submitted
+                  </span>
+                  <span th:unless="${pair.getDocumentStatus('HOUSING_FORM')}" class="badge badge-error animate-pulse">
+                    Missing
+                  </span>
+
+                  <a th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
+                     th:class="${!pair.getDocumentStatus('HOUSING_FORM')} ? 'btn btn-xs btn-error btn-outline' : 'btn btn-xs btn-ghost'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <span th:unless="${pair.getDocumentStatus('HOUSING_FORM')}" class="ml-1 font-bold">Upload</span>
+                    <span th:if="${pair.getDocumentStatus('HOUSING_FORM')}" class="ml-1">View</span>
+                  </a>
+                </div>
+
+                <div th:unless="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
+                     class="text-base-content/50 italic text-sm">
+                  N/A
                 </div>
               </td>
             </tr>
