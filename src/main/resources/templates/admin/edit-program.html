@@ -51,6 +51,7 @@
           <div class="label">
             <span class="label-text">Faculty Leads</span>
           </div>
+          <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
           <select class="select w-full"
                   name="facultyLeads"
                   size="5"
@@ -63,6 +64,7 @@
                     th:value="${nonFacultyLead.username}"
                     th:text="${formatter.displayUser(nonFacultyLead)}"></option>
           </select>
+          </div>
         </label>
 
         <label class="form-control">

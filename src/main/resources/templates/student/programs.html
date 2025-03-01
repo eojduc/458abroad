@@ -103,19 +103,21 @@
 
       <!-- Keyword search Faculty Lead -->
       <label>
-        <select name="leadFilter" multiple
-                class="select"
-                size="4"
-                th:value="${leadKeyword}"
-                th:hx-get="@{${path}}"
-                hx-trigger="change"
-                hx-include="#filterForm"
-                autocomplete="off"
-                hx-target="#programTable"
-                hx-swap="outerHTML">
-          <option th:each="lead : ${knownFacultyLeads}" th:value="${lead.username}"
-                  th:text="${formatter.displayUserClean(lead)}"></option>
-        </select>
+        <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
+          <select name="leadFilter" multiple
+                  class="select"
+                  size="3"
+                  th:value="${leadKeyword}"
+                  th:hx-get="@{${path}}"
+                  hx-trigger="change"
+                  hx-include="#filterForm"
+                  autocomplete="off"
+                  hx-target="#programTable"
+                  hx-swap="outerHTML">
+            <option th:each="lead : ${knownFacultyLeads}" th:value="${lead.username}"
+                    th:text="${formatter.displayUserClean(lead)}"></option>
+          </select>
+        </div>
       </label>
     </div>
   </div>

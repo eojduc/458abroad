@@ -34,13 +34,14 @@
           <a class="btn btn-primary" href="/admin/programs/new">Add Program</a>
           <!-- Show Counts and Dates Checkboxes -->
           <div class="absolute top-full mt-4 flex flex-col items-start w-48 pr-3 space-y-3">
-            <label class="flex items-center gap-4">
-              <input type="checkbox" id="toggleCount" class="checkbox peer">
+            <fieldset class="flex items-center gap-4">
+              <input type="checkbox" id="toggleCount" class="toggle peer">
               <span class="text-sm">Show Program Counts</span>
-            </label>
-            <label class="flex items-center gap-4">
-              <input type="checkbox" id="toggleDate" class="checkbox peer" checked>
+            </fieldset>
+            <fieldset class="flex items-center gap-4">
+              <input type="checkbox" id="toggleDate" class="toggle peer" checked>
               <span class="text-sm">Show Program Dates</span>
+            </fieldset>
           </div>
         </div>
       </div>
@@ -114,14 +115,14 @@
 <form xmlns:th="http://www.thymeleaf.org"
       th:fragment="filterForm(path)"
       id="filterForm">
-  <div class="flex gap-4">
+  <div class="flex gap-4 ">
     <!-- Container for sort parameters -->
     <div id="filterSortParams">
       <input type="hidden" name="sort" th:value="${sort}"/>
       <input type="hidden" name="ascending" th:value="${ascending}"/>
     </div>
     <!-- Keyword search Title -->
-    <div class="flex flex-row gap-4 overflow-x-auto">
+    <div class="flex flex-row gap-4">
       <span class="text-lg">Filters:</span>
       <label>
         <input type="text"
@@ -136,7 +137,24 @@
                hx-target="#programTable"
                hx-swap="outerHTML"/>
       </label>
-
+      <!-- Keyword search Faculty Lead -->
+      <label>
+        <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
+        <select name="leadFilter" multiple
+                class="select"
+                size="3"
+                th:value="${leadKeyword}"
+                th:hx-get="@{${path}}"
+                hx-trigger="change"
+                hx-include="#filterForm"
+                autocomplete="off"
+                hx-target="#programTable"
+                hx-swap="outerHTML">
+          <option th:each="lead : ${knownFacultyLeads}" th:value="${lead.username}"
+                  th:text="${formatter.displayUser(lead)}"></option>
+        </select>
+        </div>
+      </label>
       <!-- Time filter -->
       <label>
         <select name="timeFilter"
@@ -156,22 +174,6 @@
           <option value="RUNNING" th:selected="${timeFilter == 'RUNNING'}">Programs Running Now
           </option>
           <option value="ALL" th:selected="${timeFilter == 'ALL'}">All Programs</option>
-        </select>
-      </label>
-      <!-- Keyword search Faculty Lead -->
-      <label>
-        <select name="leadFilter" multiple
-                class="select"
-                size="5"
-                th:value="${leadKeyword}"
-                th:hx-get="@{${path}}"
-                hx-trigger="change"
-                hx-include="#filterForm"
-                autocomplete="off"
-                hx-target="#programTable"
-                hx-swap="outerHTML">
-          <option th:each="lead : ${knownFacultyLeads}" th:value="${lead.username}"
-                  th:text="${formatter.displayUser(lead)}"></option>
         </select>
       </label>
     </div>

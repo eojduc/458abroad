@@ -67,6 +67,7 @@ public record BrowseProgramsService(
         programService.findAll().stream()
             .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
             .filter(program -> new HashSet<>(extractFacultyLeadUsername(program, User::username)).containsAll(leadFilter))
+            .filter(program -> program.endDate().isAfter(LocalDate.now())) // Hide programs that have ended
             .map(getProgramAndStatus(user))
             .sorted(getStudentDateComparator())
             .toList(),
