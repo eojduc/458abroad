@@ -2,6 +2,8 @@ package com.example.abroad.controller.student;
 
 import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Program;
+import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.service.DocumentService;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
@@ -9,6 +11,7 @@ import com.example.abroad.service.page.ViewApplicationService;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,7 +31,8 @@ public record ViewApplicationController(
         ViewApplicationService applicationService,
         FormatService formatter,
         UserService userService,
-        DocumentService documentService) {
+        DocumentService documentService,
+        FacultyLeadRepository facultyLeadRepository) {
 
   @GetMapping("/applications/{applicationId}")
   public String viewApplication(
@@ -48,14 +52,17 @@ public record ViewApplicationController(
         var documentStatuses = documentService.getDocumentStatuses(applicationId, successRes.program().id());
         var missingCount = documentService.getMissingDocumentsCount(applicationId);
 
+        // Get faculty leads for the program
+        List<Program.FacultyLead> facultyLeads = facultyLeadRepository.findById_ProgramId(successRes.program().id());
+
         // Create a map for the application-document pair similar to what's in ListApplicationsService
         var pair = new HashMap<String, Object>();
         pair.put("app", successRes.application());
         pair.put("prog", successRes.program());
         pair.put("documents", documentStatuses);
         pair.put("missingDocumentsCount", missingCount);
+        pair.put("facultyLeads", facultyLeads);
 
-        // Create a map for all model attributes
         var allAttributes = new HashMap<String, Object>();
         allAttributes.put("app", successRes.application());
         allAttributes.put("prog", successRes.program());
@@ -65,6 +72,7 @@ public record ViewApplicationController(
         allAttributes.put("formatter", formatter);
         allAttributes.put("alerts", new Alerts(error, success, warning, info));
         allAttributes.put("pair", pair);
+        allAttributes.put("facultyLeads", facultyLeads);
 
         model.addAllAttributes(allAttributes);
         yield "student/view-application :: page";
@@ -135,12 +143,16 @@ public record ViewApplicationController(
         var documentStatuses = documentService.getDocumentStatuses(id, success.program().id());
         var missingCount = documentService.getMissingDocumentsCount(id);
 
+        // Get faculty leads for the program
+        List<Program.FacultyLead> facultyLeads = facultyLeadRepository.findById_ProgramId(success.program().id());
+
         // Create a map for the application-document pair
         var pair = new HashMap<String, Object>();
         pair.put("app", success.application());
         pair.put("prog", success.program());
         pair.put("documents", documentStatuses);
         pair.put("missingDocumentsCount", missingCount);
+        pair.put("facultyLeads", facultyLeads);
 
         model.addAllAttributes(Map.of(
                 "app", success.application(),
@@ -149,6 +161,7 @@ public record ViewApplicationController(
                 "editable", success.editable(),
                 "formatter", formatter,
                 "pair", pair,
+                "facultyLeads", facultyLeads,
                 "responses", success.responses()));
         yield "student/view-application :: applicationContent";
       }
@@ -180,12 +193,16 @@ public record ViewApplicationController(
         var documentStatuses = documentService.getDocumentStatuses(id, success.program().id());
         var missingCount = documentService.getMissingDocumentsCount(id);
 
+        // Get faculty leads for the program
+        List<Program.FacultyLead> facultyLeads = facultyLeadRepository.findById_ProgramId(success.program().id());
+
         // Create a map for the application-document pair
         var pair = new HashMap<String, Object>();
         pair.put("app", success.application());
         pair.put("prog", success.program());
         pair.put("documents", documentStatuses);
         pair.put("missingDocumentsCount", missingCount);
+        pair.put("facultyLeads", facultyLeads);
 
         model.addAllAttributes(Map.of(
                 "app", success.application(),
@@ -194,6 +211,7 @@ public record ViewApplicationController(
                 "editable", success.editable(),
                 "responses", success.responses(),
                 "pair", pair,
+                "facultyLeads", facultyLeads,
                 "formatter", formatter));
         yield "student/view-application :: applicationContent";
       }
