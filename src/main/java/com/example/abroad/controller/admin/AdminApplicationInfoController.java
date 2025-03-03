@@ -34,7 +34,7 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     return switch (service.getApplicationInfo(applicationId, session)) {
       case Success(var program, var student, var application, var user, var notes, var documents,
-                   var status, var facultyLeads, var responses) -> {
+                   var status, var facultyLeads, var responses, var programIsPast) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "programIsPast", program.endDate().isBefore(LocalDate.now()),
@@ -50,7 +50,8 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
         model.addAllAttributes(Map.of(
           "documents", documents,
           "status", status,
-          "facultyLeads", facultyLeads
+          "facultyLeads", facultyLeads,
+          "programIsPast", programIsPast
         ));
         yield "admin/application-info :: page";
       }

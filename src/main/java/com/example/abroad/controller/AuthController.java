@@ -2,6 +2,7 @@ package com.example.abroad.controller;
 
 import com.example.abroad.controller.admin.AddProgramPageController;
 import com.example.abroad.model.Alerts;
+import com.example.abroad.service.page.AccountService.ChangePassword.PasswordMismatch;
 import com.example.abroad.service.page.AuthService;
 import com.example.abroad.service.page.AuthService.CheckLoginStatus;
 import com.example.abroad.service.page.AuthService.Login;
@@ -86,23 +87,16 @@ public record AuthController(AuthService authService) {
       @RequestParam String displayName,
       @RequestParam String email,
       @RequestParam String password,
+      @RequestParam String confirmPassword,
       HttpSession session,
       Model model) {
 
-    return switch (authService.registerUser(username, displayName, email, password, session)) {
+    return switch (authService.registerUser(username, displayName, email, password, confirmPassword, session)) {
       case RegisterResult.Success() -> "redirect:/";
-      case RegisterResult.UsernameExists() -> {
-        model.addAttribute("error", "Username is already taken");
-        yield "auth/register";
-      }
-      case RegisterResult.EmailExists() -> {
-        model.addAttribute("error", "Email is already registered");
-        yield "auth/register";
-      }
-      case RegisterResult.AuthenticationError(var error) -> {
-        model.addAttribute("error", "Registration failed. Please try again.");
-        yield "auth/register";
-      }
+      case RegisterResult.UsernameExists() -> "redirect:/register?error=Username is already taken";
+      case RegisterResult.EmailExists() -> "redirect:/register?error=Email is already registered";
+      case RegisterResult.PasswordMismatch() -> "redirect:/register?error=New passwords do not match";
+      case RegisterResult.AuthenticationError(var error) -> "redirect:/register?error=Registration failed. Please try again.";
     };
   }
 }

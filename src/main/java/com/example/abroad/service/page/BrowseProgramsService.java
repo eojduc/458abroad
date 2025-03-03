@@ -16,7 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +67,7 @@ public record BrowseProgramsService(
         programService.findAll().stream()
             .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
             .filter(program -> new HashSet<>(extractFacultyLeadUsername(program, User::username)).containsAll(leadFilter))
+            .filter(program -> program.endDate().isAfter(LocalDate.now())) // Hide programs that have ended
             .map(getProgramAndStatus(user))
             .sorted(getStudentDateComparator())
             .toList(),

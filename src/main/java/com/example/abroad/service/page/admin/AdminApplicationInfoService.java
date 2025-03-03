@@ -53,7 +53,7 @@ public record AdminApplicationInfoService(
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var status = programIsPast && application.status() == Status.ENROLLED ? "COMPLETED" : application.status().toString();
     return new GetApplicationInfo.Success(
-      program, student, application, user, notes, documents, status, facultyLeads, responses
+      program, student, application, user, notes, documents, status, facultyLeads, responses, programIsPast
     );
   }
 
@@ -125,7 +125,7 @@ public record AdminApplicationInfoService(
 
     record Success(Program program, User student, Application application, User user, List<Note> notes,
                    Documents documents, String status, List<? extends User> facultyLeads,
-                    List<Application.Response> responses
+                    List<Application.Response> responses, Boolean programIsPast
     ) implements
       GetApplicationInfo {
 

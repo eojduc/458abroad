@@ -261,7 +261,7 @@
         <td th:text="${applicant.username}"></td>
         <td th:text="${applicant.email}"></td>
         <td th:text="${applicant.major}"></td>
-        <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 3)}"></td>
+        <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 2)}"></td>
         <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
         <td>
           <div th:id="'status-badge-' + ${applicant.username}">
