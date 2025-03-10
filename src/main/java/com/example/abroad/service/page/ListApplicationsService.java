@@ -63,7 +63,7 @@ public record ListApplicationsService(
     List<PairWithDocuments> enrichedPairs = join(programs, applications)
             .map(pair -> {
               // Get document statuses if application is approved or enrolled
-              var documentStatuses = documentService.getDocumentStatuses(pair.app().id(), pair.prog().id());
+              var documentStatuses = documentService.getDocumentStatuses(session, pair.prog().id());
 
               // Create a map of document types to their status for easier lookup
               Map<String, Boolean> documentStatusMap = new HashMap<>();
@@ -72,7 +72,7 @@ public record ListApplicationsService(
               }
 
               // Count missing documents
-              var missingCount = documentService.getMissingDocumentsCount(pair.app().id());
+              var missingCount = documentService.getMissingDocumentsCount(session, pair.prog.id());
 
               var facultyLeads = facultyLeadRepository.findById_ProgramId(pair.prog().id());
 

@@ -1,6 +1,6 @@
 package com.example.abroad.controller.student;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.BrowseProgramsService;

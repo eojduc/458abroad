@@ -1,8 +1,6 @@
 package com.example.abroad.controller;
 
-import com.example.abroad.controller.admin.AddProgramPageController;
-import com.example.abroad.model.Alerts;
-import com.example.abroad.service.page.AccountService.ChangePassword.PasswordMismatch;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.service.page.AuthService;
 import com.example.abroad.service.page.AuthService.CheckLoginStatus;
 import com.example.abroad.service.page.AuthService.Login;

@@ -1,6 +1,6 @@
 package com.example.abroad.controller;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.service.page.AccountService;

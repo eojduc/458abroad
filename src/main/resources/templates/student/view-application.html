@@ -93,7 +93,7 @@
           <div>
             <form
                     id="responsesForm"
-                    th:attr="hx-post=@{'/applications/' + ${app.id()} + '/update'}"
+                    th:attr="hx-post=@{'/applications/' + ${app.programId()} + '/update'}"
                     hx-target="#applicationContent"
                     hx-swap="outerHTML"
             >
@@ -207,22 +207,21 @@
       <!-- Essential Documents Card - ENHANCED -->
       <div id="documents"
            class="card bg-base-300"
-           th:if="${app.status() == T(com.example.abroad.model.Application.Status).APPROVED ||
-                   app.status() == T(com.example.abroad.model.Application.Status).ENROLLED}"
+           th:if="${app.status.name == 'APPROVED' || app.status.name == 'ENROLLED'}"
       >
         <div class="card-body gap-4">
           <div class="card-actions justify-between">
             <h2 class="card-title">Essential Documents</h2>
-            <div th:if="${pair != null && pair.missingDocumentsCount > 0}" class="badge badge-error">
+            <div th:if="${pair.missingDocumentsCount > 0}" class="badge badge-error">
               [[${pair.missingDocumentsCount}]] Missing
             </div>
-            <div th:if="${pair != null && pair.missingDocumentsCount == 0}" class="badge badge-success">
+            <div th:if="${pair.missingDocumentsCount == 0}" class="badge badge-success">
               All Complete
             </div>
           </div>
 
           <!-- Warning alert for missing documents -->
-          <div th:if="${pair != null && pair.missingDocumentsCount > 0}"
+          <div th:if="${pair.missingDocumentsCount > 0}"
                class="alert alert-error shadow-lg py-2 px-4">
             <div class="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -282,7 +281,7 @@
 
                   <!-- View button and timestamp for submitted documents -->
                   <div th:if="${doc.submitted}" class="flex items-center gap-2 ml-auto">
-                    <a th:href="@{/applications/{appId}/documents/{type}/view(appId=${app.id()},type=${doc.type})}"
+                    <a th:href="@{/applications/{programId}/documents/{type}/view(programId=${app.programId},type=${doc.type})}"
                        class="btn btn-sm btn-success"
                        target="_blank">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -320,7 +319,8 @@
                 <!-- Document actions -->
                 <div class="mt-4">
                   <!-- Download blank form button -->
-                  <a th:href="@{/applications/{appId}/documents/{type}/blank(appId=${app.id()},type=${doc.type})}"
+                  <a
+                    th:href="@{/applications/{programId}/documents/{type}/blank(programId=${app.programId},type=${doc.type})}"
                      class="btn btn-sm btn-outline mb-2"
                      target="_blank">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -330,7 +330,7 @@
                   </a>
 
                   <!-- Upload/re-upload form section -->
-                  <form th:action="@{/applications/{id}/documents(id=${app.id()})}"
+                  <form th:action="@{/applications/{id}/documents(id=${app.programId()})}"
                         method="POST"
                         enctype="multipart/form-data"
                         class="flex flex-col gap-2">
@@ -409,7 +409,7 @@
 <!-- Hidden Reactivate Form -->
 <form
         id="reactivateForm"
-        th:attr="hx-post=@{'/applications/' + ${app.id()} + '/reactivate'}"
+        th:hx-post="@{/applications/{programId}/reactivate(programId=${app.programId})}"
         hx-target="#applicationContent"
         hx-swap="outerHTML"
         class="hidden"
@@ -444,30 +444,11 @@
 <!-- Hidden Withdraw Form -->
 <form
         id="withdrawForm"
-        th:attr="hx-post=@{'/applications/' + ${app.id()} + '/withdraw'}"
+        th:hx-post="@{/applications/{programId}/withdraw(programId=${app.programId})}"
         hx-target="#applicationContent"
         hx-swap="outerHTML"
         class="hidden"
 ></form>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('error') || urlParams.has('success') || urlParams.has('warning') || urlParams.has('info')) {
-      // Scroll to top immediately when page loads
-      window.scrollTo(0, 0);
-
-      // And again after a slight delay to handle any dynamic content
-      setTimeout(function() {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'auto' // Using 'auto' for immediate scrolling
-        });
-      }, 100);
-    }
-  });
-</script>
 
 <script th:inline="javascript">
   function validateFileSize(input) {

@@ -1,4 +1,4 @@
-package com.example.abroad.model;
+package com.example.abroad.view;
 
 import java.util.Optional;
 

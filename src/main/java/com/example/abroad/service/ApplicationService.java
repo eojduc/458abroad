@@ -29,26 +29,26 @@ public record ApplicationService(
   }
 
   public List<Note> findNotesByAuthor(User author) {
-    return noteRepository.findByUsername(author.username());
+    return noteRepository.findByAuthor(author.username());
   }
 
   public List<Note> getNotes(Application application) {
-    return noteRepository.findByApplicationId(application.id());
+    return noteRepository.findByProgramIdAndStudent(application.programId(), application.student());
   }
 
   public List<Application> findByProgram(Program program) {
-    return applicationRepository.findByProgramId(program.id());
+    return applicationRepository.findById_ProgramId(program.id());
   }
 
   public Optional<Application> findByProgramAndStudent(Program program, User student) {
-    return applicationRepository.findByProgramIdAndStudent(program.id(), student.username());
+    return applicationRepository.findById_ProgramIdAndId_Student(program.id(), student.username());
+  }
+
+  public Optional<Application> findByProgramIdAndStudentUsername(Integer programId, String studentUsername) {
+    return applicationRepository.findById_ProgramIdAndId_Student(programId, studentUsername);
   }
   public void updateStatus(Application application, Application.Status status) {
     applicationRepository.save(application.withStatus(status));
-  }
-
-  public Optional<Application> findById(String applicationId) {
-    return applicationRepository.findById(applicationId);
   }
 
   public void save(Application application) {
@@ -57,15 +57,15 @@ public record ApplicationService(
 
   public Documents getDocuments(Application application) {
     return new Documents(
-      documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.MEDICAL_HISTORY),
-      documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.CODE_OF_CONDUCT),
-      documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.HOUSING),
-      documentRepository.findById_ApplicationIdAndId_Type(application.id(), Type.ASSUMPTION_OF_RISK)
+      documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), Type.MEDICAL_HISTORY),
+      documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), Type.CODE_OF_CONDUCT),
+      documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), Type.HOUSING),
+      documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), Type.ASSUMPTION_OF_RISK)
     );
   }
 
   public Optional<Document> getDocument(Application application, Type type) {
-    return documentRepository.findById_ApplicationIdAndId_Type(application.id(), type);
+    return documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), type);
   }
 
   public record Documents(
@@ -77,18 +77,18 @@ public record ApplicationService(
 
   }
   public List<Response> getResponses(Application application) {
-    return responseRepository.findById_ApplicationId(application.id())
+    return responseRepository.findById_ProgramIdAndId_Student(application.programId(), application.student())
       .stream()
       .sorted(Comparator.comparing(Response::question))
       .toList();
   }
 
   public void saveResponse(Application application, Response.Question question, String answer) {
-    responseRepository.save(new Response(application.id(), question, answer));
+    responseRepository.save(new Response(application.programId(), application.student(), question, answer));
   }
 
   public List<Application> findByStudent(User user) {
-    return applicationRepository.findByStudent(user.username());
+    return applicationRepository.findById_Student(user.username());
   }
 
 

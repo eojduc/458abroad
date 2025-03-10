@@ -38,7 +38,7 @@ public record ApplyToProgramService(
     }
     var existingApplication = applicationService.findByProgramAndStudent(program, user);
     if (existingApplication.isPresent()) {
-      return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().id());
+      return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().programId(), user.username());
     }
     var maxDayOfBirth = LocalDate.now().minusYears(10).format(DateTimeFormatter.ISO_DATE);
     return new GetApplyPageData.Success(program, user, Arrays.asList(Question.values()), maxDayOfBirth);
@@ -57,7 +57,7 @@ public record ApplyToProgramService(
     if (user == null) {
       return new ApplyToProgram.UserNotFound();
     }
-    var application = new Application(programId + "-" + user.username(), user.username(),
+    var application = new Application(user.username(),
       programId, dob, gpa, major, Status.APPLIED
     );
     applicationService.save(application);
@@ -67,7 +67,7 @@ public record ApplyToProgramService(
     applicationService.saveResponse(application, Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
     applicationService.saveResponse(application, Response.Question.UNIQUE_PERSPECTIVE, answer5);
 
-    return new ApplyToProgram.Success(application.id());
+    return new ApplyToProgram.Success(application.programId(), application.student());
   }
 
   public sealed interface GetApplyPageData {
@@ -75,12 +75,12 @@ public record ApplyToProgramService(
                    String maxDateOfBirth) implements GetApplyPageData { }
     record UserNotFound() implements GetApplyPageData { }
     record ProgramNotFound() implements GetApplyPageData { }
-    record StudentAlreadyApplied(String applicationId) implements GetApplyPageData { }
+    record StudentAlreadyApplied(Integer programId, String student) implements GetApplyPageData { }
     record UserNotStudent() implements GetApplyPageData { }
   }
 
   public sealed interface ApplyToProgram {
-    record Success(String applicationId) implements ApplyToProgram { }
+    record Success(Integer programId, String username) implements ApplyToProgram { }
     record UserNotFound() implements ApplyToProgram { }
     record InvalidSubmission() implements ApplyToProgram { }
   }

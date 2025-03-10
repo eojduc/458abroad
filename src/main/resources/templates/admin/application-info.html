@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
-<head th:replace="~{components :: head(${program.title})}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${theme}">
+<head th:replace="~{components :: head(${programDetails.title})}"></head>
 
 <body>
-<div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
+<div th:replace="~{components :: admin-navbar(${displayName})}"></div>
 <div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
   <div th:replace="~{components :: alerts(${alerts})}"></div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
       <div class="card-actions justify-between">
-        <h1 class="card-title" th:text="${student.displayName}"></h1>
+        <h1 class="card-title" th:text="${applicationDetails.studentDisplayName}"></h1>
         <div id="status-badge">
-          <div th:replace="~{components :: statusBadge(${programIsPast && _application.status.name() == 'ENROLLED' ? 'COMPLETED' : _application.status.name()})}"></div>
+          <div th:replace="~{components :: statusBadge(${applicationDetails.status})}"></div>
         </div>
       </div>
       <div>
@@ -22,46 +22,22 @@
             <td>Title</td>
             <td>
               <a class="link link-primary"
-                 th:href="@{/admin/programs/{id}(id=${program.id})}"
-                 th:text="${program.title}"></a>
+                 th:href="@{/admin/programs/{id}(id=${programId})}"
+                 th:text="${programDetails.title}"></a>
             </td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Description</td>
-            <td th:text="${program.description}" class="whitespace-pre-line"></td>
           </tr>
           <tr class="border-base-300">
             <td>Faculty Leads</td>
             <td>
               <ul class="list-disc list-inside">
-                <li th:each="facultyLead : ${facultyLeads}" th:text="${formatter.displayUser(facultyLead)}">
+                <li th:each="facultyLead : ${programDetails.facultyLeads}" th:text="${facultyLead}">
                 </li>
               </ul>
             </td>
           </tr>
-          <tr class="border-base-300">
-            <td>Term</td>
-            <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Start Date</td>
-            <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>End Date</td>
-            <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Document Deadline</td>
-            <td th:text="${formatter.formatLocalDate(program.documentDeadline)}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Application Open</td>
-            <td th:text="${formatter.formatLocalDate(program.applicationOpen)}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Application Deadline</td>
-            <td th:text="${formatter.formatLocalDate(program.applicationClose)}"></td>
+          <tr class="border-base-300" th:each="programField : ${programDetails.fields}">
+            <td th:text="${programField.name}"></td>
+            <td th:text="${programField.value}"></td>
           </tr>
           </tbody>
         </table>
@@ -73,52 +49,21 @@
             <tr class="border-base-300">
               <td>Status</td>
               <td>
-                <form class="contents" th:hx-post="@{/admin/applications/{id}/status(id=${_application.id})}"
+                <form class="contents" th:hx-post="@{/admin/applications/{programId}/{username}/status(programId=${programId}, username=${studentUsername})}"
                       hx-trigger="change"
                       hx-target="#status-badge">
                   <select name="status" class="select select-sm">
-                    <option value="APPLIED"
-                            th:selected="${_application.status.name() == 'APPLIED'}"
-                    >Applied</option>
-                    <option value="ENROLLED"
-                            th:selected="${_application.status.name() == 'ENROLLED'}"
-                            th:text="${programIsPast ? 'Completed' : 'Enrolled'}"
-                    ></option>
-                    <option value="CANCELLED"
-                            th:selected="${_application.status.name() == 'CANCELLED'}"
-                    >Cancelled</option>
-                    <option value="WITHDRAWN"
-                            th:selected="${_application.status.name() == 'WITHDRAWN'}"
-                    >Withdrawn</option>
-                    <option value="ELIGIBLE"
-                            th:selected="${_application.status.name() == 'ELIGIBLE'}">Eligible</option>
-                    <option value="APPROVED"
-                            th:selected="${_application.status.name() == 'APPROVED'}">Approved</option>
-
+                    <option th:each="statusOption: ${applicationDetails.statusOptions}"
+                            th:value="${statusOption.status}"
+                            th:text="${statusOption.displayedStatus}"
+                            th:selected="${applicationDetails.status == statusOption.status}"></option>
                   </select>
                 </form>
               </td>
             </tr>
-            <tr class="border-base-300">
-              <td>User</td>
-              <td th:text="${formatter.displayUser(student)}"></td>
-              </td>
-            </tr>
-            <tr class="border-base-300">
-              <td>Email</td>
-              <td th:text="${student.email}"></td>
-            </tr>
-            <tr class="border-base-300">
-              <td>Major</td>
-              <td th:text="${_application.major}"></td>
-            </tr>
-            <tr class="border-base-300">
-              <td>GPA</td>
-              <td th:text="${#numbers.formatDecimal(_application.gpa, 1, 2)}"></td>
-            </tr>
-            <tr class="border-base-300">
-              <td>Date of Birth</td>
-              <td th:text="${formatter.formatLocalDate(_application.dateOfBirth)}"></td>
+            <tr class="border-base-300" th:each="field : ${applicationDetails.fields}">
+              <td th:text="${field.name}"></td>
+              <td th:text="${field.value}"></td>
             </tr>
           </tbody>
         </table>
@@ -136,38 +81,15 @@
         <h1 class="text-lg">Documents</h1>
         <div class="m-4 flex flex-col gap-5">
           <div class="flex flex-col gap-2">
-            <div th:if="${documents.medicalHistory.isPresent()}" class="flex flex-row gap-2 items-center">
-              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${_application.id}, type='MEDICAL_HISTORY')}"
-                 class="link link-secondary" th:text="${documents.medicalHistory.get().type.text()}"></a>
-              <span class="text-xs" th:text="${formatter.formatInstant(documents.medicalHistory.get().timestamp)}"></span>
-            </div>
-            <div th:unless="${documents.medicalHistory.isPresent()}" class="flex flex-row gap-2">
-              <span class="text-xs">No medical history document uploaded</span>
-            </div>
-            <div th:if="${documents.codeOfConduct.isPresent()}" class="flex flex-row gap-2 items-center">
-              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${_application.id}, type='CODE_OF_CONDUCT')}"
-                 class="link link-secondary" th:text="${documents.codeOfConduct.get().type.text()}"></a>
-              <span class="text-xs" th:text="${formatter.formatInstant(documents.codeOfConduct.get().timestamp)}"></span>
-            </div>
-            <div th:unless="${documents.codeOfConduct.isPresent()}" class="flex flex-row gap-2">
-              <span class="text-xs">No code of conduct document uploaded</span>
-            </div>
-            <div th:if="${documents.housing.isPresent()}" class="flex flex-row gap-2 items-center">
-              <a th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${_application.id}, type='HOUSING')}"
-                 class="link link-secondary" th:text="${documents.housing.get().type.text()}"></a>
-              <span class="text-xs" th:text="${formatter.formatInstant(documents.housing.get().timestamp)}"></span>
-            </div>
-            <div th:unless="${documents.housing.isPresent()}" class="flex flex-row gap-2">
-              <span class="text-xs">No housing form document uploaded</span>
-            </div>
-            <div th:if="${documents.assumptionOfRisk.isPresent()}" class="flex flex-row gap-2 items-center">
-              <a
-                  th:href="@{/applications/{applicationId}/documents/{type}/view(applicationId=${_application.id}, type='ASSUMPTION_OF_RISK')}"
-                 class="link link-secondary" th:text="${documents.assumptionOfRisk.get().type.text()}"></a>
-              <span class="text-xs" th:text="${formatter.formatInstant(documents.assumptionOfRisk.get().timestamp)}"></span>
-            </div>
-            <div th:unless="${documents.assumptionOfRisk.isPresent()}" class="flex flex-row gap-2">
-              <span class="text-xs">No assumption of risk document uploaded</span>
+            <div th:each="documentInfo: ${documentInfos}" class="contents">
+              <div th:if="${documentInfo.isPresent}" class="flex flex-row gap-2 items-center">
+                <a th:href="@{/admin/applications/{programId}/{username}/documents/{type}/view(programId=${programId}, username=${studentUsername}, type=${documentInfo.type})}"
+                   class="link link-secondary" th:text="${documentInfo.name}"></a>
+                <span class="text-xs" th:text="${documentInfo.timestamp}"></span>
+              </div>
+              <div th:unless="${documentInfo.isPresent}" class="flex flex-row gap-2">
+                <span class="text-xs" th:text="${documentInfo.name} + ' not uploaded'"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -176,13 +98,13 @@
         <h1 class="text-lg">Notes</h1>
         <div id="note-table">
           <div th:fragment="note-table" class="flex flex-col gap-5 m-4">
-            <div th:each="note : ${notes}" class="card card-compact bg-base-300">
+            <div th:each="noteInfo : ${noteInfos}" class="card card-compact bg-base-300">
               <div class="card-body gap-5">
                 <div class="flex flex-col gap-2">
                   <div class="flex justify-between">
-                    <div class="text-xs ml-auto" th:text="${note.username} + ' (' + ${formatter.formatInstant(note.timestamp)} + ')'"></div>
+                    <div class="text-xs ml-auto" th:text="${noteInfo.origin}"></div>
                   </div>
-                  <p class="overflow-x-auto break-words w-full whitespace-pre-line" th:text="${note.content}"></p>
+                  <p class="overflow-x-auto break-words w-full whitespace-pre-line" th:text="${noteInfo.content}"></p>
                 </div>
               </div>
             </div>
@@ -190,7 +112,7 @@
         </div>
         <div class="flex flex-row gap-5">
           <form class="contents"
-                th:hx-post="@{/admin/applications/{id}/notes(id=${_application.id})}"
+                th:hx-post="@{/admin/applications/{programId}/{username}/notes(programId=${programId}, username=${studentUsername})}"
                 hx-target="#note-table"
                 hx-on::after-request="this.reset()">
 
@@ -206,13 +128,4 @@
 </div>
 <div th:replace="~{components :: footer}"></div>
 </body>
-
 </html>
-
-
-
-
-
-
-
-

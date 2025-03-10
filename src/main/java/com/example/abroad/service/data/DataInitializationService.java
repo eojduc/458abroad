@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.sql.Blob;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -147,7 +146,6 @@ public class DataInitializationService {
     initializeData(
         path,
         record -> new Application(
-            record.get("id"),
             record.get("student"),
             Integer.parseInt(record.get("programId")),
             LocalDate.parse(record.get("dateOfBirth")),
@@ -177,7 +175,8 @@ public class DataInitializationService {
               Document.Type.valueOf(record.get("type").toUpperCase()),
               Instant.parse(record.get("timestamp")),
               new SerialBlob("hello world!".getBytes()),
-                record.get("applicationId")
+                Integer.parseInt(record.get("programId")),
+                record.get("student")
             );
           } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -192,7 +191,8 @@ public class DataInitializationService {
     initializeData(
         path,
         record -> new Application.Response(
-            record.get("applicationId"),
+          Integer.parseInt(record.get("programId")),
+            record.get("student"),
             Response.Question.valueOf(record.get("question")),
             record.get("response")
         ),
@@ -205,7 +205,8 @@ public class DataInitializationService {
     initializeData(
         path,
         record -> new Application.Note(
-            record.get("applicationId"),
+          Integer.parseInt(record.get("programId")),
+          record.get("student"),
             record.get("username"),
           record.get("content"),
           Instant.parse(record.get("timestamp"))

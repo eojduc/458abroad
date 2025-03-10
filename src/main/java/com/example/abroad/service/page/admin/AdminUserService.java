@@ -91,7 +91,7 @@ public record AdminUserService(
     Map<String, String> applicationPrograms = new HashMap<>();
     for (Application app : applications) {
       programService.findById(app.programId()).ifPresent(program ->
-              applicationPrograms.put(app.id(), program.title())
+              applicationPrograms.put(app.programId().toString(), program.title())
       );
     }
 
@@ -342,7 +342,8 @@ public record AdminUserService(
     List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUser);
     for (Application.Note note : userNotes) {
       Application.Note updatedNote = new Application.Note(
-        note.applicationId(),
+        note.programId(),
+        note.student(),
         "DELETED USER",
         note.content(),
         note.timestamp()

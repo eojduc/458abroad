@@ -1,6 +1,6 @@
 package com.example.abroad.controller.student;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.service.page.ApplyToProgramService;
 import com.example.abroad.service.page.ApplyToProgramService.ApplyToProgram;
 import com.example.abroad.service.page.ApplyToProgramService.GetApplyPageData;
@@ -40,9 +40,9 @@ public record ApplyToProgramController(ApplyToProgramService service, FormatServ
         "redirect:/login?error=You are not logged in";
       case GetApplyPageData.ProgramNotFound() ->
         "redirect:/programs?error=That program does not exist";
-      case GetApplyPageData.StudentAlreadyApplied(String applicationId) -> String.format(
-        "redirect:/applications/%s?error=You have already applied to this program",
-        applicationId);
+      case GetApplyPageData.StudentAlreadyApplied(Integer id, String username) -> String.format(
+        "redirect:/applications/%s/%s?error=You have already applied to this program",
+        id, username);
       case GetApplyPageData.UserNotStudent() ->
         String.format("redirect:/admin/programs/%d?error=You are not a student", programId);
     };
@@ -56,7 +56,8 @@ public record ApplyToProgramController(ApplyToProgramService service, FormatServ
   ) {
     return switch (service.applyToProgram(programId, session, major, gpa, dob, answer1, answer2,
       answer3, answer4, answer5)) {
-      case ApplyToProgram.Success(var id) -> "redirect:/applications/" + id;
+      case ApplyToProgram.Success(var pId, var username) ->
+        "redirect:/applications/" + programId + "/" + username + "?success=Application submitted";
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case ApplyToProgram.InvalidSubmission() -> "redirect:/programs/" + programId + "/apply?error=Invalid submission";
     };

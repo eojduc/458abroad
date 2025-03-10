@@ -2,6 +2,7 @@ package com.example.abroad.service;
 
 import com.example.abroad.model.Application.Document.Type;
 import com.example.abroad.respository.ApplicationRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.model.Application;
 import com.example.abroad.respository.DocumentRepository;
@@ -29,23 +30,26 @@ public class DocumentService {
     private static final long MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB
     private static final String PDF_MAGIC_NUMBER = "%PDF-";
     private static final Logger logger = LoggerFactory.getLogger(DocumentService.class);
+    private final UserService userService;
 
     public DocumentService(
             DocumentRepository documentRepository,
             ProgramRepository programRepository,
             ApplicationRepository applicationRepository,
-            FormatService formatService) {
+            FormatService formatService, UserService userService) {
         this.documentRepository = documentRepository;
         this.programRepository = programRepository;
         this.formatService = formatService;
         this.applicationRepository = applicationRepository;
+        this.userService = userService;
     }
 
     public record DocumentStatus(
             Application.Document.Type type,
             boolean submitted,
             LocalDate deadline,
-            String applicationId,
+            Integer programId,
+            String student,
             Instant submittedAt,
             String formattedTimestamp
     ) {}
@@ -55,8 +59,9 @@ public class DocumentService {
         record Invalid(String errorMessage) implements Validation {}
     }
 
-    public List<DocumentStatus> getDocumentStatuses(String applicationId, Integer programId) {
-        var documents = this.documentRepository.findById_ApplicationId(applicationId);
+    public List<DocumentStatus> getDocumentStatuses(HttpSession session, Integer programId) {
+        var user = userService.findUserFromSession(session).orElseThrow();
+        var documents = this.documentRepository.findById_ProgramIdAndId_Student(programId, user.username());
         var program = this.programRepository.findById(programId).orElseThrow();
 
         LocalDate deadline = program.documentDeadline();
@@ -76,7 +81,8 @@ public class DocumentService {
                             type,
                             doc.isPresent(),
                             deadline,
-                            applicationId,
+                            programId,
+                            user.username(),
                             timestamp,
                             formattedTime
                     );
@@ -85,13 +91,14 @@ public class DocumentService {
     }
 
 
-    public long getMissingDocumentsCount(String applicationId) {
-        var documents = this.documentRepository.findById_ApplicationId(applicationId);
+    public long getMissingDocumentsCount(HttpSession session, Integer programId) {
+        var user = userService.findUserFromSession(session).orElseThrow();
+        var documents = this.documentRepository.findById_ProgramIdAndId_Student(programId, user.username());
         return Application.Document.Type.values().length - documents.size();
     }
 
     @Transactional
-    public void uploadDocument(String applicationId, Type type, MultipartFile file) {
+    public void uploadDocument(Integer programId, String student, Type type, MultipartFile file) {
         var validation = validatePDF(file);
         if (validation instanceof Validation.Invalid invalid) {
             throw new IllegalArgumentException(invalid.errorMessage());
@@ -101,7 +108,7 @@ public class DocumentService {
             logger.info("Uploading document of size: {}", file.getSize());
 
             Optional<Application.Document> existingDoc = documentRepository.findById(
-                    new Application.Document.ID(type, applicationId)
+                    new Application.Document.ID(type, programId, student)
             );
 
             // Create new document with current timestamp
@@ -109,7 +116,8 @@ public class DocumentService {
                     type,
                     Instant.now(),
                     BlobProxy.generateProxy(file.getInputStream(), file.getSize()),
-                    applicationId
+                    programId,
+                student
             );
 
             // Save will either create new or update existing
@@ -160,8 +168,8 @@ public class DocumentService {
     }
 
     @Transactional
-    public Optional<Application.Document> getDocument(String applicationId, Application.Document.Type type) {
-        return this.documentRepository.findById(new Application.Document.ID(type, applicationId));
+    public Optional<Application.Document> getDocument(Integer programId, String student, Application.Document.Type type) {
+        return this.documentRepository.findById(new Application.Document.ID(type, programId, student));
     }
 
     public static String getBlankFormPath(Application.Document.Type type) {

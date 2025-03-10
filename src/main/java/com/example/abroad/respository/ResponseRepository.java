@@ -8,9 +8,6 @@ public interface ResponseRepository extends JpaRepository<Response, Response.ID>
 
 
 
-
-  List<Response> findById_ApplicationIdAndId_Question(String applicationId, Response.Question question);
-
-  List<Response> findById_ApplicationId(String applicationId);
+  List<Response> findById_ProgramIdAndId_Student(Integer programId, String student);
 
 }

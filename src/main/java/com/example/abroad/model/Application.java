@@ -20,13 +20,32 @@ import java.util.Objects;
 @Table(name = "applications")
 public final class Application {
 
-  @Id
-  private String id;
+  @Embeddable
+  static class ID implements Serializable {
+    @Column(nullable = false)
+    private String student;
+    @Column(nullable = false)
+    private Integer programId;
+    public ID() {}
+    public ID(String student, Integer programId) {
+      this.student = student;
+      this.programId = programId;
+    }
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ID id = (ID) o;
+      return Objects.equals(student, id.student) && Objects.equals(programId, id.programId);
+    }
+    @Override
+    public int hashCode() {
+      return Objects.hash(student, programId);
+    }
+  }
 
-  @Column(nullable = false)
-  private String student;
-  @Column(nullable = false)
-  private Integer programId;
+  @Id
+  private ID id;
   @Column(nullable = false)
   private LocalDate dateOfBirth;
   @Column(nullable = false)
@@ -39,27 +58,21 @@ public final class Application {
 
   public Application() {}
 
-  public Application(String id, String student, Integer programId, LocalDate dateOfBirth,
+  public Application(String student, Integer programId, LocalDate dateOfBirth,
       Double gpa, String major, Status status) {
-    this.id = id;
-    this.student = student;
-    this.programId = programId;
+    this.id = new ID(student, programId);
     this.dateOfBirth = dateOfBirth;
     this.gpa = gpa;
     this.major = major;
     this.status = status;
   }
 
-  public String id() {
-    return id;
-  }
-
   public String student() {
-    return student;
+    return id.student;
   }
 
   public Integer programId() {
-    return programId;
+    return id.programId;
   }
 
   public LocalDate dateOfBirth() {
@@ -90,13 +103,16 @@ public final class Application {
     @Embeddable
     public static class ID implements Serializable {
       @Column(nullable = false)
-      private String applicationId;
+      private String student;
+      @Column(nullable = false)
+      private Integer programId;
       @Enumerated(EnumType.STRING)
       @Column(nullable = false)
       private Question question;
       public ID() {}
-      public ID(String applicationId, Question question) {
-        this.applicationId = applicationId;
+      public ID(Integer programId, String student, Question question) {
+        this.programId = programId;
+        this.student = student;
         this.question = question;
       }
       @Override
@@ -104,24 +120,27 @@ public final class Application {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ID id = (ID) o;
-        return Objects.equals(applicationId, id.applicationId) && question == id.question;
+        return Objects.equals(student, id.student) && Objects.equals(programId, id.programId) && question == id.question;
       }
       @Override
       public int hashCode() {
-        return Objects.hash(applicationId, question);
+        return Objects.hash(student, programId, question);
       }
     }
 
     public Response() {
     }
 
-    public Response(String applicationId, Question question, String response) {
-      this.id = new ID(applicationId, question);
+    public Response(Integer programId, String student, Question question, String response) {
+      this.id = new ID(programId, student, question);
       this.response = response;
     }
+    public Integer programId() {
+      return id.programId;
+    }
 
-    public String applicationId() {
-      return id.applicationId;
+    public String student() {
+      return id.student;
     }
 
     public Question question() {
@@ -163,16 +182,16 @@ public final class Application {
   }
 
   public Application withStatus(Status status) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, status);
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status);
   }
   public Application withMajor(String major) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, status);
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status);
   }
   public Application withGpa(Double gpa) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, status);
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status);
   }
   public Application withDateOfBirth(LocalDate dateOfBirth) {
-    return new Application(id, student, programId, dateOfBirth, gpa, major, status);
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status);
   }
 
   public enum Status {
@@ -197,22 +216,25 @@ public final class Application {
       private Type type;
 
       @Column(nullable = false)
-      private String applicationId;
+      private Integer programId;
+      @Column(nullable = false)
+      private String student;
       public ID() {}
-      public ID(Type type, String applicationId) {
+      public ID(Type type, Integer programId, String student) {
         this.type = type;
-        this.applicationId = applicationId;
+        this.programId = programId;
+        this.student = student;
       }
       @Override
       public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ID id = (ID) o;
-        return type == id.type && Objects.equals(applicationId, id.applicationId);
+        return type == id.type && Objects.equals(programId, id.programId) && Objects.equals(student, id.student);
       }
       @Override
       public int hashCode() {
-        return Objects.hash(type, applicationId);
+        return Objects.hash(type, programId, student);
       }
     }
 
@@ -239,18 +261,14 @@ public final class Application {
     public Document() {
     }
 
-    public Document(Type type, Instant timestamp, Blob file, String applicationId) {
+    public Document(Type type, Instant timestamp, Blob file, Integer programId, String student) {
       this.timestamp = timestamp;
       this.file = file;
-      this.id = new ID(type, applicationId);
+      this.id = new ID(type, programId, student);
     }
 
     public Type type() {
       return id.type;
-    }
-
-    public String id() {
-      return id.applicationId + "-" + id.type;
     }
 
     public Instant timestamp() {
@@ -261,8 +279,11 @@ public final class Application {
       return file;
     }
 
-    public String applicationId() {
-      return id.applicationId;
+    public Integer programId() {
+      return id.programId;
+    }
+    public String student() {
+      return id.student;
     }
   }
 
@@ -274,10 +295,13 @@ public final class Application {
     private Integer id;
 
     @Column(nullable = false)
-    private String applicationId;
+    private Integer programId;
 
     @Column(nullable = false)
-    private String username;
+    private String student;
+
+    @Column(nullable = false)
+    private String author;
 
     @Column(nullable = false, length = 10000)
     private String content;
@@ -286,30 +310,18 @@ public final class Application {
     private Instant timestamp;
 
     public Note() {
-      this.id = null;
-      this.applicationId = null;
-      this.username = null;
-      this.content = null;
-      this.timestamp = null;
     }
 
-    public Note(String applicationId, String username, String content, Instant timestamp) {
-      this.applicationId = applicationId;
-      this.username = username;
+    public Note(Integer programId, String student, String author, String content, Instant timestamp) {
+      this.programId = programId;
+      this.author = author;
       this.content = content;
       this.timestamp = timestamp;
+      this.student = student;
     }
 
     public Integer id() {
       return id;
-    }
-
-    public String applicationId() {
-      return applicationId;
-    }
-
-    public String username() {
-      return username;
     }
 
     public String content() {
@@ -318,6 +330,18 @@ public final class Application {
 
     public Instant timestamp() {
       return timestamp;
+    }
+
+    public String author() {
+      return author;
+    }
+
+    public String student() {
+      return student;
+    }
+
+    public Integer programId() {
+      return programId;
     }
   }
 

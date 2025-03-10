@@ -1,6 +1,7 @@
 package com.example.abroad.controller.student;
 
 import com.example.abroad.model.Application.Document;
+import com.example.abroad.service.ApplicationService;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.DocumentService;
@@ -24,50 +25,54 @@ import java.sql.Blob;
 import java.sql.SQLException;
 
 @Controller
-@RequestMapping("/applications/{applicationId}/documents")
+@RequestMapping("/applications/{programId}/documents")
 public class DocumentController {
     private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
 
     private final DocumentService documentService;
     private final UserService userService;
+    private final ApplicationService applicationService;
 
-    public DocumentController(DocumentService documentService, UserService userService) {
+    public DocumentController(DocumentService documentService, UserService userService,
+      ApplicationService applicationService) {
         this.documentService = documentService;
         this.userService = userService;
+        this.applicationService = applicationService;
     }
 
     @PostMapping
     public String uploadDocument(
-            @PathVariable String applicationId,
+            @PathVariable Integer programId,
             @RequestParam Document.Type type,
             @RequestParam MultipartFile file,
             HttpSession session
     ) {
-        logger.info("Attempting to upload document for application {} type {}", applicationId, type);
+    //    logger.info("Attempting to upload document for application {} type {}", applicationId, type);
         if (userService.findUserFromSession(session).isEmpty()) {
             return "redirect:/login?error=Not logged in";
         }
-        boolean isUpdate = documentService.getDocument(applicationId, type).isPresent();
+        var user = userService.findUserFromSession(session).get();
+        boolean isUpdate = documentService.getDocument(programId, user.username(), type).isPresent();
         try {
-            documentService.uploadDocument(applicationId, type, file);
+            documentService.uploadDocument(programId, user.username(), type, file);
             String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
-            return "redirect:/applications/" + applicationId + "?success=" + message + "#documents";
+            return "redirect:/applications/" + programId + "?success=" + message + "#documents";
         } catch (IllegalArgumentException e) {
             // This correctly handles validation errors
-            return "redirect:/applications/" + applicationId + "?error=" + e.getMessage() + "#documents";
+            return "redirect:/applications/" + programId + "?error=" + e.getMessage() + "#documents";
         } catch (RuntimeException e) {
             // This is a generic error handler
             logger.error("Error uploading document", e);
             String errorMessage = isUpdate ? "Failed to update document: " : "Failed to upload document: ";
             errorMessage += e.getMessage();
-            return "redirect:/applications/" + applicationId + "?error=" + errorMessage + "#documents";
+            return "redirect:/applications/" + programId + "?error=" + errorMessage + "#documents";
         }
     }
 
     @GetMapping("/{type}/view")
     @Transactional
     public ResponseEntity<?> viewDocument(
-            @PathVariable String applicationId,
+            @PathVariable Integer programId,
             @PathVariable Document.Type type,
             HttpSession session
     ) {
@@ -82,27 +87,27 @@ public class DocumentController {
         // Get the current logged-in user
         var user = userOpt.get();
 
-        logger.info("User {} attempting to view document for application {} type {}",
-                user.username(), applicationId, type);
+//        logger.info("User {} attempting to view document for application {} type {}",
+//                user.username(), applicationId, type);
 
         // Get the application to check ownership
-        var applicationOpt = documentService.getApplicationById(applicationId);
+        var applicationOpt = applicationService.findByProgramIdAndStudentUsername(programId, user.username());
         if (applicationOpt.isEmpty()) {
-            logger.warn("Application not found: {}", applicationId);
+//            logger.warn("Application not found: {}", applicationId);
             return ResponseEntity.notFound().build();
         }
 
         // Check if the current user is the owner of the application
         var application = applicationOpt.get();
         if (!application.student().equals(user.username())  && !user.isAdmin()) {
-            logger.warn("User {} attempted unauthorized access to application {} owned by {}",
-                    user.username(), applicationId, application.student());
+//            logger.warn("User {} attempted unauthorized access to application {} owned by {}",
+//                    user.username(), applicationId, application.student());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You do not have permission to access this document");
         }
 
         // Now proceed with getting the document
-        var document = this.documentService.getDocument(applicationId, type);
+        var document = this.documentService.getDocument(programId, user.username(), type);
         if (document.isEmpty()) {
             logger.warn("Document not found");
             return ResponseEntity.notFound().build();

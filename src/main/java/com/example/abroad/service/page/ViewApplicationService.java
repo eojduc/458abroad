@@ -25,14 +25,17 @@ public record ViewApplicationService(
     UserService userService
 ) {
 
-  public GetApplicationResult getApplication(String applicationId, HttpSession session) {
+  public GetApplicationResult getApplication(Integer programId, HttpSession session) {
     var userOpt = userService.findUserFromSession(session);
     if (userOpt.isEmpty()) {
       return new GetApplicationResult.UserNotFound();
     }
     User user = userOpt.get();
-
-    Optional<Application> appOpt = applicationService.findById(applicationId);
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new GetApplicationResult.ProgramNotFound();
+    }
+    Optional<Application> appOpt = applicationService.findByProgramAndStudent(program, user);
     if (appOpt.isEmpty()) {
       return new GetApplicationResult.ApplicationNotFound();
     }
@@ -61,7 +64,7 @@ public record ViewApplicationService(
   }
 
   public GetApplicationResult updateResponses(
-      String applicationId,
+      Integer programId,
       String answer1,
       String answer2,
       String answer3,
@@ -72,7 +75,7 @@ public record ViewApplicationService(
       LocalDate dateOfBirth,
       HttpSession session) {
 
-    GetApplicationResult result = getApplication(applicationId, session);
+    GetApplicationResult result = getApplication(programId, session);
     if (!(result instanceof GetApplicationResult.Success success)) {
       return result;
     }
@@ -96,8 +99,8 @@ public record ViewApplicationService(
     return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses);
   }
 
-  public GetApplicationResult changeStatus(String applicationId, Application.Status newStatus, HttpSession session) {
-    GetApplicationResult result = getApplication(applicationId, session);
+  public GetApplicationResult changeStatus(Integer programId, Application.Status newStatus, HttpSession session) {
+    GetApplicationResult result = getApplication(programId, session);
     if (!(result instanceof GetApplicationResult.Success success)) {
       return result;
     }
