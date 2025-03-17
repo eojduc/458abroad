@@ -118,7 +118,7 @@ public record ProgramService(
     facultyLeadRepository.deleteAll(facultyLeads);
     var adminUsernames = userService.findAll()
       .stream()
-      .filter(User::isAdmin)
+      .filter(userService::isAdmin)
       .map(User::username)
       .toList();
     var newFacultyLeads = users.stream()

@@ -43,7 +43,6 @@ public record AccountService(
                         localUser.username(),
                         localUser.password(),
                         email,
-                        localUser.role(),
                         displayName,
                         localUser.theme()
                 );
@@ -54,7 +53,6 @@ public record AccountService(
                 var updatedUser = new User.SSOUser(
                         ssoUser.username(),
                         email,
-                        ssoUser.role(),
                         displayName,
                         ssoUser.theme()
                 );
@@ -100,7 +98,6 @@ public record AccountService(
                 localUser.username(),
                 hashedPassword,
                 localUser.email(),
-                localUser.role(),
                 localUser.displayName(),
                 localUser.theme()
         );

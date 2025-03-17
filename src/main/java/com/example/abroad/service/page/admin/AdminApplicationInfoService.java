@@ -32,7 +32,7 @@ public record AdminApplicationInfoService(
     if (user == null) {
       return new GetApplicationInfo.NotLoggedIn();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new GetApplicationInfo.UserNotAdmin();
     }
     var student = userService.findByUsername(username).orElse(null);
@@ -157,7 +157,7 @@ public record AdminApplicationInfoService(
     if (user == null) {
       return new UpdateApplicationStatus.NotLoggedIn();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new UpdateApplicationStatus.UserNotAdmin();
     }
     var application = applicationService.findByProgramIdAndStudentUsername(programId, username).orElse(null);
@@ -179,7 +179,7 @@ public record AdminApplicationInfoService(
     if (user == null) {
       return new PostNote.NotLoggedIn();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new PostNote.UserNotAdmin();
     }
     var application = applicationService.findByProgramIdAndStudentUsername(programId, student).orElse(null);

@@ -43,7 +43,7 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new UserNotFound();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);
@@ -112,7 +112,7 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new GetProgramInfo.UserNotFound();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new GetProgramInfo.UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);

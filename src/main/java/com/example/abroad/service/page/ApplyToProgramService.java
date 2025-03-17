@@ -29,7 +29,7 @@ public record ApplyToProgramService(
     if (user == null) {
       return new GetApplyPageData.UserNotFound();
     }
-    if (!user.isStudent()) {
+    if (!userService.isStudent(user)) {
       return new GetApplyPageData.UserNotStudent();
     }
     var program = programService.findById(programId).orElse(null);

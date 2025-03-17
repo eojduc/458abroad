@@ -14,6 +14,7 @@ import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.NoteRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.ResponseRepository;
+import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -52,6 +53,7 @@ public class DataInitializationService {
   private final NoteRepository noteRepository;
   private final DocumentRepository documentRepository;
   private final ResponseRepository responseRepository;
+  private final RoleRepository roleRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
   private EntityManager entityManager;
@@ -65,7 +67,8 @@ public class DataInitializationService {
       NoteRepository noteRepository,
       DocumentRepository documentRepository,
       ProgramRepository programRepository,
-      ResponseRepository responseRepository
+      ResponseRepository responseRepository,
+      RoleRepository roleRepository
     ) {
     this.localUserRepository = localUserRepository;
     this.ssoUserRepository = ssoUserRepository;
@@ -75,6 +78,7 @@ public class DataInitializationService {
     this.noteRepository = noteRepository;
     this.documentRepository = documentRepository;
     this.responseRepository = responseRepository;
+    this.roleRepository = roleRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
         .setHeader()
@@ -118,7 +122,6 @@ public class DataInitializationService {
             record.get("username"),
             passwordEncoder.encode(record.get("password")),
             record.get("email"),
-            User.Role.valueOf(record.get("role").toUpperCase()),
             record.get("displayName"),
           Theme.DEFAULT
         ),
@@ -133,7 +136,6 @@ public class DataInitializationService {
         record -> new User.SSOUser(
             record.get("username"),
             record.get("email"),
-            User.Role.valueOf(record.get("role").toUpperCase()),
             record.get("displayName"),
           Theme.DEFAULT
         ),
@@ -197,6 +199,18 @@ public class DataInitializationService {
             record.get("response")
         ),
         responseRepository
+    );
+  }
+
+  @Transactional
+  protected void initializeRoles(String path) {
+    initializeData(
+        path,
+        record -> new User.Role(
+          User.Role.Type.valueOf(record.get("type").toUpperCase()),
+            record.get("username")
+        ),
+        roleRepository
     );
   }
 

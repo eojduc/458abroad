@@ -3,6 +3,7 @@ package com.example.abroad.service;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.respository.LocalUserRepository;
+import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
 import jakarta.servlet.http.HttpSession;
 import java.util.Arrays;
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Service;
 @Service
 public record UserService(
   LocalUserRepository localUserRepository,
-  SSOUserRepository ssoUserRepository
+  SSOUserRepository ssoUserRepository,
+  RoleRepository roleRepository
 ) {
 
   private static final Logger log = LoggerFactory.getLogger(UserService.class);
@@ -47,6 +49,15 @@ public record UserService(
       case User.LocalUser localUser -> localUserRepository.save(localUser);
       case User.SSOUser ssoUser -> ssoUserRepository.save(ssoUser);
     };
+  }
+
+  public Boolean isAdmin(User user) {
+    return roleRepository.findById_Username(user.username()).stream()
+      .anyMatch(role -> role.type().equals(User.Role.Type.ADMIN));
+  }
+
+  public Boolean isStudent(User user) {
+    return roleRepository.findById_Username(user.username()).isEmpty();
   }
 
   public void deleteUser(User user) {

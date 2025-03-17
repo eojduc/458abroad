@@ -48,7 +48,7 @@ public record AdminProgramsService(
     if (user == null) {
       return new GetAllProgramsInfo.UserNotFound();
     }
-    if (user.role() != User.Role.ADMIN) {
+    if (!userService.isAdmin(user)) {
       return new GetAllProgramsInfo.UserNotAdmin();
     }
     return processAuthorizedRequest(sort, nameFilter, leadFilter, timeFilter, user, ascending);

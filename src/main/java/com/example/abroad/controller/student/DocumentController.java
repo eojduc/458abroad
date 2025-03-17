@@ -99,7 +99,7 @@ public class DocumentController {
 
         // Check if the current user is the owner of the application
         var application = applicationOpt.get();
-        if (!application.student().equals(user.username())  && !user.isAdmin()) {
+        if (!application.student().equals(user.username())  && !userService.isAdmin(user)) {
 //            logger.warn("User {} attempted unauthorized access to application {} owned by {}",
 //                    user.username(), applicationId, application.student());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

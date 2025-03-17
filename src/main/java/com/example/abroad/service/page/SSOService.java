@@ -47,7 +47,7 @@ public record SSOService(UserService userService, @Value("${redirect.url}") Stri
       }
     }
 
-    SSOUser newUser = new SSOUser(username, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
+    SSOUser newUser = new SSOUser(username, email, displayName, User.Theme.DEFAULT);
     userService.save(newUser);
     userService.saveUserToSession(newUser, session);
     return new SSOResult.Success(newUser);

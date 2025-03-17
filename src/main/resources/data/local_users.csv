@@ -1,4 +1,4 @@
-username,password,email,displayName,role
+username,password,email,displayName
 admin,ece_458_group2,admin@ece458.com,Administrator,ADMIN
 tylerharris352,bVByhlT1,tylerharris352@service.net,Tyler Harris,STUDENT
 davidclark074,9mtPZ6M2,davidclark074@service.net,David Clark,STUDENT

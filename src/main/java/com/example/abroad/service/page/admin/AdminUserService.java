@@ -60,7 +60,7 @@ public record AdminUserService(
     if (user == null) {
       return new GetAllUsersInfo.UserNotFound();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new GetAllUsersInfo.UserNotAdmin();
     }
     return processAuthorizedRequest(sort, searchFilter, ascending, user);
@@ -115,7 +115,7 @@ public record AdminUserService(
       case NAME -> Comparator.comparing(userInfo -> userInfo.user().displayName());
       case USERNAME -> Comparator.comparing(userInfo -> userInfo.user().username());
       case EMAIL -> Comparator.comparing(userInfo -> userInfo.user().email());
-      case ROLE -> Comparator.comparing(userInfo -> userInfo.user().role().toString());
+      case ROLE -> Comparator.comparing(userInfo -> userInfo.user().email()); //TODO fix this
       case USER_TYPE -> Comparator.comparing(userInfo -> userInfo.user().isLocal() ? "Local" : "SSO");
     };
     return ascending ? comparator : comparator.reversed();
@@ -155,7 +155,7 @@ public record AdminUserService(
     if (adminUser == null) {
       return new ModifyUserResult.UserNotFound();
     }
-    if (!adminUser.isAdmin()) {
+    if (!userService.isAdmin(adminUser)) {
       return new ModifyUserResult.UserNotAdmin();
     }
 
@@ -178,9 +178,10 @@ public record AdminUserService(
     if (!grantAdmin) {
       var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
       if (facultyLeadPrograms.isEmpty()) {
-        var updateUser = targetUser.withRole(User.Role.STUDENT);
-        userService.save(updateUser);
-        return new ModifyUserResult.Success(updateUser);
+        //TODO fix this
+//        var updateUser = targetUser.withRole(User.Role.STUDENT);
+//        userService.save(updateUser);
+//        return new ModifyUserResult.Success(updateUser);
       }
 
       //will only proceed past this point if user is faculty lead
@@ -193,7 +194,8 @@ public record AdminUserService(
     }
 
     // Modify user admin status
-    var updatedUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
+//    var updatedUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
+    var updatedUser = targetUser;
     userService.save(updatedUser);
 
     return new ModifyUserResult.Success(updatedUser);
@@ -235,7 +237,7 @@ public record AdminUserService(
     if (adminUser == null) {
       return new PasswordResetResult.UserNotFound();
     }
-    if (!adminUser.isAdmin()) {
+    if (!userService.isAdmin(adminUser)) {
       return new PasswordResetResult.UserNotAdmin();
     }
 
@@ -271,7 +273,6 @@ public record AdminUserService(
       localUser.username(),
       hashedPassword,
       localUser.email(),
-      localUser.role(),
       localUser.displayName(),
       localUser.theme()
     );
@@ -305,7 +306,7 @@ public record AdminUserService(
     if (adminUser == null) {
       return new DeleteUserResult.UserNotFound();
     }
-    if (!adminUser.isAdmin()) {
+    if (!userService.isAdmin(adminUser)) {
       return new DeleteUserResult.UserNotAdmin();
     }
 
