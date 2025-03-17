@@ -106,11 +106,10 @@ public final class Application {
       private String student;
       @Column(nullable = false)
       private Integer programId;
-      @Enumerated(EnumType.STRING)
       @Column(nullable = false)
-      private Question question;
+      private Integer question;
       public ID() {}
-      public ID(Integer programId, String student, Question question) {
+      public ID(Integer programId, String student, Integer question) {
         this.programId = programId;
         this.student = student;
         this.question = question;
@@ -131,7 +130,7 @@ public final class Application {
     public Response() {
     }
 
-    public Response(Integer programId, String student, Question question, String response) {
+    public Response(Integer programId, String student, Integer question, String response) {
       this.id = new ID(programId, student, question);
       this.response = response;
     }
@@ -143,40 +142,12 @@ public final class Application {
       return id.student;
     }
 
-    public Question question() {
+    public Integer question() {
       return id.question;
     }
 
     public String response() {
       return response;
-    }
-
-    public enum Question {
-      WHY_THIS_PROGRAM,
-      ALIGN_WITH_CAREER,
-      ANTICIPATED_CHALLENGES,
-      ADAPTED_TO_ENVIRONMENT,
-      UNIQUE_PERSPECTIVE;
-
-      public String text() {
-        return switch (this) {
-          case WHY_THIS_PROGRAM -> "Why do you want to participate in this study abroad program?";
-          case ALIGN_WITH_CAREER -> "How does this program align with your academic or career goals?";
-          case ANTICIPATED_CHALLENGES -> "What challenges do you anticipate during this experience, and how will you address them?";
-          case ADAPTED_TO_ENVIRONMENT -> "Describe a time you adapted to a new or unfamiliar environment.";
-          case UNIQUE_PERSPECTIVE -> "What unique perspective or contribution will you bring to the group?";
-        };
-      }
-
-      public String field() {
-        return switch (this) {
-          case WHY_THIS_PROGRAM -> "answer1";
-          case ALIGN_WITH_CAREER -> "answer2";
-          case ANTICIPATED_CHALLENGES -> "answer3";
-          case ADAPTED_TO_ENVIRONMENT -> "answer4";
-          case UNIQUE_PERSPECTIVE -> "answer5";
-        };
-      }
     }
 
   }

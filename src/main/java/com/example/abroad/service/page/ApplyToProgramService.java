@@ -1,8 +1,6 @@
 package com.example.abroad.service.page;
 
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Application.Response;
-import com.example.abroad.model.Application.Response.Question;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
@@ -41,7 +39,7 @@ public record ApplyToProgramService(
       return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().programId(), user.username());
     }
     var maxDayOfBirth = LocalDate.now().minusYears(10).format(DateTimeFormatter.ISO_DATE);
-    return new GetApplyPageData.Success(program, user, Arrays.asList(Question.values()), maxDayOfBirth);
+    return new GetApplyPageData.Success(program, user, List.of(1, 2, 3, 4, 5), maxDayOfBirth);
   }
 
   public ApplyToProgram applyToProgram(
@@ -61,17 +59,17 @@ public record ApplyToProgramService(
       programId, dob, gpa, major, Status.APPLIED
     );
     applicationService.save(application);
-    applicationService.saveResponse(application, Response.Question.WHY_THIS_PROGRAM, answer1);
-    applicationService.saveResponse(application, Response.Question.ALIGN_WITH_CAREER, answer2);
-    applicationService.saveResponse(application, Response.Question.ANTICIPATED_CHALLENGES, answer3);
-    applicationService.saveResponse(application, Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
-    applicationService.saveResponse(application, Response.Question.UNIQUE_PERSPECTIVE, answer5);
+    applicationService.saveResponse(application, 1, answer1);
+    applicationService.saveResponse(application, 2, answer2);
+    applicationService.saveResponse(application, 3, answer3);
+    applicationService.saveResponse(application, 4, answer4);
+    applicationService.saveResponse(application, 5, answer5);
 
     return new ApplyToProgram.Success(application.programId(), application.student());
   }
 
   public sealed interface GetApplyPageData {
-    record Success(Program program, User user, List<Question> questions,
+    record Success(Program program, User user, List<Integer> questions,
                    String maxDateOfBirth) implements GetApplyPageData { }
     record UserNotFound() implements GetApplyPageData { }
     record ProgramNotFound() implements GetApplyPageData { }

@@ -90,11 +90,11 @@ public record ViewApplicationService(
       .withDateOfBirth(dateOfBirth);
 
     applicationService.save(newApp);
-    applicationService.saveResponse(newApp, Application.Response.Question.WHY_THIS_PROGRAM, answer1);
-    applicationService.saveResponse(newApp, Application.Response.Question.ALIGN_WITH_CAREER, answer2);
-    applicationService.saveResponse(newApp, Application.Response.Question.ANTICIPATED_CHALLENGES, answer3);
-    applicationService.saveResponse(newApp, Application.Response.Question.ADAPTED_TO_ENVIRONMENT, answer4);
-    applicationService.saveResponse(newApp, Application.Response.Question.UNIQUE_PERSPECTIVE, answer5);
+    applicationService.saveResponse(newApp, 1, answer1);
+    applicationService.saveResponse(newApp, 2, answer2);
+    applicationService.saveResponse(newApp, 3, answer3);
+    applicationService.saveResponse(newApp, 4, answer4);
+    applicationService.saveResponse(newApp, 5, answer5);
     var responses = applicationService.getResponses(newApp);
     return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses);
   }

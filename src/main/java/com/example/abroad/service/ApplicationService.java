@@ -83,7 +83,7 @@ public record ApplicationService(
       .toList();
   }
 
-  public void saveResponse(Application application, Response.Question question, String answer) {
+  public void saveResponse(Application application, Integer question, String answer) {
     responseRepository.save(new Response(application.programId(), application.student(), question, answer));
   }
 

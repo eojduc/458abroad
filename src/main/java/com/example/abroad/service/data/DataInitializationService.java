@@ -195,7 +195,7 @@ public class DataInitializationService {
         record -> new Application.Response(
           Integer.parseInt(record.get("programId")),
             record.get("student"),
-            Response.Question.valueOf(record.get("question")),
+            Integer.valueOf(record.get("question")),
             record.get("response")
         ),
         responseRepository

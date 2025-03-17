@@ -9,8 +9,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.Objects;
+
 @Entity
 @Table(name = "programs")
 public final class Program {
@@ -176,6 +179,61 @@ public final class Program {
     FALL, SPRING, SUMMER
   }
 
+  @Entity
+  @Table(name = "questions")
+  public static class Question {
+
+    public static class ID implements Serializable {
+      private Integer id;
+      private Integer programId;
+      public ID() {}
+      public ID(Integer programId, Integer id) {
+        this.programId = programId;
+        this.id = id;
+      }
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) {
+          return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+          return false;
+        }
+        ID id1 = (ID) o;
+        return Objects.equals(id, id1.id) && Objects.equals(programId, id1.programId);
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(id, programId);
+      }
+    }
+
+    @Id
+    private ID id;
+
+    @Column(nullable = false)
+    private String text;
+
+    public Question() {}
+
+    public Question(Integer id, String text, Integer programId) {
+      this.id = new ID(programId, id);
+      this.text = text;
+    }
+
+    public Integer id() {
+      return id.id;
+    }
+
+    public Integer programId() {
+      return id.programId;
+    }
+
+    public String text() {
+      return text;
+    }
+  }
 
   @Entity
   @Table(name = "faculty_leads")
