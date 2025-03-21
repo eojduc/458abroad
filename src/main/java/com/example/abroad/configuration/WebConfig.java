@@ -27,5 +27,9 @@ public class WebConfig implements WebMvcConfigurer {
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new CacheControlInterceptor())
             .addPathPatterns("/login", "/register"); //prevent caching /login and /register
+
+    registry.addInterceptor(new SessionExpiryInterceptor())
+            .excludePathPatterns("/login", "/logout", "/register", "/api/keep-alive",
+                    "/css/**", "/js/**", "/images/**");
   }
 }
