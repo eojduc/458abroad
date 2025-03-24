@@ -68,6 +68,7 @@ public class DataInitializationService {
       DocumentRepository documentRepository,
       ProgramRepository programRepository,
       ResponseRepository responseRepository,
+      // QuestionRepository questionRepository,
       RoleRepository roleRepository
     ) {
     this.localUserRepository = localUserRepository;
@@ -78,6 +79,7 @@ public class DataInitializationService {
     this.noteRepository = noteRepository;
     this.documentRepository = documentRepository;
     this.responseRepository = responseRepository;
+    // this.questionRepository = questionRepository;
     this.roleRepository = roleRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
@@ -201,6 +203,15 @@ public class DataInitializationService {
         responseRepository
     );
   }
+
+  // @Transactional
+  // protected void initializeQuestions(String path) {
+  //   initializeData(
+  //       path,
+  //       record -> new Program.Response()
+  //       questionRepository
+  //   );
+  // }
 
   @Transactional
   protected void initializeRoles(String path) {
