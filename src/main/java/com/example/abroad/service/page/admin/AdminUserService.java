@@ -43,12 +43,13 @@ public record AdminUserService(
   }
 
   public record UserInfo(
-    User user,
-    List<Program> facultyLeadPrograms,
-    List<Application> applications,
-    Map<String, String> applicationPrograms
-  ) {
-  }
+          User user,
+          List<Program> facultyLeadPrograms,
+          List<Application> applications,
+          Map<String, String> applicationPrograms,
+          boolean isAdmin, // Added in previous step
+          String role // Add this field
+  ) {}
 
   public GetAllUsersInfo getUsersInfo(
     HttpSession session,
@@ -86,8 +87,15 @@ public record AdminUserService(
   private UserInfo getUserInfo(User user) {
     var facultyLeadPrograms = programService.findFacultyPrograms(user);
     var applications = applicationService.findByStudent(user);
+    var isAdmin = userService.isAdmin(user);
 
-    // Create a map of application ID to program name
+    // Get role information
+    String role = userService.roleRepository().findById_Username(user.username())
+            .stream()
+            .map(r -> r.type().toString())
+            .findFirst()
+            .orElse("STUDENT");
+
     Map<String, String> applicationPrograms = new HashMap<>();
     for (Application app : applications) {
       programService.findById(app.programId()).ifPresent(program ->
@@ -95,7 +103,7 @@ public record AdminUserService(
       );
     }
 
-    return new UserInfo(user, facultyLeadPrograms, applications, applicationPrograms);
+    return new UserInfo(user, facultyLeadPrograms, applications, applicationPrograms, isAdmin, role);
   }
 
   private Predicate<UserInfo> matchesSearchFilter(String searchTerm) {
@@ -115,7 +123,7 @@ public record AdminUserService(
       case NAME -> Comparator.comparing(userInfo -> userInfo.user().displayName());
       case USERNAME -> Comparator.comparing(userInfo -> userInfo.user().username());
       case EMAIL -> Comparator.comparing(userInfo -> userInfo.user().email());
-      case ROLE -> Comparator.comparing(userInfo -> userInfo.user().email()); //TODO fix this
+      case ROLE -> Comparator.comparing(userInfo -> userInfo.role); // Change this line
       case USER_TYPE -> Comparator.comparing(userInfo -> userInfo.user().isLocal() ? "Local" : "SSO");
     };
     return ascending ? comparator : comparator.reversed();

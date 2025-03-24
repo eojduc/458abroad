@@ -56,11 +56,11 @@
               </thead>
               <tbody>
               <tr th:each="userInfo : ${users}"
-                  th:class="${userInfo.user.isAdmin() ? 'bg-accent text-accent-content' : 'border-base-300 border-y-2'}">
+                  th:class="${userInfo.isAdmin ? 'bg-accent text-accent-content' : 'border-base-300 border-y-2'}">
                 <td th:text="${userInfo.user.displayName()}"></td>
                 <td th:text="${userInfo.user.username()}"></td>
                 <td th:text="${userInfo.user.email()}"></td>
-                <td th:text="${userInfo.user.role()}"></td>
+                <td th:text="${userInfo.role}"></td>
                 <td>
                   <span th:text="${userInfo.user.isLocal() ? 'Local' : 'Duke'}"
                         class="badge badge-neutral">
@@ -70,7 +70,7 @@
                   <!-- Don't show any buttons for the admin user -->
                   <div th:if="${userInfo.user.username != 'admin'}" class="flex flex-row gap-2 items-center">
                     <!-- For non-admin users, show Grant Admin button -->
-                    <form th:if="${!userInfo.user.isAdmin()}"
+                    <form th:if="${!userInfo.isAdmin}"
                           th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
                           method="POST"
                           class="contents">
@@ -80,7 +80,7 @@
                       </button>
                     </form>
                     <!-- For admin users (except super admin), show Revoke Admin button with HTMX -->
-                    <button th:if="${userInfo.user.isAdmin() && userInfo.user.username != 'admin'}"
+                    <button th:if="${userInfo.isAdmin && userInfo.user.username != 'admin'}"
                             class="btn btn-sm btn-primary"
                             th:attr="onclick=|document.getElementById('adminConfirm-${userInfo.user.username}').showModal()|">
                       Revoke Admin
