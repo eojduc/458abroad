@@ -1,7 +1,5 @@
 package com.example.abroad.view;
 
-import com.example.abroad.model.Application;
-
 public record Badge(String color, String text) {
 
   public static Badge fromStatus(String status) {

@@ -60,7 +60,7 @@ public record ViewApplicationService(
       editable = true;
     }
     var responses = applicationService.getResponses(app);
-    var questions = applicationService.getQuestions(app);
+    var questions = programService.getQuestions(prog);
 
     return new GetApplicationResult.Success(app, prog, user, editable, responses, questions);
   }
@@ -97,8 +97,10 @@ public record ViewApplicationService(
     applicationService.saveResponse(newApp, 3, answer3);
     applicationService.saveResponse(newApp, 4, answer4);
     applicationService.saveResponse(newApp, 5, answer5);
+
     var responses = applicationService.getResponses(newApp);
-    var questions = applicationService.getQuestions(newApp);
+    Program program = programService.findById(newApp.programId()).orElse(null);
+    var questions = programService.getQuestions(program);
 
     return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses, questions);
   }
@@ -130,15 +132,17 @@ public record ViewApplicationService(
       today.isBefore(success.program().applicationClose())) {
       editable = true;
     }
+    
     var responses = applicationService.getResponses(app);
-    var questions = applicationService.getQuestions(app);
+    Program program = programService.findById(app.programId()).orElse(null);
+    var questions = programService.getQuestions(program);
 
     return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responses, questions);
   }
 
   public sealed interface GetApplicationResult {
 
-    record Success(Application application, Program program, User user, boolean editable, List<Response> responses, Map<Integer, Question>questions)
+    record Success(Application application, Program program, User user, boolean editable, List<Response> responses, List<Question> questions)
         implements GetApplicationResult {
     }
 

@@ -147,10 +147,11 @@
                         th:each="response: ${responses}"
                 >
                   <label class="label">
-                        <span
-                                class="label-text"
-                                th:text="${questions[response.question()].text}"
-                        ></span>
+                    <span class="label-text">
+                      <span th:each="question : ${questions}" 
+                            th:if="${question.id == response.question}" 
+                            th:text="${question.text}">Question Text</span>
+                    </span>
                   </label>
                   <textarea
                           class="textarea whitespace-pre-line"

@@ -27,8 +27,7 @@ public record ApplicationService(
   ApplicationRepository applicationRepository,
   NoteRepository noteRepository,
   DocumentRepository documentRepository,
-  ResponseRepository responseRepository,
-  QuestionRepository questionRepository
+  ResponseRepository responseRepository
 ) {
 
   public void deleteNote(Integer noteId) {
@@ -88,12 +87,6 @@ public record ApplicationService(
       .stream()
       .sorted(Comparator.comparing(Response::question))
       .toList();
-  }
-
-  public Map<Integer, Question> getQuestions(Application application) {
-    return questionRepository.findById_ProgramId(application.programId())
-        .stream()
-        .collect(Collectors.toMap(Question::id, Function.identity()));
   }
 
   public void saveResponse(Application application, Integer question, String answer) {
