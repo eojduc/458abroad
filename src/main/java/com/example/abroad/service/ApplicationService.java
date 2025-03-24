@@ -6,14 +6,20 @@ import com.example.abroad.model.Application.Document.Type;
 import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.DocumentRepository;
 import com.example.abroad.respository.NoteRepository;
+import com.example.abroad.respository.QuestionRepository;
 import com.example.abroad.respository.ResponseRepository;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,7 +27,8 @@ public record ApplicationService(
   ApplicationRepository applicationRepository,
   NoteRepository noteRepository,
   DocumentRepository documentRepository,
-  ResponseRepository responseRepository
+  ResponseRepository responseRepository,
+  QuestionRepository questionRepository
 ) {
 
   public void deleteNote(Integer noteId) {
@@ -81,6 +88,12 @@ public record ApplicationService(
       .stream()
       .sorted(Comparator.comparing(Response::question))
       .toList();
+  }
+
+  public Map<Integer, Question> getQuestions(Application application) {
+    return questionRepository.findById_ProgramId(application.programId())
+        .stream()
+        .collect(Collectors.toMap(Question::id, Function.identity()));
   }
 
   public void saveResponse(Application application, Integer question, String answer) {

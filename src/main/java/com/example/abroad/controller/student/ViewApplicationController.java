@@ -69,6 +69,7 @@ public record ViewApplicationController(
         allAttributes.put("user", successRes.user());
         allAttributes.put("editable", successRes.editable());
         allAttributes.put("responses", successRes.responses());
+        allAttributes.put("questions", successRes.questions());
         allAttributes.put("formatter", formatter);
         allAttributes.put("alerts", new Alerts(error, success, warning, info));
         allAttributes.put("pair", pair);
@@ -162,7 +163,8 @@ public record ViewApplicationController(
                 "formatter", formatter,
                 "pair", pair,
                 "facultyLeads", facultyLeads,
-                "responses", success.responses()));
+                "responses", success.responses(),
+                "questions", success.questions()));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
@@ -210,6 +212,7 @@ public record ViewApplicationController(
                 "user", success.user(),
                 "editable", success.editable(),
                 "responses", success.responses(),
+                "questions", success.questions(),
                 "pair", pair,
                 "facultyLeads", facultyLeads,
                 "formatter", formatter));

@@ -3,8 +3,7 @@ package com.example.abroad.service.page;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
-import com.example.abroad.respository.ApplicationRepository;
-import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 
 import com.example.abroad.service.ApplicationService;
@@ -13,6 +12,8 @@ import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -59,8 +60,9 @@ public record ViewApplicationService(
       editable = true;
     }
     var responses = applicationService.getResponses(app);
+    var questions = applicationService.getQuestions(app);
 
-    return new GetApplicationResult.Success(app, prog, user, editable, responses);
+    return new GetApplicationResult.Success(app, prog, user, editable, responses, questions);
   }
 
   public GetApplicationResult updateResponses(
@@ -96,7 +98,9 @@ public record ViewApplicationService(
     applicationService.saveResponse(newApp, 4, answer4);
     applicationService.saveResponse(newApp, 5, answer5);
     var responses = applicationService.getResponses(newApp);
-    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses);
+    var questions = applicationService.getQuestions(newApp);
+
+    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses, questions);
   }
 
   public GetApplicationResult changeStatus(Integer programId, Application.Status newStatus, HttpSession session) {
@@ -127,13 +131,14 @@ public record ViewApplicationService(
       editable = true;
     }
     var responses = applicationService.getResponses(app);
+    var questions = applicationService.getQuestions(app);
 
-    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responses);
+    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responses, questions);
   }
 
   public sealed interface GetApplicationResult {
 
-    record Success(Application application, Program program, User user, boolean editable, List<Response> responses)
+    record Success(Application application, Program program, User user, boolean editable, List<Response> responses, Map<Integer, Question>questions)
         implements GetApplicationResult {
     }
 
