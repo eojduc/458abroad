@@ -7,6 +7,6 @@ import com.example.abroad.model.Program.Question;
 
 public interface QuestionRepository extends JpaRepository<Question, Question.ID> {
   
-    // List<Question> findById_ProgramId(Integer programId);
+    List<Question> findById_ProgramId(Integer programId);
     
 }
