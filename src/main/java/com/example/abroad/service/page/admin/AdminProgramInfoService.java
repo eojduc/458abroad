@@ -6,6 +6,7 @@ import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
+import com.example.abroad.model.User.Role.Type;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ApplicationService.Documents;
 import com.example.abroad.service.FormatService;
@@ -13,6 +14,7 @@ import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminProgramInfoService.DeleteProgram.ProgramNotFound;
 import com.example.abroad.service.page.admin.AdminProgramInfoService.DeleteProgram.Success;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.DeleteProgram.UserLacksPermission;
 import com.example.abroad.service.page.admin.AdminProgramInfoService.DeleteProgram.UserNotAdmin;
 import com.example.abroad.service.page.admin.AdminProgramInfoService.DeleteProgram.UserNotFound;
 import com.example.abroad.view.Badge;
@@ -43,12 +45,19 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new UserNotFound();
     }
-    if (!userService.isAdmin(user)) {
-      return new UserNotAdmin();
-    }
+
     var program = programService.findById(programId).orElse(null);
     if (program == null) {
       return new ProgramNotFound();
+    }
+    var isAdmin = userService.isAdmin(user);
+    var isReviewer = userService.isReviewer(user);
+    var isFacultyLead = userService.isFaculty(user) &&
+      programService.findFacultyLeads(program).stream()
+          .map(User::username)
+          .anyMatch(username -> username.equals(user.username()));
+    if (!isAdmin && !isReviewer && !isFacultyLead) {
+      return new UserLacksPermission();
     }
     programService.deleteProgram(program);
     return new Success();
@@ -73,12 +82,10 @@ public record AdminProgramInfoService(
       .toList();
     return new ProgramDetails(program.title(), program.description(), fields, facultyLeads);
   }
-  public sealed interface GetProgramInfo permits GetProgramInfo.Success,
-    GetProgramInfo.ProgramNotFound, GetProgramInfo.UserNotFound,
-    GetProgramInfo.UserNotAdmin {
+  public sealed interface GetProgramInfo {
 
     record Success(Program program, List<ApplicantInfo> applicants, User user, Boolean documentDeadlinePassed, Boolean programIsDone, List<? extends User> facultyLeads,
-                   ProgramDetails programDetails, ApplicantDetails applicantDetails) implements
+                   ProgramDetails programDetails, ApplicantDetails applicantDetails, Boolean canSeeApplicants) implements
       GetProgramInfo {
 
     }
@@ -94,13 +101,13 @@ public record AdminProgramInfoService(
     record UserNotAdmin() implements GetProgramInfo {
 
     }
+
+    record UserLacksPermission() implements GetProgramInfo {
+
+    }
   }
 
   public record ApplicantDetails(List<Field> headers) {
-
-  }
-
-  public record FilterInfo(String value, String color) {
 
   }
 
@@ -112,13 +119,21 @@ public record AdminProgramInfoService(
     if (user == null) {
       return new GetProgramInfo.UserNotFound();
     }
-    if (!userService.isAdmin(user)) {
-      return new GetProgramInfo.UserNotAdmin();
-    }
     var program = programService.findById(programId).orElse(null);
     if (program == null) {
       return new GetProgramInfo.ProgramNotFound();
     }
+    var isAdmin = userService.isAdmin(user);
+    var isReviewer = userService.isReviewer(user);
+    var isFacultyLead = userService.isFaculty(user) &&
+      programService.findFacultyLeads(program).stream()
+        .map(User::username)
+        .anyMatch(username -> username.equals(user.username()));
+    var isFaculty = userService.isFaculty(user);
+    if (!isAdmin && !isReviewer && !isFaculty) {
+      return new GetProgramInfo.UserLacksPermission();
+    }
+    var canSeeApplicants = isAdmin || isReviewer || isFacultyLead;
     Comparator<Applicant> sorter = switch (column.orElse(Column.NONE)) {
       case USERNAME, NONE -> Comparator.comparing(Applicant::username);
       case DISPLAY_NAME -> Comparator.comparing(Applicant::displayName);
@@ -153,13 +168,40 @@ public record AdminProgramInfoService(
       .flatMap(application -> applicants(users.stream(), application))
       .sorted(reversed ? sorter.reversed() : sorter)
       .filter(filterer)
-      .map(applicant -> getApplicantInfo(applicant, documentDeadlinePassed, programId, programIsDone))
+      .map(applicant -> getApplicantInfo(applicant, documentDeadlinePassed, programId, programIsDone, isAdmin, isReviewer, isFacultyLead))
       .toList();
     var programDetails = getProgramDetails(program);
     var facultyLeads = programService.findFacultyLeads(program);
     var applicantDetails = getApplicantDetails();
-    return new GetProgramInfo.Success(program, applicants, user, documentDeadlinePassed, programIsDone, facultyLeads, programDetails, applicantDetails);
+    return new GetProgramInfo.Success(program, applicants, user, documentDeadlinePassed, programIsDone, facultyLeads, programDetails, applicantDetails, canSeeApplicants);
+  }
 
+  public StatusOption statusOption(Status status, Boolean programIsPast) {
+    return switch (status) {
+      case APPLIED -> new StatusOption(Status.APPLIED.name(), "Applied");
+      case ELIGIBLE -> new StatusOption(Status.ELIGIBLE.name(), "Eligible");
+      case APPROVED -> new StatusOption(Status.APPROVED.name(), "Approved");
+      case ENROLLED -> new StatusOption(Status.ENROLLED.name(), programIsPast ? "Completed" : "Enrolled");
+      case CANCELLED -> new StatusOption(Status.CANCELLED.name(), "Cancelled");
+      case WITHDRAWN -> new StatusOption(Status.WITHDRAWN.name(), "Withdrawn");
+    };
+  }
+
+  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast) {
+    if (isAdmin) {
+      return Stream.of(
+        Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
+        .map(status -> statusOption(status, programIsPast)).toList();
+    }
+    if (isReviewer) {
+      return Stream.of(Status.ELIGIBLE, Status.APPLIED)
+        .map(status -> statusOption(status, programIsPast)).toList();
+    }
+    if (isLead) {
+      return Stream.of(Status.ELIGIBLE, Status.APPLIED, Status.APPROVED)
+        .map(status -> statusOption(status, programIsPast)).toList();
+    }
+    return List.of();
   }
 
   public ApplicantDetails getApplicantDetails() {
@@ -219,11 +261,7 @@ public record AdminProgramInfoService(
     ASCENDING, DESCENDING
   }
 
-  public sealed interface DeleteProgram permits
-    ProgramNotFound,
-    UserNotFound,
-    UserNotAdmin,
-    Success {
+  public sealed interface DeleteProgram {
 
     record Success() implements DeleteProgram {
 
@@ -238,6 +276,9 @@ public record AdminProgramInfoService(
     }
 
     record UserNotAdmin() implements DeleteProgram {
+
+    }
+    record UserLacksPermission() implements DeleteProgram {
 
     }
   }
@@ -270,7 +311,9 @@ public record AdminProgramInfoService(
 
   public record StatusOption(String value, String text){ }
 
-  public ApplicantInfo getApplicantInfo(Applicant applicant, Boolean deadlinePassed, Integer programId, Boolean programIsDone) {
+  public ApplicantInfo getApplicantInfo(Applicant applicant, Boolean deadlinePassed, Integer programId, Boolean programIsDone,
+    Boolean isAdmin, Boolean isReviewer, Boolean isLead
+    ) {
     return new ApplicantInfo(
       applicant.username(), applicant.displayName(),
       applicant.email(), applicant.major(),
@@ -283,14 +326,8 @@ public record AdminProgramInfoService(
         getDocumentInfo(applicant.documents.codeOfConduct(), deadlinePassed),
         getDocumentInfo(applicant.documents.assumptionOfRisk(), deadlinePassed),
         getDocumentInfo(applicant.documents.housing(), deadlinePassed)
-         ),
-      List.of(
-        new StatusOption(Status.APPLIED.name(), "Applied"),
-        new StatusOption(Status.ELIGIBLE.name(), "Eligible"),
-        new StatusOption(Status.APPROVED.name(), "Approved"),
-        new StatusOption(Status.ENROLLED.name(), programIsDone ? "Completed" : "Enrolled"),
-        new StatusOption(Status.CANCELLED.name(), "Cancelled")
-      ),
+     ),
+      statusChangeOptions(isAdmin, isReviewer, isLead, programIsDone),
       applicant.noteCount(),
       applicant.latestNote().map(note -> note.author() + " on " + formatService.formatInstant(note.timestamp())).orElse(""),
       applicant.displayStatus());

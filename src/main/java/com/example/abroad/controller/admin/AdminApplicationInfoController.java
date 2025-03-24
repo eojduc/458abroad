@@ -99,6 +99,10 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
         model.addAttribute("status", "error");
         return "components :: statusBadge";
       }
+      case UpdateApplicationStatus.UserLacksPermission() -> {
+        model.addAttribute("status", "error");
+        return "components :: statusBadge";
+      }
       case UpdateApplicationStatus.ProgramNotFound() -> {
         model.addAttribute("status", "error");
         return "components :: statusBadge";

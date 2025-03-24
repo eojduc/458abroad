@@ -56,6 +56,10 @@ public record ProgramService(
     }
   }
 
+  public Boolean isFacultyLead(Program program, User user) {
+    return findFacultyLeads(program).stream().map(User::username).anyMatch(user.username()::equals);
+  }
+
 
   public sealed interface SaveProgram {
     record Success(Program program) implements SaveProgram {}

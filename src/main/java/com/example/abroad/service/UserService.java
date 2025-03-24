@@ -67,6 +67,17 @@ public record UserService(
     }
   }
 
+  public Boolean isReviewer(User user) {
+    return roleRepository.findById_Username(user.username()).stream()
+      .anyMatch(role -> role.type().equals(User.Role.Type.REVIEWER));
+  }
+
+
+  public Boolean isFaculty(User user) {
+    return roleRepository.findById_Username(user.username()).stream()
+      .anyMatch(role -> role.type().equals(User.Role.Type.FACULTY));
+  }
+
   public void setTheme(User.Theme theme, HttpSession session) {
     var user = findUserFromSession(session).orElse(null);
     if (user == null) {

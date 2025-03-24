@@ -36,10 +36,10 @@
           </tbody>
         </table>
       </div>
-      <div class="overflow-x-auto">
-        <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE, ASCENDING)}"></div>
+      <div th:if="${canSeeApplicants}" class="overflow-x-auto">
+        <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, ALL, ASCENDING)}"></div>
       </div>
-      <div class="card-actions">
+      <div th:if="${isAdmin}" class="card-actions">
         <a class="btn btn-primary w-1/4" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
         <button class="btn btn-secondary w-1/4" onclick="delete_modal.showModal()">Delete</button>
         <dialog id="delete_modal" class="modal">
@@ -81,7 +81,6 @@
     class="flex flex-col gap-5">
   <div class="flex flex-row gap-6 items-center">
     <h2 class="text-lg">Applicants</h2>
-    <button class="contents"
 
     <button class="contents"
             th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='ALL')}"
@@ -148,6 +147,30 @@
           CANCELLED
         </span>
     </button>
+  </div>
+  <div class="m-4">
+    <textarea id="emailList" class="sr-only" readonly>
+      [[${T(java.lang.String).join('; ', applicants.![email])}]]
+    </textarea>
+    <!-- Copy button styled with Tailwind -->
+    <button
+        type="button"
+        onclick="copyEmails()"
+        class="btn btn-outline btn-sm"
+    >
+      Copy Emails
+    </button>
+
+    <!-- Clipboard copy logic -->
+    <script>
+      function copyEmails() {
+        const textarea = document.getElementById("emailList");
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // Mobile compatibility
+        document.execCommand("copy");
+        alert("Emails copied to clipboard!");
+      }
+    </script>
   </div>
   <table class="table table-sm border-collapse">
     <thead>

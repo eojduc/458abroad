@@ -33,8 +33,9 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
       case GetProgramInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetProgramInfo.UserNotAdmin() -> String.format("redirect:/programs/%s?error=You are not an admin", programId);
       case GetProgramInfo.ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
+      case GetProgramInfo.UserLacksPermission() -> "redirect:/admin/programs?error=You do not have permission to view this program";
       case GetProgramInfo.Success(var program, var applicants, var user, var documentDeadlinePassed,
-                                  var programisDone, var facultyLeads, var programDetails, var applicantDetails) -> {
+                                  var programisDone, var facultyLeads, var programDetails, var applicantDetails, var canSeeApplicants) -> {
         System.out.println(applicantDetails);
         model.addAllAttributes(Map.of(
           "program", program,
@@ -51,7 +52,9 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
         model.addAllAttributes(Map.of(
           "facultyLeads", facultyLeads,
           "applicantDetails", applicantDetails,
-          "headers", applicantDetails.headers()
+          "headers", applicantDetails.headers(),
+          "canSeeApplicants", canSeeApplicants,
+          "isAdmin", userService.isAdmin(user)
         ));
         yield "admin/program-info :: page";
       }
@@ -65,6 +68,7 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
       case DeleteProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case DeleteProgram.UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
       case ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
+      case DeleteProgram.UserLacksPermission() -> "redirect:/admin/programs?error=You do not have permission to delete this program";
     };
   }
 
@@ -76,8 +80,9 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
       case GetProgramInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case GetProgramInfo.UserNotAdmin() -> String.format("redirect:/programs/%s?error=You are not an admin", programId);
       case GetProgramInfo.ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
+      case GetProgramInfo.UserLacksPermission() -> "redirect:/admin/programs?error=You do not have permission to view this program";
       case GetProgramInfo.Success(var program, var applicants, var user, var documentDeadlinePassed, var programIsDone,
-                                  var facultyLeads, var programDetails, var applicantDetails) -> {
+                                  var facultyLeads, var programDetails, var applicantDetails, var canSeeApplicants) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "applicants", applicants,
@@ -89,6 +94,9 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "programIsDone", programIsDone,
           "programDetails", programDetails,
           "applicantDetails", applicantDetails
+        ));
+        model.addAllAttributes(Map.of(
+          "canSeeApplicants", canSeeApplicants
         ));
         yield "admin/program-info :: applicant-table";
       }

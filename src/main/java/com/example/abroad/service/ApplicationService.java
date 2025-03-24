@@ -64,6 +64,8 @@ public record ApplicationService(
     );
   }
 
+
+
   public Optional<Document> getDocument(Application application, Type type) {
     return documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), type);
   }

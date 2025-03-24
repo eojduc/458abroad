@@ -92,6 +92,157 @@ public final class Application {
   }
 
   @Entity
+  @Table(name = "letters_of_recommendation")
+  public static class LetterOfRecommendation {
+    @Id
+    private ID id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    @Lob
+    private Blob file;
+
+    @Column(nullable = false)
+    private Instant timestamp;
+
+    @Embeddable
+    public static class ID implements Serializable {
+      @Column(nullable = false)
+      private String student;
+      @Column(nullable = false)
+      private Integer programId;
+      @Column(nullable = false)
+      private String email;
+      public ID() {}
+      public ID(Integer programId, String student, String email) {
+        this.programId = programId;
+        this.student = student;
+        this.email = email;
+      }
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ID id = (ID) o;
+        return Objects.equals(student, id.student) && Objects.equals(programId, id.programId);
+      }
+      @Override
+      public int hashCode() {
+        return Objects.hash(student, programId);
+      }
+    }
+
+    public LetterOfRecommendation() {
+    }
+
+    public LetterOfRecommendation(Integer programId, String student,
+        String email, Blob file, Instant timestamp, String name) {
+      this.id = new ID(programId, student, email);
+      this.file = file;
+      this.timestamp = timestamp;
+      this.name = name;
+    }
+
+    public Integer programId() {
+      return id.programId;
+    }
+
+    public String student() {
+      return id.student;
+    }
+    public String email() {
+      return id.email;
+    }
+    public Blob file() {
+      return file;
+    }
+    public Instant timestamp() {
+      return timestamp;
+    }
+    public String name() {
+      return name;
+    }
+  }
+
+
+  @Entity
+  @Table(name = "recommendation_requests")
+  public static class RecommendationRequest {
+    @Id
+    private ID id;
+
+    @Column(nullable = false)
+    private String code;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Embeddable
+    public static class ID implements Serializable {
+
+      @Column(nullable = false)
+      private String student;
+      @Column(nullable = false)
+      private Integer programId;
+      @Column(nullable = false)
+      private String email;
+
+      public ID() {
+      }
+
+      public ID(Integer programId, String student, String email) {
+        this.programId = programId;
+        this.student = student;
+        this.email = email;
+      }
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ID id = (ID) o;
+        return Objects.equals(student, id.student) && Objects.equals(programId, id.programId) &&
+            Objects.equals(email, id.email);
+      }
+      @Override
+      public int hashCode() {
+        return Objects.hash(student, programId, email);
+      }
+
+    }
+
+    public RecommendationRequest() {
+    }
+
+    public RecommendationRequest(Integer programId, String student, String email, String name, String code) {
+      this.id = new ID(programId, student, email);
+      this.name = name;
+      this.code = code;
+    }
+
+    public Integer programId() {
+      return id.programId;
+    }
+
+    public String student() {
+      return id.student;
+    }
+
+    public String email() {
+      return id.email;
+    }
+
+    public String name() {
+      return name;
+    }
+    public String code() {
+      return code;
+    }
+  }
+
+
+  @Entity
   @Table(name = "responses")
   public static class Response {
     @Id

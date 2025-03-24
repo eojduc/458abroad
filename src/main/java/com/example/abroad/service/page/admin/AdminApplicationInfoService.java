@@ -153,13 +153,6 @@ public record AdminApplicationInfoService(
   public UpdateApplicationStatus updateApplicationStatus(Integer programId,
     String username, Application.Status status, HttpSession session
   ) {
-    var user = userService.findUserFromSession(session).orElse(null);
-    if (user == null) {
-      return new UpdateApplicationStatus.NotLoggedIn();
-    }
-    if (!userService.isAdmin(user)) {
-      return new UpdateApplicationStatus.UserNotAdmin();
-    }
     var application = applicationService.findByProgramIdAndStudentUsername(programId, username).orElse(null);
     if (application == null) {
       return new UpdateApplicationStatus.ApplicationNotFound();
@@ -169,8 +162,31 @@ public record AdminApplicationInfoService(
     if (program == null) {
       return new UpdateApplicationStatus.ProgramNotFound();
     }
+    var user = userService.findUserFromSession(session).orElse(null);
+    if (user == null) {
+      return new UpdateApplicationStatus.NotLoggedIn();
+    }
+    var isAdmin = userService.isAdmin(user);
+    var isReviewer = userService.isReviewer(user);
+    var isFacultyLead = programService.isFacultyLead(program, user);
+    if (!isReviewer && !isFacultyLead && !isAdmin) {
+      return new UpdateApplicationStatus.UserLacksPermission();
+    }
+    var adminStatuses = List.of(Status.ENROLLED, Status.CANCELLED, Status.ELIGIBLE, Status.APPROVED, Status.APPLIED);
+    var facultyStatuses = List.of(Status.APPLIED, Status.ELIGIBLE, Status.APPROVED);
+    var reviewerStatuses = List.of(Status.APPLIED, Status.ELIGIBLE);
+    if (isAdmin && !adminStatuses.contains(status)) {
+      return new UpdateApplicationStatus.UserLacksPermission();
+    }
+    if (isFacultyLead && !facultyStatuses.contains(status)) {
+      return new UpdateApplicationStatus.UserLacksPermission();
+    }
+    if (isReviewer && !reviewerStatuses.contains(status)) {
+      return new UpdateApplicationStatus.UserLacksPermission();
+    }
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var displayedStatus = programIsPast && status == Status.ENROLLED ? "COMPLETED" : status.toString();
+    System.out.println("Success");
     return new UpdateApplicationStatus.Success(displayedStatus);
   }
 
@@ -260,6 +276,9 @@ public record AdminApplicationInfoService(
 
     }
 
+    record UserLacksPermission() implements UpdateApplicationStatus {
+
+    }
     record UserNotAdmin() implements UpdateApplicationStatus {
 
     }
