@@ -115,7 +115,7 @@
 
 </table>
 
-<form xmlns:th="http://www.thymeleaf.org"
+<div xmlns:th="http://www.thymeleaf.org"
       th:fragment="filterForm(path)"
       id="filterForm">
   <div class="flex gap-4 ">
@@ -145,7 +145,7 @@
         <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
         <select name="leadFilter" multiple
                 class="select"
-                size="3"
+                size="4"
                 th:value="${leadKeyword}"
                 th:hx-get="@{${path}}"
                 hx-trigger="change"
@@ -181,7 +181,7 @@
       </label>
     </div>
   </div>
-</form>
+</div>
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, column, class)">
   <th th:with="isSorted=${sort == column || (sort == 'sort' && column == 'TITLE')}"

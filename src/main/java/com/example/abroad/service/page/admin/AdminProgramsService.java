@@ -69,7 +69,8 @@ public record AdminProgramsService(
     var programsAndStatuses = programService.findAll()
         .stream()
         .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
-        .filter(program -> new HashSet<>(extractFacultyLeadUsername(program, User::username)).containsAll(leadFilter))
+        .filter(program -> leadFilter.isEmpty() ||
+            extractFacultyLeadUsername(program, User::username).stream().anyMatch(leadFilter::contains))
         .filter(getTimeFilterPredicate(timeFilter))
         .map(getProgramAndStatuses())
         .sorted(getSortComparator(sort, ascending))
