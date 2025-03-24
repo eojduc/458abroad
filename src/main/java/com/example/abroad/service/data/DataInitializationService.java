@@ -13,6 +13,7 @@ import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.NoteRepository;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.respository.QuestionRepository;
 import com.example.abroad.respository.ResponseRepository;
 import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
@@ -53,6 +54,7 @@ public class DataInitializationService {
   private final NoteRepository noteRepository;
   private final DocumentRepository documentRepository;
   private final ResponseRepository responseRepository;
+  private final QuestionRepository questionRepository;
   private final RoleRepository roleRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
@@ -68,7 +70,7 @@ public class DataInitializationService {
       DocumentRepository documentRepository,
       ProgramRepository programRepository,
       ResponseRepository responseRepository,
-      // QuestionRepository questionRepository,
+      QuestionRepository questionRepository,
       RoleRepository roleRepository
     ) {
     this.localUserRepository = localUserRepository;
@@ -79,7 +81,7 @@ public class DataInitializationService {
     this.noteRepository = noteRepository;
     this.documentRepository = documentRepository;
     this.responseRepository = responseRepository;
-    // this.questionRepository = questionRepository;
+    this.questionRepository = questionRepository;
     this.roleRepository = roleRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
@@ -204,14 +206,18 @@ public class DataInitializationService {
     );
   }
 
-  // @Transactional
-  // protected void initializeQuestions(String path) {
-  //   initializeData(
-  //       path,
-  //       record -> new Program.Response()
-  //       questionRepository
-  //   );
-  // }
+  @Transactional
+  protected void initializeQuestions(String path) {
+    initializeData(
+        path,
+        record -> new Program.Question(
+          Integer.parseInt(record.get("id")),
+            record.get("text"),
+            Integer.parseInt(record.get("programId"))
+        ),
+        questionRepository
+    );
+  }
 
   @Transactional
   protected void initializeRoles(String path) {
@@ -286,5 +292,6 @@ public class DataInitializationService {
     documentRepository.deleteAll();
     entityManager.createNativeQuery("ALTER SEQUENCE programs_seq RESTART WITH 1").executeUpdate();
     programRepository.deleteAll();
+    questionRepository.deleteAll();
   }
 }

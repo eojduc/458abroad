@@ -69,7 +69,7 @@ public class DataInitializerService {
       dataInitializationService.initializeNotes(notesCsvFilePath);
       dataInitializationService.initializeDocuments(documentsCsvFilePath);
       dataInitializationService.initializeResponses(responsesCsvFilePath);
-      // dataInitializationService.initializeQuestions(questionsCsvFilePath);
+      dataInitializationService.initializeQuestions(questionsCsvFilePath);
       dataInitializationService.initializeRoles(rolesCsvFilePath);
 
     } else {
