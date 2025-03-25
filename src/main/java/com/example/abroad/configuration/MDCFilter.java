@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import com.example.abroad.model.User;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Component
 public class MDCFilter implements Filter {

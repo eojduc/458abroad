@@ -4,7 +4,6 @@ import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.AccountService.ChangePassword;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -37,7 +36,7 @@ public record AuthService(
     userService.saveUserToSession(localUser, session);
     
     MDC.put("username", user.username());
-    auditService.logEvent("User " + username + " logged in.");
+    auditService.logEvent("Local User " + username + " logged in.");
 
     return new Login.Success(localUser);
   }
@@ -110,7 +109,7 @@ public record AuthService(
     userService.saveUserToSession(user, session);
     
     MDC.put("username", username);
-    auditService.logEvent("User " + username + " registered.");
+    auditService.logEvent("Local User " + username + " registered.");
 
     return new RegisterResult.Success();
   }
