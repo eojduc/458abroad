@@ -6,6 +6,7 @@ import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.EmailService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
@@ -20,7 +21,8 @@ public record ApplyToProgramService(
   ApplicationService applicationService,
   ProgramService programService,
   UserService userService,
-  EmailService emailService
+  EmailService emailService,
+  AuditService auditService
 ) {
 
 
@@ -68,6 +70,7 @@ public record ApplyToProgramService(
     for (int i = 0; i < answers.size(); i++) {
       applicationService.saveResponse(application, questionIds.get(i), answers.get(i));
     }
+    auditService.logEvent("User " + user.username() + " successfully applied to program " + programId);
     return new ApplyToProgram.Success(application.programId(), application.student());
   }
 

@@ -7,6 +7,7 @@ import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -25,7 +26,8 @@ import java.util.stream.Collectors;
 public record ViewApplicationService(
     ApplicationService applicationService,
     ProgramService programService,
-    UserService userService
+    UserService userService,
+    AuditService auditService
 ) {
 
   public GetApplicationResult getApplication(Integer programId, HttpSession session) {
@@ -107,6 +109,8 @@ public record ViewApplicationService(
     Program program = programService.findById(newApp.programId()).orElse(null);
     var questions = programService.getQuestions(program);
 
+    auditService.logEvent("Application updated with new responses");
+
     return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses, questions);
   }
 
@@ -141,6 +145,8 @@ public record ViewApplicationService(
     var responses = applicationService.getResponses(app);
     Program program = programService.findById(app.programId()).orElse(null);
     var questions = programService.getQuestions(program);
+
+    auditService.logEvent("Application updated with new status: " + newStatus.name());
 
     return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responses, questions);
   }

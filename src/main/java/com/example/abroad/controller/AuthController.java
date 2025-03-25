@@ -6,6 +6,8 @@ import com.example.abroad.service.page.AuthService.CheckLoginStatus;
 import com.example.abroad.service.page.AuthService.Login;
 import com.example.abroad.service.page.AuthService.Logout;
 import com.example.abroad.service.page.AuthService.RegisterResult;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,13 +17,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.Optional;
 
 @Controller
 public record AuthController(AuthService authService) {
 
-  public static Logger logger = LoggerFactory.getLogger(AuthController.class);
+  public static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
   @GetMapping("/login")
   public String showLoginForm(
@@ -46,7 +49,8 @@ public record AuthController(AuthService authService) {
   public String login(
       @RequestParam String username,
       @RequestParam String password,
-      HttpSession session) {
+      HttpSession session,
+      HttpServletRequest request) {
     return switch (authService.login(username, password, session)) {
       case Login.Success(var user) -> "redirect:/";
       case Login.InvalidCredentials() -> "redirect:/login?error=Invalid username or password";
@@ -87,6 +91,7 @@ public record AuthController(AuthService authService) {
       @RequestParam String password,
       @RequestParam String confirmPassword,
       HttpSession session,
+      HttpServletRequest request,
       Model model) {
 
     return switch (authService.registerUser(username, displayName, email, password, confirmPassword, session)) {
