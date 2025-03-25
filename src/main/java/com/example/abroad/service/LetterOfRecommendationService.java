@@ -29,6 +29,7 @@ public record LetterOfRecommendationService(
     record UserNotFound() implements RequestRecommendation { }
     record ProgramNotFound() implements RequestRecommendation { }
     record StudentAlreadyAsked() implements RequestRecommendation { }
+    record EmailError() implements RequestRecommendation { }
   }
   public sealed interface GetRequestPage {
     record Success(String name, String email, Boolean submitted, String studentName, String studentEmail, String programTitle) implements GetRequestPage { }
@@ -69,7 +70,13 @@ public record LetterOfRecommendationService(
     var code = ThreadLocalRandom.current().nextInt(100000, 1000000);
     var recRequest = new Application.RecommendationRequest(programId, user.username(), email, name, code);
     applicationService.saveRecommendationRequest(recRequest);
-    emailService.sendRequestEmail(email, name, program, user, code);
+    try {
+      emailService.sendRequestEmail(email, name, program, user, code);
+    } catch (Exception e) {
+      log.error("Error sending email", e);
+      applicationService.deleteRecommendationRequest(recRequest);
+      return new RequestRecommendation.EmailError();
+    }
     return new RequestRecommendation.Success();
   }
   public sealed interface DeleteRecommendationRequest {

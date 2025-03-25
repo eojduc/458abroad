@@ -42,6 +42,7 @@ public class EmailService {
     body.add("html", html); // 💡 Add HTML version here
 
     HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+    System.out.println(text);
     restTemplate.postForEntity(url, request, String.class);
   }
 

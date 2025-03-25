@@ -91,6 +91,7 @@ public record ApplyToProgramController(
         model.addAttribute("success", "Request sent");
         yield "redirect:/programs/" + programId + "/apply?success=Request sent#letter-requests";
       }
+      case RequestRecommendation.EmailError() -> "redirect:/programs/" + programId + "/apply?error=Error sending email#letter-requests";
     };
   }
 }

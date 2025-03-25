@@ -70,8 +70,7 @@ public record AdminApplicationInfoService(
     var applicationDetails = getAppDetails(programIsPast, application, student, isAdmin, isReviewer, isLead);
     return new GetApplicationInfo.Success(noteInfos, documents, theme,
       responses, programDetails,
-      applicationDetails, user.displayName(), isReviewer
-    );
+      applicationDetails, user.displayName(), isReviewer, getLetters(student, program));
   }
 
   public record ResponseInfo(String question, String response) {
@@ -279,7 +278,18 @@ public record AdminApplicationInfoService(
   }
 
 
+  public record LetterInfo(String email, String name, Boolean submitted, Integer code, String timestamp) {
+  }
 
+  public List<LetterInfo> getLetters(User student, Program program) {
+    return applicationService.getRecommendationRequests(program, student)
+      .stream()
+      .map(request -> {
+        var letter = applicationService.findLetterOfRecommendation(request.programId(), request.student(), request.email());
+        var timestamp = letter.map(doc -> formatService.formatInstant(doc.timestamp())).orElse("");
+        return new LetterInfo(request.email(), request.name(), letter.isPresent(), request.code(), timestamp);
+      }).toList();
+  }
   public record DocumentInfo(Boolean isPresent, String type, String name, String timestamp) {
   }
 
@@ -288,7 +298,8 @@ public record AdminApplicationInfoService(
     record Success(List<NoteInfo> noteInfos,
                    List<DocumentInfo> documentInfos, String theme,
                     List<ResponseInfo> responses,
-                   ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName, Boolean isReviewer
+                   ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName, Boolean isReviewer,
+                   List<LetterInfo> requests
     ) implements
       GetApplicationInfo {
 
