@@ -11,11 +11,13 @@ import com.example.abroad.service.ApplicationService.Documents;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.StatusOption;
 import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -52,16 +54,24 @@ public record AdminApplicationInfoService(
       .sorted(Comparator.comparing(Note::timestamp).reversed())
       .map(this::getNoteInfo)
       .toList();
-    var responses = applicationService.getResponses(application);
+    var responses = applicationService.getResponses(application)
+      .stream()
+      .flatMap(response ->
+          programService.findQuestion(program, response.question()).stream()
+            .map(question -> new ResponseInfo(question.text(), response.response()))
+      ).toList();
     var documents = getDocInfo(applicationService.getDocuments(application));
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var theme = user.theme().name().toLowerCase();
     var programDetails = getProgramDetails(program);
-    var applicationDetails = getAppDetails(programIsPast, application, student);
+    var applicationDetails = getAppDetails(programIsPast, application, student, isAdmin, isReviewer, isFacultyLead);
     return new GetApplicationInfo.Success(noteInfos, documents, theme,
       responses, programDetails,
       applicationDetails, user.displayName()
     );
+  }
+
+  public record ResponseInfo(String question, String response) {
   }
 
   public ProgramDetails getProgramDetails(Program program) {
@@ -95,6 +105,33 @@ public record AdminApplicationInfoService(
 
   public record StatusOption(String status, String displayedStatus) {
   }
+
+  public StatusOption statusOption(Status status, Boolean programIsPast) {
+    return switch (status) {
+      case APPLIED -> new StatusOption(Status.APPLIED.name(), "Applied");
+      case ELIGIBLE -> new StatusOption(Status.ELIGIBLE.name(), "Eligible");
+      case APPROVED -> new StatusOption(Status.APPROVED.name(), "Approved");
+      case ENROLLED -> new StatusOption(Status.ENROLLED.name(), programIsPast ? "Completed" : "Enrolled");
+      case CANCELLED -> new StatusOption(Status.CANCELLED.name(), "Cancelled");
+      case WITHDRAWN -> new StatusOption(Status.WITHDRAWN.name(), "Withdrawn");
+    };
+  }
+  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast) {
+    if (isAdmin) {
+      return Stream.of(
+          Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
+        .map(status -> statusOption(status, programIsPast)).toList();
+    }
+    if (isReviewer) {
+      return Stream.of(Status.ELIGIBLE, Status.APPLIED)
+        .map(status -> statusOption(status, programIsPast)).toList();
+    }
+    if (isLead) {
+      return Stream.of(Status.ELIGIBLE, Status.APPLIED, Status.APPROVED)
+        .map(status -> statusOption(status, programIsPast)).toList();
+    }
+    return List.of();
+  }
   public List<StatusOption> getStatusOptions(Boolean programIsPast) {
     return List.of(
       new StatusOption(Status.APPLIED.name(), "Applied"),
@@ -113,8 +150,9 @@ public record AdminApplicationInfoService(
     String status
   ){}
 
-  public ApplicationDetails getAppDetails(Boolean programIsPast, Application application, User student) {
-    return new ApplicationDetails(getStatusOptions(programIsPast),
+  public ApplicationDetails getAppDetails(Boolean programIsPast, Application application, User student,
+    Boolean isAdmin, Boolean isReviewer, Boolean isLead) {
+    return new ApplicationDetails(statusChangeOptions(isAdmin, isReviewer, isLead, programIsPast),
       List.of(
         new Field("User", formatService.displayUser(student)),
         new Field ("Email", student.email()),
@@ -239,7 +277,7 @@ public record AdminApplicationInfoService(
 
     record Success(List<NoteInfo> noteInfos,
                    List<DocumentInfo> documentInfos, String theme,
-                    List<Application.Response> responses,
+                    List<ResponseInfo> responses,
                    ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName
     ) implements
       GetApplicationInfo {

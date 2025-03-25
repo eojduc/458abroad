@@ -72,7 +72,7 @@
         <h1 class="text-lg">Responses</h1>
         <div class="m-4 flex flex-col gap-5">
           <div th:each="response : ${responses}" class="flex flex-col gap-2">
-            <h2 th:text="${response.question.text}" class="text-xs font-bold"></h2>
+            <h2 th:text="${response.question}" class="text-xs font-bold"></h2>
             <p class="text-sm whitespace-pre-line" th:text="${response.response}"></p>
           </div>
         </div>

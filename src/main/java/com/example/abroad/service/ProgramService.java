@@ -126,6 +126,10 @@ public record ProgramService(
 
   }
 
+  public Optional<Question> findQuestion(Program program, Integer id) {
+    return questionRepository.findById_ProgramIdAndId_id(program.id(), id);
+  }
+
   public void setFacultyLeads(Program program, List<? extends User> users) {
     var facultyLeads = facultyLeadRepository.findById_ProgramId(program.id());
     facultyLeadRepository.deleteAll(facultyLeads);
