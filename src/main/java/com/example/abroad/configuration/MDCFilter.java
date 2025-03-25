@@ -22,8 +22,17 @@ public class MDCFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
+        // HttpServletRequest httpRequest = (HttpServletRequest) request;
+        // String ip = httpRequest.getRemoteAddr();
+        // MDC.put("ip", ip);
+
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        String ip = httpRequest.getRemoteAddr();
+        String ip = httpRequest.getHeader("X-Forwarded-For");
+        if (ip != null && !ip.isEmpty()) {
+            ip = ip.split(",")[0].trim();
+        } else {
+            ip = httpRequest.getRemoteAddr();
+        }
         MDC.put("ip", ip);
 
         String username = "ANONYMOUS";
