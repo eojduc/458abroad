@@ -59,8 +59,8 @@ public record ViewApplicationService(
     boolean editable = false;
     LocalDate today = LocalDate.now();
     if (app.status() == Application.Status.APPLIED &&
-      today.isAfter(prog.applicationOpen()) &&
-      today.isBefore(prog.applicationClose())) {
+      (today.isAfter(prog.applicationOpen()) || today.isEqual(prog.applicationOpen())) &&
+      (today.isBefore(prog.applicationClose()) || today.isEqual(prog.applicationClose()))) {
       editable = true;
     }
     var responses = applicationService.getResponses(app);
@@ -137,8 +137,8 @@ public record ViewApplicationService(
     boolean editable = false;
     LocalDate today = LocalDate.now();
     if (app.status() == Application.Status.APPLIED &&
-      today.isAfter(success.program().applicationOpen()) &&
-      today.isBefore(success.program().applicationClose())) {
+      (today.isAfter(success.program().applicationOpen()) || today.isEqual(success.program().applicationOpen())) &&
+      (today.isBefore(success.program().applicationClose()) || today.isEqual(success.program().applicationClose()))) {
       editable = true;
     }
     
