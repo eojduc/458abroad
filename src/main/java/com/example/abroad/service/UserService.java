@@ -24,8 +24,6 @@ public record UserService(
   RoleRepository roleRepository
 ) {
 
-  private static final Logger log = LoggerFactory.getLogger(UserService.class);
-
   public Optional<User> findUserFromSession(HttpSession session){
     return Optional.ofNullable((User) session.getAttribute("user"));
   }

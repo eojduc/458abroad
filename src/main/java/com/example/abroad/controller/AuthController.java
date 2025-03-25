@@ -1,11 +1,14 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.view.Alerts;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.page.AuthService;
 import com.example.abroad.service.page.AuthService.CheckLoginStatus;
 import com.example.abroad.service.page.AuthService.Login;
 import com.example.abroad.service.page.AuthService.Logout;
 import com.example.abroad.service.page.AuthService.RegisterResult;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,13 +18,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.Optional;
 
 @Controller
-public record AuthController(AuthService authService) {
+public record AuthController(AuthService authService, AuditService auditService) {
 
-  public static Logger logger = LoggerFactory.getLogger(AuthController.class);
+  public static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
   @GetMapping("/login")
   public String showLoginForm(
@@ -46,9 +50,14 @@ public record AuthController(AuthService authService) {
   public String login(
       @RequestParam String username,
       @RequestParam String password,
-      HttpSession session) {
+      HttpSession session,
+      HttpServletRequest request) {
     return switch (authService.login(username, password, session)) {
-      case Login.Success(var user) -> "redirect:/";
+      case Login.Success(var user) -> {
+        MDC.put("username", user.username());
+        auditService.logEvent("User " + username + " logged in from IP " + request.getRemoteAddr());
+        yield "redirect:/";
+      }
       case Login.InvalidCredentials() -> "redirect:/login?error=Invalid username or password";
     };
   }
