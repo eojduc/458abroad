@@ -65,7 +65,7 @@
                    class="btn btn-primary">Apply</a>
                 <a th:if="${programAndStatus.status.name == 'APPLIED' || programAndStatus.status.name == 'ENROLLED'
                   || programAndStatus.status.name == 'WITHDRAWN' || programAndStatus.status.name == 'CANCELLED'}"
-                   th:href="@{/applications/{id}-{user}(id=${programAndStatus.program.id}, user=${user.username})}"
+                   th:href="@{/applications/{id}(id=${programAndStatus.program.id})}"
                    class="btn btn-primary">View Application</a>
               </div>
             </div>

@@ -147,14 +147,15 @@
                         th:each="response: ${responses}"
                 >
                   <label class="label">
-                        <span
-                                class="label-text"
-                                th:text="${response.question().text()}"
-                        ></span>
+                    <span class="label-text">
+                      <span th:each="question : ${questions}" 
+                            th:if="${question.id == response.question}" 
+                            th:text="${question.text}">Question Text</span>
+                    </span>
                   </label>
                   <textarea
                           class="textarea whitespace-pre-line"
-                          th:name="${response.question().field()}"
+                          th:name="${response.question()}"
                           th:text="${response.response()}"
                           th:disabled="${!editable}"
                           th:attr="required=${editable ? 'required' : null}"
@@ -459,7 +460,7 @@
       if (fileSize > maxSize) {
         input.value = ""; // Clear the input so the file won't be submitted
         setTimeout(() => {
-          window.location.href = '/applications/' + [[${app.id()}]] + "?error=File is too large. Maximum allowed size is 10MB#documents";
+          window.location.href = '/applications/' + [[${app.programId()}]] + "?error=File is too large. Maximum allowed size is 10MB#documents";
         }, 100);
       }
     }

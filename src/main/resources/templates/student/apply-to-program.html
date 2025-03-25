@@ -80,9 +80,9 @@
   <!-- Loop through additional questions -->
   <label class="form-control" th:each="question : ${questions}">
     <div class="label">
-      <span class="label-text" th:text="${question.text}"></span>
+      <span class="label-text" th:text="${question.text()}"></span>
     </div>
-    <textarea th:name="${question.field}" class="textarea" required maxlength="10000" rows="20"></textarea>
+    <textarea th:name="${question.id()}" class="textarea" required maxlength="10000" rows="20"></textarea>
   </label>
 
   <div class="card-actions justify-end">

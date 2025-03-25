@@ -1,17 +1,22 @@
 package com.example.abroad.service.page;
 
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
+import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.ApplyToProgramService.ApplyToProgram;
+
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,7 +44,9 @@ public record ApplyToProgramService(
       return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().programId(), user.username());
     }
     var maxDayOfBirth = LocalDate.now().minusYears(10).format(DateTimeFormatter.ISO_DATE);
-    return new GetApplyPageData.Success(program, user, List.of(1, 2, 3, 4, 5), maxDayOfBirth);
+    var questions = programService.getQuestions(program);
+
+    return new GetApplyPageData.Success(program, user, questions, maxDayOfBirth);
   }
 
   public ApplyToProgram applyToProgram(
@@ -69,7 +76,7 @@ public record ApplyToProgramService(
   }
 
   public sealed interface GetApplyPageData {
-    record Success(Program program, User user, List<Integer> questions,
+    record Success(Program program, User user, List<Question> questions,
                    String maxDateOfBirth) implements GetApplyPageData { }
     record UserNotFound() implements GetApplyPageData { }
     record ProgramNotFound() implements GetApplyPageData { }

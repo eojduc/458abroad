@@ -2,7 +2,6 @@ package com.example.abroad.controller.admin;
 
 
 import com.example.abroad.view.Alerts;
-import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.ApplicationNotFound;
@@ -12,6 +11,7 @@ import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetAppl
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.UserNotAdmin;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.PostNote;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.UpdateApplicationStatus;
+import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.FormatService;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;

@@ -1,11 +1,11 @@
 package com.example.abroad.service.data;
 
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Application.Document;
-import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.User;
+import com.example.abroad.model.Application.Document;
+import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.DocumentRepository;
@@ -13,9 +13,11 @@ import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.NoteRepository;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.respository.QuestionRepository;
 import com.example.abroad.respository.ResponseRepository;
 import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -53,6 +55,7 @@ public class DataInitializationService {
   private final NoteRepository noteRepository;
   private final DocumentRepository documentRepository;
   private final ResponseRepository responseRepository;
+  private final QuestionRepository questionRepository;
   private final RoleRepository roleRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
@@ -68,6 +71,7 @@ public class DataInitializationService {
       DocumentRepository documentRepository,
       ProgramRepository programRepository,
       ResponseRepository responseRepository,
+      QuestionRepository questionRepository,
       RoleRepository roleRepository
     ) {
     this.localUserRepository = localUserRepository;
@@ -78,6 +82,7 @@ public class DataInitializationService {
     this.noteRepository = noteRepository;
     this.documentRepository = documentRepository;
     this.responseRepository = responseRepository;
+    this.questionRepository = questionRepository;
     this.roleRepository = roleRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
@@ -203,6 +208,19 @@ public class DataInitializationService {
   }
 
   @Transactional
+  protected void initializeQuestions(String path) {
+    initializeData(
+        path,
+        record -> new Program.Question(
+          Integer.parseInt(record.get("id")),
+            record.get("text"),
+            Integer.parseInt(record.get("programId"))
+        ),
+        questionRepository
+    );
+  }
+
+  @Transactional
   protected void initializeRoles(String path) {
     initializeData(
         path,
@@ -275,5 +293,6 @@ public class DataInitializationService {
     documentRepository.deleteAll();
     entityManager.createNativeQuery("ALTER SEQUENCE programs_seq RESTART WITH 1").executeUpdate();
     programRepository.deleteAll();
+    questionRepository.deleteAll();
   }
 }

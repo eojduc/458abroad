@@ -1,11 +1,11 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Program;
+import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
-import com.example.abroad.model.Program;
-import com.example.abroad.model.User;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ApplicationService.Documents;
 import com.example.abroad.service.FormatService;

@@ -4,12 +4,20 @@ package com.example.abroad.service;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
+import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.respository.QuestionRepository;
+
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 /**
  * Service class for Program. wraps the ProgramRepository and provides additional functionality.
@@ -19,6 +27,7 @@ public record ProgramService(
   ProgramRepository programRepository,
   ApplicationRepository applicationRepository,
   FacultyLeadRepository facultyLeadRepository,
+  QuestionRepository questionRepository,
   UserService userService
 ) {
 
@@ -136,4 +145,10 @@ public record ProgramService(
     facultyLeadRepository.saveAll(facultyLeadsToAdd);
   }
 
+  public List<Question> getQuestions(Program program) {
+    return questionRepository.findById_ProgramId(program.id())
+        .stream()
+        .sorted(Comparator.comparing(Question::id))
+        .toList();
+  }
 }

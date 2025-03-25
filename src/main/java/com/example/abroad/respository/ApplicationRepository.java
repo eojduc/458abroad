@@ -1,9 +1,10 @@
 package com.example.abroad.respository;
 
-import com.example.abroad.model.Application;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.abroad.model.Application;
 
 public interface ApplicationRepository extends JpaRepository<Application, String> {
 

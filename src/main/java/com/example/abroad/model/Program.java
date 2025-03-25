@@ -183,6 +183,7 @@ public final class Program {
   @Table(name = "questions")
   public static class Question {
 
+    @Embeddable
     public static class ID implements Serializable {
       private Integer id;
       private Integer programId;
