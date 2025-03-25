@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,7 @@ public record ApplyToProgramService(
     if (user == null) {
       return new GetApplyPageData.UserNotFound();
     }
-    if (!userService.isStudent(user)) {
+    if (userService.isAdmin(user)) {
       return new GetApplyPageData.UserNotStudent();
     }
     var program = programService.findById(programId).orElse(null);
@@ -51,28 +52,37 @@ public record ApplyToProgramService(
 
   public ApplyToProgram applyToProgram(
     Integer programId,
-    HttpSession session, String major, Double gpa, LocalDate dob,
-    String answer1, String answer2, String answer3, String answer4, String answer5
+    HttpSession session, 
+    String major, 
+    Double gpa, 
+    LocalDate dob,
+    Map<String, String> answers
   ) {
-    if (major.isBlank() || answer1.isBlank() || answer2.isBlank()
-      || answer3.isBlank() || answer4.isBlank() || answer5.isBlank()) {
-      return new ApplyToProgram.InvalidSubmission();
-    }
-    var user = userService.findUserFromSession(session).orElse(null);
-    if (user == null) {
-      return new ApplyToProgram.UserNotFound();
-    }
-    var application = new Application(user.username(),
-      programId, dob, gpa, major, Status.APPLIED
-    );
-    applicationService.save(application);
-    applicationService.saveResponse(application, 1, answer1);
-    applicationService.saveResponse(application, 2, answer2);
-    applicationService.saveResponse(application, 3, answer3);
-    applicationService.saveResponse(application, 4, answer4);
-    applicationService.saveResponse(application, 5, answer5);
+      Map<String, String> ans = answers.entrySet().stream()
+        .filter(e -> e.getKey().startsWith("answers[") && e.getKey().endsWith("]"))
+        .collect(Collectors.toMap(
+            e -> e.getKey().substring(8, e.getKey().length() - 1),
+            Map.Entry::getValue
+        ));
 
-    return new ApplyToProgram.Success(application.programId(), application.student());
+      if (major.isBlank() || ans.values().stream().anyMatch(String::isBlank)) {
+          return new ApplyToProgram.InvalidSubmission();
+      }
+      
+      var user = userService.findUserFromSession(session).orElse(null);
+      if (user == null) {
+          return new ApplyToProgram.UserNotFound();
+      }
+      
+      var application = new Application(user.username(), programId, dob, gpa, major, Status.APPLIED);
+      applicationService.save(application);
+      
+      ans.forEach((questionId, answer) -> {
+          int qId = Integer.parseInt(questionId);
+          applicationService.saveResponse(application, qId, answer);
+      });
+      
+      return new ApplyToProgram.Success(application.programId(), application.student());
   }
 
   public sealed interface GetApplyPageData {

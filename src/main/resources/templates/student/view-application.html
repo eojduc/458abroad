@@ -155,7 +155,7 @@
                   </label>
                   <textarea
                           class="textarea whitespace-pre-line"
-                          th:name="${response.question()}"
+                          th:name="|answers[${response.question()}]|"
                           th:text="${response.response()}"
                           th:disabled="${!editable}"
                           th:attr="required=${editable ? 'required' : null}"
