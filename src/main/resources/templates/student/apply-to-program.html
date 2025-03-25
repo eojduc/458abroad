@@ -123,8 +123,7 @@
                  class="checkbox"
                  name="completedLetters"
                  disabled
-                 th:value="${request.submitted}"
-                 th:id="${request.email}"/>
+                 th:checked="${request.submitted}"/>
         </td>
         <td>
           <!-- Button to delete the letter request -->

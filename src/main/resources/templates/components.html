@@ -224,6 +224,18 @@
   </div>
 </div>
 
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="guest-navbar"
+     class="bg-base-100 navbar">
+  <div class="flex-1">
+    <a href="/" class="btn btn-ghost text-xl">
+      <div class="w-8 h-8 flex items-center">
+        <svg th:replace="~{this :: logo}"/>
+      </div>
+      HCC Abroad
+    </a>
+  </div>
+</div>
+
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name)"
      class="bg-base-100 navbar">
   <div class="flex-1">

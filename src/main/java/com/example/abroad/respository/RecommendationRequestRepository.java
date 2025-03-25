@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RecommendationRequestRepository extends JpaRepository<RecommendationRequest, RecommendationRequest.ID> {
   List<RecommendationRequest> findById_ProgramIdAndId_Student(Integer programId, String studentId);
+  List<RecommendationRequest> findByCode(Integer code);
 }

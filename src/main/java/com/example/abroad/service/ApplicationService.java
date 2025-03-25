@@ -107,6 +107,10 @@ public record ApplicationService(
     return documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), type);
   }
 
+  public List<RecommendationRequest> getRecRequestsByCode(Integer code) {
+    return recommendationRequestRepository.findByCode(code);
+  }
+
   public record Documents(
     Optional<Document> medicalHistory,
     Optional<Document> codeOfConduct,
