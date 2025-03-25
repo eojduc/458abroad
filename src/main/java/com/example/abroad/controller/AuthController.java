@@ -1,7 +1,6 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.view.Alerts;
-import com.example.abroad.service.AuditService;
 import com.example.abroad.service.page.AuthService;
 import com.example.abroad.service.page.AuthService.CheckLoginStatus;
 import com.example.abroad.service.page.AuthService.Login;
@@ -23,7 +22,7 @@ import org.slf4j.MDC;
 import java.util.Optional;
 
 @Controller
-public record AuthController(AuthService authService, AuditService auditService) {
+public record AuthController(AuthService authService) {
 
   public static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
@@ -53,11 +52,7 @@ public record AuthController(AuthService authService, AuditService auditService)
       HttpSession session,
       HttpServletRequest request) {
     return switch (authService.login(username, password, session)) {
-      case Login.Success(var user) -> {
-        MDC.put("username", user.username());
-        auditService.logEvent("User " + username + " logged in from IP " + request.getRemoteAddr());
-        yield "redirect:/";
-      }
+      case Login.Success(var user) -> "redirect:/";
       case Login.InvalidCredentials() -> "redirect:/login?error=Invalid username or password";
     };
   }
@@ -100,11 +95,7 @@ public record AuthController(AuthService authService, AuditService auditService)
       Model model) {
 
     return switch (authService.registerUser(username, displayName, email, password, confirmPassword, session)) {
-      case RegisterResult.Success() -> {
-        MDC.put("username", username);
-        auditService.logEvent("User " + username + " registered from IP " + request.getRemoteAddr());
-        yield "redirect:/";
-      }
+      case RegisterResult.Success() -> "redirect:/";
       case RegisterResult.UsernameExists() -> "redirect:/register?error=Username is already taken";
       case RegisterResult.EmailExists() -> "redirect:/register?error=Email is already registered";
       case RegisterResult.PasswordMismatch() -> "redirect:/register?error=New passwords do not match";

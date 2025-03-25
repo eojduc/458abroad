@@ -2,10 +2,13 @@ package com.example.abroad.service.page;
 
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.AccountService.ChangePassword;
 
 import jakarta.servlet.http.HttpSession;
+
+import org.slf4j.MDC;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +16,8 @@ import org.springframework.stereotype.Service;
 public record AuthService(
   UserService userService,
   SSOService ssoService,
-  PasswordEncoder passwordEncoder
+  PasswordEncoder passwordEncoder,
+  AuditService auditService
 ) {
 
   public sealed interface Login {
@@ -31,6 +35,10 @@ public record AuthService(
       return new Login.InvalidCredentials();
     }
     userService.saveUserToSession(localUser, session);
+    
+    MDC.put("username", user.username());
+    auditService.logEvent("User " + username + " logged in.");
+
     return new Login.Success(localUser);
   }
 
@@ -100,6 +108,10 @@ public record AuthService(
     var user = new User.LocalUser(username, hashedPassword, email, displayName, Theme.DEFAULT);
     userService.save(user);
     userService.saveUserToSession(user, session);
+    
+    MDC.put("username", username);
+    auditService.logEvent("User " + username + " registered.");
+
     return new RegisterResult.Success();
   }
 
