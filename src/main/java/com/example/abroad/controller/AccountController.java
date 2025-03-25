@@ -61,7 +61,7 @@ public record AccountController(
             case UpdateProfile.Success(var updatedUser) -> {
                 model.addAttribute("user", updatedUser);
                 session.setAttribute("user", updatedUser);
-                yield "redirect:/profile?success=Profile updated successfully";
+                yield "redirect:/profile?success=Profile updated successfully#profile-settings";
             }
         };
     }
@@ -75,13 +75,13 @@ public record AccountController(
 
         return switch (accountService.changePassword(currentPassword, newPassword, confirmPassword, session)) {
             case ChangePassword.UserNotFound() -> "redirect:/login";
-            case IncorrectPassword() -> "redirect:/profile?error=Current password is incorrect";
-            case PasswordMismatch() -> "redirect:/profile?error=New passwords do not match";
+            case IncorrectPassword() -> "redirect:/profile?error=Current password is incorrect#change-password";
+            case PasswordMismatch() -> "redirect:/profile?error=New passwords do not match#change-password";
             case ChangePassword.Success(var updatedUser) -> {
                 session.setAttribute("user", updatedUser);
-                yield "redirect:/profile?success=Password updated successfully";
+                yield "redirect:/profile?success=Password updated successfully#change-password";
             }
-          case NotLocalUser() -> "redirect:/profile?error=Cannot change password for SSO user";
+          case NotLocalUser() -> "redirect:/profile?error=Cannot change password for SSO user#change-password";
         };
     }
 
@@ -89,6 +89,6 @@ public record AccountController(
     @PostMapping("/profile/theme")
     public String setTheme(@RequestParam Theme theme, HttpSession session) {
         userService.setTheme(theme, session);
-        return "redirect:/profile";
+        return "redirect:/profile#set-theme";
     }
 }
