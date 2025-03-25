@@ -123,9 +123,11 @@ public record AdminUserController(
             HttpSession session,
             @PathVariable String username,
             @RequestParam User.Role.Type roleType,
-            @RequestParam boolean grantRole
+            @RequestParam boolean grantRole,
+            @RequestParam(required = false) boolean confirmed,
+            Model model  // Added the Model parameter
     ) {
-        var result = adminUserService.modifyUserRole(session, username, roleType, grantRole);
+        var result = adminUserService.modifyUserRole(session, username, roleType, grantRole, confirmed);
 
         return switch (result) {
             case AdminUserService.ModifyUserResult.UserNotFound() ->
@@ -137,8 +139,12 @@ public record AdminUserController(
             case AdminUserService.ModifyUserResult.CannotModifySelf() ->
                     "redirect:/admin/users?error=Cannot modify your own role status";
             case AdminUserService.ModifyUserResult.RequiresConfirmation(var targetUser, var programs) -> {
-                // This will redirect to the confirmation dialog for removing admin with faculty programs
-                yield "redirect:/admin/users?warning=User has faculty programs, confirmation required";
+                // Add attributes to the model for the confirmation dialog
+                model.addAttribute("username", targetUser);
+                model.addAttribute("programs", programs);
+                model.addAttribute("roleType", roleType);
+                model.addAttribute("formatter", formatter);
+                yield "admin/users?warning=User has faculty programs, confirmation required";
             }
             case AdminUserService.ModifyUserResult.Success(var user) ->
                     "redirect:/admin/users?success=User roles updated successfully";

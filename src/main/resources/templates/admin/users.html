@@ -77,6 +77,7 @@
                   <!-- Don't show any buttons for the admin user -->
                   <div th:if="${userInfo.user.username != 'admin'}" class="flex flex-row gap-2 items-center">
                     <!-- Role management dropdown -->
+                    <!-- Role management dropdown -->
                     <div class="dropdown dropdown-hover">
                       <label tabindex="0" class="btn btn-sm btn-primary">Manage Roles</label>
                       <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
@@ -104,12 +105,8 @@
                           </form>
                         </li>
                         <li th:if="${userInfo.role.contains('FACULTY')}">
-                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
-                                method="POST" class="w-full">
-                            <input type="hidden" name="roleType" value="FACULTY"/>
-                            <input type="hidden" name="grantRole" value="false"/>
-                            <button type="submit" class="w-full text-left">Revoke Faculty Role</button>
-                          </form>
+                          <button th:attr="onclick=|document.getElementById('facultyConfirm-${userInfo.user.username}').showModal()|"
+                                  class="w-full text-left">Revoke Faculty Role</button>
                         </li>
 
                         <!-- Reviewer role -->
@@ -253,6 +250,38 @@
                           <form th:action="@{/admin/users/{username}/delete-user(username=${userInfo.user.username})}"
                                 method="POST">
                             <button type="submit" class="btn btn-error">Delete User</button>
+                          </form>
+                          <form method="dialog">
+                            <button class="btn btn-outline">Cancel</button>
+                          </form>
+                        </div>
+                      </div>
+                      <form method="dialog" class="modal-backdrop">
+                        <button>close</button>
+                      </form>
+                    </dialog>
+                    <dialog th:id="|facultyConfirm-${userInfo.user.username}|" class="modal text-base-content">
+                      <div class="modal-box">
+                        <h3 class="font-bold text-lg">Confirm Faculty Role Removal</h3>
+                        <div th:unless="${userInfo.facultyLeadPrograms.isEmpty()}">
+                          <p class="py-4">
+                            This user is currently a faculty lead for the following programs:
+                          </p>
+                          <ul class="list-disc list-inside mb-4">
+                            <li th:each="program : ${userInfo.facultyLeadPrograms}" th:text="${program.title()}"></li>
+                          </ul>
+                          <p>
+                            If you remove their faculty role, they will be removed as faculty lead from these programs.
+                            For programs where they are the only faculty lead, the lead role will be transferred to the admin account.
+                          </p>
+                        </div>
+                        <div class="modal-action">
+                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username},confirmed=true)}"
+                                method="POST"
+                                class="inline">
+                            <input type="hidden" name="roleType" value="FACULTY"/>
+                            <input type="hidden" name="grantRole" value="false"/>
+                            <button type="submit" class="btn btn-primary">Proceed</button>
                           </form>
                           <form method="dialog">
                             <button class="btn btn-outline">Cancel</button>

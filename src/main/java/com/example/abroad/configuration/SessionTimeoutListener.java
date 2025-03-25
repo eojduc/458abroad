@@ -9,14 +9,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class SessionTimeoutListener implements HttpSessionListener {
 
-    private final int TIMEOUT = 2;
+    private final int TIMEOUT = 15;
 
     private static final Logger logger = LoggerFactory.getLogger(SessionTimeoutListener.class);
 
     @Override
     public void sessionCreated(HttpSessionEvent se) {
         // Set session timeout to 15 minutes (in seconds)
-        se.getSession().setMaxInactiveInterval(30); //changed TIMEOUT * 60 to just 30
+        se.getSession().setMaxInactiveInterval(TIMEOUT * 60);
         // Store the creation time for 24-hour expiry check
         se.getSession().setAttribute("sessionCreationTime", System.currentTimeMillis());
         logger.info("Session created with ID: {}", se.getSession().getId());

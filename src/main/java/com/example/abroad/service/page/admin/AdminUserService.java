@@ -224,7 +224,8 @@ public record AdminUserService(
           HttpSession session,
           String targetUsername,
           Role.Type roleType,
-          boolean grantRole
+          boolean grantRole,
+          boolean confirmed
   ) {
     // Check if requesting user is admin
     var adminUser = userService.findUserFromSession(session).orElse(null);
@@ -251,12 +252,36 @@ public record AdminUserService(
       return new ModifyUserResult.CannotModifySelf();
     }
 
-    // Special handling for ADMIN role removal - requires checking faculty lead status
+    // Special handling for FACULTY role removal - check faculty lead status
+    if (roleType == Role.Type.FACULTY && !grantRole) {
+      var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
+      if (facultyLeadPrograms.isEmpty()) {
+        // No faculty lead programs, just remove the role
+        userService.removeRole(targetUser, Role.Type.FACULTY);
+        return new ModifyUserResult.Success(targetUser);
+      }
+
+      // User is faculty lead for some programs, check for confirmation
+      if (!confirmed) {
+        return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
+      }
+
+      // Remove as faculty lead from all programs
+      for (Program program : facultyLeadPrograms) {
+        programService.removeFacultyLead(program, targetUser);
+      }
+
+      // After handling faculty lead programs, remove the FACULTY role
+      userService.removeRole(targetUser, Role.Type.FACULTY);
+      return new ModifyUserResult.Success(targetUser);
+    }
+
+    // Special handling for ADMIN role removal
     if (roleType == Role.Type.ADMIN && !grantRole) {
       return modifyUserAdminStatus(session, targetUsername, false, false);
     }
 
-    // For other role types or adding ADMIN role
+    // For other role types or adding roles
     if (grantRole) {
       userService.addRole(targetUser, roleType);
     } else {
