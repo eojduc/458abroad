@@ -70,7 +70,7 @@ public record ApplyToProgramService(
     for (int i = 0; i < answers.size(); i++) {
       applicationService.saveResponse(application, questionIds.get(i), answers.get(i));
     }
-    auditService.logEvent("User applied to program " + programId);
+    auditService.logEvent("User " + user.username() + " successfully applied to program " + programId);
     return new ApplyToProgram.Success(application.programId(), application.student());
   }
 
