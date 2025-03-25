@@ -1,6 +1,7 @@
 package com.example.abroad.service;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.service.LetterOfRecommendationService.GetRequestPage.RequestNotFound;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Blob;
@@ -24,6 +25,14 @@ public record LetterOfRecommendationService(
     record UserNotFound() implements RequestRecommendation { }
     record ProgramNotFound() implements RequestRecommendation { }
     record StudentAlreadyAsked() implements RequestRecommendation { }
+  }
+  public sealed interface GetRequestPage {
+    record Success(Application.RecommendationRequest request) implements GetRequestPage { }
+    record RequestNotFound() implements GetRequestPage { }
+  }
+
+  public GetRequestPage getRequestPage(String code) {
+    return new RequestNotFound();
   }
 
   public RequestRecommendation requestRecommendation(Integer programId, HttpSession session, String email, String name) {
