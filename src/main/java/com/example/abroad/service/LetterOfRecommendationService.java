@@ -67,10 +67,9 @@ public record LetterOfRecommendationService(
       return new RequestRecommendation.StudentAlreadyAsked();
     }
     var code = ThreadLocalRandom.current().nextInt(100000, 1000000);
-    System.out.println("Code: " + code);
     var recRequest = new Application.RecommendationRequest(programId, user.username(), email, name, code);
     applicationService.saveRecommendationRequest(recRequest);
-    emailService.sendRecommendationRequestEmail(email, name, user, program, code);
+    emailService.sendRequestEmail(email, name, program, user, code);
     return new RequestRecommendation.Success();
   }
   public sealed interface DeleteRecommendationRequest {
@@ -87,7 +86,14 @@ public record LetterOfRecommendationService(
     if (request == null) {
       return new DeleteRecommendationRequest.Success();
     }
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new DeleteRecommendationRequest.Success();
+    }
+    emailService.sendCancelRequestEmail(email, request.name(), program, user);
     applicationService.deleteRecommendationRequest(request);
+    applicationService.findLetterOfRecommendation(programId, user.username(), email)
+      .ifPresent(applicationService::deleteLetterOfRecommendation);
     return new DeleteRecommendationRequest.Success();
   }
   public sealed interface UploadLetter {
