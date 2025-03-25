@@ -56,16 +56,16 @@ public record ApplyToProgramService(
     String major, 
     Double gpa, 
     LocalDate dob,
-    Map<String, String> allAnswers
+    Map<String, String> answers
   ) {
-      Map<String, String> answers = allAnswers.entrySet().stream()
+      Map<String, String> ans = answers.entrySet().stream()
         .filter(e -> e.getKey().startsWith("answers[") && e.getKey().endsWith("]"))
         .collect(Collectors.toMap(
             e -> e.getKey().substring(8, e.getKey().length() - 1),
             Map.Entry::getValue
         ));
 
-      if (major.isBlank() || answers.values().stream().anyMatch(String::isBlank)) {
+      if (major.isBlank() || ans.values().stream().anyMatch(String::isBlank)) {
           return new ApplyToProgram.InvalidSubmission();
       }
       
@@ -77,7 +77,7 @@ public record ApplyToProgramService(
       var application = new Application(user.username(), programId, dob, gpa, major, Status.APPLIED);
       applicationService.save(application);
       
-      answers.forEach((questionId, answer) -> {
+      ans.forEach((questionId, answer) -> {
           int qId = Integer.parseInt(questionId);
           applicationService.saveResponse(application, qId, answer);
       });

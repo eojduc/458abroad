@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public record ViewApplicationService(
@@ -67,15 +69,18 @@ public record ViewApplicationService(
 
   public GetApplicationResult updateResponses(
       Integer programId,
-      String answer1,
-      String answer2,
-      String answer3,
-      String answer4,
-      String answer5,
       double gpa,
       String major,
       LocalDate dateOfBirth,
+      @RequestParam Map<String, String> answers,
       HttpSession session) {
+
+    Map<String, String> ans = answers.entrySet().stream()
+        .filter(e -> e.getKey().startsWith("answers[") && e.getKey().endsWith("]"))
+        .collect(Collectors.toMap(
+            e -> e.getKey().substring(8, e.getKey().length() - 1),
+            Map.Entry::getValue
+        ));
 
     GetApplicationResult result = getApplication(programId, session);
     if (!(result instanceof GetApplicationResult.Success success)) {
@@ -92,11 +97,11 @@ public record ViewApplicationService(
       .withDateOfBirth(dateOfBirth);
 
     applicationService.save(newApp);
-    applicationService.saveResponse(newApp, 1, answer1);
-    applicationService.saveResponse(newApp, 2, answer2);
-    applicationService.saveResponse(newApp, 3, answer3);
-    applicationService.saveResponse(newApp, 4, answer4);
-    applicationService.saveResponse(newApp, 5, answer5);
+    
+    ans.forEach((questionId, answer) -> {
+        int qId = Integer.parseInt(questionId);
+        applicationService.saveResponse(newApp, qId, answer);
+    });
 
     var responses = applicationService.getResponses(newApp);
     Program program = programService.findById(newApp.programId()).orElse(null);
