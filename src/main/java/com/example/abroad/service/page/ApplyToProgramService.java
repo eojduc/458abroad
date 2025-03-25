@@ -6,24 +6,21 @@ import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.EmailService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.ApplyToProgramService.ApplyToProgram;
-
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-
 import org.springframework.stereotype.Service;
 
 @Service
 public record ApplyToProgramService(
   ApplicationService applicationService,
   ProgramService programService,
-  UserService userService
+  UserService userService,
+  EmailService emailService
 ) {
 
 
@@ -45,17 +42,19 @@ public record ApplyToProgramService(
     }
     var maxDayOfBirth = LocalDate.now().minusYears(10).format(DateTimeFormatter.ISO_DATE);
     var questions = programService.getQuestions(program);
+    var letterRequests = letterOfRecInfo(user, program);
 
-    return new GetApplyPageData.Success(program, user, questions, maxDayOfBirth);
+    return new GetApplyPageData.Success(program, user, questions, maxDayOfBirth, letterRequests);
   }
+
+
 
   public ApplyToProgram applyToProgram(
     Integer programId,
     HttpSession session, String major, Double gpa, LocalDate dob,
-    String answer1, String answer2, String answer3, String answer4, String answer5
+    List<String> answers, List<Integer> questionIds
   ) {
-    if (major.isBlank() || answer1.isBlank() || answer2.isBlank()
-      || answer3.isBlank() || answer4.isBlank() || answer5.isBlank()) {
+    if (major.isBlank() || answers.stream().anyMatch(String::isEmpty)) {
       return new ApplyToProgram.InvalidSubmission();
     }
     var user = userService.findUserFromSession(session).orElse(null);
@@ -66,22 +65,34 @@ public record ApplyToProgramService(
       programId, dob, gpa, major, Status.APPLIED
     );
     applicationService.save(application);
-    applicationService.saveResponse(application, 1, answer1);
-    applicationService.saveResponse(application, 2, answer2);
-    applicationService.saveResponse(application, 3, answer3);
-    applicationService.saveResponse(application, 4, answer4);
-    applicationService.saveResponse(application, 5, answer5);
+    for (int i = 0; i < answers.size(); i++) {
+      applicationService.saveResponse(application, questionIds.get(i), answers.get(i));
+    }
 
     return new ApplyToProgram.Success(application.programId(), application.student());
   }
 
   public sealed interface GetApplyPageData {
     record Success(Program program, User user, List<Question> questions,
-                   String maxDateOfBirth) implements GetApplyPageData { }
+                   String maxDateOfBirth, List<LetterOfRecInfo> letterRequests) implements GetApplyPageData { }
     record UserNotFound() implements GetApplyPageData { }
     record ProgramNotFound() implements GetApplyPageData { }
     record StudentAlreadyApplied(Integer programId, String student) implements GetApplyPageData { }
     record UserNotStudent() implements GetApplyPageData { }
+  }
+
+  public record LetterOfRecInfo(String email, String name, Boolean submitted) { }
+
+  private List<LetterOfRecInfo> letterOfRecInfo(User student, Program program) {
+    return applicationService.getRecommendationRequests(program, student)
+      .stream()
+      .map(rec -> new LetterOfRecInfo(rec.email(), rec.name(), isSubmitted(rec)))
+      .toList();
+  }
+  private Boolean isSubmitted(Application.RecommendationRequest request) {
+    return applicationService.findLetterOfRecommendation(request.programId(), request.student(),
+      request.email()).isPresent();
+
   }
 
   public sealed interface ApplyToProgram {

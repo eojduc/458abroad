@@ -3,15 +3,19 @@ package com.example.abroad.service;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Document.Type;
+import com.example.abroad.model.Application.LetterOfRecommendation;
 import com.example.abroad.model.Application.Note;
+import com.example.abroad.model.Application.RecommendationRequest;
 import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.DocumentRepository;
+import com.example.abroad.respository.LetterOfRecommendationRepository;
 import com.example.abroad.respository.NoteRepository;
 import com.example.abroad.respository.QuestionRepository;
+import com.example.abroad.respository.RecommendationRequestRepository;
 import com.example.abroad.respository.ResponseRepository;
 import java.util.Comparator;
 import java.util.List;
@@ -27,7 +31,9 @@ public record ApplicationService(
   ApplicationRepository applicationRepository,
   NoteRepository noteRepository,
   DocumentRepository documentRepository,
-  ResponseRepository responseRepository
+  ResponseRepository responseRepository,
+  LetterOfRecommendationRepository letterOfRecommendationRepository,
+  RecommendationRequestRepository recommendationRequestRepository
 ) {
 
   public void deleteNote(Integer noteId) {
@@ -70,8 +76,33 @@ public record ApplicationService(
     );
   }
 
+  public void saveRecommendationRequest(RecommendationRequest recommendationRequest) {
+    recommendationRequestRepository.save(recommendationRequest);
+  }
+  public void saveLetterOfRecommendation(LetterOfRecommendation letterOfRecommendation) {
+    letterOfRecommendationRepository.save(letterOfRecommendation);
+  }
+  public void deleteRecommendationRequest(RecommendationRequest recommendationRequest) {
+    recommendationRequestRepository.delete(recommendationRequest);
+  }
+  public void deleteLetterOfRecommendation(LetterOfRecommendation letterOfRecommendation) {
+    letterOfRecommendationRepository.delete(letterOfRecommendation);
+  }
 
-
+  public Optional<RecommendationRequest> findRecommendationRequest(Integer programId, String student, String recommender) {
+    return recommendationRequestRepository.findById(
+      new RecommendationRequest.ID(programId, student, recommender));
+  }
+  public Optional<LetterOfRecommendation> findLetterOfRecommendation(Integer programId, String student, String recommender) {
+    return letterOfRecommendationRepository.findById(
+      new LetterOfRecommendation.ID(programId, student, recommender));
+  }
+  public List<LetterOfRecommendation> getRecommendations(Program program, User student) {
+    return letterOfRecommendationRepository.findById_ProgramIdAndId_Student(program.id(), student.username());
+  }
+  public List<RecommendationRequest> getRecommendationRequests(Program program, User student) {
+    return recommendationRequestRepository.findById_ProgramIdAndId_Student(program.id(), student.username());
+  }
   public Optional<Document> getDocument(Application application, Type type) {
     return documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), type);
   }
