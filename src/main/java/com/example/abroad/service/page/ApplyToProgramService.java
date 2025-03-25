@@ -29,7 +29,7 @@ public record ApplyToProgramService(
     if (user == null) {
       return new GetApplyPageData.UserNotFound();
     }
-    if (!userService.isStudent(user)) {
+    if (userService.isAdmin(user)) {
       return new GetApplyPageData.UserNotStudent();
     }
     var program = programService.findById(programId).orElse(null);
@@ -68,7 +68,6 @@ public record ApplyToProgramService(
     for (int i = 0; i < answers.size(); i++) {
       applicationService.saveResponse(application, questionIds.get(i), answers.get(i));
     }
-
     return new ApplyToProgram.Success(application.programId(), application.student());
   }
 

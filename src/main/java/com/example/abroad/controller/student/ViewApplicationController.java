@@ -96,20 +96,15 @@ public record ViewApplicationController(
   @PostMapping("/applications/{programId}/update")
   public String updateApplication(
           @PathVariable("programId") Integer programId,
-          @RequestParam("answer1") String answer1,
-          @RequestParam("answer2") String answer2,
-          @RequestParam("answer3") String answer3,
-          @RequestParam("answer4") String answer4,
-          @RequestParam("answer5") String answer5,
           @RequestParam("gpa") double gpa,
           @RequestParam("major") String major,
           @RequestParam("dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
+          @RequestParam Map<String, String> answers,
           HttpSession session,
           Model model,
           HttpServletResponse response) {
 
-    var result = applicationService.updateResponses(programId, answer1, answer2, answer3, answer4, answer5, gpa, major,
-            dateOfBirth, session);
+    var result = applicationService.updateResponses(programId, gpa, major, dateOfBirth, answers, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {

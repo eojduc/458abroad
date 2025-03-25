@@ -2,6 +2,7 @@ package com.example.abroad.controller.admin;
 
 import static java.util.Map.entry;
 
+import com.example.abroad.model.User;
 import com.example.abroad.view.Alerts;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
@@ -37,7 +38,9 @@ public record AdminUserController(
     GetAllUsersInfo usersInfo = adminUserService.getUsersInfo(session, Sort.NAME, "", true);
     return switch (usersInfo) {
       case GetAllUsersInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
-      case GetAllUsersInfo.UserNotAdmin() -> "redirect:/home?error=You are not an admin";
+      case GetAllUsersInfo.UserNotAdmin() ->{
+          yield "permission-error";
+      }
       case GetAllUsersInfo.Success(var users, var adminUser) -> {
         model.addAllAttributes(
           Map.ofEntries(
@@ -67,7 +70,9 @@ public record AdminUserController(
         GetAllUsersInfo usersInfo = adminUserService.getUsersInfo(session, sort, searchFilter, ascending);
         return switch (usersInfo) {
             case AdminUserService.GetAllUsersInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
-            case GetAllUsersInfo.UserNotAdmin() -> "redirect:/home?error=You are not an admin";
+            case AdminUserService.GetAllUsersInfo.UserNotAdmin() ->{
+                yield "permission-error";
+            }
             case GetAllUsersInfo.Success(var users, var adminUser) -> {
                 model.addAllAttributes(
                         Map.ofEntries(
@@ -99,8 +104,9 @@ public record AdminUserController(
     return switch (result) {
       case AdminUserService.ModifyUserResult.UserNotFound() ->
         "redirect:/login?error=User not found";
-      case AdminUserService.ModifyUserResult.UserNotAdmin() ->
-        "redirect:/home?error=You are not an admin";
+      case AdminUserService.ModifyUserResult.UserNotAdmin() ->{
+          yield "permission-error";
+      }
       case AdminUserService.ModifyUserResult.CannotModifySuperAdmin() ->
         "redirect:/admin/users?error=Cannot modify super admin account";
       case AdminUserService.ModifyUserResult.CannotModifySelf() ->
@@ -117,6 +123,40 @@ public record AdminUserController(
     };
   }
 
+    @PostMapping("/{username}/role")
+    public String modifyUserRole(
+            HttpSession session,
+            @PathVariable String username,
+            @RequestParam User.Role.Type roleType,
+            @RequestParam boolean grantRole,
+            @RequestParam(required = false) boolean confirmed,
+            Model model  // Added the Model parameter
+    ) {
+        var result = adminUserService.modifyUserRole(session, username, roleType, grantRole, confirmed);
+
+        return switch (result) {
+            case AdminUserService.ModifyUserResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.ModifyUserResult.UserNotAdmin() ->{
+                yield "permission-error";
+            }
+            case AdminUserService.ModifyUserResult.CannotModifySuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot modify super admin account";
+            case AdminUserService.ModifyUserResult.CannotModifySelf() ->
+                    "redirect:/admin/users?error=Cannot modify your own role status";
+            case AdminUserService.ModifyUserResult.RequiresConfirmation(var targetUser, var programs) -> {
+                // Add attributes to the model for the confirmation dialog
+                model.addAttribute("username", targetUser);
+                model.addAttribute("programs", programs);
+                model.addAttribute("roleType", roleType);
+                model.addAttribute("formatter", formatter);
+                yield "admin/users?warning=User has faculty programs, confirmation required";
+            }
+            case AdminUserService.ModifyUserResult.Success(var user) ->
+                    "redirect:/admin/users?success=User roles updated successfully";
+        };
+    }
+
     @PostMapping("/{username}/reset-password")
     public String resetPassword(
             HttpSession session,
@@ -129,8 +169,9 @@ public record AdminUserController(
         return switch (result) {
             case AdminUserService.PasswordResetResult.UserNotFound() ->
                     "redirect:/login?error=User not found";
-            case AdminUserService.PasswordResetResult.UserNotAdmin() ->
-                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.PasswordResetResult.UserNotAdmin() ->{
+                yield "permission-error";
+            }
             case AdminUserService.PasswordResetResult.CannotResetSSOUser() ->
                     "redirect:/admin/users?error=Cannot reset password for SSO user";
             case AdminUserService.PasswordResetResult.CannotResetSuperAdmin() ->
@@ -147,6 +188,7 @@ public record AdminUserController(
     @PostMapping("/{username}/delete-user")
     public String deleteUser(
             HttpSession session,
+            Model model,
             @PathVariable String username
     ) {
         var result = adminUserService.deleteUser(session, username);
@@ -154,8 +196,9 @@ public record AdminUserController(
         return switch (result) {
             case AdminUserService.DeleteUserResult.UserNotFound() ->
                     "redirect:/login?error=User not found";
-            case AdminUserService.DeleteUserResult.UserNotAdmin() ->
-                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.DeleteUserResult.UserNotAdmin() ->{
+                    yield "permission-error";
+            }
             case AdminUserService.DeleteUserResult.CannotDeleteSSOUser() ->
                     "redirect:/admin/users?error=Cannot delete SSO user";
             case AdminUserService.DeleteUserResult.CannotDeleteSuperAdmin() ->

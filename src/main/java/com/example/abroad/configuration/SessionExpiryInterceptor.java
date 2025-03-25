@@ -10,7 +10,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class SessionExpiryInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionExpiryInterceptor.class);
-    private static final long MAX_SESSION_DURATION = 2 * 60 * 1000;  //24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    private static final long MAX_SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {

@@ -6,6 +6,9 @@ import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
 import jakarta.servlet.http.HttpSession;
+import com.example.abroad.model.User.Role;
+import com.example.abroad.model.User.Role.ID;
+import com.example.abroad.model.User.Role.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -86,5 +89,19 @@ public record UserService(
     var newUser = user.withTheme(theme);
     save(newUser);
     saveUserToSession(newUser, session);
+  }
+
+  public void addRole(User user, Role.Type roleType) {
+    // Check if user already has this role
+    if (roleRepository.findById_UsernameAndId_Type(user.username(), roleType).isEmpty()) {
+      // Create and save new role using the existing constructor
+      Role newRole = new Role(roleType, user.username());
+      roleRepository.save(newRole);
+    }
+  }
+
+  public void removeRole(User user, User.Role.Type roleType) {
+    roleRepository.findById_UsernameAndId_Type(user.username(), roleType)
+            .ifPresent(roleRepository::delete);
   }
 }

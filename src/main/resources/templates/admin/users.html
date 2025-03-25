@@ -60,7 +60,14 @@
                 <td th:text="${userInfo.user.displayName()}"></td>
                 <td th:text="${userInfo.user.username()}"></td>
                 <td th:text="${userInfo.user.email()}"></td>
-                <td th:text="${userInfo.role}"></td>
+                <td>
+                  <div class="flex gap-1 flex-wrap">
+                    <span th:if="${userInfo.role.contains('ADMIN')}" class="badge badge-accent">ADMIN</span>
+                    <span th:if="${userInfo.role.contains('FACULTY')}" class="badge badge-secondary">FACULTY</span>
+                    <span th:if="${userInfo.role.contains('REVIEWER')}" class="badge badge-primary">REVIEWER</span>
+                    <span th:if="${userInfo.role == 'STUDENT'}" class="badge badge-neutral">STUDENT</span>
+                  </div>
+                </td>
                 <td>
                   <span th:text="${userInfo.user.isLocal() ? 'Local' : 'Duke'}"
                         class="badge badge-neutral">
@@ -69,22 +76,58 @@
                 <td>
                   <!-- Don't show any buttons for the admin user -->
                   <div th:if="${userInfo.user.username != 'admin'}" class="flex flex-row gap-2 items-center">
-                    <!-- For non-admin users, show Grant Admin button -->
-                    <form th:if="${!userInfo.isAdmin}"
-                          th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username})}"
-                          method="POST"
-                          class="contents">
-                      <input type="hidden" name="grantAdmin" value="true"/>
-                      <button type="submit" class="btn btn-sm btn-primary">
-                        Grant Admin
-                      </button>
-                    </form>
-                    <!-- For admin users (except super admin), show Revoke Admin button with HTMX -->
-                    <button th:if="${userInfo.isAdmin && userInfo.user.username != 'admin'}"
-                            class="btn btn-sm btn-primary"
-                            th:attr="onclick=|document.getElementById('adminConfirm-${userInfo.user.username}').showModal()|">
-                      Revoke Admin
-                    </button>
+                    <!-- Role management dropdown -->
+                    <!-- Role management dropdown -->
+                    <div class="dropdown dropdown-hover">
+                      <label tabindex="0" class="btn btn-sm btn-primary">Manage Roles</label>
+                      <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                        <!-- Admin role -->
+                        <li th:unless="${userInfo.role.contains('ADMIN')}">
+                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
+                                method="POST" class="w-full">
+                            <input type="hidden" name="roleType" value="ADMIN"/>
+                            <input type="hidden" name="grantRole" value="true"/>
+                            <button type="submit" class="w-full text-left">Grant Admin Role</button>
+                          </form>
+                        </li>
+                        <li th:if="${userInfo.role.contains('ADMIN')}">
+                          <button th:attr="onclick=|document.getElementById('adminConfirm-${userInfo.user.username}').showModal()|"
+                                  class="w-full text-left">Revoke Admin Role</button>
+                        </li>
+
+                        <!-- Faculty role -->
+                        <li th:unless="${userInfo.role.contains('FACULTY')}">
+                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
+                                method="POST" class="w-full">
+                            <input type="hidden" name="roleType" value="FACULTY"/>
+                            <input type="hidden" name="grantRole" value="true"/>
+                            <button type="submit" class="w-full text-left">Grant Faculty Role</button>
+                          </form>
+                        </li>
+                        <li th:if="${userInfo.role.contains('FACULTY')}">
+                          <button th:attr="onclick=|document.getElementById('facultyConfirm-${userInfo.user.username}').showModal()|"
+                                  class="w-full text-left">Revoke Faculty Role</button>
+                        </li>
+
+                        <!-- Reviewer role -->
+                        <li th:unless="${userInfo.role.contains('REVIEWER')}">
+                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
+                                method="POST" class="w-full">
+                            <input type="hidden" name="roleType" value="REVIEWER"/>
+                            <input type="hidden" name="grantRole" value="true"/>
+                            <button type="submit" class="w-full text-left">Grant Reviewer Role</button>
+                          </form>
+                        </li>
+                        <li th:if="${userInfo.role.contains('REVIEWER')}">
+                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
+                                method="POST" class="w-full">
+                            <input type="hidden" name="roleType" value="REVIEWER"/>
+                            <input type="hidden" name="grantRole" value="false"/>
+                            <button type="submit" class="w-full text-left">Revoke Reviewer Role</button>
+                          </form>
+                        </li>
+                      </ul>
+                    </div>
 
                     <!-- Reset Password Button (only for LOCAL users) -->
                     <button th:if="${userInfo.user.isLocal() && userInfo.user.username != 'admin'}"
@@ -217,6 +260,38 @@
                         <button>close</button>
                       </form>
                     </dialog>
+                    <dialog th:id="|facultyConfirm-${userInfo.user.username}|" class="modal text-base-content">
+                      <div class="modal-box">
+                        <h3 class="font-bold text-lg">Confirm Faculty Role Removal</h3>
+                        <div th:unless="${userInfo.facultyLeadPrograms.isEmpty()}">
+                          <p class="py-4">
+                            This user is currently a faculty lead for the following programs:
+                          </p>
+                          <ul class="list-disc list-inside mb-4">
+                            <li th:each="program : ${userInfo.facultyLeadPrograms}" th:text="${program.title()}"></li>
+                          </ul>
+                          <p>
+                            If you remove their faculty role, they will be removed as faculty lead from these programs.
+                            For programs where they are the only faculty lead, the lead role will be transferred to the admin account.
+                          </p>
+                        </div>
+                        <div class="modal-action">
+                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username},confirmed=true)}"
+                                method="POST"
+                                class="inline">
+                            <input type="hidden" name="roleType" value="FACULTY"/>
+                            <input type="hidden" name="grantRole" value="false"/>
+                            <button type="submit" class="btn btn-primary">Proceed</button>
+                          </form>
+                          <form method="dialog">
+                            <button class="btn btn-outline">Cancel</button>
+                          </form>
+                        </div>
+                      </div>
+                      <form method="dialog" class="modal-backdrop">
+                        <button>close</button>
+                      </form>
+                    </dialog> //fake comment to correct the last commit message i made
                   </div>
                 </td>
               </tr>

@@ -7,6 +7,9 @@ import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import com.example.abroad.model.User.Role;
+import com.example.abroad.model.User.Role.ID;
+import com.example.abroad.model.User.Role.Type;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 public record AdminUserService(
@@ -89,12 +93,18 @@ public record AdminUserService(
     var applications = applicationService.findByStudent(user);
     var isAdmin = userService.isAdmin(user);
 
-    // Get role information
-    String role = userService.roleRepository().findById_Username(user.username())
-            .stream()
-            .map(r -> r.type().toString())
-            .findFirst()
-            .orElse("STUDENT");
+    // Get all roles for this user
+    List<Role> userRoles = userService.roleRepository().findById_Username(user.username());
+    String role;
+
+    if (userRoles.isEmpty()) {
+      role = "STUDENT";
+    } else {
+      role = userRoles.stream()
+              .map(r -> r.type().toString())
+              .sorted()
+              .collect(Collectors.joining(", "));
+    }
 
     Map<String, String> applicationPrograms = new HashMap<>();
     for (Application app : applications) {
@@ -153,10 +163,10 @@ public record AdminUserService(
   }
 
   public ModifyUserResult modifyUserAdminStatus(
-    HttpSession session,
-    String targetUsername,
-    boolean grantAdmin,
-    boolean confirmed
+          HttpSession session,
+          String targetUsername,
+          boolean grantAdmin,
+          boolean confirmed
   ) {
     // Check if requesting user is admin
     var adminUser = userService.findUserFromSession(session).orElse(null);
@@ -186,27 +196,99 @@ public record AdminUserService(
     if (!grantAdmin) {
       var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
       if (facultyLeadPrograms.isEmpty()) {
-        //TODO fix this
-//        var updateUser = targetUser.withRole(User.Role.STUDENT);
-//        userService.save(updateUser);
-//        return new ModifyUserResult.Success(updateUser);
+        // No faculty lead programs, so just remove the ADMIN role
+        userService.removeRole(targetUser, Role.Type.ADMIN);
+        return new ModifyUserResult.Success(targetUser);
       }
 
-      //will only proceed past this point if user is faculty lead
+      // Will only proceed past this point if user is faculty lead
       if (!confirmed) {
         return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
       }
+
       for (Program program : facultyLeadPrograms) {
         programService.removeFacultyLead(program, targetUser);
       }
+
+      // After handling faculty lead status, remove the ADMIN role
+      userService.removeRole(targetUser, Role.Type.ADMIN);
+    } else {
+      // Add admin role to user
+      userService.addRole(targetUser, Role.Type.ADMIN);
     }
 
-    // Modify user admin status
-//    var updatedUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
-    var updatedUser = targetUser;
-    userService.save(updatedUser);
+    return new ModifyUserResult.Success(targetUser);
+  }
 
-    return new ModifyUserResult.Success(updatedUser);
+  public ModifyUserResult modifyUserRole(
+          HttpSession session,
+          String targetUsername,
+          Role.Type roleType,
+          boolean grantRole,
+          boolean confirmed
+  ) {
+    // Check if requesting user is admin
+    var adminUser = userService.findUserFromSession(session).orElse(null);
+    if (adminUser == null) {
+      return new ModifyUserResult.UserNotFound();
+    }
+    if (!userService.isAdmin(adminUser)) {
+      return new ModifyUserResult.UserNotAdmin();
+    }
+
+    // Find target user
+    var targetUser = userService.findByUsername(targetUsername).orElse(null);
+    if (targetUser == null) {
+      return new ModifyUserResult.UserNotFound();
+    }
+
+    // Prevent modifying super admin
+    if (targetUsername.equals("admin")) {
+      return new ModifyUserResult.CannotModifySuperAdmin();
+    }
+
+    // Prevent self-modification
+    if (targetUsername.equals(adminUser.username())) {
+      return new ModifyUserResult.CannotModifySelf();
+    }
+
+    // Special handling for FACULTY role removal - check faculty lead status
+    if (roleType == Role.Type.FACULTY && !grantRole) {
+      var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
+      if (facultyLeadPrograms.isEmpty()) {
+        // No faculty lead programs, just remove the role
+        userService.removeRole(targetUser, Role.Type.FACULTY);
+        return new ModifyUserResult.Success(targetUser);
+      }
+
+      // User is faculty lead for some programs, check for confirmation
+      if (!confirmed) {
+        return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
+      }
+
+      // Remove as faculty lead from all programs
+      for (Program program : facultyLeadPrograms) {
+        programService.removeFacultyLead(program, targetUser);
+      }
+
+      // After handling faculty lead programs, remove the FACULTY role
+      userService.removeRole(targetUser, Role.Type.FACULTY);
+      return new ModifyUserResult.Success(targetUser);
+    }
+
+    // Special handling for ADMIN role removal
+    if (roleType == Role.Type.ADMIN && !grantRole) {
+      return modifyUserAdminStatus(session, targetUsername, false, false);
+    }
+
+    // For other role types or adding roles
+    if (grantRole) {
+      userService.addRole(targetUser, roleType);
+    } else {
+      userService.removeRole(targetUser, roleType);
+    }
+
+    return new ModifyUserResult.Success(targetUser);
   }
 
   public sealed interface PasswordResetResult {

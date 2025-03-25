@@ -159,6 +159,7 @@
             <form method="dialog" class="modal-backdrop">
               <button>close</button>
             </form>
+          </dialog>
         </td>
       </tbody>
     </table>
@@ -170,15 +171,15 @@
     >
       <div class="flex flex-row gap-2">
         <label>
-          <input class="input input-bordered"
+          <input class="input input-bordered input-sm"
                  type="text" name="email" placeholder="Email" required>
         </label>
         <label>
-          <input class="input input-bordered"
+          <input class="input input-bordered input-sm"
                  type="text" name="name" placeholder="Name" required>
         </label>
       </div>
-      <button class="btn btn-primary btn-sm" type="button"
+      <button class="btn btn-outline btn-success btn-sm" type="button"
               onclick="letter_modal.showModal()">Add Request</button>
     </form>
     <dialog id="letter_modal" class="modal">

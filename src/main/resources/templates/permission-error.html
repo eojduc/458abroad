@@ -1,0 +1,22 @@
+<!-- permission-error.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:data-theme="${session.user != null ? session.user.theme.name.toLowerCase() : 'light'}">
+
+<head th:replace="~{components :: head('Access Denied')}"></head>
+<body>
+<div th:replace="~{components :: logged-out-navbar}"></div>
+<div class="bg-base-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="card card-normal w-96 bg-base-200 shadow-xl">
+        <div class="card-body items-center text-center">
+            <h2 class="card-title text-error text-xl mb-4">Access Denied</h2>
+            <p th:text="${message}">You do not have permission to view this page.</p>
+            <div class="card-actions mt-6">
+                <a href="/" class="btn btn-primary">Return to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
+</body>
+</html>

@@ -64,8 +64,8 @@ public record ApplyToProgramController(
     @RequestParam List<String> answers, @RequestParam List<Integer> questionIds
   ) {
     return switch (service.applyToProgram(programId, session, major, gpa, dob, answers, questionIds)) {
-      case ApplyToProgram.Success(var pId, var username) ->
-        "redirect:/applications/" + programId + "/" + username + "?success=Application submitted";
+      case ApplyToProgram.Success(var p, var u) ->
+        "redirect:/applications/" + programId + "?success=Application submitted";
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case ApplyToProgram.InvalidSubmission() -> "redirect:/programs/" + programId + "/apply?error=Invalid submission";
     };
@@ -86,7 +86,7 @@ public record ApplyToProgramController(
         "redirect:/programs?error=That program does not exist";
       case RequestRecommendation.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case RequestRecommendation.StudentAlreadyAsked() -> "redirect:/programs/" + programId
-        + "/apply?error=You have already requested a recommendation";
+        + "/apply?error=You have already requested a recommendation#letter-requests";
       case RequestRecommendation.Success() -> {
         model.addAttribute("success", "Request sent");
         yield "redirect:/programs/" + programId + "/apply?success=Request sent#letter-requests";
