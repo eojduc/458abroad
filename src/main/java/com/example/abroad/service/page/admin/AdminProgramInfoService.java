@@ -231,6 +231,7 @@ public record AdminProgramInfoService(
       case ENROLLED -> program.endDate().isBefore(LocalDate.now()) ? "COMPLETED" : "ENROLLED";
       default -> application.status().toString();
     };
+    System.out.println(application.student());
     return students.filter(student -> student.username().equals(application.student()))
       .map(student -> new Applicant(
         student.username(),

@@ -1,6 +1,8 @@
 package com.example.abroad.controller.admin;
 
 
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo;
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.PostNote.UserLacksPermission;
 import com.example.abroad.view.Alerts;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService;
@@ -8,7 +10,6 @@ import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetAppl
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.NotLoggedIn;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.ProgramNotFound;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.Success;
-import com.example.abroad.service.page.admin.AdminApplicationInfoService.GetApplicationInfo.UserNotAdmin;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.PostNote;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.UpdateApplicationStatus;
 import com.example.abroad.model.Application.Status;
@@ -33,7 +34,7 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     return switch (service.getApplicationInfo(programId, username, session)) {
       case Success(var noteInfos, var documentInfos, var theme, var responses, var programDetails,
-                   var applicationDetails, var displayName) -> {
+                   var applicationDetails, var displayName, var isReviewer) -> {
         model.addAllAttributes(Map.of(
           "theme", theme,
           // _application is used to avoid conflict with the application variable in Thymeleaf
@@ -48,12 +49,13 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
           "applicationDetails", applicationDetails,
           "programId", programId,
           "studentUsername", username,
-          "displayName", displayName
+          "displayName", displayName,
+          "isReviewer", isReviewer
         ));
         yield "admin/application-info :: page";
       }
       case ApplicationNotFound() -> "redirect:/admin/programs?error=That application does not exist";
-      case UserNotAdmin() -> "redirect:/applications?error=You are not an admin";
+      case GetApplicationInfo.UserLacksPermission() -> "redirect:/applications?error=You can't do that";
       case NotLoggedIn() -> "redirect:/login?error=You must be logged in to view this page";
       case ProgramNotFound() -> "redirect:/admin/programs?error=That program does not exist";
     };
@@ -71,7 +73,7 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
         yield "admin/application-info :: note-table";
       }
       case PostNote.ApplicationNotFound() -> "redirect:/admin/programs?error=That application does not exist";
-      case PostNote.UserNotAdmin() -> "redirect:/applications?error=You are not an admin";
+      case UserLacksPermission() -> "redirect:/applications?error=You are not an admin";
       case PostNote.NotLoggedIn() ->
         "redirect:/login?error=You must be logged in to view this page";
     };

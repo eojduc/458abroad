@@ -11,7 +11,7 @@ import com.example.abroad.service.ApplicationService.Documents;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.admin.AdminProgramInfoService.StatusOption;
+import com.example.abroad.service.page.admin.AdminApplicationInfoService.PostNote.UserLacksPermission;
 import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -34,16 +34,19 @@ public record AdminApplicationInfoService(
     if (user == null) {
       return new GetApplicationInfo.NotLoggedIn();
     }
-    if (!userService.isAdmin(user)) {
-      return new GetApplicationInfo.UserNotAdmin();
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new GetApplicationInfo.ProgramNotFound();
+    }
+    var isAdmin = userService.isAdmin(user);
+    var isReviewer = userService.isReviewer(user);
+    var isLead = programService.isFacultyLead(program, user);
+    if (!isAdmin && !isReviewer && !isLead) {
+      return new GetApplicationInfo.UserLacksPermission();
     }
     var student = userService.findByUsername(username).orElse(null);
     if (student == null) {
       return new GetApplicationInfo.ApplicationNotFound();
-    }
-    var program = programService.findById(programId).orElse(null);
-    if (program == null) {
-      return new GetApplicationInfo.ProgramNotFound();
     }
     var application = applicationService.findByProgramAndStudent(program, student).orElse(null);
     if (application == null) {
@@ -64,10 +67,10 @@ public record AdminApplicationInfoService(
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var theme = user.theme().name().toLowerCase();
     var programDetails = getProgramDetails(program);
-    var applicationDetails = getAppDetails(programIsPast, application, student, isAdmin, isReviewer, isFacultyLead);
+    var applicationDetails = getAppDetails(programIsPast, application, student, isAdmin, isReviewer, isLead);
     return new GetApplicationInfo.Success(noteInfos, documents, theme,
       responses, programDetails,
-      applicationDetails, user.displayName()
+      applicationDetails, user.displayName(), isReviewer
     );
   }
 
@@ -233,12 +236,19 @@ public record AdminApplicationInfoService(
     if (user == null) {
       return new PostNote.NotLoggedIn();
     }
-    if (!userService.isAdmin(user)) {
-      return new PostNote.UserNotAdmin();
-    }
     var application = applicationService.findByProgramIdAndStudentUsername(programId, student).orElse(null);
     if (application == null) {
       return new PostNote.ApplicationNotFound();
+    }
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new PostNote.ApplicationNotFound();
+    }
+    var isAdmin = userService.isAdmin(user);
+    var isReviewer = userService.isReviewer(user);
+    var isFacultyLead = programService.isFacultyLead(program, user);
+    if (!isReviewer && !isFacultyLead && !isAdmin) {
+      return new PostNote.UserLacksPermission();
     }
     applicationService.saveNote(new Note(
       application.programId(),
@@ -261,7 +271,7 @@ public record AdminApplicationInfoService(
     record ApplicationNotFound() implements PostNote {
     }
 
-    record UserNotAdmin() implements PostNote {
+    record UserLacksPermission() implements PostNote {
     }
 
     record NotLoggedIn() implements PostNote {
@@ -278,13 +288,13 @@ public record AdminApplicationInfoService(
     record Success(List<NoteInfo> noteInfos,
                    List<DocumentInfo> documentInfos, String theme,
                     List<ResponseInfo> responses,
-                   ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName
+                   ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName, Boolean isReviewer
     ) implements
       GetApplicationInfo {
 
     }
 
-    record UserNotAdmin() implements GetApplicationInfo {
+    record UserLacksPermission() implements GetApplicationInfo {
 
     }
 

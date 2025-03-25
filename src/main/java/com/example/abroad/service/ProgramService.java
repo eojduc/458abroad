@@ -85,7 +85,6 @@ public record ProgramService(
     return programRepository.findById(id);
   }
 
-
   public List<? extends User> findFacultyLeads(Program program) {
     var facultyLeadUsernames = facultyLeadRepository.findById_ProgramId(program.id())
       .stream().map(FacultyLead::username).toList();
