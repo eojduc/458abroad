@@ -10,7 +10,9 @@
         th:replace="~{components :: student-navbar(${user.displayName()})}"
 ></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-4">
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
 
 
   <div class="card card-normal w-full bg-base-200">
