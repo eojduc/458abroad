@@ -96,10 +96,15 @@ public record AuthController(AuthService authService, AuditService auditService)
       @RequestParam String password,
       @RequestParam String confirmPassword,
       HttpSession session,
+      HttpServletRequest request,
       Model model) {
 
     return switch (authService.registerUser(username, displayName, email, password, confirmPassword, session)) {
-      case RegisterResult.Success() -> "redirect:/";
+      case RegisterResult.Success() -> {
+        MDC.put("username", username);
+        auditService.logEvent("User " + username + " registered from IP " + request.getRemoteAddr());
+        yield "redirect:/";
+      }
       case RegisterResult.UsernameExists() -> "redirect:/register?error=Username is already taken";
       case RegisterResult.EmailExists() -> "redirect:/register?error=Email is already registered";
       case RegisterResult.PasswordMismatch() -> "redirect:/register?error=New passwords do not match";
