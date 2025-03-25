@@ -1,5 +1,6 @@
 package com.example.abroad.service.page;
 import com.example.abroad.model.User;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,7 +9,8 @@ import org.springframework.stereotype.Service;
 @Service
 public record AccountService(
         PasswordEncoder passwordEncoder,
-        UserService userService
+        UserService userService,
+        AuditService auditService
 ) {
     public sealed interface GetProfile permits GetProfile.Success, GetProfile.UserNotFound {
         record Success(User user) implements GetProfile {}
@@ -47,6 +49,7 @@ public record AccountService(
                         localUser.theme()
                 );
                 userService.save(updatedUser);
+                auditService.logEvent("User " + user.username() + " successfully updated account information");
                 yield new UpdateProfile.Success(updatedUser);
             }
             case User.SSOUser ssoUser -> {
@@ -57,6 +60,7 @@ public record AccountService(
                         ssoUser.theme()
                 );
                 userService.save(updatedUser);
+                auditService.logEvent("User " + user.username() + " successfully updated account information");
                 yield new UpdateProfile.Success(updatedUser);
             }
         };

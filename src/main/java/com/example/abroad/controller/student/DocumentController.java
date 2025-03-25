@@ -2,6 +2,8 @@ package com.example.abroad.controller.student;
 
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.AuditService;
+
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.DocumentService;
@@ -20,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.sql.Blob;
 import java.sql.SQLException;
 
@@ -32,12 +33,14 @@ public class DocumentController {
     private final DocumentService documentService;
     private final UserService userService;
     private final ApplicationService applicationService;
+    private final AuditService auditService;
 
     public DocumentController(DocumentService documentService, UserService userService,
-      ApplicationService applicationService) {
+      ApplicationService applicationService, AuditService auditService) {
         this.documentService = documentService;
         this.userService = userService;
         this.applicationService = applicationService;
+        this.auditService = auditService;
     }
 
     @PostMapping
@@ -56,6 +59,7 @@ public class DocumentController {
         try {
             documentService.uploadDocument(programId, user.username(), type, file);
             String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
+            auditService.logEvent("User " + user.username() + " successfully uploaded document of type: " + type.name());
             return "redirect:/applications/" + programId + "?success=" + message + "#documents";
         } catch (IllegalArgumentException e) {
             // This correctly handles validation errors
