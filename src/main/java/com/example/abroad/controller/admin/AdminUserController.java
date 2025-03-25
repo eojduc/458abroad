@@ -2,6 +2,7 @@ package com.example.abroad.controller.admin;
 
 import static java.util.Map.entry;
 
+import com.example.abroad.model.User;
 import com.example.abroad.view.Alerts;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
@@ -116,6 +117,33 @@ public record AdminUserController(
         "redirect:/admin/users?success=User admin status updated successfully";
     };
   }
+
+    @PostMapping("/{username}/role")
+    public String modifyUserRole(
+            HttpSession session,
+            @PathVariable String username,
+            @RequestParam User.Role.Type roleType,
+            @RequestParam boolean grantRole
+    ) {
+        var result = adminUserService.modifyUserRole(session, username, roleType, grantRole);
+
+        return switch (result) {
+            case AdminUserService.ModifyUserResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.ModifyUserResult.UserNotAdmin() ->
+                    "redirect:/home?error=You are not an admin";
+            case AdminUserService.ModifyUserResult.CannotModifySuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot modify super admin account";
+            case AdminUserService.ModifyUserResult.CannotModifySelf() ->
+                    "redirect:/admin/users?error=Cannot modify your own role status";
+            case AdminUserService.ModifyUserResult.RequiresConfirmation(var targetUser, var programs) -> {
+                // This will redirect to the confirmation dialog for removing admin with faculty programs
+                yield "redirect:/admin/users?warning=User has faculty programs, confirmation required";
+            }
+            case AdminUserService.ModifyUserResult.Success(var user) ->
+                    "redirect:/admin/users?success=User roles updated successfully";
+        };
+    }
 
     @PostMapping("/{username}/reset-password")
     public String resetPassword(
