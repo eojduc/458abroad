@@ -51,13 +51,11 @@ public record ApplyToProgramController(ApplyToProgramService service, FormatServ
   @PostMapping("/programs/{programId}/apply")
   public String applyToProgramPost(@PathVariable Integer programId, HttpSession session,
     @RequestParam String major, @RequestParam Double gpa, @RequestParam LocalDate dob,
-    @RequestParam String answer1, @RequestParam String answer2, @RequestParam String answer3,
-    @RequestParam String answer4, @RequestParam String answer5
+    @RequestParam Map<String, String> answers
   ) {
-    return switch (service.applyToProgram(programId, session, major, gpa, dob, answer1, answer2,
-      answer3, answer4, answer5)) {
+    return switch (service.applyToProgram(programId, session, major, gpa, dob, answers)) {
       case ApplyToProgram.Success(var pId, var username) ->
-        "redirect:/applications/" + programId + "/" + username + "?success=Application submitted";
+        "redirect:/applications/" + programId + "?success=Application submitted";
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case ApplyToProgram.InvalidSubmission() -> "redirect:/programs/" + programId + "/apply?error=Invalid submission";
     };
