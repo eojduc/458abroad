@@ -7,6 +7,9 @@ import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import com.example.abroad.model.User.Role;
+import com.example.abroad.model.User.Role.ID;
+import com.example.abroad.model.User.Role.Type;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 public record AdminUserService(
@@ -43,12 +47,13 @@ public record AdminUserService(
   }
 
   public record UserInfo(
-    User user,
-    List<Program> facultyLeadPrograms,
-    List<Application> applications,
-    Map<String, String> applicationPrograms
-  ) {
-  }
+          User user,
+          List<Program> facultyLeadPrograms,
+          List<Application> applications,
+          Map<String, String> applicationPrograms,
+          boolean isAdmin, // Added in previous step
+          String role // Add this field
+  ) {}
 
   public GetAllUsersInfo getUsersInfo(
     HttpSession session,
@@ -60,7 +65,7 @@ public record AdminUserService(
     if (user == null) {
       return new GetAllUsersInfo.UserNotFound();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new GetAllUsersInfo.UserNotAdmin();
     }
     return processAuthorizedRequest(sort, searchFilter, ascending, user);
@@ -86,16 +91,29 @@ public record AdminUserService(
   private UserInfo getUserInfo(User user) {
     var facultyLeadPrograms = programService.findFacultyPrograms(user);
     var applications = applicationService.findByStudent(user);
+    var isAdmin = userService.isAdmin(user);
 
-    // Create a map of application ID to program name
+    // Get all roles for this user
+    List<Role> userRoles = userService.roleRepository().findById_Username(user.username());
+    String role;
+
+    if (userRoles.isEmpty()) {
+      role = "STUDENT";
+    } else {
+      role = userRoles.stream()
+              .map(r -> r.type().toString())
+              .sorted()
+              .collect(Collectors.joining(", "));
+    }
+
     Map<String, String> applicationPrograms = new HashMap<>();
     for (Application app : applications) {
       programService.findById(app.programId()).ifPresent(program ->
-              applicationPrograms.put(app.id(), program.title())
+              applicationPrograms.put(app.programId().toString(), program.title())
       );
     }
 
-    return new UserInfo(user, facultyLeadPrograms, applications, applicationPrograms);
+    return new UserInfo(user, facultyLeadPrograms, applications, applicationPrograms, isAdmin, role);
   }
 
   private Predicate<UserInfo> matchesSearchFilter(String searchTerm) {
@@ -115,7 +133,7 @@ public record AdminUserService(
       case NAME -> Comparator.comparing(userInfo -> userInfo.user().displayName());
       case USERNAME -> Comparator.comparing(userInfo -> userInfo.user().username());
       case EMAIL -> Comparator.comparing(userInfo -> userInfo.user().email());
-      case ROLE -> Comparator.comparing(userInfo -> userInfo.user().role().toString());
+      case ROLE -> Comparator.comparing(userInfo -> userInfo.role); // Change this line
       case USER_TYPE -> Comparator.comparing(userInfo -> userInfo.user().isLocal() ? "Local" : "SSO");
     };
     return ascending ? comparator : comparator.reversed();
@@ -145,17 +163,17 @@ public record AdminUserService(
   }
 
   public ModifyUserResult modifyUserAdminStatus(
-    HttpSession session,
-    String targetUsername,
-    boolean grantAdmin,
-    boolean confirmed
+          HttpSession session,
+          String targetUsername,
+          boolean grantAdmin,
+          boolean confirmed
   ) {
     // Check if requesting user is admin
     var adminUser = userService.findUserFromSession(session).orElse(null);
     if (adminUser == null) {
       return new ModifyUserResult.UserNotFound();
     }
-    if (!adminUser.isAdmin()) {
+    if (!userService.isAdmin(adminUser)) {
       return new ModifyUserResult.UserNotAdmin();
     }
 
@@ -178,25 +196,99 @@ public record AdminUserService(
     if (!grantAdmin) {
       var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
       if (facultyLeadPrograms.isEmpty()) {
-        var updateUser = targetUser.withRole(User.Role.STUDENT);
-        userService.save(updateUser);
-        return new ModifyUserResult.Success(updateUser);
+        // No faculty lead programs, so just remove the ADMIN role
+        userService.removeRole(targetUser, Role.Type.ADMIN);
+        return new ModifyUserResult.Success(targetUser);
       }
 
-      //will only proceed past this point if user is faculty lead
+      // Will only proceed past this point if user is faculty lead
       if (!confirmed) {
         return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
       }
+
       for (Program program : facultyLeadPrograms) {
         programService.removeFacultyLead(program, targetUser);
       }
+
+      // After handling faculty lead status, remove the ADMIN role
+      userService.removeRole(targetUser, Role.Type.ADMIN);
+    } else {
+      // Add admin role to user
+      userService.addRole(targetUser, Role.Type.ADMIN);
     }
 
-    // Modify user admin status
-    var updatedUser = targetUser.withRole(grantAdmin ? User.Role.ADMIN : User.Role.STUDENT);
-    userService.save(updatedUser);
+    return new ModifyUserResult.Success(targetUser);
+  }
 
-    return new ModifyUserResult.Success(updatedUser);
+  public ModifyUserResult modifyUserRole(
+          HttpSession session,
+          String targetUsername,
+          Role.Type roleType,
+          boolean grantRole,
+          boolean confirmed
+  ) {
+    // Check if requesting user is admin
+    var adminUser = userService.findUserFromSession(session).orElse(null);
+    if (adminUser == null) {
+      return new ModifyUserResult.UserNotFound();
+    }
+    if (!userService.isAdmin(adminUser)) {
+      return new ModifyUserResult.UserNotAdmin();
+    }
+
+    // Find target user
+    var targetUser = userService.findByUsername(targetUsername).orElse(null);
+    if (targetUser == null) {
+      return new ModifyUserResult.UserNotFound();
+    }
+
+    // Prevent modifying super admin
+    if (targetUsername.equals("admin")) {
+      return new ModifyUserResult.CannotModifySuperAdmin();
+    }
+
+    // Prevent self-modification
+    if (targetUsername.equals(adminUser.username())) {
+      return new ModifyUserResult.CannotModifySelf();
+    }
+
+    // Special handling for FACULTY role removal - check faculty lead status
+    if (roleType == Role.Type.FACULTY && !grantRole) {
+      var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
+      if (facultyLeadPrograms.isEmpty()) {
+        // No faculty lead programs, just remove the role
+        userService.removeRole(targetUser, Role.Type.FACULTY);
+        return new ModifyUserResult.Success(targetUser);
+      }
+
+      // User is faculty lead for some programs, check for confirmation
+      if (!confirmed) {
+        return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
+      }
+
+      // Remove as faculty lead from all programs
+      for (Program program : facultyLeadPrograms) {
+        programService.removeFacultyLead(program, targetUser);
+      }
+
+      // After handling faculty lead programs, remove the FACULTY role
+      userService.removeRole(targetUser, Role.Type.FACULTY);
+      return new ModifyUserResult.Success(targetUser);
+    }
+
+    // Special handling for ADMIN role removal
+    if (roleType == Role.Type.ADMIN && !grantRole) {
+      return modifyUserAdminStatus(session, targetUsername, false, false);
+    }
+
+    // For other role types or adding roles
+    if (grantRole) {
+      userService.addRole(targetUser, roleType);
+    } else {
+      userService.removeRole(targetUser, roleType);
+    }
+
+    return new ModifyUserResult.Success(targetUser);
   }
 
   public sealed interface PasswordResetResult {
@@ -235,7 +327,7 @@ public record AdminUserService(
     if (adminUser == null) {
       return new PasswordResetResult.UserNotFound();
     }
-    if (!adminUser.isAdmin()) {
+    if (!userService.isAdmin(adminUser)) {
       return new PasswordResetResult.UserNotAdmin();
     }
 
@@ -271,7 +363,6 @@ public record AdminUserService(
       localUser.username(),
       hashedPassword,
       localUser.email(),
-      localUser.role(),
       localUser.displayName(),
       localUser.theme()
     );
@@ -305,7 +396,7 @@ public record AdminUserService(
     if (adminUser == null) {
       return new DeleteUserResult.UserNotFound();
     }
-    if (!adminUser.isAdmin()) {
+    if (!userService.isAdmin(adminUser)) {
       return new DeleteUserResult.UserNotAdmin();
     }
 
@@ -342,7 +433,8 @@ public record AdminUserService(
     List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUser);
     for (Application.Note note : userNotes) {
       Application.Note updatedNote = new Application.Note(
-        note.applicationId(),
+        note.programId(),
+        note.student(),
         "DELETED USER",
         note.content(),
         note.timestamp()

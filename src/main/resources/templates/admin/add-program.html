@@ -12,7 +12,9 @@
     class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
 
   <div id="alerts-bar">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+      <div th:replace="~{components :: alerts(${alerts})}"></div>
+    </div>
   </div>
 
   <div class="card card-normal w-full bg-base-200">
@@ -148,5 +150,6 @@
 
 <!-- Footer -->
 <div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
 </body>
 </html>

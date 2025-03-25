@@ -24,7 +24,9 @@
 <body>
 <div th:replace="~{components :: admin-navbar(${name})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-8">
       <div class="flex justify-between items-center">
@@ -57,6 +59,7 @@
 </div>
 
 <div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
 </body>
 </html>
 

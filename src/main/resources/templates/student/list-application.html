@@ -10,7 +10,9 @@
         th:replace="~{components :: student-navbar(${user.displayName()})}"
 ></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-4">
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
 
 
   <div class="card card-normal w-full bg-base-200">
@@ -40,7 +42,8 @@
 
             <tr th:each="pair : ${pairs}" class="border-base-300 border-y-2">
               <td>
-                <a th:href="@{'/applications/' + ${pair.app().id()}}"
+                <a
+                   th:href="@{/applications/{programId}(programId=${pair.prog.id})}"
                    class="link link-primary">
                   <span th:text="${pair.prog().title()}">Program Title</span>
                 </a>
@@ -82,7 +85,7 @@
                   <!-- Upload/View Button - Always visible -->
                   <div class="flex-none">
                     <a th:if="${pair.getDocumentStatus('ASSUMPTION_OF_RISK')}"
-                       th:href="@{'/applications/' + ${pair.app().id()} + '/documents/ASSUMPTION_OF_RISK/view'}"
+                       th:href="@{/applications/{programId}/documents/ASSUMPTION_OF_RISK/view(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-ghost" target="_blank">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -91,7 +94,7 @@
                       <span class="ml-1">View</span>
                     </a>
                     <a th:unless="${pair.getDocumentStatus('ASSUMPTION_OF_RISK')}"
-                       th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
+                       th:href="@{/applications/{programId}#documents(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-error btn-outline">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -121,7 +124,7 @@
                   <!-- Upload/View Button - Always visible -->
                   <div class="flex-none">
                     <a th:if="${pair.getDocumentStatus('CODE_OF_CONDUCT')}"
-                       th:href="@{'/applications/' + ${pair.app().id()} + '/documents/CODE_OF_CONDUCT/view'}"
+                       th:href="@{/applications/{programId}/documents/CODE_OF_CONDUCT/view(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-ghost" target="_blank">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -130,7 +133,7 @@
                       <span class="ml-1">View</span>
                     </a>
                     <a th:unless="${pair.getDocumentStatus('CODE_OF_CONDUCT')}"
-                       th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
+                       th:href="@{/applications/{programId}#documents(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-error btn-outline">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -160,7 +163,7 @@
                   <!-- Upload/View Button - Always visible -->
                   <div class="flex-none">
                     <a th:if="${pair.getDocumentStatus('MEDICAL_HISTORY')}"
-                       th:href="@{'/applications/' + ${pair.app().id()} + '/documents/MEDICAL_HISTORY/view'}"
+                       th:href = @{/applications/{programId}/documents/MEDICAL_HISTORY/view(programId=${pair.prog.id})}
                        class="btn btn-xs btn-ghost" target="_blank">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -169,7 +172,7 @@
                       <span class="ml-1">View</span>
                     </a>
                     <a th:unless="${pair.getDocumentStatus('MEDICAL_HISTORY')}"
-                       th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
+                       th:href="@{/applications/{programId}#documents(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-error btn-outline">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -199,7 +202,7 @@
                   <!-- Upload/View Button - Always visible -->
                   <div class="flex-none">
                     <a th:if="${pair.getDocumentStatus('HOUSING_FORM')}"
-                       th:href="@{'/applications/' + ${pair.app().id()} + '/documents/HOUSING_FORM/view'}"
+                       th:href="@{/applications/{programId}/documents/HOUSING_FORM/view(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-ghost" target="_blank">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -208,7 +211,7 @@
                       <span class="ml-1">View</span>
                     </a>
                     <a th:unless="${pair.getDocumentStatus('HOUSING_FORM')}"
-                       th:href="@{'/applications/' + ${pair.app().id()} + '#documents'}"
+                       th:href="@{/applications/{programId}#documents(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-error btn-outline">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -232,6 +235,7 @@
   </div>
 </div>
 <div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
 </body>
 </html>
 

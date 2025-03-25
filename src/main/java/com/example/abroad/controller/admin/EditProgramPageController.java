@@ -1,6 +1,6 @@
 package com.example.abroad.controller.admin;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.page.EditProgramService;
 import com.example.abroad.service.page.EditProgramService.EditProgramPage;

@@ -2,7 +2,7 @@ package com.example.abroad.controller.admin;
 
 import static java.util.Map.entry;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminProgramsService;
@@ -15,12 +15,10 @@ import com.example.abroad.service.page.admin.AdminProgramsService.TimeFilter;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller

@@ -6,7 +6,9 @@
 <div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
 <div
     class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10 overflow-x-auto">
       <h1 class="card-title">Browse Programs</h1>
@@ -65,7 +67,7 @@
                    class="btn btn-primary">Apply</a>
                 <a th:if="${programAndStatus.status.name == 'APPLIED' || programAndStatus.status.name == 'ENROLLED'
                   || programAndStatus.status.name == 'WITHDRAWN' || programAndStatus.status.name == 'CANCELLED'}"
-                   th:href="@{/applications/{id}-{user}(id=${programAndStatus.program.id}, user=${user.username})}"
+                   th:href="@{/applications/{id}(id=${programAndStatus.program.id})}"
                    class="btn btn-primary">View Application</a>
               </div>
             </div>
@@ -77,6 +79,7 @@
 </div>
 
 <div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
 </body>
 </html>
 

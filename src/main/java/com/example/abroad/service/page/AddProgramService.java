@@ -21,7 +21,7 @@ public record AddProgramService(UserService userService, ProgramService programS
     if (user == null) {
       return new GetAddProgramInfo.NotLoggedIn();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new GetAddProgramInfo.UserNotAdmin();
     }
     return new GetAddProgramInfo.Success(user);
@@ -35,7 +35,7 @@ public record AddProgramService(UserService userService, ProgramService programS
     if (user == null) {
       return new AddProgramInfo.NotLoggedIn();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new AddProgramInfo.UserNotAdmin();
     }
     Program program = new Program(
@@ -56,7 +56,7 @@ public record AddProgramService(UserService userService, ProgramService programS
   }
 
   public List<? extends User> getAdminList() {
-    return userService.findAll().stream().filter(User::isAdmin).toList();
+    return userService.findAll().stream().filter(userService::isAdmin).toList();
   }
 
 

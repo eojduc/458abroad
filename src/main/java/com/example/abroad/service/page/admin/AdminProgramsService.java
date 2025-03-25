@@ -2,9 +2,9 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
+import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
@@ -48,7 +48,7 @@ public record AdminProgramsService(
     if (user == null) {
       return new GetAllProgramsInfo.UserNotFound();
     }
-    if (user.role() != User.Role.ADMIN) {
+    if (!userService.isAdmin(user)) {
       return new GetAllProgramsInfo.UserNotAdmin();
     }
     return processAuthorizedRequest(sort, nameFilter, leadFilter, timeFilter, user, ascending);

@@ -1,6 +1,6 @@
 package com.example.abroad.controller.admin;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

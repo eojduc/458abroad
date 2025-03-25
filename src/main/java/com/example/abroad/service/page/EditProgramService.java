@@ -20,7 +20,7 @@ public record EditProgramService(UserService userService, ProgramService program
     if (user == null) {
       return new EditProgramPage.NotLoggedIn();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new EditProgramPage.UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);
@@ -36,7 +36,7 @@ public record EditProgramService(UserService userService, ProgramService program
       .toList();
 
     var nonFacultyLeads = userService.findAll().stream()
-      .filter(User::isAdmin)
+      .filter(userService::isAdmin)
       .filter(u -> !facultyUsernames.contains(u.username()))
       .toList();
 
@@ -52,7 +52,7 @@ public record EditProgramService(UserService userService, ProgramService program
     if (user == null) {
       return new UpdateProgramInfo.NotLoggedIn();
     }
-    if (!user.isAdmin()) {
+    if (!userService.isAdmin(user)) {
       return new UpdateProgramInfo.UserNotAdmin();
     }
     var program = programService.findById(programId).orElse(null);

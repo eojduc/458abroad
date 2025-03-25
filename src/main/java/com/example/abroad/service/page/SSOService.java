@@ -8,12 +8,15 @@ import org.springframework.stereotype.Service;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.LocalUser;
 import com.example.abroad.model.User.SSOUser;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
+import org.slf4j.MDC;
+
 @Service
-public record SSOService(UserService userService, @Value("${redirect.url}") String redirectUrl) {
+public record SSOService(UserService userService, AuditService auditService, @Value("${redirect.url}") String redirectUrl) {
 
   public sealed interface SSOResult {
     record Success(User user) implements SSOResult {}
@@ -43,13 +46,17 @@ public record SSOService(UserService userService, @Value("${redirect.url}") Stri
             "Please register using local authentication");
       } else if (existingUser instanceof SSOUser) {
         userService.saveUserToSession(existingUser, session);
+        MDC.put("username", username);
+        auditService.logEvent("SSO User " + username + " logged in.");
         return new SSOResult.Success(existingUser);
       }
     }
 
-    SSOUser newUser = new SSOUser(username, email, User.Role.STUDENT, displayName, User.Theme.DEFAULT);
+    SSOUser newUser = new SSOUser(username, email, displayName, User.Theme.DEFAULT);
     userService.save(newUser);
     userService.saveUserToSession(newUser, session);
+    MDC.put("username", username);
+    auditService.logEvent("SSO User " + username + " registered.");
     return new SSOResult.Success(newUser);
   }
 

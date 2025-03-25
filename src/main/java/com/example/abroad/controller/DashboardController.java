@@ -1,9 +1,8 @@
 package com.example.abroad.controller;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.service.page.DashboardService;
 import com.example.abroad.service.page.SSOService;
-import com.example.abroad.service.page.SSOService.SSOResult;
 import com.example.abroad.service.page.DashboardService.GetDashboard;
 import com.example.abroad.service.FormatService;
 
