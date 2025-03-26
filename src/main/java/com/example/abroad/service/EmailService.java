@@ -35,14 +35,13 @@ public class EmailService {
     headers.set("Authorization", "Basic " + new String(encodedAuth));
 
     MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-    body.add("from", "Your Name <mailgun@" + mailgunDomain + ">");
+    body.add("from", "HCC Abroad <abroad@" + mailgunDomain + ">");
     body.add("to", to);
     body.add("subject", subject);
     body.add("text", text);
     body.add("html", html); // 💡 Add HTML version here
 
     HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-    System.out.println(text);
     restTemplate.postForEntity(url, request, String.class);
   }
 
@@ -66,7 +65,6 @@ public class EmailService {
       + "<p>Please visit the following link to submit your recommendation:</p>"
       + "<p><a href=\"" + link + "\">Submit Recommendation</a></p>"
       + "<p>Thank you,<br>HCC Abroad</p>";
-    System.out.println(html);
     sendEmail(email, subject, text, html);
   }
 

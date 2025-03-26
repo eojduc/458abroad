@@ -21,7 +21,7 @@
   - `./gradlew clean bootJar`
   - `java -jar build/libs/abroad-0.0.1-SNAPSHOT.jar`
 
-# Deployment Guide
+# Development Guide
 
 For detailed development guide, refer to the [Development Guide](dev_guide.md).
 
