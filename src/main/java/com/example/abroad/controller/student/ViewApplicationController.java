@@ -74,6 +74,7 @@ public record ViewApplicationController(
         allAttributes.put("alerts", new Alerts(error, success, warning, info));
         allAttributes.put("pair", pair);
         allAttributes.put("facultyLeads", facultyLeads);
+        allAttributes.put("isNotStudent", !userService.isStudent(successRes.user()));
 
         model.addAllAttributes(allAttributes);
         yield "student/view-application :: page";
@@ -159,7 +160,8 @@ public record ViewApplicationController(
                 "pair", pair,
                 "facultyLeads", facultyLeads,
                 "responses", success.responses(),
-                "questions", success.questions()));
+                "questions", success.questions(),
+                "isNotStudent", !userService.isStudent(success.user())));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
@@ -210,7 +212,8 @@ public record ViewApplicationController(
                 "questions", success.questions(),
                 "pair", pair,
                 "facultyLeads", facultyLeads,
-                "formatter", formatter));
+                "formatter", formatter,
+                "isNotStudent", !userService.isStudent(success.user())));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->

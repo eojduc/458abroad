@@ -35,6 +35,7 @@ public record ListApplicationsController(
         attributes.put("sort", Sort.TITLE);
         attributes.put("ascending", true);  // Always include ascending
         attributes.put("formatter", formatter);
+        attributes.put("isNotStudent", !userService.isStudent(user));
 
         model.addAllAttributes(attributes);
         yield "student/list-application :: page";
@@ -60,6 +61,7 @@ public record ListApplicationsController(
         attributes.put("sort", sort);
         attributes.put("formatter", formatter);
         attributes.put("ascending", ascending);
+        attributes.put("isNotStudent", !userService.isStudent(user));
 
         model.addAllAttributes(attributes);
         yield "student/list-application :: programTable";
