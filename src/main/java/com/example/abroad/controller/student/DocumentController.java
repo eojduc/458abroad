@@ -1,6 +1,10 @@
 package com.example.abroad.controller.student;
 
+import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Document;
+import com.example.abroad.model.User;
+import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ProgramService;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.DocumentService;
@@ -27,6 +31,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/applications/{applicationId}/documents")
@@ -35,10 +41,14 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final UserService userService;
+    private final ProgramService programService;
+    private final ApplicationService applicationService;
 
-    public DocumentController(DocumentService documentService, UserService userService) {
+    public DocumentController(DocumentService documentService, UserService userService, ProgramService programService, ApplicationService applicationService) {
         this.documentService = documentService;
         this.userService = userService;
+        this.programService = programService;
+        this.applicationService = applicationService;
     }
 
     @PostMapping
@@ -90,12 +100,24 @@ public class DocumentController {
         logger.info("User {} attempting to view document for application {} type {}",
                 user.username(), applicationId, type);
 
-        // First check if the document exists for this user
-        var document = this.documentService.getDocument(applicationId, user.username(), type);
-        if (document.isEmpty()) {
-            logger.warn("Document not found for user {}", user.username());
+        // Check permission and get the student username if permission granted
+        var studentUsernameOpt = checkDocumentAccessPermission(user, applicationId, type);
+
+        if (studentUsernameOpt.isEmpty()) {
+            logger.warn("User {} attempted unauthorized access to document for application {}",
+                    user.username(), applicationId);
             model.addAttribute("message", "You do not have permission to access this document");
-            return "permission-error"; // Return the view name for the permission error template
+            return "permission-error";
+        }
+
+        String studentUsername = studentUsernameOpt.get();
+
+        // Now proceed with getting the document
+        var document = applicationService.getDocument(applicationId, studentUsername, type);
+        if (document.isEmpty()) {
+            logger.warn("Document not found");
+            model.addAttribute("message", "Document not found");
+            return "permission-error";
         }
 
         try {
@@ -110,7 +132,6 @@ public class DocumentController {
             byte[] content = blob.getBinaryStream().readAllBytes();
             logger.info("Successfully read {} bytes from blob", content.length);
 
-            // For the PDF case, return a ResponseEntity instead of writing to the output stream directly
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
                     .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -121,6 +142,58 @@ public class DocumentController {
             model.addAttribute("message", "Failed to read document: " + e.getMessage());
             return "permission-error";
         }
+    }
+
+
+    /**
+     * Checks if a user has permission to view documents for an application
+     * @param user The user attempting to access the document
+     * @param programId The ID of the program
+     * @param documentType The type of document being accessed
+     * @return Optional containing the username of the student if permission is granted, empty otherwise
+     */
+    private Optional<String> checkDocumentAccessPermission(User user, Integer programId, Document.Type documentType) {
+        // 1. If the user is the student themselves, they can only view their own documents
+        // First check for the student's own application
+        Optional<Application> studentOwnApplication = applicationService.findByProgramIdAndStudentUsername(
+                programId, user.username());
+
+        if (studentOwnApplication.isPresent()) {
+            // The user is the student of this application
+            return Optional.of(user.username());
+        }
+
+        // 2, 3, 4. For faculty leads, admins, or reviewers, we need to find the application first
+        // to determine the student username
+
+        // Check if the user has a role that allows them to view other students' documents
+        boolean hasPermissionRole = userService.isAdmin(user) ||
+                userService.isReviewer(user);
+
+        // Check if the user is a faculty lead for this program
+        boolean isFacultyForProgram = false;
+        var programOpt = programService.findById(programId);
+        if (programOpt.isPresent()) {
+            isFacultyForProgram = programService.isFacultyLead(programOpt.get(), user);
+        }
+
+        // If the user has the necessary role/permission
+        if (hasPermissionRole || isFacultyForProgram) {
+            // Find all applications for this program
+            List<Application> programApplications = applicationService.findByProgramId(programId);
+
+            // Look for an application with the requested document type
+            for (Application app : programApplications) {
+                Optional<Document> document = applicationService.getDocument(app, documentType);
+                if (document.isPresent()) {
+                    // Found an application with the document - return the student username
+                    return Optional.of(app.student());
+                }
+            }
+        }
+
+        // No permission or no matching document found
+        return Optional.empty();
     }
 
     @GetMapping("/{type}/blank")
