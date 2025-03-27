@@ -1,9 +1,6 @@
 package com.example.abroad.controller.student;
 
 import com.example.abroad.model.Application.Document;
-import com.example.abroad.service.ApplicationService;
-import com.example.abroad.service.AuditService;
-
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.DocumentService;
@@ -22,99 +19,83 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.ui.Model;
+import org.springframework.http.ContentDisposition;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.sql.Blob;
 import java.sql.SQLException;
 
 @Controller
-@RequestMapping("/applications/{programId}/documents")
+@RequestMapping("/applications/{applicationId}/documents")
 public class DocumentController {
     private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
 
     private final DocumentService documentService;
     private final UserService userService;
-    private final ApplicationService applicationService;
-    private final AuditService auditService;
 
-    public DocumentController(DocumentService documentService, UserService userService,
-      ApplicationService applicationService, AuditService auditService) {
+    public DocumentController(DocumentService documentService, UserService userService) {
         this.documentService = documentService;
         this.userService = userService;
-        this.applicationService = applicationService;
-        this.auditService = auditService;
     }
 
     @PostMapping
     public String uploadDocument(
-            @PathVariable Integer programId,
+            @PathVariable String applicationId,
             @RequestParam Document.Type type,
             @RequestParam MultipartFile file,
             HttpSession session
     ) {
-    //    logger.info("Attempting to upload document for application {} type {}", applicationId, type);
+        var user = this.userService.findUserFromSession(session).orElse(null);
+        logger.info("Attempting to upload document for application {} type {}", applicationId, type);
         if (userService.findUserFromSession(session).isEmpty()) {
             return "redirect:/login?error=Not logged in";
         }
-        var user = userService.findUserFromSession(session).get();
-        boolean isUpdate = documentService.getDocument(programId, user.username(), type).isPresent();
+        boolean isUpdate = documentService.getDocument(Integer.valueOf(applicationId), user.username(), type).isPresent();
         try {
-            documentService.uploadDocument(programId, user.username(), type, file);
+            documentService.uploadDocument(Integer.valueOf(applicationId), user.username(), type, file);
             String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
-            auditService.logEvent("User " + user.username() + " successfully uploaded document of type: " + type.name());
-            return "redirect:/applications/" + programId + "?success=" + message + "#documents";
+            return "redirect:/applications/" + applicationId + "?success=" + message + "#documents";
         } catch (IllegalArgumentException e) {
             // This correctly handles validation errors
-            return "redirect:/applications/" + programId + "?error=" + e.getMessage() + "#documents";
+            return "redirect:/applications/" + applicationId + "?error=" + e.getMessage() + "#documents";
         } catch (RuntimeException e) {
             // This is a generic error handler
             logger.error("Error uploading document", e);
             String errorMessage = isUpdate ? "Failed to update document: " : "Failed to upload document: ";
             errorMessage += e.getMessage();
-            return "redirect:/applications/" + programId + "?error=" + errorMessage + "#documents";
+            return "redirect:/applications/" + applicationId + "?error=" + errorMessage + "#documents";
         }
     }
 
     @GetMapping("/{type}/view")
     @Transactional
-    public ResponseEntity<?> viewDocument(
-            @PathVariable Integer programId,
+    public Object viewDocument(
+            @PathVariable Integer applicationId,
             @PathVariable Document.Type type,
-            HttpSession session
+            HttpSession session,
+            Model model
     ) {
         // First check if user is logged in
         var userOpt = this.userService.findUserFromSession(session);
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("/login?error=Not logged in"))
-                    .build();
+            return "redirect:/login?error=Not logged in";
         }
 
         // Get the current logged-in user
         var user = userOpt.get();
 
-//        logger.info("User {} attempting to view document for application {} type {}",
-//                user.username(), applicationId, type);
+        logger.info("User {} attempting to view document for application {} type {}",
+                user.username(), applicationId, type);
 
-        // Get the application to check ownership
-        var applicationOpt = applicationService.findByProgramIdAndStudentUsername(programId, user.username());
-        if (applicationOpt.isEmpty()) {
-//            logger.warn("Application not found: {}", applicationId);
-            return ResponseEntity.notFound().build();
-        }
-
-        // Check if the current user is the owner of the application
-        var application = applicationOpt.get();
-        if (!application.student().equals(user.username())  && !userService.isAdmin(user)) {
-//            logger.warn("User {} attempted unauthorized access to application {} owned by {}",
-//                    user.username(), applicationId, application.student());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You do not have permission to access this document");
-        }
-
-        // Now proceed with getting the document
-        var document = this.documentService.getDocument(programId, user.username(), type);
+        // First check if the document exists for this user
+        var document = this.documentService.getDocument(applicationId, user.username(), type);
         if (document.isEmpty()) {
-            logger.warn("Document not found");
-            return ResponseEntity.notFound().build();
+            logger.warn("Document not found for user {}", user.username());
+            model.addAttribute("message", "You do not have permission to access this document");
+            return "permission-error"; // Return the view name for the permission error template
         }
 
         try {
@@ -122,13 +103,14 @@ public class DocumentController {
             Blob blob = document.get().file();
             if (blob == null) {
                 logger.error("Blob is null for document");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Document content is missing");
+                model.addAttribute("message", "Document content is missing");
+                return "permission-error";
             }
 
             byte[] content = blob.getBinaryStream().readAllBytes();
             logger.info("Successfully read {} bytes from blob", content.length);
 
+            // For the PDF case, return a ResponseEntity instead of writing to the output stream directly
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
                     .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -136,8 +118,8 @@ public class DocumentController {
                     .body(content);
         } catch (IOException | SQLException e) {
             logger.error("Failed to read document blob", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to read document: " + e.getMessage());
+            model.addAttribute("message", "Failed to read document: " + e.getMessage());
+            return "permission-error";
         }
     }
 
