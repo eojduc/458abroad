@@ -167,8 +167,7 @@ public class DocumentController {
         // to determine the student username
 
         // Check if the user has a role that allows them to view other students' documents
-        boolean hasPermissionRole = userService.isAdmin(user) ||
-                userService.isReviewer(user);
+        boolean hasPermissionRole = userService.isAdmin(user);
 
         // Check if the user is a faculty lead for this program
         boolean isFacultyForProgram = false;
