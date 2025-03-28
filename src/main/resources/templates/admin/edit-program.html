@@ -154,11 +154,8 @@
         </div>
         <dialog id="edit_modal" class="modal">
           <div class="modal-box bg-base-200">
-            <div th:if="${applicantsExist}" id="edit-warning-div">
+            <div id="edit-warning-div">
               Editing this program may affect existing applicants. Are you sure you want to proceed?
-            </div>
-            <div th:unless="${applicantsExist}">
-              Are you sure you want to edit this program?
             </div>
             <div class="modal-action gap-2">
               <form method="dialog" class="contents">
@@ -224,8 +221,43 @@
     }
 
     function showModal() {
-      document.getElementById('edit_modal').showModal();
-      document.getElementById('edit-warning-div').textContent = "Editing this program may affect existing applicants. Are you sure you want to proceed?";
+      const originalQuestions = /*[[${currentQuestions}]]*/ [];
+      const applicantsExist = /*[[${applicantsExist}]]*/ false;
+
+      const modal = document.getElementById('edit_modal');
+      const warningDiv = document.getElementById('edit-warning-div');
+      let warningMessage = "Are you sure you want to edit this program?"
+
+      // Check for modifications to default questions
+      const hasModifiedQuestions = originalQuestions.some((origQuestion, index) => {
+        const questionElement = document.getElementById('questionText-' + index);
+        return questionElement && origQuestion !== questionElement.value;
+      });
+
+      // Check for removal of default questions
+      const hasRemovedQuestions = originalQuestions.some((origQuestion, index) => {
+        const checkbox = document.getElementById('checkbox-' + index);
+        return !checkbox || !checkbox.checked;
+      });
+
+      // Construct warning message
+      if (applicantsExist && hasModifiedQuestions) {
+         warningMessage = "Editing this program may affect existing applicants.";
+      }
+
+      if (applicantsExist && hasRemovedQuestions) {
+        warningMessage += " Removing questions will delete those responses by applicants.";
+      }
+
+      if (applicantsExist && (hasModifiedQuestions || hasRemovedQuestions)) {
+        warningMessage += " Are you sure you want to proceed?";
+      }
+
+      // Set the warning text
+      warningDiv.textContent = warningMessage;
+
+      // Show the modal
+      modal.showModal();
     }
 
     // Use thymeleaf to get the default questions
