@@ -139,4 +139,24 @@ public record ApplicationService(
     public void saveNote(Note note) {
       noteRepository.save(note);
     }
+
+  /**
+   * Finds an application by its program ID (without needing a student username)
+   * @param programId The program ID to search for
+   * @return A list of applications for the given program
+   */
+  public List<Application> findByProgramId(Integer programId) {
+    return applicationRepository.findById_ProgramId(programId);
+  }
+
+  /**
+   * Gets a document by program ID, student username, and document type
+   * @param programId The program ID
+   * @param student The student username
+   * @param type The document type
+   * @return The document if found
+   */
+  public Optional<Document> getDocument(Integer programId, String student, Type type) {
+    return documentRepository.findById_ProgramIdAndId_StudentAndId_Type(programId, student, type);
+  }
 }

@@ -186,4 +186,10 @@ public class DocumentService {
     public Optional<Application> getApplicationById(String applicationId) {
         return applicationRepository.findById(applicationId);
     }
+
+    public Optional<Application> getApplicationById(Integer applicationId, String username) {
+        return applicationRepository.findById_ProgramIdAndId_Student(applicationId, username);
+    }
+
+
 }

@@ -2,13 +2,13 @@ package com.example.abroad.controller.admin;
 
 import static java.util.Map.entry;
 
+import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo.UserLacksPermission;
 import com.example.abroad.view.Alerts;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminProgramsService;
 import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo;
 import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo.Success;
-import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo.UserNotAdmin;
 import com.example.abroad.service.page.admin.AdminProgramsService.GetAllProgramsInfo.UserNotFound;
 import com.example.abroad.service.page.admin.AdminProgramsService.Sort;
 import com.example.abroad.service.page.admin.AdminProgramsService.TimeFilter;
@@ -37,7 +37,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
         TimeFilter.FUTURE, true);
     return switch (programsInfo) {
       case UserNotFound() -> "redirect:/login?error=You are not logged in";
-      case UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
+      case UserLacksPermission() -> "redirect:/programs?error=You lack permission to view this page";
       case Success(var programAndStatuses, var user) -> {
         model.addAllAttributes(
             Map.ofEntries(
@@ -49,6 +49,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
                 entry("nameFilter", ""),
                 entry("leadFilter", List.of()),
                 entry("timeFilter", TimeFilter.FUTURE.name()),
+                entry("facultyPrograms", service.getMyPrograms(user)),
                 entry("user", user),
                 entry("ascending", true),
                 entry("programAndStatuses", programAndStatuses)
@@ -72,7 +73,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
         timeFilter, ascending);
     return switch (programsInfo) {
       case UserNotFound() -> "redirect:/login?error=You are not logged in";
-      case UserNotAdmin() -> "redirect:/programs?error=You are not an admin";
+      case UserLacksPermission() -> "redirect:/programs?error=You lack permission to view this page";
       case Success(var programAndStatuses, var user) -> {
         model.addAllAttributes(
             Map.ofEntries(
@@ -82,6 +83,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
                 entry("nameFilter", nameFilter),
                 entry("leadFilter", leadFilter),
                 entry("timeFilter", timeFilter.name()),
+                entry("facultyPrograms", service.getMyPrograms(user)),
                 entry("formatter", formatter),
                 entry("ascending", ascending),
                 entry("programAndStatuses", programAndStatuses)
