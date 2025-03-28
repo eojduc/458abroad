@@ -48,14 +48,25 @@ public record AdminProgramsService(
     if (user == null) {
       return new GetAllProgramsInfo.UserNotFound();
     }
-    if (!userService.isAdmin(user)) {
-      return new GetAllProgramsInfo.UserNotAdmin();
+    var userIsAdmin = userService.isAdmin(user);
+    var userIsReviewer = userService.isReviewer(user);
+    var userIsFaculty = userService.isFaculty(user);
+    if (!userIsAdmin && !userIsReviewer && !userIsFaculty) {
+      return new GetAllProgramsInfo.UserLacksPermission();
     }
     return processAuthorizedRequest(sort, nameFilter, leadFilter, timeFilter, user, ascending);
   }
 
   public List<? extends  User> getKnownFacultyLeads() {
     return programService.findAllFacultyLeads();
+  }
+
+  public List<Program> getMyPrograms(User user) {
+    if (!userService.isFaculty(user) && !userService.isHeadAdmin(user)) {
+      logger.error("User {} is not a faculty member", user.username());
+      return List.of();
+    }
+    return programService.findFacultyPrograms(user);
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
@@ -195,7 +206,7 @@ public record AdminProgramsService(
 
     }
 
-    record UserNotAdmin() implements GetAllProgramsInfo {
+    record UserLacksPermission() implements GetAllProgramsInfo {
 
     }
   }

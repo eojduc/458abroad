@@ -11,6 +11,7 @@ import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.QuestionRepository;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -89,23 +90,60 @@ public record ProgramService(
   public List<? extends User> findFacultyLeads(Program program) {
     var facultyLeadUsernames = facultyLeadRepository.findById_ProgramId(program.id())
       .stream().map(FacultyLead::username).toList();
+
+    // if the program does not have a faculty lead, include the head admin
+    if (facultyLeadUsernames.isEmpty()) {
+      return userService.findAll()
+        .stream()
+        .filter(userService::isHeadAdmin)
+        .toList();
+    }
     return userService.findAll()
       .stream().filter(u -> facultyLeadUsernames.contains(u.username())).toList();
   }
 
-  public List<Program> findFacultyPrograms(User user) {
-    var facultyLeadProgramIds = facultyLeadRepository.findById_Username(user.username())
+  public List<Program> findProgramsWithoutFaculty() {
+    var facultyLeadProgramIds = facultyLeadRepository.findAll()
       .stream()
       .map(FacultyLead::programId)
       .toList();
+    return programRepository.findAll()
+      .stream()
+      .filter(program -> !facultyLeadProgramIds.contains(program.id()))
+      .toList();
+  }
+
+  public List<Program> findFacultyPrograms(User user) {
+    List<Integer> facultyLeadProgramIds = new ArrayList<>(
+        facultyLeadRepository.findById_Username(user.username())
+            .stream()
+            .map(FacultyLead::programId)
+            .toList());
+
+    // If the user is the head admin, also include programs without a faculty lead
+    if (userService.isHeadAdmin(user)) {
+      List<Program> programsWithoutFaculty = findProgramsWithoutFaculty();
+      facultyLeadProgramIds.addAll(
+          programsWithoutFaculty.stream()
+              .map(Program::id)
+              .toList()
+      );
+    }
     return programRepository.findAllById(facultyLeadProgramIds);
   }
 
   public List<? extends User> findAllFacultyLeads() {
-    var facultyLeadUsernames = facultyLeadRepository.findAll()
+    var facultyLeadUsernames = new ArrayList<>(facultyLeadRepository.findAll()
       .stream()
       .map(FacultyLead::username)
-      .toList();
+      .toList());
+
+    // If there are programs without faculty leads, include the head admin
+    List<Program> programsWithoutFaculty = findProgramsWithoutFaculty();
+    if (!programsWithoutFaculty.isEmpty()) {
+      facultyLeadUsernames.add("admin");
+    }
+
     return userService.findAll()
       .stream()
       .filter(u -> facultyLeadUsernames.contains(u.username()))

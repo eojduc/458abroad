@@ -1,4 +1,4 @@
-package com.example.abroad.service.page;
+package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
@@ -16,6 +16,14 @@ import org.springframework.stereotype.Service;
 @Service
 public record AddProgramService(UserService userService, ProgramService programService) {
 
+  static List<String> DEFAULT_QUESTIONS = List.of(
+    "Why do you want to participate in this study abroad program?",
+    "How does this program align with your academic or career goals?",
+    "What challenges do you anticipate during this experience, and how will you address them?",
+    "Describe a time you adapted to a new or unfamiliar environment.",
+    "What unique perspective or contribution will you bring to the group?"
+  );
+
   public GetAddProgramInfo getAddProgramInfo(HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -29,7 +37,7 @@ public record AddProgramService(UserService userService, ProgramService programS
 
   public AddProgramInfo addProgramInfo(
     String title, String description, List<String> facultyLeads, Integer year, LocalDate startDate, LocalDate endDate, LocalDate essentialDocsDate,
-    Semester semester, LocalDate applicationOpen, LocalDate applicationClose, HttpSession session
+    Semester semester, LocalDate applicationOpen, LocalDate applicationClose, List<String> questions, HttpSession session
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -55,8 +63,11 @@ public record AddProgramService(UserService userService, ProgramService programS
     };
   }
 
-  public List<? extends User> getAdminList() {
-    return userService.findAll().stream().filter(userService::isAdmin).toList();
+  public List<? extends User> getFacultyList() {
+    return programService.findAllFacultyLeads();
+  }
+  public List<String> getDefaultQuestions() {
+    return DEFAULT_QUESTIONS;
   }
 
 
