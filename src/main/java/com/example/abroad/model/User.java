@@ -1,12 +1,14 @@
 package com.example.abroad.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import jakarta.persistence.Id;
+import java.util.Objects;
 
 
 public sealed interface User extends Serializable {
@@ -18,23 +20,69 @@ public sealed interface User extends Serializable {
 
   String email();
 
-  Role role();
 
   Theme theme();
 
-  default boolean isAdmin() {
-    return role() == Role.ADMIN;
-  }
-
-  default boolean isStudent() {return role() == Role.STUDENT;}
-
-  User withRole(Role role);
   User withTheme(Theme theme);
 
   default boolean isLocal() {
     return this instanceof LocalUser;
   }
 
+  @Entity
+  @Table(name = "roles")
+  final class Role {
+    @Embeddable
+    public static class ID implements Serializable {
+      @Enumerated(EnumType.STRING)
+      @Column(nullable = false)
+      private Type type;
+      @Column(nullable = false)
+      private String username;
+
+      public ID() {
+        this.type = null;
+        this.username = null;
+      }
+
+      public ID(Type type, String username) {
+        this.type = type;
+        this.username = username;
+      }
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ID id = (ID) o;
+        return type == id.type && Objects.equals(username, id.username);
+      }
+      @Override
+      public int hashCode() {
+        return Objects.hash(type, username);
+      }
+    }
+
+    public enum Type {
+      FACULTY,
+      ADMIN,
+      REVIEWER,
+    }
+
+    @Id
+    private ID id;
+
+    public Role() {
+      this.id = null;
+    }
+
+    public Role(Role.Type type, String username) {
+      this.id = new ID(type, username);
+    }
+
+    public Type type() {
+      return id.type;
+    }
+  }
 
 
   @Entity
@@ -47,8 +95,6 @@ public sealed interface User extends Serializable {
     @Column(nullable = false)
     private String email;
     @Column(nullable = false)
-    private Role role;
-    @Column(nullable = false)
     private String displayName;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -58,16 +104,14 @@ public sealed interface User extends Serializable {
       this.username = null;
       this.password = null;
       this.email = null;
-      this.role = null;
       this.displayName = null;
     }
 
 
-    public LocalUser(String username, String password, String email, Role role, String displayName, Theme theme) {
+    public LocalUser(String username, String password, String email, String displayName, Theme theme) {
       this.username = username;
       this.password = password;
       this.email = email;
-      this.role = role;
       this.displayName = displayName;
       this.theme = theme;
     }
@@ -84,31 +128,16 @@ public sealed interface User extends Serializable {
     public String email() {
       return email;
     }
-    public Role role() {
-      return role;
-    }
     public Theme theme() {
       return theme;
     }
 
-    @Override
-    public User withRole(Role role) {
-      return new LocalUser(
-              this.username,
-              this.password,
-              this.email,
-              role,
-              this.displayName,
-              this.theme
-      );
-    }
     @Override
     public User withTheme(Theme theme) {
       return new LocalUser(
               this.username,
               this.password,
               this.email,
-              this.role,
               this.displayName,
               theme
       );
@@ -123,8 +152,6 @@ public sealed interface User extends Serializable {
     @Column(nullable = false)
     private String email;
     @Column(nullable = false)
-    private Role role;
-    @Column(nullable = false)
     private String displayName;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -133,14 +160,12 @@ public sealed interface User extends Serializable {
     public SSOUser() {
       this.username = null;
       this.email = null;
-      this.role = null;
       this.displayName = null;
     }
 
-    public SSOUser(String username, String email, Role role, String displayName, Theme theme) {
+    public SSOUser(String username, String email, String displayName, Theme theme) {
       this.username = username;
       this.email = email;
-      this.role = role;
       this.displayName = displayName;
       this.theme = theme;
     }
@@ -151,9 +176,6 @@ public sealed interface User extends Serializable {
     public String email() {
       return email;
     }
-    public Role role() {
-      return role;
-    }
     public String displayName() {
       return displayName;
     }
@@ -161,34 +183,18 @@ public sealed interface User extends Serializable {
       return theme;
     }
 
-    @Override
-    public User withRole(Role role) {
-      return new SSOUser(
-              this.username,
-              this.email,
-              role,
-              this.displayName,
-              this.theme
-      );
-    }
+
 
     @Override
     public User withTheme(Theme theme) {
       return new SSOUser(
               this.username,
               this.email,
-              this.role,
               this.displayName,
               theme
       );
     }
 
-  }
-
-
-  enum Role {
-    STUDENT,
-    ADMIN
   }
   enum Theme {
     LIGHT, DARK, CUPCAKE, BUMBLEBEE, EMERALD, CORPORATE, SYNTHWAVE, RETRO, CYBERPUNK, VALENTINE,

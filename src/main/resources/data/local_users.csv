@@ -1,16 +1,16 @@
-username,password,email,displayName,role
-admin,ece_458_group2,admin@ece458.com,Administrator,ADMIN
-tylerharris352,bVByhlT1,tylerharris352@service.net,Tyler Harris,STUDENT
-davidclark074,9mtPZ6M2,davidclark074@service.net,David Clark,STUDENT
-elizabethjohnson303,kTr1guGj,elizabethjohnson303@domain.org,Elizabeth Johnson,STUDENT
-jamestaylor121,LBUL23vh,jamestaylor121@service.net,James Taylor,STUDENT
-emilyharris658,Z1HAX9yj,emilyharris658@service.net,Emily Harris,STUDENT
-elizabethlewis588,TTSRKJtH,elizabethlewis588@example.com,Elizabeth Lewis,STUDENT
-jessicasmith684,JOVMVjjA,jessicasmith684@example.com,Jessica Smith,STUDENT
-jamestaylor844,DdukcK85,jamestaylor844@service.net,James Taylor,STUDENT
-jessicasmith610,b3zCmWYA,jessicasmith610@mail.com,Jessica Smith,STUDENT
-jessicaanderson409,XKqzZq6l,jessicaanderson409@domain.org,Jessica Anderson,ADMIN
-ashleybrown862,bq1qw1Kj,ashleybrown862@mail.com,Ashley Brown,ADMIN
-emilybletsch943,cWdcUokz,emilybletsch943@service.net,Emily Bletsch,ADMIN
-emilywalker026,B366kKuA,emilywalker026@domain.org,Emily Walker,ADMIN
-sarahsmith682,ye6GGoNf,sarahsmith682@domain.org,Sarah Smith,ADMIN
+username,password,email,displayName
+admin,ece_458_group2,admin@ece458.com,Administrator
+tylerharris352,bVByhlT1,tylerharris352@service.net,Tyler Harris
+davidclark074,9mtPZ6M2,davidclark074@service.net,David Clark
+elizabethjohnson303,kTr1guGj,elizabethjohnson303@domain.org,Elizabeth Johnson
+jamestaylor121,LBUL23vh,jamestaylor121@service.net,James Taylor
+emilyharris658,Z1HAX9yj,emilyharris658@service.net,Emily Harris
+elizabethlewis588,TTSRKJtH,elizabethlewis588@example.com,Elizabeth Lewis
+jessicasmith684,JOVMVjjA,jessicasmith684@example.com,Jessica Smith
+jamestaylor844,DdukcK85,jamestaylor844@service.net,James Taylor
+jessicasmith610,b3zCmWYA,jessicasmith610@mail.com,Jessica Smith
+jessicaanderson409,XKqzZq6l,jessicaanderson409@domain.org,Jessica Anderson
+ashleybrown862,bq1qw1Kj,ashleybrown862@mail.com,Ashley Brown
+emilybletsch943,cWdcUokz,emilybletsch943@service.net,Emily Bletsch
+emilywalker026,B366kKuA,emilywalker026@domain.org,Emily Walker
+sarahsmith682,ye6GGoNf,sarahsmith682@domain.org,Sarah Smith

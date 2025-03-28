@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:fragment="page(program, user, alerts, questions, maxDayOfBirth)">
+<head th:replace="~{components :: head('Submit Letter')}"></head>
+<body>
+<div th:replace="~{components :: guest-navbar}"></div>
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
+
+  <div class="card card-normal w-full bg-base-200">
+    <div class="card-body">
+      <h1 class="card-title">
+        Hello [[${name}]],
+      </h1>
+      <div th:if ="${submitted}">
+        <p>Your letter of recommendation has been submitted. Thank you for your assistance. Please contact the
+          applicant if you have any questions or concerns.
+        </p>
+      </div>
+      <div  th:unless="${submitted}" class="flex flex-col gap-4 ">
+        <p>
+          [[${studentName}]] ([[${studentEmail}]]) has requested a letter of recommendation from you to apply to the [[${programTitle}]] program.
+          Please upload a PDF of your letter below.
+        </p>
+        <form method="post" enctype="multipart/form-data" th:action="@{/rec-request/{code}(code=${code})}"
+              class="flex flex-row gap-2"
+        >
+          <div class="form-control">
+            <input type="file" name="file" class="file-input input-bordered" required accept=".pdf">
+          </div>
+          <div class="form-control w-1/4">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+<div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
+</body>
+</html>

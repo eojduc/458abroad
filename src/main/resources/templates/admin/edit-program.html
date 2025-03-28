@@ -9,7 +9,9 @@
 
 <div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
 
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
 
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-4">
@@ -55,7 +57,7 @@
           <select class="select w-full"
                   name="facultyLeads"
                   size="5"
-                  multiple>
+                  multiple required>
             <option th:each="facultyLead : ${facultyLeads}"
                     th:value="${facultyLead.username}"
                     th:text="${formatter.displayUser(facultyLead)}"
@@ -145,9 +147,27 @@
                  required />
         </label>
 
+        <div th:replace="~{this :: programQuestionnaire}"></div>
+
         <div class="card-actions justify-end">
-          <button class="btn btn-primary w-1/4" type="submit">Save</button>
+          <button class="btn btn-primary w-1/4" type="button" onclick="showModal()">Save</button>
         </div>
+        <dialog id="edit_modal" class="modal">
+          <div class="modal-box bg-base-200">
+            <div id="edit-warning-div">
+              Editing this program may affect existing applicants. Are you sure you want to proceed?
+            </div>
+            <div class="modal-action gap-2">
+              <form method="dialog" class="contents">
+                <button class="btn btn-outline w-1/4" type="button" onclick="edit_modal.close()">Cancel</button>
+              </form>
+              <button class="btn btn-primary w-1/4" type="submit">Edit</button>
+            </div>
+          </div>
+          <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
       </form>
     </div>
   </div>
@@ -155,5 +175,132 @@
 
 <!-- Footer -->
 <div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
 </body>
 </html>
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="programQuestionnaire">
+  <label class="form-control">
+    <div class="label">
+      <span class="label-text font-bold text-lg">Questionnaire</span>
+    </div>
+    <ul class="list space-y-2">
+      <li class="text-lg font-bold">Edit Existing Questions</li>
+      <li class="list-row">
+        <div class="space-y-2" id="questionList">
+          <div th:each="question, iterStat : ${currentQuestions}"
+               class="flex items-center p-2 hover:bg-base-200 rounded-lg group">
+            <input type="checkbox"
+                   class="checkbox checkbox-primary mr-2"
+                   name="selectedQuestions"
+                   th:value="${question}"
+                   th:id="${'checkbox-' + iterStat.index}"
+                   checked/>
+            <div class="editable-question-container flex-grow relative">
+              <input type="text"
+                     class="input input-bordered w-full"
+                     th:value="${question}"
+                     th:id="${'questionText-' + iterStat.index}"
+                     onchange="updateCheckboxValue(this)"/>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <!-- "Add Question" Button -->
+    <div class="mt-4">
+      <button type="button" class="btn btn-accent btn-square btn-sm" onclick="addQuestion()">+</button>
+    </div>
+  </label>
+
+  <script th:inline="javascript">
+    function updateCheckboxValue(textInput) {
+      const index = textInput.id.split('-')[1];
+      const checkbox = document.getElementById('checkbox-' + index);
+      checkbox.value = textInput.value;
+    }
+
+    function showModal() {
+      const originalQuestions = /*[[${currentQuestions}]]*/ [];
+      const applicantsExist = /*[[${applicantsExist}]]*/ false;
+
+      const modal = document.getElementById('edit_modal');
+      const warningDiv = document.getElementById('edit-warning-div');
+      let warningMessage = "Are you sure you want to edit this program?"
+
+      // Check for modifications to default questions
+      const hasModifiedQuestions = originalQuestions.some((origQuestion, index) => {
+        const questionElement = document.getElementById('questionText-' + index);
+        return questionElement && origQuestion !== questionElement.value;
+      });
+
+      // Check for removal of default questions
+      const hasRemovedQuestions = originalQuestions.some((origQuestion, index) => {
+        const checkbox = document.getElementById('checkbox-' + index);
+        return !checkbox || !checkbox.checked;
+      });
+
+      // Construct warning message
+      if (applicantsExist && hasModifiedQuestions) {
+         warningMessage = "Editing this program may affect existing applicants.";
+      }
+
+      if (applicantsExist && hasRemovedQuestions) {
+        warningMessage += " Removing questions will delete those responses by applicants.";
+      }
+
+      if (applicantsExist && (hasModifiedQuestions || hasRemovedQuestions)) {
+        warningMessage += " Are you sure you want to proceed?";
+      }
+
+      // Set the warning text
+      warningDiv.textContent = warningMessage;
+
+      // Show the modal
+      modal.showModal();
+    }
+
+    // Use thymeleaf to get the default questions
+    var defaultQuestions =/*[[${currentQuestions}]]*/ [];
+    let questionIndex = defaultQuestions.length;
+
+    function addQuestion() {
+      // Create a new checkbox and input field
+
+      // Create new elements
+      const newRow = document.createElement('div');
+      newRow.classList.add('flex', 'items-center', 'p-2', 'hover:bg-base-200', 'rounded-lg', 'group');
+
+      // Checkbox
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.classList.add('checkbox', 'checkbox-primary', 'mr-2');
+      checkbox.name = 'selectedQuestions';
+      checkbox.value = ''; // You can assign a default value or leave it empty
+      checkbox.id = 'checkbox-' + questionIndex;
+      checkbox.checked= false;
+
+      // Text input
+      const editableContainer = document.createElement('div');
+      editableContainer.classList.add('editable-question-container', 'flex-grow', 'relative');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.classList.add('input', 'input-bordered', 'w-full');
+      input.id = 'questionText-' + questionIndex;
+      input.onchange = function() {
+        updateCheckboxValue(this);
+      };
+
+      // Append the elements
+      editableContainer.appendChild(input);
+      newRow.appendChild(checkbox);
+      newRow.appendChild(editableContainer);
+
+      questionIndex++;
+
+      // Append the new row to the list
+      document.getElementById('questionList').appendChild(newRow);
+    }
+
+  </script>
+</div>

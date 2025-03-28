@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  
   <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %highlight(%-5level) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%10.10t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</pattern>
@@ -8,10 +9,21 @@
     </encoder>
   </appender>
 
+  <appender name="AUDIT" class="ch.qos.logback.core.FileAppender">
+    <file>audit.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} [%X{ip}] [%X{username}] - %msg%n</pattern>
+    </encoder>
+  </appender>
+
   <root level="INFO">
     <appender-ref ref="Console" />
   </root>
 
-  <!-- Custom log levels -->
-  <logger name="org.springframework.security" level="DEBUG"/>
+  <logger name="auditLogger" level="INFO" additivity="false">
+    <appender-ref ref="AUDIT"/>
+  </logger>
+
+  <logger name="org.springframework.security" level="INFO"/>
 </configuration>

@@ -1,12 +1,12 @@
 package com.example.abroad.controller.admin;
 
-import com.example.abroad.model.Alerts;
 import com.example.abroad.model.Program.Semester;
+import com.example.abroad.service.FormatService;
+import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.EditProgramService;
 import com.example.abroad.service.page.EditProgramService.EditProgramPage;
 import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo;
-import com.example.abroad.service.FormatService;
-import com.example.abroad.service.UserService;
+import com.example.abroad.view.Alerts;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.List;
@@ -30,18 +30,23 @@ public record EditProgramPageController(EditProgramService service, FormatServic
 
   @GetMapping("/admin/programs/{programId}/edit")
   public String editProgramPage(HttpSession session, @PathVariable Integer programId,
-    @RequestParam Optional<String> error, @RequestParam Optional<String> success,
-    @RequestParam Optional<String> warning, @RequestParam Optional<String> info,
-    Model model) {
+      @RequestParam Optional<String> error, @RequestParam Optional<String> success,
+      @RequestParam Optional<String> warning, @RequestParam Optional<String> info,
+      Model model) {
     switch (service.getEditProgramInfo(programId, session)) {
-      case EditProgramPage.Success(var program, var user, var facultyLeads, var nonFacultyLeads) -> {
+      case EditProgramPage.Success(
+          var program, var user, var facultyLeads, var nonFacultyLeads, var currentQuestions,
+          var applicantsExist
+      ) -> {
         model.addAllAttributes(Map.of(
-          "program", program,
-          "user", user,
-          "alerts", new Alerts(error, success, warning, info),
-          "formatter", formatter,
-          "facultyLeads", facultyLeads,
-          "nonFacultyLeads", nonFacultyLeads
+            "program", program,
+            "user", user,
+            "alerts", new Alerts(error, success, warning, info),
+            "applicantsExist", applicantsExist,
+            "currentQuestions", currentQuestions,
+            "formatter", formatter,
+            "facultyLeads", facultyLeads,
+            "nonFacultyLeads", nonFacultyLeads
         ));
         return "admin/edit-program :: page";
       }
@@ -59,22 +64,26 @@ public record EditProgramPageController(EditProgramService service, FormatServic
 
   @PostMapping("/admin/programs/{programId}/edit")
   public String editProgramPost(@PathVariable Integer programId, @RequestParam String title,
-    @RequestParam String description,
-    @RequestParam Integer year, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate,
-    @RequestParam Semester semester, @RequestParam LocalDate applicationOpen,
-    @RequestParam LocalDate documentDeadline,
-    @RequestParam List<String> facultyLeads,
-    @RequestParam LocalDate applicationClose, HttpSession session) {
+      @RequestParam String description,
+      @RequestParam Integer year, @RequestParam LocalDate startDate,
+      @RequestParam LocalDate endDate,
+      @RequestParam Semester semester, @RequestParam LocalDate applicationOpen,
+      @RequestParam LocalDate documentDeadline,
+      @RequestParam List<String> facultyLeads,
+      @RequestParam LocalDate applicationClose,
+      @RequestParam(required = false) List<String> selectedQuestions,
+      HttpSession session) {
     return switch (service.updateProgramInfo(programId, title, description, year, startDate,
-      endDate, semester, applicationOpen, applicationClose, facultyLeads, session, documentDeadline)) {
+        endDate, semester, applicationOpen, applicationClose, facultyLeads, documentDeadline,
+        selectedQuestions, session)) {
       case UpdateProgramInfo.Success() ->
-        String.format("redirect:/admin/programs/%d/edit?success=Program updated", programId);
+          String.format("redirect:/admin/programs/%d/edit?success=Program updated", programId);
       case UpdateProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
       case UpdateProgramInfo.UserNotAdmin() -> "redirect:/?error=You are not an admin";
       case UpdateProgramInfo.ProgramNotFound() ->
-        "redirect:/admin/programs?error=That program does not exist";
+          "redirect:/admin/programs?error=That program does not exist";
       case UpdateProgramInfo.InvalidProgramInfo(var m) ->
-        String.format("redirect:/admin/programs/%d/edit?error=%s", programId, m);
+          String.format("redirect:/admin/programs/%d/edit?error=%s", programId, m);
       case UpdateProgramInfo.DatabaseError(var m) -> {
         logger.error("Database error", m);
         yield "redirect:/admin/programs?error=An unexpected error occurred";

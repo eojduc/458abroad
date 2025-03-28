@@ -6,7 +6,10 @@
 <body>
 <div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
 <div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
+
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body flex flex-col gap-4">
       <div class="card-actions justify-between">
@@ -19,6 +22,7 @@
   </div>
 </div>
 <div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
 
 <!-- Modal for confirming application submission -->
 <dialog id="submit_modal" class="modal">
@@ -48,13 +52,15 @@
 
 
 
-<form id="applyForm"
+<div
       xmlns:th="http://www.thymeleaf.org"
-      class="contents"
-      th:action="@{/programs/{programId}/apply(programId=${program.id})}"
-      method="post"
       th:fragment="apply-form(program, user, questions)">
-
+<form
+    id="applyForm"
+    class="contents"
+    th:action="@{/programs/{programId}/apply(programId=${program.id})}"
+    method="post"
+>
   <label class="form-control">
     <div class="label">
       <span class="label-text">Major</span>
@@ -77,17 +83,133 @@
   </label>
 
   <!-- Loop through additional questions -->
-  <label class="form-control" th:each="question : ${questions}">
-    <div class="label">
-      <span class="label-text" th:text="${question.text}"></span>
-    </div>
-    <textarea th:name="${question.field}" class="textarea" required maxlength="10000" rows="20"></textarea>
-  </label>
-
+  <div th:each="question : ${questions}">
+    <label class="form-control">
+      <div class="label">
+        <span class="label-text" th:text="${question.text()}"></span>
+      </div>
+      <!-- Answer field with the same name for all questions -->
+      <textarea name="answers"
+                class="textarea"
+                required
+                maxlength="10000"
+                rows="20"></textarea>
+    </label>
+    <!-- Hidden field for the corresponding question ID -->
+    <input type="hidden"
+           name="questionIds"
+           th:value="${question.id()}"/>
+  </div>
+</form>
+  <div class="m-5" id="letter-requests">
+    <h2 class="text-lg">Letter of Recommendation Requests</h2>
+    <table class="table table-sm table-compact" th:fragment="letter-request-table" >
+      <thead>
+      <tr>
+        <th>Email</th>
+        <th>Name</th>
+        <th>Completed</th>
+        <th>Delete</th>
+      </tr>
+      </thead>
+      <tbody>
+      <!-- Loop through the letters of recommendation -->
+      <tr th:each="request : ${letterRequests}">
+        <td th:text="${request.email}"></td>
+        <td th:text="${request.name}"></td>
+        <td>
+          <!-- Checkbox for each letter request -->
+          <input type="checkbox"
+                 class="checkbox"
+                 name="completedLetters"
+                 disabled
+                 th:checked="${request.submitted}"/>
+        </td>
+        <td>
+          <!-- Button to delete the letter request -->
+          <button class="btn btn-outline btn-error btn-sm"
+                  type="button"
+                  th:attr="onclick=|document.getElementById('delete-letter-request-${request.email}').showModal()|">
+            Delete
+          </button>
+          <dialog th:id="'delete-letter-request-' + ${request.email}" class="modal">
+            <div class="modal-box bg-base-200">
+              <p class="text-error" th:if="${request.submitted}">Are you sure you want to delete this letter of recommendation request? The letter has been submitted and if you proceed the data will be lost.</p>
+              <p th:unless="${request.submitted}">Are you sure you want to delete this letter of recommendation request? The
+                person has already been contacted but will no longer be able to submit a letter if you proceed.</p>
+              <div class="modal-action gap-2">
+                <!-- Cancel button automatically closes the modal -->
+                <form method="post" th:action="@{/programs/{programId}/delete-letter-request(programId=${program.id})}"
+                class="contents">
+                  <input type="hidden" name="email" th:value="${request.email}"/>
+                  <input type="hidden" name="name" th:value="${request.name}"/>
+                  <button class="btn btn-primary w-1/4"
+                          type="submit"
+                          th:attr="onclick=|document.getElementById('delete-letter-request-${request.email}').close()|">
+                    Delete
+                  </button>
+                </form>
+                <form method="dialog" class="contents">
+                  <button class="btn btn-outline w-1/4">Cancel</button>
+                </form>
+                <!-- Confirm button submits the application form (by referencing its id) -->
+              </div>
+            </div>
+            <!-- Optional modal backdrop that also closes the dialog when clicked -->
+            <form method="dialog" class="modal-backdrop">
+              <button>close</button>
+            </form>
+          </dialog>
+        </td>
+      </tbody>
+    </table>
+    <form
+        th:action="@{/programs/{programId}/request-letter(programId=${program.id})}"
+        method="post"
+        id="letterRequestForm"
+        class="flex flex-row justify-between gap-4"
+    >
+      <div class="flex flex-row gap-2">
+        <label>
+          <input class="input input-bordered input-sm"
+                 type="text" name="email" placeholder="Email" required>
+        </label>
+        <label>
+          <input class="input input-bordered input-sm"
+                 type="text" name="name" placeholder="Name" required>
+        </label>
+      </div>
+      <button class="btn btn-outline btn-success btn-sm" type="button"
+              onclick="letter_modal.showModal()">Add Request</button>
+    </form>
+    <dialog id="letter_modal" class="modal">
+      <div class="modal-box bg-base-200">
+        <p>Are you sure you want to request this letter of recommendation?</p>
+        <div class="modal-action gap-2">
+          <!-- Cancel button automatically closes the modal -->
+          <button class="btn btn-primary w-1/4"
+                  type="submit"
+                  form="letterRequestForm"
+                  onclick="letter_modal.close()">
+            Submit
+          </button>
+          <form method="dialog" class="contents">
+            <button class="btn btn-outline w-1/4">Cancel</button>
+          </form>
+          <!-- Confirm button submits the application form (by referencing its id) -->
+        </div>
+      </div>
+      <!-- Optional modal backdrop that also closes the dialog when clicked -->
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  </div>
   <div class="card-actions justify-end">
     <!-- Instead of submitting the form directly, this button opens the modal -->
     <button class="btn btn-primary w-1/4" type="button" onclick="submit_modal.showModal()">
-      Submit
+      Submit Application
     </button>
   </div>
-</form>
+</div>
+

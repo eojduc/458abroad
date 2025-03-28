@@ -1,11 +1,11 @@
 package com.example.abroad.service.data;
 
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Application.Document;
-import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.User;
+import com.example.abroad.model.Application.Document;
+import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.DocumentRepository;
@@ -13,8 +13,11 @@ import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.NoteRepository;
 import com.example.abroad.respository.ProgramRepository;
+import com.example.abroad.respository.QuestionRepository;
 import com.example.abroad.respository.ResponseRepository;
+import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -22,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.sql.Blob;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -53,6 +55,8 @@ public class DataInitializationService {
   private final NoteRepository noteRepository;
   private final DocumentRepository documentRepository;
   private final ResponseRepository responseRepository;
+  private final QuestionRepository questionRepository;
+  private final RoleRepository roleRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
   private EntityManager entityManager;
@@ -66,7 +70,9 @@ public class DataInitializationService {
       NoteRepository noteRepository,
       DocumentRepository documentRepository,
       ProgramRepository programRepository,
-      ResponseRepository responseRepository
+      ResponseRepository responseRepository,
+      QuestionRepository questionRepository,
+      RoleRepository roleRepository
     ) {
     this.localUserRepository = localUserRepository;
     this.ssoUserRepository = ssoUserRepository;
@@ -76,6 +82,8 @@ public class DataInitializationService {
     this.noteRepository = noteRepository;
     this.documentRepository = documentRepository;
     this.responseRepository = responseRepository;
+    this.questionRepository = questionRepository;
+    this.roleRepository = roleRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
         .setHeader()
@@ -119,7 +127,6 @@ public class DataInitializationService {
             record.get("username"),
             passwordEncoder.encode(record.get("password")),
             record.get("email"),
-            User.Role.valueOf(record.get("role").toUpperCase()),
             record.get("displayName"),
           Theme.DEFAULT
         ),
@@ -134,7 +141,6 @@ public class DataInitializationService {
         record -> new User.SSOUser(
             record.get("username"),
             record.get("email"),
-            User.Role.valueOf(record.get("role").toUpperCase()),
             record.get("displayName"),
           Theme.DEFAULT
         ),
@@ -147,7 +153,6 @@ public class DataInitializationService {
     initializeData(
         path,
         record -> new Application(
-            record.get("id"),
             record.get("student"),
             Integer.parseInt(record.get("programId")),
             LocalDate.parse(record.get("dateOfBirth")),
@@ -177,7 +182,8 @@ public class DataInitializationService {
               Document.Type.valueOf(record.get("type").toUpperCase()),
               Instant.parse(record.get("timestamp")),
               new SerialBlob("hello world!".getBytes()),
-                record.get("applicationId")
+                Integer.parseInt(record.get("programId")),
+                record.get("student")
             );
           } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -192,11 +198,37 @@ public class DataInitializationService {
     initializeData(
         path,
         record -> new Application.Response(
-            record.get("applicationId"),
-            Response.Question.valueOf(record.get("question")),
+          Integer.parseInt(record.get("programId")),
+            record.get("student"),
+            Integer.valueOf(record.get("question")),
             record.get("response")
         ),
         responseRepository
+    );
+  }
+
+  @Transactional
+  protected void initializeQuestions(String path) {
+    initializeData(
+        path,
+        record -> new Program.Question(
+          Integer.parseInt(record.get("id")),
+            record.get("text"),
+            Integer.parseInt(record.get("programId"))
+        ),
+        questionRepository
+    );
+  }
+
+  @Transactional
+  protected void initializeRoles(String path) {
+    initializeData(
+        path,
+        record -> new User.Role(
+          User.Role.Type.valueOf(record.get("type").toUpperCase()),
+            record.get("username")
+        ),
+        roleRepository
     );
   }
 
@@ -205,7 +237,8 @@ public class DataInitializationService {
     initializeData(
         path,
         record -> new Application.Note(
-            record.get("applicationId"),
+          Integer.parseInt(record.get("programId")),
+          record.get("student"),
             record.get("username"),
           record.get("content"),
           Instant.parse(record.get("timestamp"))
@@ -260,5 +293,6 @@ public class DataInitializationService {
     documentRepository.deleteAll();
     entityManager.createNativeQuery("ALTER SEQUENCE programs_seq RESTART WITH 1").executeUpdate();
     programRepository.deleteAll();
+    questionRepository.deleteAll();
   }
 }

@@ -27,7 +27,7 @@ public record DashboardService(UserService userService, SSOService ssoService) {
     if (user == null) {
       return new GetDashboard.NotLoggedIn();
     }
-    if (user.isAdmin()) {
+    if (!userService.isStudent(user)) {
       return new GetDashboard.AdminDashboard(user);
     }
     return new GetDashboard.StudentDashboard(user);

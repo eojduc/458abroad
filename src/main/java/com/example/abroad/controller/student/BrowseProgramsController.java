@@ -1,6 +1,6 @@
 package com.example.abroad.controller.student;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.BrowseProgramsService;
@@ -40,7 +40,8 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
                 "alerts", new Alerts(error, success, warning, info),
                 "programAndStatuses", programAndStatuses,
                 "knownFacultyLeads", service.getKnownFacultyLeads(),
-                "formatter", formatter
+                "formatter", formatter,
+                "isNotStudent", !userService.isStudent(user)
             )
         );
         yield "student/programs :: page";
@@ -64,7 +65,8 @@ public record BrowseProgramsController(BrowseProgramsService service, FormatServ
                 "user", user,
                 "formatter", formatter,
                 "programAndStatuses", programsAndStatuses,
-                "knownFacultyLeads", service.getKnownFacultyLeads()
+                "knownFacultyLeads", service.getKnownFacultyLeads(),
+                "isNotStudent", !userService.isStudent(user)
             )
         );
         yield "student/programs :: programTable";

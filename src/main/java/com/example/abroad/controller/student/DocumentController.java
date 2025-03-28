@@ -1,6 +1,10 @@
 package com.example.abroad.controller.student;
 
+import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Document;
+import com.example.abroad.model.User;
+import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ProgramService;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.DocumentService;
@@ -19,9 +23,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.ui.Model;
+import org.springframework.http.ContentDisposition;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/applications/{applicationId}/documents")
@@ -30,10 +41,14 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final UserService userService;
+    private final ProgramService programService;
+    private final ApplicationService applicationService;
 
-    public DocumentController(DocumentService documentService, UserService userService) {
+    public DocumentController(DocumentService documentService, UserService userService, ProgramService programService, ApplicationService applicationService) {
         this.documentService = documentService;
         this.userService = userService;
+        this.programService = programService;
+        this.applicationService = applicationService;
     }
 
     @PostMapping
@@ -43,13 +58,14 @@ public class DocumentController {
             @RequestParam MultipartFile file,
             HttpSession session
     ) {
+        var user = this.userService.findUserFromSession(session).orElse(null);
         logger.info("Attempting to upload document for application {} type {}", applicationId, type);
         if (userService.findUserFromSession(session).isEmpty()) {
             return "redirect:/login?error=Not logged in";
         }
-        boolean isUpdate = documentService.getDocument(applicationId, type).isPresent();
+        boolean isUpdate = documentService.getDocument(Integer.valueOf(applicationId), user.username(), type).isPresent();
         try {
-            documentService.uploadDocument(applicationId, type, file);
+            documentService.uploadDocument(Integer.valueOf(applicationId), user.username(), type, file);
             String message = isUpdate ? "Document updated successfully" : "Document uploaded successfully";
             return "redirect:/applications/" + applicationId + "?success=" + message + "#documents";
         } catch (IllegalArgumentException e) {
@@ -66,17 +82,16 @@ public class DocumentController {
 
     @GetMapping("/{type}/view")
     @Transactional
-    public ResponseEntity<?> viewDocument(
-            @PathVariable String applicationId,
+    public Object viewDocument(
+            @PathVariable Integer applicationId,
             @PathVariable Document.Type type,
-            HttpSession session
+            HttpSession session,
+            Model model
     ) {
         // First check if user is logged in
         var userOpt = this.userService.findUserFromSession(session);
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("/login?error=Not logged in"))
-                    .build();
+            return "redirect:/login?error=Not logged in";
         }
 
         // Get the current logged-in user
@@ -85,27 +100,24 @@ public class DocumentController {
         logger.info("User {} attempting to view document for application {} type {}",
                 user.username(), applicationId, type);
 
-        // Get the application to check ownership
-        var applicationOpt = documentService.getApplicationById(applicationId);
-        if (applicationOpt.isEmpty()) {
-            logger.warn("Application not found: {}", applicationId);
-            return ResponseEntity.notFound().build();
+        // Check permission and get the student username if permission granted
+        var studentUsernameOpt = checkDocumentAccessPermission(user, applicationId, type);
+
+        if (studentUsernameOpt.isEmpty()) {
+            logger.warn("User {} attempted unauthorized access to document for application {}",
+                    user.username(), applicationId);
+            model.addAttribute("message", "You do not have permission to access this document");
+            return "permission-error";
         }
 
-        // Check if the current user is the owner of the application
-        var application = applicationOpt.get();
-        if (!application.student().equals(user.username())  && !user.isAdmin()) {
-            logger.warn("User {} attempted unauthorized access to application {} owned by {}",
-                    user.username(), applicationId, application.student());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You do not have permission to access this document");
-        }
+        String studentUsername = studentUsernameOpt.get();
 
         // Now proceed with getting the document
-        var document = this.documentService.getDocument(applicationId, type);
+        var document = applicationService.getDocument(applicationId, studentUsername, type);
         if (document.isEmpty()) {
             logger.warn("Document not found");
-            return ResponseEntity.notFound().build();
+            model.addAttribute("message", "Document not found");
+            return "permission-error";
         }
 
         try {
@@ -113,8 +125,8 @@ public class DocumentController {
             Blob blob = document.get().file();
             if (blob == null) {
                 logger.error("Blob is null for document");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Document content is missing");
+                model.addAttribute("message", "Document content is missing");
+                return "permission-error";
             }
 
             byte[] content = blob.getBinaryStream().readAllBytes();
@@ -127,9 +139,60 @@ public class DocumentController {
                     .body(content);
         } catch (IOException | SQLException e) {
             logger.error("Failed to read document blob", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to read document: " + e.getMessage());
+            model.addAttribute("message", "Failed to read document: " + e.getMessage());
+            return "permission-error";
         }
+    }
+
+
+    /**
+     * Checks if a user has permission to view documents for an application
+     * @param user The user attempting to access the document
+     * @param programId The ID of the program
+     * @param documentType The type of document being accessed
+     * @return Optional containing the username of the student if permission is granted, empty otherwise
+     */
+    private Optional<String> checkDocumentAccessPermission(User user, Integer programId, Document.Type documentType) {
+        // 1. If the user is the student themselves, they can only view their own documents
+        // First check for the student's own application
+        Optional<Application> studentOwnApplication = applicationService.findByProgramIdAndStudentUsername(
+                programId, user.username());
+
+        if (studentOwnApplication.isPresent()) {
+            // The user is the student of this application
+            return Optional.of(user.username());
+        }
+
+        // 2, 3, 4. For faculty leads, admins, or reviewers, we need to find the application first
+        // to determine the student username
+
+        // Check if the user has a role that allows them to view other students' documents
+        boolean hasPermissionRole = userService.isAdmin(user);
+
+        // Check if the user is a faculty lead for this program
+        boolean isFacultyForProgram = false;
+        var programOpt = programService.findById(programId);
+        if (programOpt.isPresent()) {
+            isFacultyForProgram = programService.isFacultyLead(programOpt.get(), user);
+        }
+
+        // If the user has the necessary role/permission
+        if (hasPermissionRole || isFacultyForProgram) {
+            // Find all applications for this program
+            List<Application> programApplications = applicationService.findByProgramId(programId);
+
+            // Look for an application with the requested document type
+            for (Application app : programApplications) {
+                Optional<Document> document = applicationService.getDocument(app, documentType);
+                if (document.isPresent()) {
+                    // Found an application with the document - return the student username
+                    return Optional.of(app.student());
+                }
+            }
+        }
+
+        // No permission or no matching document found
+        return Optional.empty();
     }
 
     @GetMapping("/{type}/blank")

@@ -6,15 +6,17 @@
 <body>
 <div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components :: alerts(${alerts})}"></div>
+  </div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
       <div class="flex flex-col gap-5">
         <div class="card-actions justify-between">
-          <h1 class="card-title" th:text="${program.title}"></h1>
+          <h1 class="card-title" th:text="${programDetails.title}"></h1>
           <a href="/admin/programs" class="btn btn-primary">Back to Programs</a>
         </div>
-        <p th:text="${program.description}" class="whitespace-pre-line"></p>
+        <p th:text="${programDetails.description}" class="whitespace-pre-line"></p>
       </div>
       <div class="flex flex-col gap-2">
         <h2 class="text-lg">Program Details</h2>
@@ -24,42 +26,22 @@
             <td>Faculty Leads</td>
             <td>
               <ul class="list-disc list-inside">
-                <li th:each="facultyLead : ${facultyLeads}" th:text="${formatter.displayUser(facultyLead)}">
+                <li th:each="facultyLead : ${programDetails.facultyLeads}" th:text="${facultyLead}">
                 </li>
               </ul>
             </td>
           </tr>
-          <tr class="border-base-300 border-y-2">
-            <td>Term</td>
-            <td th:text="${formatter.formatSemester(program.semester)} + ' ' + ${formatter.formatYear(program.year)}"></td>
-          </tr>
-          <tr class="border-base-300 border-y-2">
-            <td>Start Date</td>
-            <td th:text="${formatter.formatLocalDate(program.startDate)}"></td>
-          </tr>
-          <tr class="border-base-300 border-y-2">
-            <td>End Date</td>
-            <td th:text="${formatter.formatLocalDate(program.endDate)}"></td>
-          </tr>
-          <tr class="border-base-300 border-y-2">
-            <td>Document Deadline</td>
-            <td th:text="${formatter.formatLocalDate(program.documentDeadline)}"></td>
-          </tr>
-          <tr class="border-base-300 border-y-2">
-            <td>Application Open</td>
-            <td th:text="${formatter.formatLocalDate(program.applicationOpen)}"></td>
-          </tr>
-          <tr class="border-base-300">
-            <td>Application Deadline</td>
-            <td th:text="${formatter.formatLocalDate(program.applicationClose)}"></td>
+          <tr th:each="field : ${programDetails.fields}" class="border-base-300 border-y-2">
+            <td th:text="${field.name}"></td>
+            <td th:text="${field.value}"></td>
           </tr>
           </tbody>
         </table>
       </div>
-      <div class="overflow-x-auto">
-        <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, NONE, ASCENDING)}"></div>
+      <div th:if="${canSeeApplicants}" class="overflow-x-auto">
+        <div th:replace="~{this :: applicant-table(${applicants}, ${program}, ${formatter}, NONE, ALL, ASCENDING)}"></div>
       </div>
-      <div class="card-actions">
+      <div th:if="${isAdmin}" class="card-actions">
         <a class="btn btn-primary w-1/4" th:href="@{/admin/programs/{programId}/edit(programId=${program.id})}">Edit</a>
         <button class="btn btn-secondary w-1/4" onclick="delete_modal.showModal()">Delete</button>
         <dialog id="delete_modal" class="modal">
@@ -87,6 +69,7 @@
   </div>
 </div>
 <div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components :: session-timeout-script}"></div>
 </body>
 
 </html>
@@ -100,11 +83,13 @@
     class="flex flex-col gap-5">
   <div class="flex flex-row gap-6 items-center">
     <h2 class="text-lg">Applicants</h2>
+
     <button class="contents"
-            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='NONE')}"
+            th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id}, column=${column}, filter='ALL')}"
             hx-swap="outerHTML"
             hx-target="#applicant-table">
-        <span th:class="${filter == 'NONE'} ? 'badge badge-neutral' : 'badge badge-neutral badge-outline'">
+        <span th:class="${filter == 'ALL'} ? '' : 'badge-outline'"
+              th:classappend="'badge badge-neutral'">
           ALL
         </span>
     </button>
@@ -165,87 +150,44 @@
         </span>
     </button>
   </div>
+  <div class="m-4">
+    <textarea id="emailList" class="sr-only" readonly>
+      [[${T(java.lang.String).join('; ', applicants.![email])}]]
+    </textarea>
+    <!-- Copy button styled with Tailwind -->
+    <button
+        type="button"
+        onclick="copyEmails()"
+        class="btn btn-outline btn-sm"
+    >
+      Copy Emails
+    </button>
+
+    <!-- Clipboard copy logic -->
+    <script>
+      function copyEmails() {
+        const textarea = document.getElementById("emailList");
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // Mobile compatibility
+        document.execCommand("copy");
+        alert("Emails copied to clipboard!");
+      }
+    </script>
+  </div>
   <table class="table table-sm border-collapse">
     <thead>
     <tr>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'name',
-        '#applicant-table',
-        'DISPLAY_NAME'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'username',
-        '#applicant-table',
-        'USERNAME'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'email',
-        '#applicant-table',
-        'EMAIL'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'major',
-        '#applicant-table',
-        'MAJOR'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'gpa',
-        '#applicant-table',
-        'GPA'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'date of birth',
-        '#applicant-table',
-        'DOB'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'status',
-        '#applicant-table',
-        'STATUS'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'medical history',
-        '#applicant-table',
-        'MEDICAL_HISTORY'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'housing',
-        '#applicant-table',
-        'HOUSING'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'code of conduct',
-        '#applicant-table',
-        'CODE_OF_CONDUCT'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'assumption of risk',
-        '#applicant-table',
-        'ASSUMPTION_OF_RISK'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'latest note',
-        '#applicant-table',
-        'LATEST_NOTE'
-      )}"></th>
-      <th th:replace="~{this :: sortableHeader(
-        @{/admin/programs/{programId}/applicants(programId=${program.id})},
-        'note count',
-        '#applicant-table',
-        'NOTE_COUNT'
-      )}"></th>
+      <th th:each="field : ${applicantDetails.headers}"
+          th:class="${column == field.value} ? 'bg-base-300 cursor-pointer' : 'cursor-pointer'"
+          th:hx-get="@{/admin/programs/{programId}/applicants(programId=${program.id},sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'}, column=${field.value}, filter=${filter})}"
+          hx-swap="outerHTML"
+          hx-target="#applicant-table">
+        <span th:text="${field.name} "></span>
+        <span th:if="${column != field.value}" class="invisible">▼</span>
+        <span th:if="${column == field.value}">
+          [[${sort} == 'ASCENDING' ? '▼' : '▲']]
+        </span>
+      </th>
       <th>update</th>
     </tr>
 
@@ -254,84 +196,40 @@
     <tbody>
       <tr th:each="applicant : ${applicants}" class="border-base-300 border-y-2">
         <td>
-          <a class="link link-primary"
-             th:href="@{/admin/applications/{applicationId}(applicationId=${applicant.applicationId})}"
-             th:text="${applicant.displayName}"></a>
+          <a th:href="${applicant.url}" class="link link-primary">
+            [[${applicant.displayName}]]
+          </a>
         </td>
-        <td th:text="${applicant.username}"></td>
-        <td th:text="${applicant.email}"></td>
-        <td th:text="${applicant.major}"></td>
-        <td th:text="${#numbers.formatDecimal(applicant.gpa, 1, 2)}"></td>
-        <td th:text="${formatter.formatLocalDate(applicant.dob)}"></td>
+        <td>[[${applicant.username}]]</td>
+        <td>[[${applicant.email}]]</td>
+        <td>[[${applicant.major}]]</td>
+        <td>[[${applicant.gpa}]]</td>
+        <td>[[${applicant.dateOfBirth}]]</td>
         <td>
           <div th:id="'status-badge-' + ${applicant.username}">
-            <div th:replace="~{components :: statusBadge(${applicant.displayStatus})}" ></div>
+            <div th:replace="~{components :: statusBadge(${applicant.status})}"></div>
           </div>
         </td>
+        <td th:each="document : ${applicant.documents}">
+          <div th:switch="${document.status}">
+            <span th:case="'SUBMITTED'" class="badge badge-success">[[${document.text}]]</span>
+            <span th:case="'PENDING'" class="badge badge-warning">[[${document.text}]]</span>
+            <span th:case="'MISSING'" class="badge badge-error">[[${document.text}]]</span>
+          </div>
+        </td>
+        <td class="text-center">[[${applicant.noteCount}]]</td>
         <td>
-          <span th:if="${applicant.documents.medicalHistory.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.documents.medicalHistory.get().timestamp}"></span>
-          </span>
-          <span th:if ="${applicant.documents.medicalHistory.isEmpty() && documentDeadlinePassed}">
-            <span class="badge badge-error">Late</span>
-          </span>
-          <span th:if ="${applicant.documents.medicalHistory.isEmpty() && !documentDeadlinePassed}">
-            <span class="badge badge-warning">Pending</span>
-          </span>
-        </td>
-        <td>
-          <span th:if="${applicant.documents.housing.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.documents.housing.get().timestamp}"></span>
-          </span>
-          <span th:if ="${applicant.documents.housing.isEmpty() && documentDeadlinePassed}">
-            <span class="badge badge-error">Late</span>
-          </span>
-          <span th:if ="${applicant.documents.housing.isEmpty() && !documentDeadlinePassed}">
-            <span class="badge badge-warning">Pending</span>
-          </span>
-        </td>
-        <td>
-          <span th:if="${applicant.documents.codeOfConduct.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.documents.codeOfConduct.get().timestamp}"></span>
-          </span>
-          <span th:if ="${applicant.documents.codeOfConduct.isEmpty() && documentDeadlinePassed}">
-            <span class="badge badge-error">Late</span>
-          </span>
-          <span th:if ="${applicant.documents.codeOfConduct.isEmpty() && !documentDeadlinePassed}">
-            <span class="badge badge-warning">Pending</span>
-          </span>
-        </td>
-        <td>
-          <span th:if="${applicant.documents.assumptionOfRisk.isPresent()}">
-            <span class="badge badge-success" th:text="${applicant.documents.assumptionOfRisk.get().timestamp}"></span>
-          </span>
-          <span th:if ="${applicant.documents.assumptionOfRisk.isEmpty() && documentDeadlinePassed}">
-            <span class="badge badge-error">Late</span>
-          </span>
-          <span th:if ="${applicant.documents.assumptionOfRisk.isEmpty() && !documentDeadlinePassed}">
-            <span class="badge badge-warning">Pending</span>
-          </span>
-        </td>
-        <td>
-          <span th:if ="${applicant.latestNote.isPresent()}" th:text="${applicant.latestNote.get().username} + ': ' + ${applicant.latestNote.get().timestamp}"></span>
-        </td>
-        <td th:text="${applicant.noteCount}" class="text-center">
-        </td>
+         [[${applicant.latestNote}]]</td>
         <td>
           <form class="contents"
-                th:hx-post="@{/admin/applications/{applicationId}/status(applicationId=${applicant.applicationId})}"
+                th:hx-post="@{/admin/applications/{programId}/{username}/status(programId=${program.id}, username=${applicant.username})}"
                 hx-trigger="change"
                 th:hx-target="'#status-badge-' + ${applicant.username}">
             <select name="status" class="select select-sm">
-              <option value="APPLIED" th:selected="${applicant.status.name() == 'APPLIED'}">Applied</option>
-              <option value="ENROLLED"
-                      th:selected="${applicant.status.name() == 'ENROLLED'}"
-                      th:text="${programIsDone ? 'Completed' : 'Enrolled'}"></option>
-              <option value="CANCELLED" th:selected="${applicant.status.name() == 'CANCELLED'}">Cancelled</option>
-              <option value="WITHDRAWN" th:selected="${applicant.status.name() == 'WITHDRAWN'}">Withdrawn</option>
-              <option value="ELIGIBLE" th:selected="${applicant.status.name() == 'ELIGIBLE'}">Eligible</option>
-              <option value="APPROVED" th:selected="${applicant.status.name() == 'APPROVED'}">Approved</option>
-
+              <option th:each = "statusOption : ${applicant.statusOptions}"
+                      th:value="${statusOption.value}"
+                      th:selected="${applicant.status == statusOption.value}"
+                      >[[${statusOption.text}]]</option>
             </select>
           </form>
         </td>
@@ -343,57 +241,3 @@
 </div>
 
 
-<th
-    xmlns:th="http://www.thymeleaf.org"
-    th:fragment="sortableHeader(path, text, target, thisColumn)"
-    th:class="${column == thisColumn} ? 'bg-base-300 cursor-pointer' : 'cursor-pointer'"
-    th:hx-get="@{${path}(sort=${sort == 'ASCENDING' ? 'DESCENDING' : 'ASCENDING'}, column=${thisColumn}, filter=${filter})}"
-    hx-swap="outerHTML"
-    th:hx-target="${target}">
-  <span th:text="${text} "></span>
-  <span th:if="${column != thisColumn}" class="invisible">▼</span>
-  <span th:if="${column == thisColumn}" th:text="${sort} == 'ASCENDING' ? '▼' : '▲'"></span>
-</th>
-<!-- Filter Form -->
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="filterForm(path, showTimeFilter)">
-  <div class="flex gap-4">
-    <!-- Keyword search -->
-    <label>
-      <input
-          type="text"
-          name="nameFilter"
-          placeholder="Search programs..."
-          class="input"
-          th:value="${keyword}"
-          th:hx-get="@{${path}}"
-          hx-target="#programTable"
-          hx-swap="outerHTML"
-          hx-trigger="input delay:300ms"
-          autocomplete="off"
-      />
-    </label>
-
-    <!-- Time filter -->
-    <label>
-      <select
-          th:if="${showTimeFilter}"
-          name="timeFilter"
-          class="select"
-          th:value="${timeFilter}"
-          th:hx-get="@{${path}}"
-          hx-target="#programTable"
-          hx-swap="outerHTML"
-          hx-trigger="change"
-          autocomplete="off"
-      >
-        <option value="future" th:selected="${timeFilter == 'future'}">Current & Future Programs
-        </option>
-        <option value="open" th:selected="${timeFilter == 'open'}">Programs Open to Applications
-        </option>
-        <option value="review" th:selected="${timeFilter == 'review'}">Programs in Review</option>
-        <option value="running" th:selected="${timeFilter == 'running'}">Programs Running Now</option>
-        <option value="all" th:selected="${timeFilter == 'all'}">All Programs</option>
-      </select>
-    </label>
-  </div>
-</div>

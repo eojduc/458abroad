@@ -1,6 +1,6 @@
 package com.example.abroad.controller.student;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.respository.FacultyLeadRepository;
@@ -34,9 +34,9 @@ public record ViewApplicationController(
         DocumentService documentService,
         FacultyLeadRepository facultyLeadRepository) {
 
-  @GetMapping("/applications/{applicationId}")
+  @GetMapping("/applications/{programId}")
   public String viewApplication(
-          @PathVariable String applicationId,
+          @PathVariable Integer programId,
           HttpSession session,
           Model model,
           @RequestParam Optional<String> error,
@@ -44,13 +44,13 @@ public record ViewApplicationController(
           @RequestParam Optional<String> success,
           @RequestParam Optional<String> warning) {
 
-    var result = applicationService.getApplication(applicationId, session);
+    var result = applicationService.getApplication(programId, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success successRes -> {
         // Get document information for the application
-        var documentStatuses = documentService.getDocumentStatuses(applicationId, successRes.program().id());
-        var missingCount = documentService.getMissingDocumentsCount(applicationId);
+        var documentStatuses = documentService.getDocumentStatuses(session, successRes.program().id());
+        var missingCount = documentService.getMissingDocumentsCount(session, successRes.program().id());
 
         // Get faculty leads for the program
         List<Program.FacultyLead> facultyLeads = facultyLeadRepository.findById_ProgramId(successRes.program().id());
@@ -69,10 +69,12 @@ public record ViewApplicationController(
         allAttributes.put("user", successRes.user());
         allAttributes.put("editable", successRes.editable());
         allAttributes.put("responses", successRes.responses());
+        allAttributes.put("questions", successRes.questions());
         allAttributes.put("formatter", formatter);
         allAttributes.put("alerts", new Alerts(error, success, warning, info));
         allAttributes.put("pair", pair);
         allAttributes.put("facultyLeads", facultyLeads);
+        allAttributes.put("isNotStudent", !userService.isStudent(successRes.user()));
 
         model.addAllAttributes(allAttributes);
         yield "student/view-application :: page";
@@ -92,27 +94,22 @@ public record ViewApplicationController(
     };
   }
 
-  @PostMapping("/applications/{id}/update")
+  @PostMapping("/applications/{programId}/update")
   public String updateApplication(
-          @PathVariable("id") String id,
-          @RequestParam("answer1") String answer1,
-          @RequestParam("answer2") String answer2,
-          @RequestParam("answer3") String answer3,
-          @RequestParam("answer4") String answer4,
-          @RequestParam("answer5") String answer5,
+          @PathVariable("programId") Integer programId,
           @RequestParam("gpa") double gpa,
           @RequestParam("major") String major,
           @RequestParam("dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateOfBirth,
+          @RequestParam Map<String, String> answers,
           HttpSession session,
           Model model,
           HttpServletResponse response) {
 
-    var result = applicationService.updateResponses(id, answer1, answer2, answer3, answer4, answer5, gpa, major,
-            dateOfBirth, session);
+    var result = applicationService.updateResponses(programId, gpa, major, dateOfBirth, answers, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {
-        response.setHeader("HX-Redirect", "/applications/" + id + "?success=Your responses have been saved!");
+        response.setHeader("HX-Redirect", "/applications/" + programId + "?success=Your responses have been saved!");
         yield null;
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
@@ -130,18 +127,18 @@ public record ViewApplicationController(
     };
   }
 
-  @PostMapping("/applications/{id}/withdraw")
-  public String withdrawApplication(@PathVariable("id") String id,
+  @PostMapping("/applications/{programId}/withdraw")
+  public String withdrawApplication(@PathVariable("programId") Integer programId,
                                     HttpSession session,
                                     Model model) {
 
-    var result = applicationService.changeStatus(id, Application.Status.WITHDRAWN, session);
+    var result = applicationService.changeStatus(programId, Application.Status.WITHDRAWN, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {
         // Get document information for the application
-        var documentStatuses = documentService.getDocumentStatuses(id, success.program().id());
-        var missingCount = documentService.getMissingDocumentsCount(id);
+        var documentStatuses = documentService.getDocumentStatuses(session, success.program().id());
+        var missingCount = documentService.getMissingDocumentsCount(session, success.program().id());
 
         // Get faculty leads for the program
         List<Program.FacultyLead> facultyLeads = facultyLeadRepository.findById_ProgramId(success.program().id());
@@ -162,7 +159,9 @@ public record ViewApplicationController(
                 "formatter", formatter,
                 "pair", pair,
                 "facultyLeads", facultyLeads,
-                "responses", success.responses()));
+                "responses", success.responses(),
+                "questions", success.questions(),
+                "isNotStudent", !userService.isStudent(success.user())));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
@@ -180,18 +179,18 @@ public record ViewApplicationController(
     };
   }
 
-  @PostMapping("/applications/{id}/reactivate")
-  public String reactivateApplication(@PathVariable("id") String id,
+  @PostMapping("/applications/{programId}/reactivate")
+  public String reactivateApplication(@PathVariable("programId") Integer programId,
                                       HttpSession session,
                                       Model model) {
 
-    var result = applicationService.changeStatus(id, Application.Status.APPLIED, session);
+    var result = applicationService.changeStatus(programId, Application.Status.APPLIED, session);
 
     return switch (result) {
       case ViewApplicationService.GetApplicationResult.Success success -> {
         // Get document information for the application
-        var documentStatuses = documentService.getDocumentStatuses(id, success.program().id());
-        var missingCount = documentService.getMissingDocumentsCount(id);
+        var documentStatuses = documentService.getDocumentStatuses(session, success.program().id());
+        var missingCount = documentService.getMissingDocumentsCount(session, programId);
 
         // Get faculty leads for the program
         List<Program.FacultyLead> facultyLeads = facultyLeadRepository.findById_ProgramId(success.program().id());
@@ -210,9 +209,11 @@ public record ViewApplicationController(
                 "user", success.user(),
                 "editable", success.editable(),
                 "responses", success.responses(),
+                "questions", success.questions(),
                 "pair", pair,
                 "facultyLeads", facultyLeads,
-                "formatter", formatter));
+                "formatter", formatter,
+                "isNotStudent", !userService.isStudent(success.user())));
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->

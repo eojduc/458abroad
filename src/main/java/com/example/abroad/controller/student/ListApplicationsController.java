@@ -1,6 +1,6 @@
 package com.example.abroad.controller.student;
 
-import com.example.abroad.model.Alerts;
+import com.example.abroad.view.Alerts;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.page.ListApplicationsService;
 import com.example.abroad.service.page.ListApplicationsService.GetApplicationsResult;
@@ -14,8 +14,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.Map;
 
 @Controller
 public record ListApplicationsController(
@@ -37,6 +35,7 @@ public record ListApplicationsController(
         attributes.put("sort", Sort.TITLE);
         attributes.put("ascending", true);  // Always include ascending
         attributes.put("formatter", formatter);
+        attributes.put("isNotStudent", !userService.isStudent(user));
 
         model.addAllAttributes(attributes);
         yield "student/list-application :: page";
@@ -62,6 +61,7 @@ public record ListApplicationsController(
         attributes.put("sort", sort);
         attributes.put("formatter", formatter);
         attributes.put("ascending", ascending);
+        attributes.put("isNotStudent", !userService.isStudent(user));
 
         model.addAllAttributes(attributes);
         yield "student/list-application :: programTable";

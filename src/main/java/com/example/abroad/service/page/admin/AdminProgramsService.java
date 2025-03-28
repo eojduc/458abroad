@@ -2,9 +2,9 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
-import com.example.abroad.model.Application.Status;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
+import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
@@ -48,14 +48,25 @@ public record AdminProgramsService(
     if (user == null) {
       return new GetAllProgramsInfo.UserNotFound();
     }
-    if (user.role() != User.Role.ADMIN) {
-      return new GetAllProgramsInfo.UserNotAdmin();
+    var userIsAdmin = userService.isAdmin(user);
+    var userIsReviewer = userService.isReviewer(user);
+    var userIsFaculty = userService.isFaculty(user);
+    if (!userIsAdmin && !userIsReviewer && !userIsFaculty) {
+      return new GetAllProgramsInfo.UserLacksPermission();
     }
     return processAuthorizedRequest(sort, nameFilter, leadFilter, timeFilter, user, ascending);
   }
 
   public List<? extends  User> getKnownFacultyLeads() {
     return programService.findAllFacultyLeads();
+  }
+
+  public List<Program> getMyPrograms(User user) {
+    if (!userService.isFaculty(user) && !userService.isHeadAdmin(user)) {
+      logger.error("User {} is not a faculty member", user.username());
+      return List.of();
+    }
+    return programService.findFacultyPrograms(user);
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
@@ -69,7 +80,8 @@ public record AdminProgramsService(
     var programsAndStatuses = programService.findAll()
         .stream()
         .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
-        .filter(program -> new HashSet<>(extractFacultyLeadUsername(program, User::username)).containsAll(leadFilter))
+        .filter(program -> leadFilter.isEmpty() ||
+            extractFacultyLeadUsername(program, User::username).stream().anyMatch(leadFilter::contains))
         .filter(getTimeFilterPredicate(timeFilter))
         .map(getProgramAndStatuses())
         .sorted(getSortComparator(sort, ascending))
@@ -194,7 +206,7 @@ public record AdminProgramsService(
 
     }
 
-    record UserNotAdmin() implements GetAllProgramsInfo {
+    record UserLacksPermission() implements GetAllProgramsInfo {
 
     }
   }
