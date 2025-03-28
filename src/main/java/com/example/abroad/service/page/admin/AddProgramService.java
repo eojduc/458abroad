@@ -50,15 +50,12 @@ public record AddProgramService(UserService userService, ProgramService programS
       null, title, Year.of(year), semester, applicationOpen, applicationClose,
       essentialDocsDate, startDate, endDate, description
     );
-   return switch (programService.saveProgram(program)) {
+    var leadUsers = userService.findAll().stream()
+        .filter(u -> facultyLeads.contains(u.username()))
+        .toList();
+   return switch (programService.addProgram(program, leadUsers, questions)) {
      case SaveProgram.InvalidProgramInfo(var message) -> new AddProgramInfo.InvalidProgramInfo(message);
-     case SaveProgram.Success(var prog) -> {
-       var leadUsers = userService.findAll().stream()
-           .filter(u -> facultyLeads.contains(u.username()))
-           .toList();
-       programService.setFacultyLeads(prog, leadUsers);
-       yield new AddProgramInfo.Success(prog.id());
-     }
+     case SaveProgram.Success(var prog) -> new AddProgramInfo.Success(prog.id());
      case SaveProgram.DatabaseError(var message) -> new AddProgramInfo.DatabaseError(message);
     };
   }

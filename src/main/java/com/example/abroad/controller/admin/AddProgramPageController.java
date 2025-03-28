@@ -65,7 +65,7 @@ public record AddProgramPageController(AddProgramService service, FormatService 
         @RequestParam Semester semester,
         @RequestParam LocalDate applicationOpen,
         @RequestParam LocalDate applicationClose,
-        @RequestParam List<String> selectedQuestions,
+        @RequestParam(required = false) List<String> selectedQuestions,
         HttpSession session,
         Model model,
         HttpServletResponse response) {
