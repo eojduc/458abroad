@@ -61,6 +61,10 @@ public record UserService(
     return roleRepository.findById_Username(user.username()).isEmpty();
   }
 
+  public Boolean isHeadAdmin(User user) {
+    return user.username().equals("admin");
+  }
+
   public void deleteUser(User user) {
     switch (user) {
       case User.LocalUser localUser -> localUserRepository.delete(localUser);

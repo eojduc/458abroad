@@ -3,6 +3,7 @@ package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.service.ApplicationService;
+import com.example.abroad.service.ProgramService;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.DocumentService;
@@ -34,12 +35,14 @@ public class AdminDocumentController {
   private final DocumentService documentService;
   private final UserService userService;
   private final ApplicationService applicationService;
+  private final ProgramService programService;
 
   public AdminDocumentController(DocumentService documentService, UserService userService,
-    ApplicationService applicationService) {
+    ApplicationService applicationService, ProgramService programService) {
     this.documentService = documentService;
     this.userService = userService;
     this.applicationService = applicationService;
+    this.programService = programService;
   }
 
   @GetMapping("/{type}/view")
@@ -63,7 +66,13 @@ public class AdminDocumentController {
       return ResponseEntity.notFound().build();
     }
 
-    if (!application.student().equals(user.username())  && !userService.isAdmin(user)) {
+    boolean isFacultyForProgram = false;
+    var programOpt = programService.findById(programId);
+    if (programOpt.isPresent()) {
+      isFacultyForProgram = programService.isFacultyLead(programOpt.get(), user);
+    }
+
+    if (!application.student().equals(user.username())  && !userService.isAdmin(user) && !isFacultyForProgram) {
 //            logger.warn("User {} attempted unauthorized access to application {} owned by {}",
 //                    user.username(), applicationId, application.student());
       return ResponseEntity.status(HttpStatus.FORBIDDEN)
