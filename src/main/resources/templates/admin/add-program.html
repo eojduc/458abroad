@@ -40,6 +40,7 @@
           <input class="input w-full"
                  type="text"
                  name="title"
+                 onkeydown="preventEnterKey(event)"
                  required/>
         </label>
 
@@ -87,6 +88,7 @@
           <input class="input w-full"
                  type="number"
                  name="year"
+                 onkeydown="preventEnterKey(event)"
                  required/>
         </label>
 
@@ -178,6 +180,7 @@
                      class="input input-bordered w-full"
                      th:value="${question}"
                      th:id="${'questionText-' + iterStat.index}"
+                     onkeydown="preventEnterKey(event)"
                      onchange="updateCheckboxValue(this)"/>
             </div>
           </div>
@@ -227,6 +230,7 @@
       input.onchange = function() {
         updateCheckboxValue(this);
       };
+      input.onkeydown = preventEnterKey;
 
       // Append the elements
       editableContainer.appendChild(input);
@@ -239,5 +243,10 @@
       document.getElementById('questionList').appendChild(newRow);
     }
 
+    function preventEnterKey(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+      }
+    }
   </script>
 </div>
