@@ -259,4 +259,8 @@ public record ProgramService(
         .sorted(Comparator.comparing(Question::id))
         .toList();
   }
+
+  public List<Application> getApplications(Program program) {
+    return applicationRepository.findById_ProgramId(program.id());
+  }
 }
