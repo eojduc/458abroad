@@ -72,7 +72,7 @@ public record ViewApplicationController(
         allAttributes.put("prog", successRes.program());
         allAttributes.put("user", successRes.user());
         allAttributes.put("editable", successRes.editable());
-        allAttributes.put("responses", successRes.responses());
+        allAttributes.put("responseMap", successRes.responses());
         allAttributes.put("questions", successRes.questions());
         allAttributes.put("formatter", formatter);
         allAttributes.put("alerts", new Alerts(error, success, warning, info));
@@ -164,7 +164,7 @@ public record ViewApplicationController(
                 "formatter", formatter,
                 "pair", pair,
                 "facultyLeads", facultyLeads,
-                "responses", success.responses(),
+                "responseMap", success.responses(),
                 "questions", success.questions(),
                 "isNotStudent", !userService.isStudent(success.user())));
         model.addAttribute("letterRequests", success.letterRequests());
@@ -214,7 +214,7 @@ public record ViewApplicationController(
                 "prog", success.program(),
                 "user", success.user(),
                 "editable", success.editable(),
-                "responses", success.responses(),
+                "responseMap", success.responses(),
                 "questions", success.questions(),
                 "pair", pair,
                 "facultyLeads", facultyLeads,

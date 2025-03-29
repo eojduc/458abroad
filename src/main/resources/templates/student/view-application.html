@@ -91,75 +91,62 @@
 
           <!-- Application Responses -->
           <div>
-            <form
-                    id="responsesForm"
-                    th:attr="hx-post=@{'/applications/' + ${app.programId()} + '/update'}"
-                    hx-target="#applicationContent"
-                    hx-swap="outerHTML"
-            >
+            <form id="responsesForm"
+                  th:attr="hx-post=@{'/applications/' + ${app.programId()} + '/update'}"
+                  hx-target="#applicationContent"
+                  hx-swap="outerHTML">
               <div id="responsesContainer">
+                <!-- GPA, Major, and Birthdate inputs remain the same -->
                 <div class="form-control mb-4">
                   <label class="label">
                     <span class="label-text">GPA</span>
                   </label>
-                  <input
-                          type="number"
-                          step="0.01"
-                          min="0.0"
-                          max="4.0"
-                          class="input input-bordered"
-                          name="gpa"
-                          th:value="${app.gpa()}"
-                          th:disabled="${!editable}"
-                          th:attr="required=${editable ? 'required' : null}"
-                  />
+                  <input type="number"
+                        step="0.01"
+                        min="0.0"
+                        max="4.0"
+                        class="input input-bordered"
+                        name="gpa"
+                        th:value="${app.gpa()}"
+                        th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}" />
                 </div>
 
                 <div class="form-control mb-4">
                   <label class="label">
                     <span class="label-text">Major</span>
                   </label>
-                  <input
-                          type="text"
-                          class="input input-bordered"
-                          name="major"
-                          th:value="${app.major()}"
-                          th:disabled="${!editable}"
-                          th:attr="required=${editable ? 'required' : null}"
-                  />
+                  <input type="text"
+                        class="input input-bordered"
+                        name="major"
+                        th:value="${app.major()}"
+                        th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}" />
                 </div>
 
                 <div class="form-control mb-4">
                   <label class="label">
                     <span class="label-text">Birthdate</span>
                   </label>
-                  <input
-                          type="date"
-                          class="input input-bordered"
-                          name="dateOfBirth"
-                          th:value="${app.dateOfBirth()}"
-                          th:disabled="${!editable}"
-                          th:attr="required=${editable ? 'required' : null}"
-                  />
+                  <input type="date"
+                        class="input input-bordered"
+                        name="dateOfBirth"
+                        th:value="${app.dateOfBirth()}"
+                        th:disabled="${!editable}"
+                        th:attr="required=${editable ? 'required' : null}" />
                 </div>
-                <div
-                        class="form-control mb-4"
-                        th:each="response: ${responses}"
-                >
+
+                <!-- Loop through all questions. For each question, attempt to locate a response -->
+                <div class="form-control mb-4" th:each="question : ${questions}">
                   <label class="label">
-                    <span class="label-text">
-                      <span th:each="question : ${questions}" 
-                            th:if="${question.id == response.question}" 
-                            th:text="${question.text}">Question Text</span>
-                    </span>
+                    <span class="label-text" th:text="${question.text}">Question Text</span>
                   </label>
-                  <textarea
-                          class="textarea whitespace-pre-line"
-                          th:name="|answers[${response.question()}]|"
-                          th:text="${response.response()}"
-                          th:disabled="${!editable}"
-                          th:attr="required=${editable ? 'required' : null}"
-                  ></textarea>
+                  <textarea class="textarea whitespace-pre-line"
+                            th:name="|answers[${question.id()}]|"
+                            th:text="${responseMap[question.id()] != null ? responseMap[question.id()].response() : ''}"
+                            th:disabled="${!editable}"
+                            th:attr="required=${editable ? 'required' : null}">
+                  </textarea>
                 </div>
               </div>
             </form>

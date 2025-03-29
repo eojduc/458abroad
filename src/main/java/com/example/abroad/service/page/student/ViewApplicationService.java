@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,10 +68,12 @@ public record ViewApplicationService(
       editable = true;
     }
     var responses = applicationService.getResponses(app);
+    Map<Integer, Response> responseMap = responses.stream()
+      .collect(Collectors.toMap(Response::question, Function.identity(), (r1, r2) -> r1));
     var questions = programService.getQuestions(prog);
     var letterRequests = letterOfRecInfo(user, program);
 
-    return new GetApplicationResult.Success(app, prog, user, editable, responses, questions, letterRequests);
+    return new GetApplicationResult.Success(app, prog, user, editable, responseMap, questions, letterRequests);
   }
 
   public GetApplicationResult updateResponses(
@@ -115,13 +118,15 @@ public record ViewApplicationService(
     });
 
     var responses = applicationService.getResponses(newApp);
+    Map<Integer, Response> responseMap = responses.stream()
+      .collect(Collectors.toMap(Response::question, Function.identity(), (r1, r2) -> r1));
     Program program = programService.findById(newApp.programId()).orElse(null);
     var questions = programService.getQuestions(program);
     var letterRequests = letterOfRecInfo(user, program);
 
     auditService.logEvent("Application updated with new responses");
 
-    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses, questions, letterRequests);
+    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responseMap, questions, letterRequests);
   }
 
   public GetApplicationResult changeStatus(Integer programId, Application.Status newStatus, HttpSession session) {
@@ -159,13 +164,15 @@ public record ViewApplicationService(
     }
     
     var responses = applicationService.getResponses(app);
+    Map<Integer, Response> responseMap = responses.stream()
+      .collect(Collectors.toMap(Response::question, Function.identity(), (r1, r2) -> r1));
     Program program = programService.findById(app.programId()).orElse(null);
     var questions = programService.getQuestions(program);
     var letterRequests = letterOfRecInfo(user, program);
 
     auditService.logEvent("Application updated with new status: " + newStatus.name());
 
-    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responses, questions, letterRequests);
+    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responseMap, questions, letterRequests);
   }
 
   public record LetterOfRecInfo(String email, String name, Boolean submitted, Instant timestamp) { }
@@ -185,7 +192,7 @@ public record ViewApplicationService(
 
   public sealed interface GetApplicationResult {
 
-    record Success(Application application, Program program, User user, boolean editable, List<Response> responses, List<Question> questions, List<LetterOfRecInfo> letterRequests)
+    record Success(Application application, Program program, User user, boolean editable, Map<Integer, Response> responses, List<Question> questions, List<LetterOfRecInfo> letterRequests)
         implements GetApplicationResult {
     }
 
