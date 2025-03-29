@@ -75,6 +75,7 @@ public record ViewApplicationController(
         allAttributes.put("pair", pair);
         allAttributes.put("facultyLeads", facultyLeads);
         allAttributes.put("isNotStudent", !userService.isStudent(successRes.user()));
+        allAttributes.put("letterRequests", successRes.letterRequests());
 
         model.addAllAttributes(allAttributes);
         yield "student/view-application :: page";
@@ -162,6 +163,7 @@ public record ViewApplicationController(
                 "responses", success.responses(),
                 "questions", success.questions(),
                 "isNotStudent", !userService.isStudent(success.user())));
+        model.addAttribute("letterRequests", success.letterRequests());
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
@@ -214,6 +216,7 @@ public record ViewApplicationController(
                 "facultyLeads", facultyLeads,
                 "formatter", formatter,
                 "isNotStudent", !userService.isStudent(success.user())));
+        model.addAttribute("letterRequests", success.letterRequests());
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
