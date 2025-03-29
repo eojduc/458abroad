@@ -211,14 +211,15 @@
           <h2 class="card-title text-lg">Letter of Recommendation Requests</h2>
           <!-- Wrap the table in a div that handles horizontal overflow if needed -->
           <div class="overflow-x-auto">
-            <table class="table table-sm table-compact" th:fragment="letter-request-table">
+            <table class="table table-sm table-compact">
               <thead>
                 <tr>
                   <th>Email</th>
                   <th>Name</th>
                   <th>Completed</th>
                   <th>Timestamp</th>
-                  <th>Delete</th>
+                  <!-- Only show Delete header if editable -->
+                  <th th:if="${editable}">Delete</th>
                 </tr>
               </thead>
               <tbody>
@@ -228,17 +229,18 @@
                   <td th:text="${request.name}"></td>
                   <td>
                     <input type="checkbox"
-                           class="checkbox"
-                           name="completedLetters"
-                           disabled
-                           th:checked="${request.submitted}" />
+                          class="checkbox"
+                          name="completedLetters"
+                          disabled
+                          th:checked="${request.submitted}" />
                   </td>
                   <td>
                     <span th:if="${request.submitted and request.timestamp != null}"
                           th:text="${#dates.format(request.timestamp, 'yyyy-MM-dd HH:mm:ss')}"></span>
                     <span th:unless="${request.submitted}">N/A</span>
                   </td>
-                  <td>
+                  <!-- Only show the delete button if editable -->
+                  <td th:if="${editable}">
                     <button class="btn btn-outline btn-error btn-sm"
                             type="button"
                             th:attr="onclick=|document.getElementById('delete-letter-request-${request.email}').showModal()|">
@@ -276,37 +278,39 @@
               </tbody>
             </table>
           </div>
-          <!-- Request form -->
-          <form th:action="@{/applications/{programId}/request-letter(programId=${prog.id})}"
-                method="post"
-                id="letterRequestForm"
-                class="flex flex-col sm:flex-row justify-between gap-4 mt-4">
-            <div class="flex flex-row gap-2">
-              <label>
-                <input class="input input-bordered input-sm" type="text" name="email" placeholder="Email" required>
-              </label>
-              <label>
-                <input class="input input-bordered input-sm" type="text" name="name" placeholder="Name" required>
-              </label>
-            </div>
-            <button class="btn btn-outline btn-success btn-sm" type="button" onclick="letter_modal.showModal()">Add Request</button>
-          </form>
-          <dialog id="letter_modal" class="modal">
-            <div class="modal-box bg-base-200">
-              <p>Are you sure you want to request this letter of recommendation?</p>
-              <div class="modal-action gap-2">
-                <button class="btn btn-primary w-1/4" type="submit" form="letterRequestForm" onclick="letter_modal.close()">
-                  Submit
-                </button>
-                <form method="dialog" class="contents">
-                  <button class="btn btn-outline w-1/4">Cancel</button>
-                </form>
+          <!-- Only show the Add Request form if editable -->
+          <div th:if="${editable}">
+            <form th:action="@{/applications/{programId}/request-letter(programId=${prog.id})}"
+                  method="post"
+                  id="letterRequestForm"
+                  class="flex flex-col sm:flex-row justify-between gap-4 mt-4">
+              <div class="flex flex-row gap-2">
+                <label>
+                  <input class="input input-bordered input-sm" type="text" name="email" placeholder="Email" required>
+                </label>
+                <label>
+                  <input class="input input-bordered input-sm" type="text" name="name" placeholder="Name" required>
+                </label>
               </div>
-            </div>
-            <form method="dialog" class="modal-backdrop">
-              <button>close</button>
+              <button class="btn btn-outline btn-success btn-sm" type="button" onclick="letter_modal.showModal()">Add Request</button>
             </form>
-          </dialog>
+            <dialog id="letter_modal" class="modal">
+              <div class="modal-box bg-base-200">
+                <p>Are you sure you want to request this letter of recommendation?</p>
+                <div class="modal-action gap-2">
+                  <button class="btn btn-primary w-1/4" type="submit" form="letterRequestForm" onclick="letter_modal.close()">
+                    Submit
+                  </button>
+                  <form method="dialog" class="contents">
+                    <button class="btn btn-outline w-1/4">Cancel</button>
+                  </form>
+                </div>
+              </div>
+              <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+              </form>
+            </dialog>
+          </div>
         </div>
       </div>
 
