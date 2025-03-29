@@ -1,10 +1,5 @@
 # Backup Admin Guide
 
-///
-Backup admin guide: A document shall be provided which explains the backup solution so that a system administrator unfamiliar with your software could configure it from scratch, restore the database to any given backup, and test a backup for validity. See req 7.
-///
-
-
 This document describes how to configure and manage backups for the Java Spring Boot application. It covers the backup solution, configuration steps, and testing procedures.
 
 ## 1. Overview
@@ -214,4 +209,80 @@ To manually run the backup script and check if it works as expected, execute the
 
 ```bash
 /opt/458abroad/backup/pg_backup.sh
+```
+
+6. Schedule the backup script to run daily:
+
+Add a cron job to run the backup script daily at a specific time.
+
+```bash
+crontab -e
+```
+
+To run the backup script every day at 2 AM, add the following line to the crontab file:
+
+```bash
+0 2 * * * /opt/458abroad/backup/pg_backup.sh >> /home/vcm/logs/458abroad_backup.log 2>&1
+```
+
+Make sure the Cron daemon is running:
+
+```bash
+sudo systemctl status cron
+```
+
+It should show as active (running).
+
+---
+
+## 4. Restore and Test from Backup
+
+To restore the database from a backup file, follow these steps:
+
+1. **Download the Backup File**  
+   - Connect to the remote server as the backup user and download the backup file to the server where the database needs to be restored.
+   - Create a `restores` directory in the backup directory:
+   - Use `scp` to copy the file:
+
+   ```bash
+   scp abroad_backup_file.sql.gz user@destination_server:/tmp/
+   sudo mv /tmp/abroad_backup_file.sql.gz /opt/458abroad/backup/restores/
+   ```
+   
+2. **Stop the application server**
+
+Stop the application server, so you can restore the database without any active connections.
+
+```bash
+sudo systemctl stop 458abroad.service
+```
+
+3. **Restore the Database**  
+   - Run the following command to restore the database from the backup file:
+
+   ```bash
+   sudo -i -u postgres
+   psql -c "DROP DATABASE IF EXISTS abroad_db;"
+   psql -c "CREATE DATABASE abroad_db;"
+   gunzip -c /opt/458abroad/backup/restores/abroad_backup_file.sql.gz | psql -d abroad
+   ```
+   
+4. **(Optional) Test Database Content**  
+   - Connect to the database and check if the data has been restored correctly:
+
+   ```bash
+   psql -d abroad
+   \dt      # List tables   
+   SELECT * FROM table_name;  # View table content
+   \q
+   ```
+   
+5. **Restart the Application Server**
+
+After restoring the database, restart the application server:
+
+```bash
+sudo systemctl set-environment RESET_DB=false FILL_DB=false
+sudo systemctl start 458abroad.service
+sudo systemctl unset-environment RESET_DB FILL_DB
 ```
