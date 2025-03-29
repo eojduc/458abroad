@@ -7,7 +7,7 @@ import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.service.DocumentService;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.ViewApplicationService;
+import com.example.abroad.service.page.student.ViewApplicationService;
 
 import java.time.LocalDate;
 import java.util.HashMap;

@@ -35,10 +35,12 @@ public record DashboardController(
       case GetDashboard.NotLoggedIn() -> "homepage";
       case GetDashboard.StudentDashboard(var user) -> {
         model.addAttribute("user", user);
+        model.addAttribute("isAdmin", false);
         yield "student/student-dashboard :: page";
       }
-      case GetDashboard.AdminDashboard(var user) -> {
+      case GetDashboard.AdminDashboard(var user, var isAdmin) -> {
         model.addAttribute("user", user);
+        model.addAttribute("isAdmin", isAdmin);
         yield "admin/admin-dashboard :: page";
       }
       case GetDashboard.SSOUsernameTaken(var redirect) -> "redirect:" + redirect;

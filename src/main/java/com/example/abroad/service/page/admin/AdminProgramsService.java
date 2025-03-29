@@ -88,7 +88,8 @@ public record AdminProgramsService(
         .toList();
     return new GetAllProgramsInfo.Success(
         programsAndStatuses,
-        user
+        user,
+        userService.isAdmin(user)
     );
   }
 
@@ -151,8 +152,8 @@ public record AdminProgramsService(
     return switch (timeFilter) {
       case FUTURE -> program -> !(program.endDate().isBefore(today));
       case OPEN ->
-          program -> !(program.applicationOpen().isBefore(today) || program.applicationClose()
-              .isAfter(today));
+          program -> !(program.applicationOpen().isAfter(today) || program.applicationClose()
+              .isBefore(today));
       case REVIEW -> program -> !(program.applicationClose().isAfter(today) || program.startDate()
           .isBefore(today));
       case RUNNING ->
@@ -179,8 +180,8 @@ public record AdminProgramsService(
       case END_DATE ->
           Comparator.comparing(programAndStatuses -> programAndStatuses.program().endDate());
       case FACULTY_LEAD -> Comparator.comparing(
-          programAndStatuses -> programService.findFacultyLeads(programAndStatuses.program())
-              .size());
+          (ProgramAndStatuses pas) -> programService.findFacultyLeads(pas.program())
+              .size()).thenComparing(pas -> programService.findFacultyLeads(pas.program()).getFirst().displayName()); // very slow
       case APPLIED -> Comparator.comparing(ProgramAndStatuses::applied);
       case ELIGIBLE -> Comparator.comparing(ProgramAndStatuses::eligible);
       case APPROVED -> Comparator.comparing(ProgramAndStatuses::approved);
@@ -197,7 +198,8 @@ public record AdminProgramsService(
 
     record Success(
         List<ProgramAndStatuses> programsAndStatuses,
-        User user
+        User user,
+        Boolean isAdmin
     ) implements GetAllProgramsInfo {
 
     }

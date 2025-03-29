@@ -38,6 +38,7 @@ public record AccountController(
             case UserNotFound() -> "redirect:/login";
             case Success(var user) -> {
                 model.addAttribute("user", user);
+                model.addAttribute("isStudent", userService.isStudent(user));
                 model.addAttribute("isAdmin", userService.isAdmin(user));
                 model.addAttribute("alerts", new Alerts(error, success, warning, info));
                 model.addAttribute("formatter", formatter);
