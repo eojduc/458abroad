@@ -106,4 +106,11 @@ public record UserService(
     roleRepository.findById_UsernameAndId_Type(user.username(), roleType)
             .ifPresent(roleRepository::delete);
   }
+
+  public List<? extends User> findUsersWithRole(User.Role.Type roleType) {
+    return roleRepository.findById_Type(roleType)
+            .stream()
+            .map(role -> findByUsername(role.username()).orElse(null))
+            .toList();
+  }
 }

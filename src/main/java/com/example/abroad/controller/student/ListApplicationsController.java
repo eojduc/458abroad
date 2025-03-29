@@ -2,11 +2,11 @@ package com.example.abroad.controller.student;
 
 import com.example.abroad.view.Alerts;
 import com.example.abroad.service.FormatService;
-import com.example.abroad.service.page.ListApplicationsService;
-import com.example.abroad.service.page.ListApplicationsService.GetApplicationsResult;
+import com.example.abroad.service.page.student.ListApplicationsService;
+import com.example.abroad.service.page.student.ListApplicationsService.GetApplicationsResult;
 import com.example.abroad.service.UserService;
 
-import com.example.abroad.service.page.ListApplicationsService.Sort;
+import com.example.abroad.service.page.student.ListApplicationsService.Sort;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import java.util.HashMap;

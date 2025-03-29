@@ -34,7 +34,7 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     return switch (service.getApplicationInfo(programId, username, session)) {
       case Success(var noteInfos, var documentInfos, var theme, var responses, var programDetails,
-                   var applicationDetails, var displayName, var isReviewer, var requests) -> {
+                   var applicationDetails, var displayName, var isReviewer, var requests, var isAdmin) -> {
         model.addAllAttributes(Map.of(
           "theme", theme,
           // _application is used to avoid conflict with the application variable in Thymeleaf
@@ -51,6 +51,7 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
           "studentUsername", username,
           "displayName", displayName,
           "isReviewer", isReviewer,
+          "isAdmin", isAdmin,
           "letterRequests", requests
         ));
         yield "admin/application-info :: page";

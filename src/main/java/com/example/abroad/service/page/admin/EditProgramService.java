@@ -1,8 +1,9 @@
-package com.example.abroad.service.page;
+package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.model.User;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.ProgramService.SaveProgram;
 import com.example.abroad.service.UserService;
@@ -14,7 +15,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public record EditProgramService(UserService userService, ProgramService programService) {
+public record EditProgramService(UserService userService, ProgramService programService, AuditService auditService) {
 
   public EditProgramPage getEditProgramInfo(Integer programId, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -81,7 +82,10 @@ public record EditProgramService(UserService userService, ProgramService program
         .toList();
     return switch (programService.addProgram(newProgram, leadUsers, selectedQuestions)) {
       case SaveProgram.InvalidProgramInfo(var message) -> new UpdateProgramInfo.InvalidProgramInfo(message);
-      case SaveProgram.Success(var prog) -> new UpdateProgramInfo.Success();
+      case SaveProgram.Success(var prog) -> {
+        auditService.logEvent(String.format("Program %s(%d) updated by %s", prog.title(), prog.id(), user.username()));
+        yield new UpdateProgramInfo.Success();
+      }
       case SaveProgram.DatabaseError(var message) -> new UpdateProgramInfo.DatabaseError(message);
     };
   }

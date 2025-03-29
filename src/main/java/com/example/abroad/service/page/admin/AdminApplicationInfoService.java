@@ -70,7 +70,7 @@ public record AdminApplicationInfoService(
     var applicationDetails = getAppDetails(programIsPast, application, student, isAdmin, isReviewer, isLead);
     return new GetApplicationInfo.Success(noteInfos, documents, theme,
       responses, programDetails,
-      applicationDetails, user.displayName(), isReviewer, getLetters(student, program));
+      applicationDetails, user.displayName(), isReviewer, getLetters(student, program), isAdmin);
   }
 
   public record ResponseInfo(String question, String response) {
@@ -299,7 +299,7 @@ public record AdminApplicationInfoService(
                    List<DocumentInfo> documentInfos, String theme,
                     List<ResponseInfo> responses,
                    ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName, Boolean isReviewer,
-                   List<LetterInfo> requests
+                   List<LetterInfo> requests, Boolean isAdmin
     ) implements
       GetApplicationInfo {
 
