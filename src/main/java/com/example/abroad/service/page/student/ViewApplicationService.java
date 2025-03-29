@@ -11,7 +11,6 @@ import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.student.ApplyToProgramService.LetterOfRecInfo;
 
 import jakarta.servlet.http.HttpSession;
 
