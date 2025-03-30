@@ -240,7 +240,7 @@ It should show as active (running).
 To restore the database from a backup file, follow these steps:
 
 1. **Download the Backup File**  
-   - Connect to the remote server as the backup user and download the backup file to the server where the database needs to be restored.
+   - Connect to the remote server as the backup user and download/copy the backup file to the server where the database needs to be restored.
    - Create a `restores` directory in the backup directory:
    - Use `scp` to copy the file:
 
@@ -262,8 +262,8 @@ sudo systemctl stop 458abroad.service
 
    ```bash
    sudo -i -u postgres
-   psql -c "DROP DATABASE IF EXISTS abroad_db;"
-   psql -c "CREATE DATABASE abroad_db;"
+   psql -c "DROP DATABASE IF EXISTS abroad;"
+   psql -c "CREATE DATABASE abroad;"
    gunzip -c /opt/458abroad/backup/restores/abroad_backup_file.sql.gz | psql -d abroad
    ```
    
