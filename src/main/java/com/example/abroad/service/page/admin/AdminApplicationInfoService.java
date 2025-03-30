@@ -278,7 +278,7 @@ public record AdminApplicationInfoService(
   }
 
 
-  public record LetterInfo(String email, String name, Boolean submitted, Integer code, String timestamp) {
+  public record LetterInfo(String email, String name, Boolean submitted, String code, String timestamp) {
   }
 
   public List<LetterInfo> getLetters(User student, Program program) {

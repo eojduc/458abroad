@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 public record LetterOfRecommendationController( LetterOfRecommendationService service ) {
   @GetMapping("/letter-of-rec/{code}.pdf")
-  public ResponseEntity<byte[]> getPdf(@PathVariable Integer code) throws IOException, SQLException {
+  public ResponseEntity<byte[]> getPdf(@PathVariable String code) throws IOException, SQLException {
     return switch (service.getLetterFile(code)) {
       case Success(var pdfBytes) -> {
         HttpHeaders headers = new HttpHeaders();
@@ -35,7 +35,7 @@ public record LetterOfRecommendationController( LetterOfRecommendationService se
   }
 
   @PostMapping("/rec-request/{code}")
-  public String uploadLetter(@PathVariable Integer code, @RequestParam MultipartFile file) {
+  public String uploadLetter(@PathVariable String code, @RequestParam MultipartFile file) {
     return switch (service.uploadLetter(code, file)) {
       case LetterOfRecommendationService.UploadLetter.Success() -> "redirect:/rec-request/" + code + "?success=Letter uploaded successfully";
       case LetterOfRecommendationService.UploadLetter.RequestNotFound() -> "redirect:/rec-request/" + code + "?requestNotFound=Request not found";
@@ -46,7 +46,7 @@ public record LetterOfRecommendationController( LetterOfRecommendationService se
   }
 
   @GetMapping("/rec-request/{code}")
-  public String getRequestPage(@PathVariable Integer code, Model model,
+  public String getRequestPage(@PathVariable String code, Model model,
     @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info
   ) {

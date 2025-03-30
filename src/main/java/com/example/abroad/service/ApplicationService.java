@@ -107,7 +107,7 @@ public record ApplicationService(
     return documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), type);
   }
 
-  public List<RecommendationRequest> getRecRequestsByCode(Integer code) {
+  public List<RecommendationRequest> getRecRequestsByCode(String code) {
     return recommendationRequestRepository.findByCode(code);
   }
 
