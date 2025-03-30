@@ -39,6 +39,7 @@ public record AddProgramPageController(AddProgramService service, FormatService 
         model.addAllAttributes(
             Map.of("user", user,
                 "referer", Optional.ofNullable(referer).orElse("/admin/programs"),
+                "isAdmin", userService.isAdmin(user),
                 "alerts", new Alerts(error, success, warning, info),
                 "formatter", formatter,
                 "defaultQuestions", service.getDefaultQuestions(),

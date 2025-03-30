@@ -6,7 +6,7 @@
 <head th:replace="~{components :: head('Create New Program')}"></head>
 <body>
 
-<div th:replace="~{components :: admin-navbar(${user.displayName})}"></div>
+<div th:replace="~{components :: admin-navbar(${user.displayName}, ${true})}"></div>
 
 <div
     class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">

@@ -13,6 +13,7 @@ public interface RoleRepository extends JpaRepository<Role, ID> {
 
   List<Role> findById_Username(String username);
   Optional<Role> findById_UsernameAndId_Type(String username, Type type);
+  List<Role> findById_Type(Type type);
 
 
 }
