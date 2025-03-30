@@ -192,17 +192,17 @@
               <td class="text-center">
                 <div th:if="${pair.app().status().name() == 'APPROVED' || pair.app().status().name() == 'ENROLLED'}"
                      class="flex items-center justify-center gap-2">
-                  <span th:if="${pair.getDocumentStatus('HOUSING_FORM')}" class="text-success font-bold">
+                  <span th:if="${pair.getDocumentStatus('HOUSING')}" class="text-success font-bold">
                     Submitted
                   </span>
-                  <span th:unless="${pair.getDocumentStatus('HOUSING_FORM')}" class="text-error font-bold">
+                  <span th:unless="${pair.getDocumentStatus('HOUSING')}" class="text-error font-bold">
                     Missing
                   </span>
 
                   <!-- Upload/View Button - Always visible -->
                   <div class="flex-none">
-                    <a th:if="${pair.getDocumentStatus('HOUSING_FORM')}"
-                       th:href="@{/applications/{programId}/documents/HOUSING_FORM/view(programId=${pair.prog.id})}"
+                    <a th:if="${pair.getDocumentStatus('HOUSING')}"
+                       th:href="@{/applications/{programId}/documents/HOUSING/view(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-ghost" target="_blank">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -210,7 +210,7 @@
                       </svg>
                       <span class="ml-1">View</span>
                     </a>
-                    <a th:unless="${pair.getDocumentStatus('HOUSING_FORM')}"
+                    <a th:unless="${pair.getDocumentStatus('HOUSING')}"
                        th:href="@{/applications/{programId}#documents(programId=${pair.prog.id})}"
                        class="btn btn-xs btn-error btn-outline">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current">
