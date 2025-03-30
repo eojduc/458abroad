@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -46,7 +47,7 @@ public record EditProgramService(UserService userService, ProgramService program
       .map(Program.Question::text)
       .toList();
 
-    var applicantsExists = !programService.getApplications(program).isEmpty();
+    var applicantsExists = programHasApplicants(programId);
 
     return new EditProgramPage.Success(program, user, facultyLeads, nonFacultyLeads, questions, applicantsExists);
   }
@@ -88,6 +89,11 @@ public record EditProgramService(UserService userService, ProgramService program
       }
       case SaveProgram.DatabaseError(var message) -> new UpdateProgramInfo.DatabaseError(message);
     };
+  }
+
+  public Boolean programHasApplicants(Integer programId) {
+    return !programService.getApplications(
+        Objects.requireNonNull(programService.findById(programId).orElse(null))).isEmpty();
   }
 
 

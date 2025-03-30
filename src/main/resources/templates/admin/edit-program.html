@@ -163,7 +163,7 @@
               <form method="dialog" class="contents">
                 <button class="btn btn-outline w-1/4" type="button" onclick="edit_modal.close()">Cancel</button>
               </form>
-              <button class="btn btn-primary w-1/4" type="submit">Edit</button>
+              <button class="btn btn-primary w-1/4" type="submit">Yes</button>
             </div>
           </div>
           <form method="dialog" class="modal-backdrop">
@@ -223,53 +223,82 @@
       checkbox.value = textInput.value;
     }
 
-    function showModal() {
+    async function showModal() {
       const originalQuestions = /*[[${currentQuestions}]]*/ [];
-      const applicantsExist = /*[[${applicantsExist}]]*/ false;
+      const programId = /*[[${program.id}]]*/ -1;
 
       const modal = document.getElementById('edit_modal');
       const warningDiv = document.getElementById('edit-warning-div');
-      let warningMessage = "Are you sure you want to edit this program?"
 
-      // Check for modifications to default questions
+      // First display a loading message
+      warningDiv.textContent = "Checking program status...";
+
+      if (programId === -1) {
+        warningDiv.textContent = "Warning, internal server error! Are you sure you want to edit this program?";
+        modal.showModal();
+        return;
+      }
+
+      modal.showModal();
+
+      // Analyze question changes using more concise modern JS
+      const currentQuestionElements = document.querySelectorAll('#questionList > div');
+
       const hasModifiedQuestions = originalQuestions.some((origQuestion, index) => {
-        const questionElement = document.getElementById('questionText-' + index);
+        const questionElement = document.getElementById(`questionText-${index}`);
         return questionElement && origQuestion !== questionElement.value;
       });
 
-      // Check for removal of default questions
       const hasRemovedQuestions = originalQuestions.some((origQuestion, index) => {
-        const checkbox = document.getElementById('checkbox-' + index);
+        const checkbox = document.getElementById(`checkbox-${index}`);
         return !checkbox || !checkbox.checked;
       });
 
-      const hasAddedQuestions = document.querySelectorAll('#questionList > div').length > originalQuestions.length;
+      const hasAddedQuestions = [...currentQuestionElements].some((div, index) =>
+          index >= originalQuestions.length &&
+          div.querySelector('input[type="checkbox"]')?.checked
+      );
 
-      // Construct warning message
-      if (applicantsExist && hasModifiedQuestions) {
-         warningMessage = "Editing this program may affect existing applicants.";
+      try {
+        // Fetch applicantsExist from backend
+        const response = await fetch(`/admin/programs/${programId}/edit/has-applicants`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to check if program has applicants');
+
+        const { hasApplicants: applicantsExist } = await response.json();
+
+        let warningMessage = "Are you sure you want to edit this program?";
+
+        if (applicantsExist) {
+          if (hasModifiedQuestions) {
+            warningMessage = "Editing this program may affect existing applicants.";
+          }
+
+          if (hasAddedQuestions) {
+            warningMessage += " Adding questions will have missing responses from existing applicants.";
+          }
+
+          if (hasRemovedQuestions) {
+            warningMessage += " Removing questions will delete those responses by applicants.";
+          }
+
+          if (hasModifiedQuestions || hasRemovedQuestions) {
+            warningMessage += " Are you sure you want to proceed?";
+          }
+        }
+
+        warningDiv.textContent = warningMessage;
+      } catch (error) {
+        console.error('Error checking applicants:', error);
+        warningDiv.textContent = "Unable to verify applicant status. Are you sure you want to edit this program?";
       }
-
-      if (applicantsExist && hasAddedQuestions) {
-        warningMessage += " Adding questions will have missing responses from existing applicants.";
-      }
-
-      if (applicantsExist && hasRemovedQuestions) {
-        warningMessage += " Removing questions will delete those responses by applicants.";
-      }
-
-      if (applicantsExist && (hasModifiedQuestions || hasRemovedQuestions)) {
-        warningMessage += " Are you sure you want to proceed?";
-      }
-
-      // Set the warning text
-      warningDiv.textContent = warningMessage;
-
-      // Show the modal
-      modal.showModal();
     }
 
-    // Use thymeleaf to get the default questions
     var defaultQuestions =/*[[${currentQuestions}]]*/ [];
     let questionIndex = defaultQuestions.length;
 

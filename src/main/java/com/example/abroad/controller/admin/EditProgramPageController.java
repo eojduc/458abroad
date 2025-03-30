@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public record EditProgramPageController(EditProgramService service, FormatService formatter,
@@ -89,6 +90,13 @@ public record EditProgramPageController(EditProgramService service, FormatServic
         yield "redirect:/admin/programs?error=An unexpected error occurred";
       }
     };
+  }
+
+  @GetMapping("/admin/programs/{programId}/edit/has-applicants")
+  @ResponseBody
+  public Map<String, Boolean> checkProgramHasApplicants(@PathVariable Integer programId) {
+    boolean hasApplicants = service.programHasApplicants(programId);
+    return Map.of("hasApplicants", hasApplicants);
   }
 
 }
