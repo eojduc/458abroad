@@ -8,6 +8,7 @@ import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ApplicationService.Documents;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
@@ -25,7 +26,8 @@ public record AdminApplicationInfoService(
   FormatService formatService,
   UserService userService,
   ProgramService programService,
-  ApplicationService applicationService
+  ApplicationService applicationService,
+  AuditService auditService
 ) {
 
 
@@ -134,16 +136,6 @@ public record AdminApplicationInfoService(
     }
     return List.of();
   }
-  public List<StatusOption> getStatusOptions(Boolean programIsPast) {
-    return List.of(
-      new StatusOption(Status.APPLIED.name(), "Applied"),
-      new StatusOption(Status.ENROLLED.name(), programIsPast ? "Completed" : "Enrolled"),
-      new StatusOption(Status.CANCELLED.name(), "Cancelled"),
-      new StatusOption(Status.ELIGIBLE.name(), "Eligible"),
-      new StatusOption(Status.WITHDRAWN.name(), "Withdrawn"),
-      new StatusOption(Status.APPROVED.name(), "Approved")
-    );
-  }
 
   public record ApplicationDetails(
     List<StatusOption> statusOptions,
@@ -197,7 +189,6 @@ public record AdminApplicationInfoService(
     if (application == null) {
       return new UpdateApplicationStatus.ApplicationNotFound();
     }
-    applicationService.updateStatus(application, status);
     var program = programService.findById(application.programId()).orElse(null);
     if (program == null) {
       return new UpdateApplicationStatus.ProgramNotFound();
@@ -224,9 +215,11 @@ public record AdminApplicationInfoService(
     if (isReviewer && !reviewerStatuses.contains(status)) {
       return new UpdateApplicationStatus.UserLacksPermission();
     }
+    auditService.logEvent(String.format("User %s updated status of application %d for student %s to %s",
+      user.username(), programId, username, status));
+    applicationService.updateStatus(application, status);
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var displayedStatus = programIsPast && status == Status.ENROLLED ? "COMPLETED" : status.toString();
-    System.out.println("Success");
     return new UpdateApplicationStatus.Success(displayedStatus);
   }
 
@@ -249,6 +242,8 @@ public record AdminApplicationInfoService(
     if (!isReviewer && !isFacultyLead && !isAdmin) {
       return new PostNote.UserLacksPermission();
     }
+    auditService.logEvent(String.format("User %s posted a note on application %d for student %s",
+      user.username(), programId, student));
     applicationService.saveNote(new Note(
       application.programId(),
       application.student(),

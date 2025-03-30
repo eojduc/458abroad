@@ -19,7 +19,8 @@ public record LetterOfRecommendationService(
   UserService userService,
   ProgramService programService,
   ApplicationService applicationService,
-  EmailService emailService
+  EmailService emailService,
+  AuditService auditService
 ) {
 
 
@@ -71,6 +72,8 @@ public record LetterOfRecommendationService(
     var code = UUID.randomUUID().toString();
     var recRequest = new Application.RecommendationRequest(programId, user.username(), email, name, code);
     applicationService.saveRecommendationRequest(recRequest);
+    auditService.logEvent("User " + user.username() + " requested a letter of recommendation for program " + programId);
+
     try {
       emailService.sendRequestEmail(email, name, program, user, code);
     } catch (Exception e) {
@@ -102,6 +105,7 @@ public record LetterOfRecommendationService(
     applicationService.deleteRecommendationRequest(request);
     applicationService.findLetterOfRecommendation(programId, user.username(), email)
       .ifPresent(applicationService::deleteLetterOfRecommendation);
+    auditService.logEvent("User " + user.username() + " deleted a letter of recommendation request for program " + programId);
     return new DeleteRecommendationRequest.Success();
   }
   public sealed interface UploadLetter {
@@ -127,6 +131,7 @@ public record LetterOfRecommendationService(
     try {
       var letter = new Application.LetterOfRecommendation(request.programId(), request.student(), request.email(), toBlob(file), Instant.now(), request.name());
       applicationService.saveLetterOfRecommendation(letter);
+      auditService.logEvent("User " + request.student() + " uploaded a letter of recommendation for program " + request.programId());
       return new UploadLetter.Success();
     } catch (Exception e) {
       return new UploadLetter.FileSaveError();
