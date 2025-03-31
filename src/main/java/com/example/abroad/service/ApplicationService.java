@@ -126,6 +126,10 @@ public record ApplicationService(
       .toList();
   }
 
+  public Optional<Response> getResponse(Application application, Integer question) {
+    return responseRepository.findById_ProgramIdAndId_StudentAndId_Question(application.programId(), application.student(), question);
+  }
+
   public void saveResponse(Application application, Integer question, String answer) {
     responseRepository.save(new Response(application.programId(), application.student(), question, answer));
   }

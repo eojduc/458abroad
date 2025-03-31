@@ -1,7 +1,9 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Note;
@@ -59,12 +61,21 @@ public record AdminApplicationInfoService(
       .sorted(Comparator.comparing(Note::timestamp).reversed())
       .map(this::getNoteInfo)
       .toList();
-    var responses = applicationService.getResponses(application)
-      .stream()
-      .flatMap(response ->
-          programService.findQuestion(program, response.question()).stream()
-            .map(question -> new ResponseInfo(question.text(), response.response()))
-      ).toList();
+    var questions = programService.getQuestions(program);
+    System.out.println("HELLO WORLD");
+    System.out.println(questions.stream().map(Question::id).toList());
+    System.out.println(questions.stream().map(Question::text).toList());
+    var responses2 = applicationService.getResponses(application);
+    System.out.println(responses2.stream().map(Response::question).toList());
+    System.out.println(responses2.stream().map(Response::response).toList());
+    var responses = questions.stream()
+      .map(question -> {
+        var response = applicationService.getResponse(application, question.id());
+        var text = response.map(Response::response).orElse("");
+        return new ResponseInfo(question.text(), text);
+      })
+      .toList();
+    System.out.println(responses);
     var documents = getDocInfo(applicationService.getDocuments(application));
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var theme = user.theme().name().toLowerCase();
