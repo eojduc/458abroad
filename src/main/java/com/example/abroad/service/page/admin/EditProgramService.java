@@ -13,10 +13,13 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public record EditProgramService(UserService userService, ProgramService programService, AuditService auditService) {
+  private static final Logger logger = LoggerFactory.getLogger(EditProgramService.class);
 
   public EditProgramPage getEditProgramInfo(Integer programId, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -55,7 +58,8 @@ public record EditProgramService(UserService userService, ProgramService program
   public UpdateProgramInfo updateProgramInfo(
     Integer programId, String title, String description, Integer year, LocalDate startDate,
     LocalDate endDate, Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
-    List<String> facultyLeads, LocalDate documentDeadline, List<String> selectedQuestions, HttpSession session
+    List<String> facultyLeads, LocalDate documentDeadline, List<String> selectedQuestions, List<Integer> removedQuestions,
+      HttpSession session
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -81,7 +85,7 @@ public record EditProgramService(UserService userService, ProgramService program
     var leadUsers = userService.findAll().stream()
         .filter(u -> facultyLeads.contains(u.username()))
         .toList();
-    return switch (programService.addProgram(newProgram, leadUsers, selectedQuestions)) {
+    return switch (programService.addProgram(newProgram, leadUsers, selectedQuestions, removedQuestions)) {
       case SaveProgram.InvalidProgramInfo(var message) -> new UpdateProgramInfo.InvalidProgramInfo(message);
       case SaveProgram.Success(var prog) -> {
         auditService.logEvent(String.format("Program %s(%d) updated by %s", prog.title(), prog.id(), user.username()));
