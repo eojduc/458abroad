@@ -1,6 +1,7 @@
 package com.example.abroad.service.page.student;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.LetterOfRecommendation;
 import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Question;
@@ -10,6 +11,7 @@ import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
+
 import jakarta.servlet.http.HttpSession;
 
 import java.util.List;
@@ -18,8 +20,10 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,9 +68,12 @@ public record ViewApplicationService(
       editable = true;
     }
     var responses = applicationService.getResponses(app);
+    Map<Integer, Response> responseMap = responses.stream()
+      .collect(Collectors.toMap(Response::question, Function.identity(), (r1, r2) -> r1));
     var questions = programService.getQuestions(prog);
+    var letterRequests = letterOfRecInfo(user, program);
 
-    return new GetApplicationResult.Success(app, prog, user, editable, responses, questions);
+    return new GetApplicationResult.Success(app, prog, user, editable, responseMap, questions, letterRequests);
   }
 
   public GetApplicationResult updateResponses(
@@ -76,6 +83,11 @@ public record ViewApplicationService(
       LocalDate dateOfBirth,
       @RequestParam Map<String, String> answers,
       HttpSession session) {
+    var userOpt = userService.findUserFromSession(session);
+    if (userOpt.isEmpty()) {
+      return new GetApplicationResult.UserNotFound();
+    }
+    User user = userOpt.get();
 
     Map<String, String> ans = answers.entrySet().stream()
         .filter(e -> e.getKey().startsWith("answers[") && e.getKey().endsWith("]"))
@@ -106,12 +118,15 @@ public record ViewApplicationService(
     });
 
     var responses = applicationService.getResponses(newApp);
+    Map<Integer, Response> responseMap = responses.stream()
+      .collect(Collectors.toMap(Response::question, Function.identity(), (r1, r2) -> r1));
     Program program = programService.findById(newApp.programId()).orElse(null);
     var questions = programService.getQuestions(program);
+    var letterRequests = letterOfRecInfo(user, program);
 
     auditService.logEvent("Application updated with new responses");
 
-    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responses, questions);
+    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responseMap, questions, letterRequests);
   }
 
   public GetApplicationResult changeStatus(Integer programId, Application.Status newStatus, HttpSession session) {
@@ -119,6 +134,12 @@ public record ViewApplicationService(
     if (!(result instanceof GetApplicationResult.Success success)) {
       return result;
     }
+
+    var userOpt = userService.findUserFromSession(session);
+    if (userOpt.isEmpty()) {
+      return new GetApplicationResult.UserNotFound();
+    }
+    User user = userOpt.get();
 
     Application app = success.application();
 
@@ -143,17 +164,35 @@ public record ViewApplicationService(
     }
     
     var responses = applicationService.getResponses(app);
+    Map<Integer, Response> responseMap = responses.stream()
+      .collect(Collectors.toMap(Response::question, Function.identity(), (r1, r2) -> r1));
     Program program = programService.findById(app.programId()).orElse(null);
     var questions = programService.getQuestions(program);
+    var letterRequests = letterOfRecInfo(user, program);
 
     auditService.logEvent("Application updated with new status: " + newStatus.name());
 
-    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responses, questions);
+    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responseMap, questions, letterRequests);
+  }
+
+  public record LetterOfRecInfo(String email, String name, Boolean submitted, Instant timestamp) { }
+
+  private List<LetterOfRecInfo> letterOfRecInfo(User student, Program program) {
+    return applicationService.getRecommendationRequests(program, student)
+      .stream()
+      .map(rec -> {
+         Optional<LetterOfRecommendation> letterOpt = applicationService.findLetterOfRecommendation(
+             rec.programId(), rec.student(), rec.email());
+         Instant timestamp = letterOpt.map(LetterOfRecommendation::timestamp).orElse(null);
+         boolean isSubmitted = letterOpt.isPresent();
+         return new LetterOfRecInfo(rec.email(), rec.name(), isSubmitted, timestamp);
+      })
+      .collect(Collectors.toList());
   }
 
   public sealed interface GetApplicationResult {
 
-    record Success(Application application, Program program, User user, boolean editable, List<Response> responses, List<Question> questions)
+    record Success(Application application, Program program, User user, boolean editable, Map<Integer, Response> responses, List<Question> questions, List<LetterOfRecInfo> letterRequests)
         implements GetApplicationResult {
     }
 

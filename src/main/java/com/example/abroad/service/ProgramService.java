@@ -68,38 +68,41 @@ public record ProgramService(
       return new SaveProgram.DatabaseError(e.getMessage());
     }
   }
-
   public SaveProgram addProgram(Program program, List<? extends User> facultyLeads, List<String> questions) {
+    // Validate faculty leads
+    if (facultyLeads == null || facultyLeads.isEmpty()) {
+      return new SaveProgram.InvalidProgramInfo("Program must have at least one faculty lead");
+    }
+
+    // Validate questions
+    if (questions == null || questions.isEmpty()) {
+      return new SaveProgram.InvalidProgramInfo("Program must have at least one question");
+    }
+
+    if (questions.stream().anyMatch(String::isBlank)) {
+      return new SaveProgram.InvalidProgramInfo("Questions cannot be blank");
+    }
+
     SaveProgram saveResult = saveProgram(program);
 
     return switch (saveResult) {
       case SaveProgram.Success success -> {
+        Program savedProgram = success.program();
         try {
-          Program savedProgram = success.program();
-
-          if(facultyLeads.isEmpty()) {
-            yield new SaveProgram.InvalidProgramInfo("Program must have at least one faculty lead");
-          }
-
           setFacultyLeads(savedProgram, facultyLeads);
-
-          if(questions == null || questions.isEmpty()) {
-            yield new SaveProgram.InvalidProgramInfo("Program must have at least one question");
-          }
-
-          if(questions.stream().anyMatch(String::isBlank)) {
-            yield new SaveProgram.InvalidProgramInfo("Questions cannot be blank");
-          }
-
           setQuestions(savedProgram.id(), questions);
           yield success;
         } catch (Exception e) {
-          // If setting faculty leads or questions fails
-          yield new SaveProgram.DatabaseError(e.getMessage());
+          try {
+            deleteProgram(savedProgram);
+          } catch (Exception deleteError) {
+            // Log the delete error, but return the original error
+          }
+          yield new DatabaseError(e.getMessage());
         }
       }
       case SaveProgram.InvalidProgramInfo invalidInfo -> invalidInfo;
-      case SaveProgram.DatabaseError databaseError -> databaseError;
+      case DatabaseError databaseError -> databaseError;
     };
   }
 

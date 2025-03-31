@@ -143,23 +143,31 @@ To run the application in the background and have it automatically start on boot
 1. **Create the service file**
 
 ```bash
-sudo nano /etc/systemd/system/abroad.service
+sudo nano /etc/systemd/system/458abroad.service
 ```
 
 2. **Use the following configuration**
 
-```bash
+```properties
 [Unit]
-Description=Abroad Java Spring Boot Application
+Description=ECE 458 Abroad Application Beta Service
 After=syslog.target
-After=network.target
 
 [Service]
-User=ubuntu  # or your VM user
-Type=simple
-ExecStart=/usr/bin/java -jar /path/to/your/app/build/libs/abroad-0.0.1-SNAPSHOT.jar
-Restart=always
-RestartSec=10
+User=root
+WorkingDirectory=/opt/458abroad
+Environment="RESET_DB=true"
+Environment="FILL_DB=true"
+
+ExecStart=/usr/bin/java -jar /opt/458abroad/abroad-0.0.1-SNAPSHOT.jar \
+  --spring.profiles.active=beta \
+  --spring.config.additional-location=file:/opt/458abroad/application.properties \
+  --server.port=8081 \
+  ${FILL_DB:+--fillDb=true} \
+  ${RESET_DB:+--resetDb=true}
+
+SuccessExitStatus=143
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target

@@ -174,7 +174,7 @@ public final class Application {
     private ID id;
 
     @Column(nullable = false)
-    private Integer code;
+    private String code;
 
     @Column(nullable = false)
     private String name;
@@ -215,7 +215,7 @@ public final class Application {
     public RecommendationRequest() {
     }
 
-    public RecommendationRequest(Integer programId, String student, String email, String name, Integer code) {
+    public RecommendationRequest(Integer programId, String student, String email, String name, String code) {
       this.id = new ID(programId, student, email);
       this.name = name;
       this.code = code;
@@ -236,7 +236,7 @@ public final class Application {
     public String name() {
       return name;
     }
-    public Integer code() {
+    public String code() {
       return code;
     }
   }

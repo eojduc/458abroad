@@ -1,5 +1,5 @@
 id,title,year,semester,applicationOpen,applicationClose,documentDeadline,startDate,endDate,description
-1,Science in Spain,2025,FALL,2024-12-01,2025-02-28,2025-02-28,2025-08-18,2025-12-28,"Science in Spain: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
+1,Science in Spain,2025,FALL,2024-12-01,2025-04-30,2025-04-30,2025-08-18,2025-12-28,"Science in Spain: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
 2,History in Canada,2025,FALL,2024-12-01,2025-02-28,2025-02-28,2025-08-18,2025-12-28,"History in Canada: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
 3,Art in Italy,2024,FALL,2023-12-01,2024-02-28,2024-02-28,2024-08-19,2024-12-29,"Art in Italy: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
 4,Medicine in India,2028,FALL,2027-12-01,2028-02-29,2028-02-29,2028-08-14,2028-12-31,"Medicine in India: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
@@ -10,6 +10,3 @@ id,title,year,semester,applicationOpen,applicationClose,documentDeadline,startDa
 9,Art in Australia,2028,SPRING,2027-09-01,2027-11-30,2027-11-30,2028-01-03,2028-05-07,"Art in Australia: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
 10,Art in Japan,2029,SPRING,2028-09-01,2028-11-30,2028-11-30,2029-01-08,2029-05-06,"Art in Japan: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
 11,Art in France,2025,SUMMER,2024-09-01,2024-11-30,2024-11-30,2025-05-19,2025-08-17,"Art in France: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
-12,TEST-1,2025,FALL,2025-01-01,2025-12-01,2025-12-25,2026-01-18,2026-03-28,"Science in Spain: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
-13,TEST-2,2025,FALL,2025-03-25,2025-12-01,2025-12-25,2026-01-18,2026-03-28,"Science in Spain: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."
-14,TEST-3,2025,FALL,2025-01-01,2025-03-25,2025-12-25,2026-01-18,2026-03-28,"Science in Spain: A unique and enriching study abroad experience focusing on local culture, history, and academic insights."

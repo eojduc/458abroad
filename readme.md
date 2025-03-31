@@ -32,3 +32,7 @@ For detailed deployment instructions, refer to the [Deployment Guide](deployment
 # Security Guide
 
 For detailed security guide, refer to the [Security Guide](security.md).
+
+# Backup Guide
+
+For detailed backup instructions, refer to the [Backup Guide](backup.md).

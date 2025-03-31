@@ -94,7 +94,6 @@ public record ApplyToProgramService(
   private Boolean isSubmitted(Application.RecommendationRequest request) {
     return applicationService.findLetterOfRecommendation(request.programId(), request.student(),
       request.email()).isPresent();
-
   }
 
   public sealed interface ApplyToProgram {
