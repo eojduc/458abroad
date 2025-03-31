@@ -96,8 +96,7 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
           "applicantDetails", applicantDetails
         ));
         model.addAllAttributes(Map.of(
-          "canSeeApplicants", canSeeApplicants,
-            "isAdmin", userService.isAdmin(user)
+          "canSeeApplicants", canSeeApplicants
         ));
         yield "admin/program-info :: applicant-table";
       }

@@ -107,7 +107,7 @@ public record ApplicationService(
     return documentRepository.findById_ProgramIdAndId_StudentAndId_Type(application.programId(), application.student(), type);
   }
 
-  public List<RecommendationRequest> getRecRequestsByCode(String code) {
+  public List<RecommendationRequest> getRecRequestsByCode(Integer code) {
     return recommendationRequestRepository.findByCode(code);
   }
 
@@ -124,10 +124,6 @@ public record ApplicationService(
       .stream()
       .sorted(Comparator.comparing(Response::question))
       .toList();
-  }
-
-  public Optional<Response> getResponse(Application application, Integer question) {
-    return responseRepository.findById_ProgramIdAndId_StudentAndId_Question(application.programId(), application.student(), question);
   }
 
   public void saveResponse(Application application, Integer question, String answer) {

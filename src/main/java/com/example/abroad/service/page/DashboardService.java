@@ -12,7 +12,7 @@ public record DashboardService(UserService userService, SSOService ssoService) {
 
   public sealed interface GetDashboard {
     record StudentDashboard(User user) implements GetDashboard {}
-    record AdminDashboard(User user, Boolean isAdmin) implements GetDashboard {}
+    record AdminDashboard(User user) implements GetDashboard {}
     record SSOUsernameTaken(String redirect) implements GetDashboard {}
     record NotLoggedIn() implements GetDashboard {}
   }
@@ -28,7 +28,7 @@ public record DashboardService(UserService userService, SSOService ssoService) {
       return new GetDashboard.NotLoggedIn();
     }
     if (!userService.isStudent(user)) {
-      return new GetDashboard.AdminDashboard(user, userService.isAdmin(user));
+      return new GetDashboard.AdminDashboard(user);
     }
     return new GetDashboard.StudentDashboard(user);
   }

@@ -38,7 +38,7 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
     return switch (programsInfo) {
       case UserNotFound() -> "redirect:/login?error=You are not logged in";
       case UserLacksPermission() -> "redirect:/programs?error=You lack permission to view this page";
-      case Success(var programAndStatuses, var user, var isAdmin) -> {
+      case Success(var programAndStatuses, var user) -> {
         model.addAllAttributes(
             Map.ofEntries(
                 entry("name", user.displayName()),
@@ -47,7 +47,6 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
                 entry("alerts", new Alerts(error, success, warning, info)),
                 entry("formatter", formatter),
                 entry("nameFilter", ""),
-                entry("isAdmin", isAdmin),
                 entry("leadFilter", List.of()),
                 entry("timeFilter", TimeFilter.FUTURE.name()),
                 entry("facultyPrograms", service.getMyPrograms(user)),
@@ -75,14 +74,13 @@ public record AdminProgramsController(AdminProgramsService service, FormatServic
     return switch (programsInfo) {
       case UserNotFound() -> "redirect:/login?error=You are not logged in";
       case UserLacksPermission() -> "redirect:/programs?error=You lack permission to view this page";
-      case Success(var programAndStatuses, var user, var isAdmin) -> {
+      case Success(var programAndStatuses, var user) -> {
         model.addAllAttributes(
             Map.ofEntries(
                 entry("name", user.displayName()),
                 entry("knownFacultyLeads", service.getKnownFacultyLeads()),
                 entry("sort", sort.name()),
                 entry("nameFilter", nameFilter),
-                entry("isAdmin", isAdmin),
                 entry("leadFilter", leadFilter),
                 entry("timeFilter", timeFilter.name()),
                 entry("facultyPrograms", service.getMyPrograms(user)),

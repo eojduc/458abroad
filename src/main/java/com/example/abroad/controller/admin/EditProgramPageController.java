@@ -3,9 +3,9 @@ package com.example.abroad.controller.admin;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.admin.EditProgramService;
-import com.example.abroad.service.page.admin.EditProgramService.EditProgramPage;
-import com.example.abroad.service.page.admin.EditProgramService.UpdateProgramInfo;
+import com.example.abroad.service.page.EditProgramService;
+import com.example.abroad.service.page.EditProgramService.EditProgramPage;
+import com.example.abroad.service.page.EditProgramService.UpdateProgramInfo;
 import com.example.abroad.view.Alerts;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public record EditProgramPageController(EditProgramService service, FormatService formatter,
@@ -90,13 +89,6 @@ public record EditProgramPageController(EditProgramService service, FormatServic
         yield "redirect:/admin/programs?error=An unexpected error occurred";
       }
     };
-  }
-
-  @GetMapping("/admin/programs/{programId}/edit/has-applicants")
-  @ResponseBody
-  public Map<String, Boolean> checkProgramHasApplicants(@PathVariable Integer programId) {
-    boolean hasApplicants = service.programHasApplicants(programId);
-    return Map.of("hasApplicants", hasApplicants);
   }
 
 }

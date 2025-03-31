@@ -78,9 +78,6 @@ public sealed interface User extends Serializable {
     public Role(Role.Type type, String username) {
       this.id = new ID(type, username);
     }
-    public String username() {
-      return id.username;
-    }
 
     public Type type() {
       return id.type;

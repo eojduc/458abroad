@@ -8,7 +8,6 @@ import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ApplicationService.Documents;
-import com.example.abroad.service.AuditService;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
@@ -37,8 +36,7 @@ public record AdminProgramInfoService(
   ProgramService programService,
   ApplicationService applicationService,
   UserService userService,
-  FormatService formatService,
-  AuditService auditService
+  FormatService formatService
 ) {
 
   public DeleteProgram deleteProgram(Integer programId, HttpSession session) {
@@ -61,7 +59,6 @@ public record AdminProgramInfoService(
       return new UserLacksPermission();
     }
     programService.deleteProgram(program);
-    auditService.logEvent(String.format("Deleted program %s", program.title()));
     return new Success();
   }
   public record ProgramDetails(

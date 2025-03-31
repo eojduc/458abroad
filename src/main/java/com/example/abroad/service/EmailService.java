@@ -47,7 +47,7 @@ public class EmailService {
 
 
 
-  public void sendRequestEmail(String email, String name, Program program, User student, String code) {
+  public void sendRequestEmail(String email, String name, Program program, User student, Integer code) {
     String subject = "Recommendation Request for " + program.title();
     String link = redirectUrl + "/rec-request/" + code;
 

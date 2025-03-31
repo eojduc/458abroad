@@ -236,7 +236,7 @@
   </div>
 </div>
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name, isAdmin)"
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name)"
      class="bg-base-100 navbar">
   <div class="flex-1">
     <a href="/" class="btn btn-ghost text-xl">
@@ -246,8 +246,8 @@
       HCC Abroad
     </a>
     <a href="/admin/programs" class="btn btn-ghost">Programs</a>
-    <a th:if="${isAdmin}" href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
-    <a th:if="${isAdmin}" href="/admin/users" class="btn btn-ghost">Users</a>
+    <a href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
+    <a href="/admin/users" class="btn btn-ghost">Users</a>
     <a href="/programs" class="btn btn-ghost">Student View</a>
   </div>
   <div class="flex-none gap-2">

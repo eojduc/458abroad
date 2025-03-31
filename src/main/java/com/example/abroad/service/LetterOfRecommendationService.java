@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Blob;
 import java.time.Instant;
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.slf4j.Logger;
@@ -19,8 +18,7 @@ public record LetterOfRecommendationService(
   UserService userService,
   ProgramService programService,
   ApplicationService applicationService,
-  EmailService emailService,
-  AuditService auditService
+  EmailService emailService
 ) {
 
 
@@ -37,7 +35,7 @@ public record LetterOfRecommendationService(
     record Success(String name, String email, Boolean submitted, String studentName, String studentEmail, String programTitle) implements GetRequestPage { }
     record RequestNotFound() implements GetRequestPage { }
   }
-  public GetRequestPage getRequestPage(String code) {
+  public GetRequestPage getRequestPage(Integer code) {
     System.out.println("Code: " + code);
     var requests = applicationService.getRecRequestsByCode(code);
     if (requests.isEmpty()) {
@@ -69,11 +67,9 @@ public record LetterOfRecommendationService(
     if (applicationService.findRecommendationRequest(programId, user.username(), email).isPresent()) {
       return new RequestRecommendation.StudentAlreadyAsked();
     }
-    var code = UUID.randomUUID().toString();
+    var code = ThreadLocalRandom.current().nextInt(100000, 1000000);
     var recRequest = new Application.RecommendationRequest(programId, user.username(), email, name, code);
     applicationService.saveRecommendationRequest(recRequest);
-    auditService.logEvent("User " + user.username() + " requested a letter of recommendation for program " + programId);
-
     try {
       emailService.sendRequestEmail(email, name, program, user, code);
     } catch (Exception e) {
@@ -105,7 +101,6 @@ public record LetterOfRecommendationService(
     applicationService.deleteRecommendationRequest(request);
     applicationService.findLetterOfRecommendation(programId, user.username(), email)
       .ifPresent(applicationService::deleteLetterOfRecommendation);
-    auditService.logEvent("User " + user.username() + " deleted a letter of recommendation request for program " + programId);
     return new DeleteRecommendationRequest.Success();
   }
   public sealed interface UploadLetter {
@@ -116,7 +111,7 @@ public record LetterOfRecommendationService(
     record FileEmpty() implements UploadLetter { }
   }
 
-  public UploadLetter uploadLetter(String code, MultipartFile file) {
+  public UploadLetter uploadLetter(Integer code, MultipartFile file) {
     if (file.isEmpty()) {
       return new UploadLetter.FileEmpty();
     }
@@ -131,7 +126,6 @@ public record LetterOfRecommendationService(
     try {
       var letter = new Application.LetterOfRecommendation(request.programId(), request.student(), request.email(), toBlob(file), Instant.now(), request.name());
       applicationService.saveLetterOfRecommendation(letter);
-      auditService.logEvent("User " + request.student() + " uploaded a letter of recommendation for program " + request.programId());
       return new UploadLetter.Success();
     } catch (Exception e) {
       return new UploadLetter.FileSaveError();
@@ -146,7 +140,7 @@ public record LetterOfRecommendationService(
     record LetterNotFound() implements GetLetterFile { }
   }
 
-  public GetLetterFile getLetterFile(String code) {
+  public GetLetterFile getLetterFile(Integer code) {
     var requests = applicationService.getRecRequestsByCode(code);
     if (requests.isEmpty()) {
       return new GetLetterFile.LetterNotFound();

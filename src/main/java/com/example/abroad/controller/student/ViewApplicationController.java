@@ -6,11 +6,8 @@ import com.example.abroad.model.Program;
 import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.service.DocumentService;
 import com.example.abroad.service.FormatService;
-import com.example.abroad.service.LetterOfRecommendationService;
-import com.example.abroad.service.LetterOfRecommendationService.DeleteRecommendationRequest;
-import com.example.abroad.service.LetterOfRecommendationService.RequestRecommendation;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.student.ViewApplicationService;
+import com.example.abroad.service.page.ViewApplicationService;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -35,8 +32,7 @@ public record ViewApplicationController(
         FormatService formatter,
         UserService userService,
         DocumentService documentService,
-        FacultyLeadRepository facultyLeadRepository,
-        LetterOfRecommendationService letterOfRecommendationService) {
+        FacultyLeadRepository facultyLeadRepository) {
 
   @GetMapping("/applications/{programId}")
   public String viewApplication(
@@ -72,14 +68,13 @@ public record ViewApplicationController(
         allAttributes.put("prog", successRes.program());
         allAttributes.put("user", successRes.user());
         allAttributes.put("editable", successRes.editable());
-        allAttributes.put("responseMap", successRes.responses());
+        allAttributes.put("responses", successRes.responses());
         allAttributes.put("questions", successRes.questions());
         allAttributes.put("formatter", formatter);
         allAttributes.put("alerts", new Alerts(error, success, warning, info));
         allAttributes.put("pair", pair);
         allAttributes.put("facultyLeads", facultyLeads);
         allAttributes.put("isNotStudent", !userService.isStudent(successRes.user()));
-        allAttributes.put("letterRequests", successRes.letterRequests());
 
         model.addAllAttributes(allAttributes);
         yield "student/view-application :: page";
@@ -164,10 +159,9 @@ public record ViewApplicationController(
                 "formatter", formatter,
                 "pair", pair,
                 "facultyLeads", facultyLeads,
-                "responseMap", success.responses(),
+                "responses", success.responses(),
                 "questions", success.questions(),
                 "isNotStudent", !userService.isStudent(success.user())));
-        model.addAttribute("letterRequests", success.letterRequests());
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
@@ -214,13 +208,12 @@ public record ViewApplicationController(
                 "prog", success.program(),
                 "user", success.user(),
                 "editable", success.editable(),
-                "responseMap", success.responses(),
+                "responses", success.responses(),
                 "questions", success.questions(),
                 "pair", pair,
                 "facultyLeads", facultyLeads,
                 "formatter", formatter,
                 "isNotStudent", !userService.isStudent(success.user())));
-        model.addAttribute("letterRequests", success.letterRequests());
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
@@ -235,31 +228,6 @@ public record ViewApplicationController(
               "redirect:/dashboard?error=Application Not Editable";
       case ViewApplicationService.GetApplicationResult.IllegalStatusChange isc ->
               "redirect:/dashboard?error=Illegal Status Change";
-    };
-  }
-
-  @PostMapping("/applications/{programId}/delete-letter-request")
-  public String deleteRequest(@PathVariable Integer programId, HttpSession session, @RequestParam String email) {
-    return switch (letterOfRecommendationService.deleteRecommendationRequest(programId, session, email)) {
-      case DeleteRecommendationRequest.Success() ->
-        "redirect:/applications/" + programId + "?success=Request deleted#letter-requests";
-      case DeleteRecommendationRequest.UserNotFound() -> "redirect:/login?error=You are not logged in";
-   };
-  }
-  @PostMapping("/applications/{programId}/request-letter")
-  public String requestRecommendation(@PathVariable Integer programId, HttpSession session,
-    @RequestParam String email, @RequestParam String name, Model model) {
-    return switch (letterOfRecommendationService.requestRecommendation(programId, session, email, name)) {
-      case RequestRecommendation.ProgramNotFound() ->
-        "redirect:/applications?error=That program does not exist";
-      case RequestRecommendation.UserNotFound() -> "redirect:/login?error=You are not logged in";
-      case RequestRecommendation.StudentAlreadyAsked() -> "redirect:/applications/" + programId
-        + "?error=You have already requested a recommendation#letter-requests";
-      case RequestRecommendation.Success() -> {
-        model.addAttribute("success", "Request sent");
-        yield "redirect:/applications/" + programId + "?success=Request sent#letter-requests";
-      }
-      case RequestRecommendation.EmailError() -> "redirect:/applications/" + programId + "?error=Error sending email#letter-requests";
     };
   }
 }

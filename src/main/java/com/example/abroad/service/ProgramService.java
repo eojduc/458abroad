@@ -110,6 +110,44 @@ public record ProgramService(
     return findFacultyLeads(program).stream().map(User::username).anyMatch(user.username()::equals);
   }
 
+  public SaveProgram addProgram(Program program, List<? extends User> facultyLeads, List<String> questions) {
+    SaveProgram saveResult = saveProgram(program);
+
+    return switch (saveResult) {
+      case SaveProgram.Success success -> {
+        try {
+          Program savedProgram = success.program();
+
+          if(facultyLeads.isEmpty()) {
+            yield new SaveProgram.InvalidProgramInfo("Program must have at least one faculty lead");
+          }
+
+          setFacultyLeads(savedProgram, facultyLeads);
+
+          if(questions == null || questions.isEmpty()) {
+            yield new SaveProgram.InvalidProgramInfo("Program must have at least one question");
+          }
+
+          if(questions.stream().anyMatch(String::isBlank)) {
+            yield new SaveProgram.InvalidProgramInfo("Questions cannot be blank");
+          }
+
+          setQuestions(savedProgram.id(), questions);
+          yield success;
+        } catch (Exception e) {
+          // If setting faculty leads or questions fails
+          yield new SaveProgram.DatabaseError(e.getMessage());
+        }
+      }
+      case SaveProgram.InvalidProgramInfo invalidInfo -> invalidInfo;
+      case SaveProgram.DatabaseError databaseError -> databaseError;
+    };
+  }
+
+  public Boolean isFacultyLead(Program program, User user) {
+    return findFacultyLeads(program).stream().map(User::username).anyMatch(user.username()::equals);
+  }
+
 
   public sealed interface SaveProgram {
     record Success(Program program) implements SaveProgram {}
