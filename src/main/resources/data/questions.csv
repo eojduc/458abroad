@@ -35,11 +35,9 @@ id,programId,text
 3,6,"Describe a time you adapted to a new or unfamiliar environment."
 4,6,"What unique perspective or contribution will you bring to the group?"
 
-0,7,"Why do you want to participate in this study abroad program?"
-1,7,"How does this program align with your academic or career goals?"
-2,7,"What challenges do you anticipate during this experience, and how will you address them?"
-3,7,"Describe a time you adapted to a new or unfamiliar environment."
-4,7,"What unique perspective or contribution will you bring to the group?"
+0,7,"What's your opinion of this program?"
+1,7,"Have you ever did familiar project related to this program?"
+
 
 0,8,"Why do you want to participate in this study abroad program?"
 1,8,"How does this program align with your academic or career goals?"
@@ -65,8 +63,3 @@ id,programId,text
 3,11,"Describe a time you adapted to a new or unfamiliar environment."
 4,11,"What unique perspective or contribution will you bring to the group?"
 
-0,12,"Why do you want to participate in this study abroad program?"
-
-0,13,"Why do you want to participate in this study abroad program?"
-
-0,14,"Why do you want to participate in this study abroad program?"
