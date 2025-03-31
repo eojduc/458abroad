@@ -176,6 +176,157 @@
 </div>
 
 <!-- Footer -->
+<script th:inline="javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    const checkboxes = document.querySelectorAll("input[name='selectedQuestions']");
+    const removedQuestionsInput = document.getElementById("removedQuestions");
+
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener("change", function () {
+        updateRemovedQuestions();
+      });
+    });
+
+    function updateRemovedQuestions() {
+      const uncheckedQuestionIds = [...checkboxes]
+      .filter(checkbox => !checkbox.checked)
+      .map(checkbox => parseInt(checkbox.id.split('-')[1], 10));  // Extract ID from "checkbox-<index>"
+
+      removedQuestionsInput.value = uncheckedQuestionIds.join(",");
+    }
+  });
+
+
+  function updateCheckboxValue(textInput) {
+    const index = textInput.id.split('-')[1];
+    const checkbox = document.getElementById('checkbox-' + index);
+    checkbox.value = textInput.value;
+  }
+
+  async function showModal() {
+    const originalQuestions = /*[[${currentQuestions}]]*/ [];
+    const programId = /*[[${program.id}]]*/ -1;
+
+    const modal = document.getElementById('edit_modal');
+    const warningDiv = document.getElementById('edit-warning-div');
+
+    // First display a loading message
+    warningDiv.textContent = "Checking program status...";
+
+    if (programId === -1) {
+      warningDiv.textContent = "Warning, internal server error! Are you sure you want to edit this program?";
+      modal.showModal();
+      return;
+    }
+
+    modal.showModal();
+
+    // Analyze question changes using more concise modern JS
+    const currentQuestionElements = document.querySelectorAll('#questionList > div');
+
+    const hasModifiedQuestions = originalQuestions.some((origQuestion, index) => {
+      const questionElement = document.getElementById(`questionText-${index}`);
+      return questionElement && origQuestion !== questionElement.value;
+    });
+
+    const hasRemovedQuestions = originalQuestions.some((origQuestion, index) => {
+      const checkbox = document.getElementById(`checkbox-${index}`);
+      return !checkbox || !checkbox.checked;
+    });
+
+    const hasAddedQuestions = [...currentQuestionElements].some((div, index) =>
+        index >= originalQuestions.length &&
+        div.querySelector('input[type="checkbox"]')?.checked
+    );
+
+    try {
+      // Fetch applicantsExist from backend
+      const response = await fetch(`/admin/programs/${programId}/edit/has-applicants`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to check if program has applicants');
+
+      const { hasApplicants: applicantsExist } = await response.json();
+
+      let warningMessage = "Are you sure you want to edit this program?";
+
+      if (applicantsExist) {
+        if (hasModifiedQuestions) {
+          warningMessage = "Editing this program may affect existing applicants.";
+        }
+
+        if (hasAddedQuestions) {
+          warningMessage += " Adding questions will have missing responses from existing applicants.";
+        }
+
+        if (hasRemovedQuestions) {
+          warningMessage += " Removing questions will delete those responses by applicants.";
+        }
+
+        if (hasModifiedQuestions || hasRemovedQuestions) {
+          warningMessage += " Are you sure you want to proceed?";
+        }
+      }
+
+      warningDiv.textContent = warningMessage;
+    } catch (error) {
+      console.error('Error checking applicants:', error);
+      warningDiv.textContent = "Unable to verify applicant status. Are you sure you want to edit this program?";
+    }
+  }
+
+  var defaultQuestions =/*[[${currentQuestions}]]*/ [];
+  let questionIndex = defaultQuestions.length;
+
+  function addQuestion() {
+    // Create a new checkbox and input field
+
+    // Create new elements
+    const newRow = document.createElement('div');
+    newRow.classList.add('flex', 'items-center', 'p-2', 'hover:bg-base-200', 'rounded-lg', 'group');
+
+    // Checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.classList.add('checkbox', 'checkbox-primary', 'mr-2');
+    checkbox.name = 'selectedQuestions';
+    checkbox.value = ''; // You can assign a default value or leave it empty
+    checkbox.id = 'checkbox-' + questionIndex;
+    checkbox.checked= false;
+
+    // Text input
+    const editableContainer = document.createElement('div');
+    editableContainer.classList.add('editable-question-container', 'flex-grow', 'relative');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.classList.add('input', 'input-bordered', 'w-full');
+    input.id = 'questionText-' + questionIndex;
+    input.onchange = function() {
+      updateCheckboxValue(this);
+    };
+    input.onkeydown = preventEnterKey;
+
+    // Append the elements
+    editableContainer.appendChild(input);
+    newRow.appendChild(checkbox);
+    newRow.appendChild(editableContainer);
+
+    questionIndex++;
+
+    // Append the new row to the list
+    document.getElementById('questionList').appendChild(newRow);
+  }
+
+  function preventEnterKey(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+    }
+  }
+</script>
 <div th:replace="~{components :: footer}"></div>
 <div th:replace="~{components :: session-timeout-script}"></div>
 </body>
@@ -207,6 +358,7 @@
                      onchange="updateCheckboxValue(this)"/>
             </div>
           </div>
+          <input type="hidden" name="removedQuestions" id="removedQuestions">
         </div>
       </li>
     </ul>
@@ -215,136 +367,6 @@
       <button type="button" class="btn btn-accent btn-square btn-sm text-lg" onclick="addQuestion()">+</button>
     </div>
   </label>
-
-  <script th:inline="javascript">
-    function updateCheckboxValue(textInput) {
-      const index = textInput.id.split('-')[1];
-      const checkbox = document.getElementById('checkbox-' + index);
-      checkbox.value = textInput.value;
-    }
-
-    async function showModal() {
-      const originalQuestions = /*[[${currentQuestions}]]*/ [];
-      const programId = /*[[${program.id}]]*/ -1;
-
-      const modal = document.getElementById('edit_modal');
-      const warningDiv = document.getElementById('edit-warning-div');
-
-      // First display a loading message
-      warningDiv.textContent = "Checking program status...";
-
-      if (programId === -1) {
-        warningDiv.textContent = "Warning, internal server error! Are you sure you want to edit this program?";
-        modal.showModal();
-        return;
-      }
-
-      modal.showModal();
-
-      // Analyze question changes using more concise modern JS
-      const currentQuestionElements = document.querySelectorAll('#questionList > div');
-
-      const hasModifiedQuestions = originalQuestions.some((origQuestion, index) => {
-        const questionElement = document.getElementById(`questionText-${index}`);
-        return questionElement && origQuestion !== questionElement.value;
-      });
-
-      const hasRemovedQuestions = originalQuestions.some((origQuestion, index) => {
-        const checkbox = document.getElementById(`checkbox-${index}`);
-        return !checkbox || !checkbox.checked;
-      });
-
-      const hasAddedQuestions = [...currentQuestionElements].some((div, index) =>
-          index >= originalQuestions.length &&
-          div.querySelector('input[type="checkbox"]')?.checked
-      );
-
-      try {
-        // Fetch applicantsExist from backend
-        const response = await fetch(`/admin/programs/${programId}/edit/has-applicants`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (!response.ok) throw new Error('Failed to check if program has applicants');
-
-        const { hasApplicants: applicantsExist } = await response.json();
-
-        let warningMessage = "Are you sure you want to edit this program?";
-
-        if (applicantsExist) {
-          if (hasModifiedQuestions) {
-            warningMessage = "Editing this program may affect existing applicants.";
-          }
-
-          if (hasAddedQuestions) {
-            warningMessage += " Adding questions will have missing responses from existing applicants.";
-          }
-
-          if (hasRemovedQuestions) {
-            warningMessage += " Removing questions will delete those responses by applicants.";
-          }
-
-          if (hasModifiedQuestions || hasRemovedQuestions) {
-            warningMessage += " Are you sure you want to proceed?";
-          }
-        }
-
-        warningDiv.textContent = warningMessage;
-      } catch (error) {
-        console.error('Error checking applicants:', error);
-        warningDiv.textContent = "Unable to verify applicant status. Are you sure you want to edit this program?";
-      }
-    }
-
-    var defaultQuestions =/*[[${currentQuestions}]]*/ [];
-    let questionIndex = defaultQuestions.length;
-
-    function addQuestion() {
-      // Create a new checkbox and input field
-
-      // Create new elements
-      const newRow = document.createElement('div');
-      newRow.classList.add('flex', 'items-center', 'p-2', 'hover:bg-base-200', 'rounded-lg', 'group');
-
-      // Checkbox
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.classList.add('checkbox', 'checkbox-primary', 'mr-2');
-      checkbox.name = 'selectedQuestions';
-      checkbox.value = ''; // You can assign a default value or leave it empty
-      checkbox.id = 'checkbox-' + questionIndex;
-      checkbox.checked= false;
-
-      // Text input
-      const editableContainer = document.createElement('div');
-      editableContainer.classList.add('editable-question-container', 'flex-grow', 'relative');
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.classList.add('input', 'input-bordered', 'w-full');
-      input.id = 'questionText-' + questionIndex;
-      input.onchange = function() {
-        updateCheckboxValue(this);
-      };
-      input.onkeydown = preventEnterKey;
-
-      // Append the elements
-      editableContainer.appendChild(input);
-      newRow.appendChild(checkbox);
-      newRow.appendChild(editableContainer);
-
-      questionIndex++;
-
-      // Append the new row to the list
-      document.getElementById('questionList').appendChild(newRow);
-    }
-
-    function preventEnterKey(event) {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-      }
-    }
-  </script>
 </div>
+
+

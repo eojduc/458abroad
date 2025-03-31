@@ -73,10 +73,11 @@ public record EditProgramPageController(EditProgramService service, FormatServic
       @RequestParam List<String> facultyLeads,
       @RequestParam LocalDate applicationClose,
       @RequestParam(required = false) List<String> selectedQuestions,
+      @RequestParam(required = false) List<Integer> removedQuestions,
       HttpSession session) {
     return switch (service.updateProgramInfo(programId, title, description, year, startDate,
         endDate, semester, applicationOpen, applicationClose, facultyLeads, documentDeadline,
-        selectedQuestions, session)) {
+        selectedQuestions, removedQuestions, session)) {
       case UpdateProgramInfo.Success() ->
           String.format("redirect:/admin/programs/%d/edit?success=Program updated", programId);
       case UpdateProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
