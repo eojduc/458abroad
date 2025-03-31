@@ -4,9 +4,9 @@ import com.example.abroad.view.Alerts;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.AddProgramService;
-import com.example.abroad.service.page.AddProgramService.AddProgramInfo;
-import com.example.abroad.service.page.AddProgramService.GetAddProgramInfo;
+import com.example.abroad.service.page.admin.AddProgramService;
+import com.example.abroad.service.page.admin.AddProgramService.AddProgramInfo;
+import com.example.abroad.service.page.admin.AddProgramService.GetAddProgramInfo;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -39,9 +39,11 @@ public record AddProgramPageController(AddProgramService service, FormatService 
         model.addAllAttributes(
             Map.of("user", user,
                 "referer", Optional.ofNullable(referer).orElse("/admin/programs"),
+                "isAdmin", userService.isAdmin(user),
                 "alerts", new Alerts(error, success, warning, info),
                 "formatter", formatter,
-                "adminList", service.getAdminList()));
+                "defaultQuestions", service.getDefaultQuestions(),
+                "adminList", service.getFacultyList()));
         return "admin/add-program :: page";
       }
       case GetAddProgramInfo.NotLoggedIn() -> {
@@ -52,25 +54,26 @@ public record AddProgramPageController(AddProgramService service, FormatService 
       }
     }
   }
-  @PostMapping("/admin/programs/new")
-  public String addProgramPage(
-      @RequestParam String title,
-      @RequestParam String description,
-      @RequestParam List<String> facultyLeads,
-      @RequestParam LocalDate essentialDocsDate,
-      @RequestParam Integer year,
-      @RequestParam LocalDate startDate,
-      @RequestParam LocalDate endDate,
-      @RequestParam Semester semester,
-      @RequestParam LocalDate applicationOpen,
-      @RequestParam LocalDate applicationClose,
-      HttpSession session,
-      Model model,
-      HttpServletResponse response) {
+    @PostMapping("/admin/programs/new")
+    public String addProgramPage(
+        @RequestParam String title,
+        @RequestParam String description,
+        @RequestParam List<String> facultyLeads,
+        @RequestParam LocalDate essentialDocsDate,
+        @RequestParam Integer year,
+        @RequestParam LocalDate startDate,
+        @RequestParam LocalDate endDate,
+        @RequestParam Semester semester,
+        @RequestParam LocalDate applicationOpen,
+        @RequestParam LocalDate applicationClose,
+        @RequestParam(required = false) List<String> selectedQuestions,
+        HttpSession session,
+        Model model,
+        HttpServletResponse response) {
 
-    return switch (service.addProgramInfo(title, description, facultyLeads, year, startDate, endDate,
-        essentialDocsDate, semester, applicationOpen, applicationClose, session)) {
-      case AddProgramInfo.Success(Integer programId) -> {
+      return switch (service.addProgramInfo(title, description, facultyLeads, year, startDate, endDate,
+          essentialDocsDate, semester, applicationOpen, applicationClose, selectedQuestions, session)) {
+        case AddProgramInfo.Success(Integer programId) -> {
         response.setHeader("HX-Redirect", String.format("/admin/programs/%d?success=Program created", programId));
         yield "components :: empty";  // Return a minimal fragment
       }

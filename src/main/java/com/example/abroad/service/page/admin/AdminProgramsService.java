@@ -48,14 +48,25 @@ public record AdminProgramsService(
     if (user == null) {
       return new GetAllProgramsInfo.UserNotFound();
     }
-    if (!userService.isAdmin(user)) {
-      return new GetAllProgramsInfo.UserNotAdmin();
+    var userIsAdmin = userService.isAdmin(user);
+    var userIsReviewer = userService.isReviewer(user);
+    var userIsFaculty = userService.isFaculty(user);
+    if (!userIsAdmin && !userIsReviewer && !userIsFaculty) {
+      return new GetAllProgramsInfo.UserLacksPermission();
     }
     return processAuthorizedRequest(sort, nameFilter, leadFilter, timeFilter, user, ascending);
   }
 
   public List<? extends  User> getKnownFacultyLeads() {
     return programService.findAllFacultyLeads();
+  }
+
+  public List<Program> getMyPrograms(User user) {
+    if (!userService.isFaculty(user) && !userService.isHeadAdmin(user)) {
+      logger.error("User {} is not a faculty member", user.username());
+      return List.of();
+    }
+    return programService.findFacultyPrograms(user);
   }
 
   private GetAllProgramsInfo processAuthorizedRequest(
@@ -69,14 +80,16 @@ public record AdminProgramsService(
     var programsAndStatuses = programService.findAll()
         .stream()
         .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
-        .filter(program -> new HashSet<>(extractFacultyLeadUsername(program, User::username)).containsAll(leadFilter))
+        .filter(program -> leadFilter.isEmpty() ||
+            extractFacultyLeadUsername(program, User::username).stream().anyMatch(leadFilter::contains))
         .filter(getTimeFilterPredicate(timeFilter))
         .map(getProgramAndStatuses())
         .sorted(getSortComparator(sort, ascending))
         .toList();
     return new GetAllProgramsInfo.Success(
         programsAndStatuses,
-        user
+        user,
+        userService.isAdmin(user)
     );
   }
 
@@ -139,8 +152,8 @@ public record AdminProgramsService(
     return switch (timeFilter) {
       case FUTURE -> program -> !(program.endDate().isBefore(today));
       case OPEN ->
-          program -> !(program.applicationOpen().isBefore(today) || program.applicationClose()
-              .isAfter(today));
+          program -> !(program.applicationOpen().isAfter(today) || program.applicationClose()
+              .isBefore(today));
       case REVIEW -> program -> !(program.applicationClose().isAfter(today) || program.startDate()
           .isBefore(today));
       case RUNNING ->
@@ -167,8 +180,8 @@ public record AdminProgramsService(
       case END_DATE ->
           Comparator.comparing(programAndStatuses -> programAndStatuses.program().endDate());
       case FACULTY_LEAD -> Comparator.comparing(
-          programAndStatuses -> programService.findFacultyLeads(programAndStatuses.program())
-              .size());
+          (ProgramAndStatuses pas) -> programService.findFacultyLeads(pas.program())
+              .size()).thenComparing(pas -> programService.findFacultyLeads(pas.program()).getFirst().displayName()); // very slow
       case APPLIED -> Comparator.comparing(ProgramAndStatuses::applied);
       case ELIGIBLE -> Comparator.comparing(ProgramAndStatuses::eligible);
       case APPROVED -> Comparator.comparing(ProgramAndStatuses::approved);
@@ -185,7 +198,8 @@ public record AdminProgramsService(
 
     record Success(
         List<ProgramAndStatuses> programsAndStatuses,
-        User user
+        User user,
+        Boolean isAdmin
     ) implements GetAllProgramsInfo {
 
     }
@@ -194,7 +208,7 @@ public record AdminProgramsService(
 
     }
 
-    record UserNotAdmin() implements GetAllProgramsInfo {
+    record UserLacksPermission() implements GetAllProgramsInfo {
 
     }
   }

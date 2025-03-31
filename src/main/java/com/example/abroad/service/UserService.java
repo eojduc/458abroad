@@ -61,6 +61,10 @@ public record UserService(
     return roleRepository.findById_Username(user.username()).isEmpty();
   }
 
+  public Boolean isHeadAdmin(User user) {
+    return user.username().equals("admin");
+  }
+
   public void deleteUser(User user) {
     switch (user) {
       case User.LocalUser localUser -> localUserRepository.delete(localUser);
@@ -101,5 +105,12 @@ public record UserService(
   public void removeRole(User user, User.Role.Type roleType) {
     roleRepository.findById_UsernameAndId_Type(user.username(), roleType)
             .ifPresent(roleRepository::delete);
+  }
+
+  public List<? extends User> findUsersWithRole(User.Role.Type roleType) {
+    return roleRepository.findById_Type(roleType)
+            .stream()
+            .map(role -> findByUsername(role.username()).orElse(null))
+            .toList();
   }
 }

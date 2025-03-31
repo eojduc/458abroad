@@ -1,4 +1,4 @@
-package com.example.abroad.service.page;
+package com.example.abroad.service.page.student;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;

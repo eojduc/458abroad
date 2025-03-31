@@ -9,7 +9,7 @@
 <head xmlns:th="http://www.thymeleaf.org" th:fragment="head(title)">
   <title th:text="${title}"></title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
 </head>
 
@@ -236,7 +236,7 @@
   </div>
 </div>
 
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name)"
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name, isAdmin)"
      class="bg-base-100 navbar">
   <div class="flex-1">
     <a href="/" class="btn btn-ghost text-xl">
@@ -246,8 +246,8 @@
       HCC Abroad
     </a>
     <a href="/admin/programs" class="btn btn-ghost">Programs</a>
-    <a href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
-    <a href="/admin/users" class="btn btn-ghost">Users</a>
+    <a th:if="${isAdmin}" href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
+    <a th:if="${isAdmin}" href="/admin/users" class="btn btn-ghost">Users</a>
     <a href="/programs" class="btn btn-ghost">Student View</a>
   </div>
   <div class="flex-none gap-2">

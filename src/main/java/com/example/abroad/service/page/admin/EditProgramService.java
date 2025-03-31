@@ -1,19 +1,22 @@
-package com.example.abroad.service.page;
+package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.model.User;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.ProgramService.SaveProgram;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.admin.AddProgramService.AddProgramInfo;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
-public record EditProgramService(UserService userService, ProgramService programService) {
+public record EditProgramService(UserService userService, ProgramService programService, AuditService auditService) {
 
   public EditProgramPage getEditProgramInfo(Integer programId, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -40,13 +43,19 @@ public record EditProgramService(UserService userService, ProgramService program
       .filter(u -> !facultyUsernames.contains(u.username()))
       .toList();
 
-    return new EditProgramPage.Success(program, user, facultyLeads, nonFacultyLeads);
+    List<String> questions = programService.getQuestions(program).stream()
+      .map(Program.Question::text)
+      .toList();
+
+    var applicantsExists = programHasApplicants(programId);
+
+    return new EditProgramPage.Success(program, user, facultyLeads, nonFacultyLeads, questions, applicantsExists);
   }
 
   public UpdateProgramInfo updateProgramInfo(
     Integer programId, String title, String description, Integer year, LocalDate startDate,
     LocalDate endDate, Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
-    List<String> facultyLeads, HttpSession session, LocalDate documentDeadline
+    List<String> facultyLeads, LocalDate documentDeadline, List<String> selectedQuestions, HttpSession session
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -60,27 +69,33 @@ public record EditProgramService(UserService userService, ProgramService program
       return new UpdateProgramInfo.ProgramNotFound();
     }
     var newProgram = program
-      .withTitle(title)
-      .withYear(Year.of(year))
-      .withSemester(semester)
-      .withApplicationOpen(applicationOpen)
-      .withApplicationClose(applicationClose)
-      .withStartDate(startDate)
-      .withEndDate(endDate)
-      .withDescription(description)
-      .withDocumentDeadline(documentDeadline);
-    return switch (programService.saveProgram(newProgram)) {
+        .withTitle(title)
+        .withYear(Year.of(year))
+        .withSemester(semester)
+        .withApplicationOpen(applicationOpen)
+        .withApplicationClose(applicationClose)
+        .withStartDate(startDate)
+        .withEndDate(endDate)
+        .withDescription(description)
+        .withDocumentDeadline(documentDeadline);
+    var leadUsers = userService.findAll().stream()
+        .filter(u -> facultyLeads.contains(u.username()))
+        .toList();
+    return switch (programService.addProgram(newProgram, leadUsers, selectedQuestions)) {
+      case SaveProgram.InvalidProgramInfo(var message) -> new UpdateProgramInfo.InvalidProgramInfo(message);
       case SaveProgram.Success(var prog) -> {
-        var leadUsers = userService.findAll().stream()
-          .filter(u -> facultyLeads.contains(u.username()))
-          .toList();
-        programService.setFacultyLeads(prog, leadUsers);
+        auditService.logEvent(String.format("Program %s(%d) updated by %s", prog.title(), prog.id(), user.username()));
         yield new UpdateProgramInfo.Success();
       }
-      case SaveProgram.InvalidProgramInfo(var message) -> new UpdateProgramInfo.InvalidProgramInfo(message);
       case SaveProgram.DatabaseError(var message) -> new UpdateProgramInfo.DatabaseError(message);
     };
   }
+
+  public Boolean programHasApplicants(Integer programId) {
+    return !programService.getApplications(
+        Objects.requireNonNull(programService.findById(programId).orElse(null))).isEmpty();
+  }
+
 
 
   public sealed interface EditProgramPage {
@@ -88,7 +103,9 @@ public record EditProgramService(UserService userService, ProgramService program
       Program program,
       User admin,
       List<? extends User> facultyLeads,
-      List<? extends User> nonFacultyLeads
+      List<? extends User> nonFacultyLeads,
+      List<String> currentQuestions,
+      Boolean applicantsExist
     ) implements EditProgramPage { }
     record ProgramNotFound() implements EditProgramPage { }
     record UserNotAdmin() implements EditProgramPage { }

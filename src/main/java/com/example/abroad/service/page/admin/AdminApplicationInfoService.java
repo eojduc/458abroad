@@ -1,13 +1,16 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ApplicationService.Documents;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
@@ -25,7 +28,8 @@ public record AdminApplicationInfoService(
   FormatService formatService,
   UserService userService,
   ProgramService programService,
-  ApplicationService applicationService
+  ApplicationService applicationService,
+  AuditService auditService
 ) {
 
 
@@ -57,12 +61,21 @@ public record AdminApplicationInfoService(
       .sorted(Comparator.comparing(Note::timestamp).reversed())
       .map(this::getNoteInfo)
       .toList();
-    var responses = applicationService.getResponses(application)
-      .stream()
-      .flatMap(response ->
-          programService.findQuestion(program, response.question()).stream()
-            .map(question -> new ResponseInfo(question.text(), response.response()))
-      ).toList();
+    var questions = programService.getQuestions(program);
+    System.out.println("HELLO WORLD");
+    System.out.println(questions.stream().map(Question::id).toList());
+    System.out.println(questions.stream().map(Question::text).toList());
+    var responses2 = applicationService.getResponses(application);
+    System.out.println(responses2.stream().map(Response::question).toList());
+    System.out.println(responses2.stream().map(Response::response).toList());
+    var responses = questions.stream()
+      .map(question -> {
+        var response = applicationService.getResponse(application, question.id());
+        var text = response.map(Response::response).orElse("");
+        return new ResponseInfo(question.text(), text);
+      })
+      .toList();
+    System.out.println(responses);
     var documents = getDocInfo(applicationService.getDocuments(application));
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var theme = user.theme().name().toLowerCase();
@@ -70,7 +83,7 @@ public record AdminApplicationInfoService(
     var applicationDetails = getAppDetails(programIsPast, application, student, isAdmin, isReviewer, isLead);
     return new GetApplicationInfo.Success(noteInfos, documents, theme,
       responses, programDetails,
-      applicationDetails, user.displayName(), isReviewer, getLetters(student, program));
+      applicationDetails, user.displayName(), isReviewer, getLetters(student, program), isAdmin);
   }
 
   public record ResponseInfo(String question, String response) {
@@ -134,16 +147,6 @@ public record AdminApplicationInfoService(
     }
     return List.of();
   }
-  public List<StatusOption> getStatusOptions(Boolean programIsPast) {
-    return List.of(
-      new StatusOption(Status.APPLIED.name(), "Applied"),
-      new StatusOption(Status.ENROLLED.name(), programIsPast ? "Completed" : "Enrolled"),
-      new StatusOption(Status.CANCELLED.name(), "Cancelled"),
-      new StatusOption(Status.ELIGIBLE.name(), "Eligible"),
-      new StatusOption(Status.WITHDRAWN.name(), "Withdrawn"),
-      new StatusOption(Status.APPROVED.name(), "Approved")
-    );
-  }
 
   public record ApplicationDetails(
     List<StatusOption> statusOptions,
@@ -197,7 +200,6 @@ public record AdminApplicationInfoService(
     if (application == null) {
       return new UpdateApplicationStatus.ApplicationNotFound();
     }
-    applicationService.updateStatus(application, status);
     var program = programService.findById(application.programId()).orElse(null);
     if (program == null) {
       return new UpdateApplicationStatus.ProgramNotFound();
@@ -224,9 +226,11 @@ public record AdminApplicationInfoService(
     if (isReviewer && !reviewerStatuses.contains(status)) {
       return new UpdateApplicationStatus.UserLacksPermission();
     }
+    auditService.logEvent(String.format("User %s updated status of application %d for student %s to %s",
+      user.username(), programId, username, status));
+    applicationService.updateStatus(application, status);
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var displayedStatus = programIsPast && status == Status.ENROLLED ? "COMPLETED" : status.toString();
-    System.out.println("Success");
     return new UpdateApplicationStatus.Success(displayedStatus);
   }
 
@@ -249,6 +253,8 @@ public record AdminApplicationInfoService(
     if (!isReviewer && !isFacultyLead && !isAdmin) {
       return new PostNote.UserLacksPermission();
     }
+    auditService.logEvent(String.format("User %s posted a note on application %d for student %s",
+      user.username(), programId, student));
     applicationService.saveNote(new Note(
       application.programId(),
       application.student(),
@@ -278,7 +284,7 @@ public record AdminApplicationInfoService(
   }
 
 
-  public record LetterInfo(String email, String name, Boolean submitted, Integer code, String timestamp) {
+  public record LetterInfo(String email, String name, Boolean submitted, String code, String timestamp) {
   }
 
   public List<LetterInfo> getLetters(User student, Program program) {
@@ -299,7 +305,7 @@ public record AdminApplicationInfoService(
                    List<DocumentInfo> documentInfos, String theme,
                     List<ResponseInfo> responses,
                    ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName, Boolean isReviewer,
-                   List<LetterInfo> requests
+                   List<LetterInfo> requests, Boolean isAdmin
     ) implements
       GetApplicationInfo {
 

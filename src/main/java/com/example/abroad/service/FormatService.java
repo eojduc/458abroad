@@ -19,7 +19,7 @@ public record FormatService() {
 
   public String formatFacultyLeads(List<String> leads) {
     if (leads.isEmpty()) {
-      logger.error("No faculty leads found");
+//      logger.error("No faculty leads found - using 'admin'");
       return "admin";
     }
     return String.join(", ", leads);

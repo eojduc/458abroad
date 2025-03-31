@@ -20,9 +20,18 @@
   .card-body:has(#toggleDate:checked) .date-col {
     display: table-cell;
   }
+  .program-row {
+    display: table-row;
+  }
+  .faculty-program-row {
+    display: table-row;
+  }
+  .card-body:has(#toggleFacultyPrograms:checked) .program-row {
+    display: none;
+  }
 </style>
 <body>
-<div th:replace="~{components :: admin-navbar(${name})}"></div>
+<div th:replace="~{components :: admin-navbar(${name}, ${isAdmin})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
     <div th:replace="~{components :: alerts(${alerts})}"></div>
@@ -31,24 +40,30 @@
     <div class="card-body gap-8">
       <div class="flex justify-between items-center">
         <h1 class="card-title">All Programs</h1>
-        <div class="relative flex flex-col items-center">
-          <!-- Add Program Button -->
-          <a class="btn btn-primary" href="/admin/programs/new">Add Program</a>
-          <!-- Show Counts and Dates Checkboxes -->
-          <div class="absolute top-full mt-4 flex flex-col items-start w-48 pr-3 space-y-3">
-            <fieldset class="flex items-center gap-4">
-              <input type="checkbox" id="toggleCount" class="toggle peer">
-              <span class="text-sm">Show Program Counts</span>
-            </fieldset>
-            <fieldset class="flex items-center gap-4">
-              <input type="checkbox" id="toggleDate" class="toggle peer" checked>
-              <span class="text-sm">Show Program Dates</span>
-            </fieldset>
-          </div>
+        <a class="btn btn-primary" href="/admin/programs/new">Add Program</a>
+      </div>
+
+      <!-- Filters & Checkboxes Section -->
+      <div class="flex flex-wrap items-center gap-6">
+        <!-- Filter Form -->
+        <div th:replace="~{this :: filterForm('/admin/programs/table')}"></div>
+
+        <!-- Right-aligned Checkboxes -->
+        <div class="ml-auto grid grid-cols-2 gap-4 w-64">
+          <fieldset class="flex items-center gap-2">
+            <input type="checkbox" id="toggleCount" class="toggle peer">
+            <span class="text-sm">Show Program Counts</span>
+          </fieldset>
+          <fieldset class="flex items-center gap-2">
+            <input type="checkbox" id="toggleDate" class="toggle peer" checked>
+            <span class="text-sm">Show Program Dates</span>
+          </fieldset>
+          <fieldset class="flex items-center gap-2 col-span-2" th:if="${#lists.size(facultyPrograms) > 0}">
+            <input type="checkbox" id="toggleFacultyPrograms" class="toggle peer">
+            <span class="text-sm">Show Only Your Programs</span>
+          </fieldset>
         </div>
       </div>
-      <!-- Filter Form -->
-      <div th:replace="~{this :: filterForm('/admin/programs/table')}"></div>
 
       <div class="table-wrapper overflow-x-auto">
         <!-- Add fragment identifier to the table -->
@@ -85,7 +100,8 @@
   </tr>
   </thead>
   <tbody th:fragment="programTableBody" id="programTableBody">
-  <tr th:each="programAndStatus : ${programAndStatuses}" class="border-base-300 border-y-2">
+  <tr th:each="programAndStatus : ${programAndStatuses}" class="border-base-300 border-y-2"
+      th:classappend="${facultyPrograms.contains(programAndStatus.program)} ? 'faculty-program-row' : 'program-row'">
     <td>
       <a th:href="@{/admin/programs/{programId}(programId=${programAndStatus.program.id})}"
          class="link link-primary"
@@ -115,7 +131,7 @@
 
 </table>
 
-<form xmlns:th="http://www.thymeleaf.org"
+<div xmlns:th="http://www.thymeleaf.org"
       th:fragment="filterForm(path)"
       id="filterForm">
   <div class="flex gap-4 ">
@@ -145,7 +161,7 @@
         <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
         <select name="leadFilter" multiple
                 class="select"
-                size="3"
+                size="4"
                 th:value="${leadKeyword}"
                 th:hx-get="@{${path}}"
                 hx-trigger="change"
@@ -181,7 +197,7 @@
       </label>
     </div>
   </div>
-</form>
+</div>
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="sortableHeader(label, column, class)">
   <th th:with="isSorted=${sort == column || (sort == 'sort' && column == 'TITLE')}"

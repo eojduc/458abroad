@@ -1,5 +1,5 @@
 
-package com.example.abroad.service.page;
+package com.example.abroad.service.page.student;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
@@ -7,12 +7,11 @@ import com.example.abroad.model.User;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
-import com.example.abroad.service.page.BrowseProgramsService.GetAllProgramsInfo.Success;
-import com.example.abroad.service.page.BrowseProgramsService.GetAllProgramsInfo.UserNotFound;
+import com.example.abroad.service.page.student.BrowseProgramsService.GetAllProgramsInfo.Success;
+import com.example.abroad.service.page.student.BrowseProgramsService.GetAllProgramsInfo.UserNotFound;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -66,7 +65,8 @@ public record BrowseProgramsService(
     return new Success(
         programService.findAll().stream()
             .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
-            .filter(program -> new HashSet<>(extractFacultyLeadUsername(program, User::username)).containsAll(leadFilter))
+            .filter(program -> leadFilter.isEmpty() ||
+                extractFacultyLeadUsername(program, User::username).stream().anyMatch(leadFilter::contains))
             .filter(program -> program.endDate().isAfter(LocalDate.now())) // Hide programs that have ended
             .map(getProgramAndStatus(user))
             .sorted(getStudentDateComparator())

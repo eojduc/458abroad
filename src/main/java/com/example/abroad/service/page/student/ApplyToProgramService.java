@@ -1,4 +1,4 @@
-package com.example.abroad.service.page;
+package com.example.abroad.service.page.student;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
@@ -94,7 +94,6 @@ public record ApplyToProgramService(
   private Boolean isSubmitted(Application.RecommendationRequest request) {
     return applicationService.findLetterOfRecommendation(request.programId(), request.student(),
       request.email()).isPresent();
-
   }
 
   public sealed interface ApplyToProgram {
