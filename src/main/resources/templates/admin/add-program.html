@@ -59,15 +59,14 @@
             <span class="label-text">Faculty Lead</span>
           </div>
           <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
-          <select name="facultyLeads" multiple required
-                  size="5"
-                  class="select w-full">
-            <option th:each="lead : ${adminList}" th:value="${lead.username}"
-                    th:text="${formatter.displayUser(lead)}"></option>
-          </select>
+            <select name="facultyLeads" multiple required
+                    size="5"
+                    class="select w-full">
+              <option th:each="lead : ${adminList}" th:value="${lead.username}"
+                      th:text="${formatter.displayUser(lead)}"></option>
+            </select>
           </div>
         </label>
-
         <label class="form-control">
           <div class="label">
             <span class="label-text">Semester</span>
