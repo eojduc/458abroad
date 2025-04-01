@@ -153,6 +153,63 @@
 </div>
 
 <!-- Footer -->
+
+<script th:inline="javascript">
+  function updateCheckboxValue(textInput) {
+    const index = textInput.id.split('-')[1];
+    const checkbox = document.getElementById('checkbox-' + index);
+    checkbox.value = textInput.value;
+  }
+
+  // Use thymeleaf to get the default questions
+  var defaultQuestions =/*[[${defaultQuestions}]]*/ [];
+  let questionIndex = defaultQuestions.length;
+
+  function addQuestion() {
+    // Create a new checkbox and input field
+
+    // Create new elements
+    const newRow = document.createElement('div');
+    newRow.classList.add('flex', 'items-center', 'p-2', 'hover:bg-base-200', 'rounded-lg', 'group');
+
+    // Checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.classList.add('checkbox', 'checkbox-primary', 'mr-2');
+    checkbox.name = 'selectedQuestions';
+    checkbox.value = ''; // You can assign a default value or leave it empty
+    checkbox.id = 'checkbox-' + questionIndex;
+    checkbox.checked= false;
+
+    // Text input
+    const editableContainer = document.createElement('div');
+    editableContainer.classList.add('editable-question-container', 'flex-grow', 'relative');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.classList.add('input', 'input-bordered', 'w-full');
+    input.id = 'questionText-' + questionIndex;
+    input.onchange = function() {
+      updateCheckboxValue(this);
+    };
+    input.onkeydown = preventEnterKey;
+
+    // Append the elements
+    editableContainer.appendChild(input);
+    newRow.appendChild(checkbox);
+    newRow.appendChild(editableContainer);
+
+    questionIndex++;
+
+    // Append the new row to the list
+    document.getElementById('questionList').appendChild(newRow);
+  }
+
+  function preventEnterKey(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+    }
+  }
+</script>
 <div th:replace="~{components :: footer}"></div>
 <div th:replace="~{components :: session-timeout-script}"></div>
 </body>
@@ -192,61 +249,4 @@
       <button type="button" class="btn btn-accent btn-square btn-sm" onclick="addQuestion()">+</button>
     </div>
   </label>
-
-  <script th:inline="javascript">
-    function updateCheckboxValue(textInput) {
-      const index = textInput.id.split('-')[1];
-      const checkbox = document.getElementById('checkbox-' + index);
-      checkbox.value = textInput.value;
-    }
-
-    // Use thymeleaf to get the default questions
-    var defaultQuestions =/*[[${defaultQuestions}]]*/ [];
-    let questionIndex = defaultQuestions.length;
-
-    function addQuestion() {
-      // Create a new checkbox and input field
-
-      // Create new elements
-      const newRow = document.createElement('div');
-      newRow.classList.add('flex', 'items-center', 'p-2', 'hover:bg-base-200', 'rounded-lg', 'group');
-
-      // Checkbox
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.classList.add('checkbox', 'checkbox-primary', 'mr-2');
-      checkbox.name = 'selectedQuestions';
-      checkbox.value = ''; // You can assign a default value or leave it empty
-      checkbox.id = 'checkbox-' + questionIndex;
-      checkbox.checked= false;
-
-      // Text input
-      const editableContainer = document.createElement('div');
-      editableContainer.classList.add('editable-question-container', 'flex-grow', 'relative');
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.classList.add('input', 'input-bordered', 'w-full');
-      input.id = 'questionText-' + questionIndex;
-      input.onchange = function() {
-        updateCheckboxValue(this);
-      };
-      input.onkeydown = preventEnterKey;
-
-      // Append the elements
-      editableContainer.appendChild(input);
-      newRow.appendChild(checkbox);
-      newRow.appendChild(editableContainer);
-
-      questionIndex++;
-
-      // Append the new row to the list
-      document.getElementById('questionList').appendChild(newRow);
-    }
-
-    function preventEnterKey(event) {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-      }
-    }
-  </script>
 </div>
