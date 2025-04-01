@@ -109,8 +109,10 @@ public record UserService(
 
   public List<? extends User> findUsersWithRole(User.Role.Type roleType) {
     return roleRepository.findById_Type(roleType)
-            .stream()
-            .map(role -> findByUsername(role.username()).orElse(null))
-            .toList();
+        .stream()
+        .map(role -> findByUsername(role.username()))
+        .filter(Optional::isPresent)  // Filter out empty Optionals
+        .map(Optional::get)           // Unwrap the Optionals
+        .toList();
   }
 }
