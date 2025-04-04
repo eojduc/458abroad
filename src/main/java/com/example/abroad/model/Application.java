@@ -55,16 +55,21 @@ public final class Application {
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
   private Status status;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private PaymentStatus paymentStatus;
 
   public Application() {}
 
   public Application(String student, Integer programId, LocalDate dateOfBirth,
-      Double gpa, String major, Status status) {
+      Double gpa, String major, Status status,
+    PaymentStatus paymentStatus) {
     this.id = new ID(student, programId);
     this.dateOfBirth = dateOfBirth;
     this.gpa = gpa;
     this.major = major;
     this.status = status;
+    this.paymentStatus = paymentStatus;
   }
 
   public String student() {
@@ -89,6 +94,9 @@ public final class Application {
 
   public Status status() {
     return status;
+  }
+  public PaymentStatus paymentStatus() {
+    return paymentStatus;
   }
 
   @Entity
@@ -304,16 +312,16 @@ public final class Application {
   }
 
   public Application withStatus(Status status) {
-    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status);
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status, paymentStatus);
   }
   public Application withMajor(String major) {
-    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status);
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status, paymentStatus);
   }
   public Application withGpa(Double gpa) {
-    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status);
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status, paymentStatus);
   }
   public Application withDateOfBirth(LocalDate dateOfBirth) {
-    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status);
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status, paymentStatus);
   }
 
   public enum Status {
@@ -465,6 +473,12 @@ public final class Application {
     public Integer programId() {
       return programId;
     }
+  }
+
+  public enum PaymentStatus {
+    FULLY_PAID,
+    UNPAID,
+    PARTIALLY_PAID,
   }
 
 }

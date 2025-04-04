@@ -1,5 +1,6 @@
 package com.example.abroad.service.page;
 import com.example.abroad.model.User;
+import com.example.abroad.service.ULinkTranscriptService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.DashboardService.GetDashboard.SSOUsernameTaken;
 import com.example.abroad.service.page.SSOService.SSOResult;
@@ -8,7 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 
 @Service
-public record DashboardService(UserService userService, SSOService ssoService) {
+public record DashboardService(UserService userService, SSOService ssoService, ULinkTranscriptService ulinkService) {
 
   public sealed interface GetDashboard {
     record StudentDashboard(User user) implements GetDashboard {}
@@ -18,6 +19,10 @@ public record DashboardService(UserService userService, SSOService ssoService) {
   }
 
   public GetDashboard getDashboard(HttpSession session, HttpServletRequest request) {
+    try {
+      System.out.println(ulinkService.getUserPin("delali"));
+    } catch (Exception ignored) {
+    }
     SSOResult ssoResult = ssoService.authenticateSSO(request, session);
     if (ssoResult instanceof SSOResult.UsernameTaken(String message)) {
       String redirectUrl = ssoService.buildLogoutUrl("/register", "", message);

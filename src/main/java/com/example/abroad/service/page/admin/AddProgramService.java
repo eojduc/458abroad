@@ -50,7 +50,7 @@ public record AddProgramService(UserService userService, ProgramService programS
     }
     Program program = new Program(
       null, title, Year.of(year), semester, applicationOpen, applicationClose,
-      essentialDocsDate, startDate, endDate, description
+      essentialDocsDate, startDate, endDate, description, essentialDocsDate, false
     );
     var leadUsers = userService.findAll().stream()
         .filter(u -> facultyLeads.contains(u.username()))

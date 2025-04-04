@@ -1,7 +1,9 @@
 package com.example.abroad.service;
 
 import com.example.abroad.model.User;
+import com.example.abroad.model.User.Course;
 import com.example.abroad.model.User.Theme;
+import com.example.abroad.respository.CourseRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
@@ -21,7 +23,8 @@ import org.springframework.stereotype.Service;
 public record UserService(
   LocalUserRepository localUserRepository,
   SSOUserRepository ssoUserRepository,
-  RoleRepository roleRepository
+  RoleRepository roleRepository,
+  CourseRepository courseRepository
 ) {
 
   public Optional<User> findUserFromSession(HttpSession session){
@@ -114,5 +117,9 @@ public record UserService(
         .filter(Optional::isPresent)  // Filter out empty Optionals
         .map(Optional::get)           // Unwrap the Optionals
         .toList();
+  }
+
+  public void saveCourse(String courseCode, String username, String grade) {
+    courseRepository.save(new Course(courseCode, username, grade));
   }
 }

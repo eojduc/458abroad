@@ -1,6 +1,7 @@
 package com.example.abroad.service.data;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.PaymentStatus;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.User;
@@ -128,7 +129,8 @@ public class DataInitializationService {
             passwordEncoder.encode(record.get("password")),
             record.get("email"),
             record.get("displayName"),
-          Theme.DEFAULT
+          Theme.DEFAULT,
+          null
         ),
         localUserRepository
     );
@@ -142,7 +144,8 @@ public class DataInitializationService {
             record.get("username"),
             record.get("email"),
             record.get("displayName"),
-          Theme.DEFAULT
+          Theme.DEFAULT,
+          null
         ),
         ssoUserRepository
     );
@@ -158,7 +161,8 @@ public class DataInitializationService {
             LocalDate.parse(record.get("dateOfBirth")),
             Double.parseDouble(record.get("gpa")),
             record.get("major"),
-            Application.Status.valueOf(record.get("status").toUpperCase())
+            Application.Status.valueOf(record.get("status").toUpperCase()),
+          PaymentStatus.UNPAID
         ),
         applicationRepository
     );
@@ -275,7 +279,9 @@ public class DataInitializationService {
                 LocalDate.parse(record.get("documentDeadline")),
                 LocalDate.parse(record.get("startDate")),
                 LocalDate.parse(record.get("endDate")),
-                record.get("description")
+                record.get("description"),
+                LocalDate.parse(record.get("documentDeadline")),
+              false
             );
           }
         },

@@ -364,7 +364,8 @@ public record AdminUserService(
       hashedPassword,
       localUser.email(),
       localUser.displayName(),
-      localUser.theme()
+      localUser.theme(),
+      localUser.uLink()
     );
 
     // Save the updated user

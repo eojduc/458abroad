@@ -46,7 +46,8 @@ public record AccountService(
                         localUser.password(),
                         email,
                         displayName,
-                        localUser.theme()
+                        localUser.theme(),
+                        localUser.uLink()
                 );
                 userService.save(updatedUser);
                 auditService.logEvent("User " + user.username() + " successfully updated account information");
@@ -57,7 +58,8 @@ public record AccountService(
                         ssoUser.username(),
                         email,
                         displayName,
-                        ssoUser.theme()
+                        ssoUser.theme(),
+                        ssoUser.uLink()
                 );
                 userService.save(updatedUser);
                 auditService.logEvent("User " + user.username() + " successfully updated account information");
@@ -103,7 +105,8 @@ public record AccountService(
                 hashedPassword,
                 localUser.email(),
                 localUser.displayName(),
-                localUser.theme()
+                localUser.theme(),
+                localUser.uLink()
         );
         userService.save(updatedUser);
         return new ChangePassword.Success(updatedUser);

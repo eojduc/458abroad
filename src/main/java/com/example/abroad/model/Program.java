@@ -50,6 +50,12 @@ public final class Program {
   @Column(nullable = false, length = 10000)
   private String description;
 
+  @Column(nullable = false)
+  private LocalDate paymentDeadline;
+
+  @Column(nullable = false)
+  private Boolean trackPayment;
+
   public Program() {
     this.id = null;
     this.title = null;
@@ -66,7 +72,7 @@ public final class Program {
   public Program(Integer id, String title, Year year, Semester semester, LocalDate applicationOpen,
     LocalDate applicationClose, LocalDate documentDeadline,
     LocalDate startDate, LocalDate endDate,
-    String description) {
+    String description, LocalDate paymentDeadline, Boolean trackPayment) {
     this.id = id;
     this.title = title;
     this.year = year;
@@ -77,6 +83,8 @@ public final class Program {
     this.startDate = startDate;
     this.endDate = endDate;
     this.description = description;
+    this.paymentDeadline = paymentDeadline;
+    this.trackPayment = trackPayment;
   }
 
   public Integer id() {
@@ -117,61 +125,76 @@ public final class Program {
   public LocalDate documentDeadline() {
     return documentDeadline;
   }
+  public LocalDate paymentDeadline() {
+    return paymentDeadline;
+  }
+  public Boolean trackPayment() {
+    return trackPayment;
+  }
 
   public Program withTitle(String title) {
     return new Program(
       this.id, title, this.year, this.semester, this.applicationOpen, this.applicationClose,
-      this.documentDeadline, this.startDate, this.endDate, this.description
+      this.documentDeadline, this.startDate, this.endDate, this.description,
+      this.paymentDeadline, this.trackPayment
     );
   }
 
   public Program withYear(Year year) {
     return new Program(
       this.id, this.title, year, this.semester, this.applicationOpen, this.applicationClose,
-      this.documentDeadline, this.startDate, this.endDate, this.description
+      this.documentDeadline, this.startDate, this.endDate, this.description,
+      this.paymentDeadline, this.trackPayment
     );
   }
   public Program withSemester(Semester semester) {
     return new Program(
       this.id, this.title, this.year, semester, this.applicationOpen, this.applicationClose,
-      this.documentDeadline, this.startDate, this.endDate, this.description
+      this.documentDeadline, this.startDate, this.endDate, this.description,
+      this.paymentDeadline, this.trackPayment
     );
   }
   public Program withApplicationOpen(LocalDate applicationOpen) {
     return new Program(
       this.id, this.title, this.year, this.semester, applicationOpen, this.applicationClose,
-      this.documentDeadline, this.startDate, this.endDate, this.description
+      this.documentDeadline, this.startDate, this.endDate, this.description,
+      this.paymentDeadline, this.trackPayment
     );
   }
   public Program withApplicationClose(LocalDate applicationClose) {
     return new Program(
       this.id, this.title, this.year, this.semester, this.applicationOpen, applicationClose,
-      this.documentDeadline, this.startDate, this.endDate, this.description
+      this.documentDeadline, this.startDate, this.endDate, this.description,
+      this.paymentDeadline, this.trackPayment
     );
   }
   public Program withStartDate(LocalDate startDate) {
     return new Program(
       this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
-      this.documentDeadline, startDate, this.endDate, this.description
+      this.documentDeadline, startDate, this.endDate, this.description,
+      this.paymentDeadline, this.trackPayment
     );
   }
   public Program withEndDate(LocalDate endDate) {
     return new Program(
       this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
-      this.documentDeadline, this.startDate, endDate, this.description
+      this.documentDeadline, this.startDate, endDate, this.description,
+      this.paymentDeadline, this.trackPayment
     );
   }
 
   public Program withDescription(String description) {
     return new Program(
       this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
-      this.documentDeadline, this.startDate, this.endDate, description
+      this.documentDeadline, this.startDate, this.endDate, description,
+      this.paymentDeadline, this.trackPayment
     );
   }
   public Program withDocumentDeadline(LocalDate documentDeadline) {
     return new Program(
       this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
-      documentDeadline, this.startDate, this.endDate, this.description
+      documentDeadline, this.startDate, this.endDate, this.description,
+      this.paymentDeadline, this.trackPayment
     );
   }
 
@@ -241,10 +264,10 @@ public final class Program {
   public static class FacultyLead {
 
     @Embeddable
-    public record AppUser(Integer programId, String username) { }
+    public record ID(Integer programId, String username) { }
 
     @Id
-    private AppUser id;
+    private ID id;
 
 
     public FacultyLead() {
@@ -252,7 +275,7 @@ public final class Program {
     }
 
     public FacultyLead(Integer programId, String username) {
-      this.id = new AppUser(programId, username);
+      this.id = new ID(programId, username);
     }
 
     public Integer programId() {
@@ -262,5 +285,60 @@ public final class Program {
       return id.username();
     }
   }
+
+
+  @Entity
+  @Table(name = "prereqs")
+  public static class PreReq {
+
+    @Embeddable
+    public record ID(Integer programId, String courseCode) {
+    }
+
+    @Id
+    private ID id;
+
+    public PreReq() {
+    }
+    public PreReq(Integer programId, String courseCode) {
+      this.id = new ID(programId, courseCode);
+    }
+
+    public Integer programId() {
+      return id.programId();
+    }
+    public String courseCode() {
+      return id.courseCode();
+    }
+
+  }
+
+  @Entity
+  @Table(name = "partners")
+  public static class Partner {
+
+    @Embeddable
+    public record ID(Integer programId, String username) {
+    }
+
+    @Id
+    private ID id;
+
+    public Partner() {
+      this.id = null;
+    }
+
+    public Partner(Integer programId, String username) {
+      this.id = new ID(programId, username);
+    }
+
+    public Integer programId() {
+      return id.programId();
+    }
+    public String username() {
+      return id.username();
+    }
+  }
+
 
 }

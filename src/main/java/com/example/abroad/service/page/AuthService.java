@@ -104,7 +104,7 @@ public record AuthService(
       return new RegisterResult.EmailExists();
     }
     var hashedPassword = passwordEncoder.encode(password);
-    var user = new User.LocalUser(username, hashedPassword, email, displayName, Theme.DEFAULT);
+    var user = new User.LocalUser(username, hashedPassword, email, displayName, Theme.DEFAULT, null);
     userService.save(user);
     userService.saveUserToSession(user, session);
     

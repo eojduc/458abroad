@@ -1,6 +1,7 @@
 package com.example.abroad.service.page.student;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.PaymentStatus;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
@@ -63,8 +64,13 @@ public record ApplyToProgramService(
     if (user == null) {
       return new ApplyToProgram.UserNotFound();
     }
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new ApplyToProgram.ProgramNotFound();
+    }
+    var paymentStatus = program.trackPayment() ? PaymentStatus.UNPAID : PaymentStatus.FULLY_PAID;
     var application = new Application(user.username(),
-      programId, dob, gpa, major, Status.APPLIED
+      programId, dob, gpa, major, Status.APPLIED, paymentStatus
     );
     applicationService.save(application);
     for (int i = 0; i < answers.size(); i++) {
@@ -100,6 +106,7 @@ public record ApplyToProgramService(
     record Success(Integer programId, String username) implements ApplyToProgram { }
     record UserNotFound() implements ApplyToProgram { }
     record InvalidSubmission() implements ApplyToProgram { }
+    record ProgramNotFound() implements ApplyToProgram { }
   }
 
 

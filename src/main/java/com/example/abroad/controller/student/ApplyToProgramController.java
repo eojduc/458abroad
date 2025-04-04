@@ -68,6 +68,7 @@ public record ApplyToProgramController(
         "redirect:/applications/" + programId + "?success=Application submitted";
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case ApplyToProgram.InvalidSubmission() -> "redirect:/programs/" + programId + "/apply?error=Invalid submission";
+      case ApplyToProgram.ProgramNotFound() -> "redirect:/programs?error=That program does not exist";
     };
   }
   @PostMapping("/programs/{programId}/delete-letter-request")
