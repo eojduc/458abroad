@@ -323,6 +323,9 @@ public final class Application {
   public Application withDateOfBirth(LocalDate dateOfBirth) {
     return new Application(id.student, id.programId, dateOfBirth, gpa, major, status, paymentStatus);
   }
+  public Application withPaymentStatus(PaymentStatus paymentStatus) {
+    return new Application(id.student, id.programId, dateOfBirth, gpa, major, status, paymentStatus);
+  }
 
   public enum Status {
     APPLIED,

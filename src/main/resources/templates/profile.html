@@ -85,14 +85,27 @@
         </div>
       </div>
 
-      <!-- Message for SSO Users -->
-      <div th:if="${!isLocalUser}">
+      <div th:if="${isLocalUser}" id="ulink">
         <div class="card bg-base-300">
           <div class="card-body">
-            <h2 class="card-title">Change Password</h2>
-            <p class="text-sm text-gray-500">
-              Password changes are not available for SSO users.
-            </p>
+            <h2 class="card-title">Set ULink</h2>
+            <form th:action="@{/profile/set-ulink}" method="POST" class="flex flex-col gap-4 m-4">
+              <div class="form-comtrol">
+                <label class="label">
+                  <span class="label-text">ULink</span>
+                </label>
+                <input type="text" name="uLink" th:value="${user.uLink()}" class="input" />
+              </div>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">ULink PIN</span>
+                </label>
+                <input type="password" name="pin" class="input"  required />
+              </div>
+              <div class="card-actions justify-end">
+                <button class="btn btn-primary w-1/4" type="submit">Save ULink</button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -103,7 +116,6 @@
           <form th:replace="~{components :: theme-form(${theme})}"></form>
         </div>
       </div>
-
     </div>
   </div>
 </div>

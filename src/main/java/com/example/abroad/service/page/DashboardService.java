@@ -19,10 +19,6 @@ public record DashboardService(UserService userService, SSOService ssoService, U
   }
 
   public GetDashboard getDashboard(HttpSession session, HttpServletRequest request) {
-    try {
-      System.out.println(ulinkService.getUserPin("delali"));
-    } catch (Exception ignored) {
-    }
     SSOResult ssoResult = ssoService.authenticateSSO(request, session);
     if (ssoResult instanceof SSOResult.UsernameTaken(String message)) {
       String redirectUrl = ssoService.buildLogoutUrl("/register", "", message);

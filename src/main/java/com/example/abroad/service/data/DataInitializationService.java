@@ -13,6 +13,8 @@ import com.example.abroad.respository.DocumentRepository;
 import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.NoteRepository;
+import com.example.abroad.respository.PartnerRepository;
+import com.example.abroad.respository.PreReqRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.QuestionRepository;
 import com.example.abroad.respository.ResponseRepository;
@@ -58,6 +60,8 @@ public class DataInitializationService {
   private final ResponseRepository responseRepository;
   private final QuestionRepository questionRepository;
   private final RoleRepository roleRepository;
+  private final PreReqRepository preReqRepository;
+  private final PartnerRepository partnerRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
   private EntityManager entityManager;
@@ -73,7 +77,9 @@ public class DataInitializationService {
       ProgramRepository programRepository,
       ResponseRepository responseRepository,
       QuestionRepository questionRepository,
-      RoleRepository roleRepository
+      RoleRepository roleRepository,
+      PreReqRepository preReqRepository,
+      PartnerRepository partnerRepository
     ) {
     this.localUserRepository = localUserRepository;
     this.ssoUserRepository = ssoUserRepository;
@@ -81,10 +87,12 @@ public class DataInitializationService {
     this.programRepository = programRepository;
     this.facultyLeadRepository = facultyLeadRepository;
     this.noteRepository = noteRepository;
+    this.preReqRepository = preReqRepository;
     this.documentRepository = documentRepository;
     this.responseRepository = responseRepository;
     this.questionRepository = questionRepository;
     this.roleRepository = roleRepository;
+    this.partnerRepository = partnerRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
         .setHeader()
@@ -198,6 +206,18 @@ public class DataInitializationService {
   }
 
   @Transactional
+  protected void initializePreReqs(String path) {
+    initializeData(
+        path,
+        record -> new Program.PreReq(
+          Integer.parseInt(record.get("programId")),
+            record.get("courseCode")
+        ),
+        preReqRepository
+    );
+  }
+
+  @Transactional
   protected void initializeResponses(String path) {
     initializeData(
         path,
@@ -221,6 +241,18 @@ public class DataInitializationService {
             Integer.parseInt(record.get("programId"))
         ),
         questionRepository
+    );
+  }
+
+  @Transactional
+  protected void initializePartners(String path) {
+    initializeData(
+        path,
+        record -> new Program.Partner(
+          Integer.parseInt(record.get("programId")),
+            record.get("username")
+        ),
+        partnerRepository
     );
   }
 
@@ -281,7 +313,7 @@ public class DataInitializationService {
                 LocalDate.parse(record.get("endDate")),
                 record.get("description"),
                 LocalDate.parse(record.get("documentDeadline")),
-              false
+                Boolean.parseBoolean(record.get("trackPayment"))
             );
           }
         },

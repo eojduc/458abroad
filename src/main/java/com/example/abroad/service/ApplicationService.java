@@ -163,4 +163,8 @@ public record ApplicationService(
   public Optional<Document> getDocument(Integer programId, String student, Type type) {
     return documentRepository.findById_ProgramIdAndId_StudentAndId_Type(programId, student, type);
   }
+
+  public void updatePaymentStatus(Application application, Application.PaymentStatus paymentStatus) {
+    applicationRepository.save(application.withPaymentStatus(paymentStatus));
+  }
 }

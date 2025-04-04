@@ -27,7 +27,14 @@
 <!-- Modal for confirming application submission -->
 <dialog id="submit_modal" class="modal">
   <div class="modal-box bg-base-200">
-    <p>Are you sure you want to submit this application?</p>
+    <p th:if="${missingPreReqs.isEmpty()}">Are you sure you want to submit this application?</p>
+    <div th:unless="${missingPreReqs.isEmpty()}">
+      <p class="text-error">You are missing the following prerequisites:</p>
+      <ul>
+        <li th:each="prereq : ${missingPreReqs}" th:text="${prereq}"></li>
+      </ul>
+      <p>Are you sure you want to submit this application? You can contact the program's faculty lead to ask for an exemption.</p>
+    </div>
     <div class="modal-action gap-2">
       <!-- Cancel button automatically closes the modal -->
       <button class="btn btn-primary w-1/4"

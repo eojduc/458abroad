@@ -31,6 +31,14 @@
               </ul>
             </td>
           </tr>
+          <tr class="border-base-300">
+            <td>Partners</td>
+            <td>
+              <ul class="list-disc list-inside">
+                <li th:each="partner : ${programDetails.partners}">[[${partner}]]</li>
+              </ul>
+            </td>
+          </tr>
           <tr th:each="field : ${programDetails.fields}" class="border-base-300 border-y-2">
             <td th:text="${field.name}"></td>
             <td th:text="${field.value}"></td>
@@ -188,7 +196,8 @@
           [[${sort} == 'ASCENDING' ? '▼' : '▲']]
         </span>
       </th>
-      <th>update</th>
+      <th>Update App Status</th>
+      <th th:if="${program.trackPayment}">Update Payment Status</th>
     </tr>
 
     </thead>
@@ -218,8 +227,13 @@
           </div>
         </td>
         <td class="text-center">[[${applicant.noteCount}]]</td>
-        <td>
-         [[${applicant.latestNote}]]</td>
+        <td>[[${applicant.latestNote}]]</td>
+        <td th:if="${program.trackPayment}">
+          <div th:id="'payment-status-badge-' + ${applicant.username}">
+            <!-- Payment status badge -->
+            <div th:replace="~{components :: payment-status-badge(${applicant.paymentStatus})}"></div>
+          </div>
+        </td>
         <td>
           <form class="contents"
                 th:hx-post="@{/admin/applications/{programId}/{username}/status(programId=${program.id}, username=${applicant.username})}"
@@ -230,6 +244,18 @@
                       th:value="${statusOption.value}"
                       th:selected="${applicant.status == statusOption.value}"
                       >[[${statusOption.text}]]</option>
+            </select>
+          </form>
+        </td>
+        <td th:if="${program.trackPayment}">
+          <form class="contents"
+                th:hx-post="@{/admin/applications/{programId}/{username}/payment-status(programId=${program.id}, username=${applicant.username})}"
+                hx-trigger="change"
+                th:hx-target="'#payment-status-badge-' + ${applicant.username}">
+            <select name="status" class="select select-sm">
+              <option value="FULLY_PAID" th:selected="${applicant.paymentStatus == 'FULLY_PAID'}">Fully Paid</option>
+              <option value="UNPAID" th:selected="${applicant.paymentStatus == 'UNPAID'}">Unpaid</option>
+              <option value="PARTIALLY_PAID" th:selected="${applicant.paymentStatus == 'PARTIALLY_PAID'}">Partially Paid</option>
             </select>
           </form>
         </td>

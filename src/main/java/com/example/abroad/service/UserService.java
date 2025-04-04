@@ -122,4 +122,8 @@ public record UserService(
   public void saveCourse(String courseCode, String username, String grade) {
     courseRepository.save(new Course(courseCode, username, grade));
   }
+
+  public List<Course> findCoursesByUsername(String username) {
+    return courseRepository.findById_Username(username);
+  }
 }

@@ -25,6 +25,8 @@ public sealed interface User extends Serializable {
 
   User withTheme(Theme theme);
 
+  User withULink(String uLink);
+
   String uLink();
 
   default boolean isLocal() {
@@ -156,6 +158,18 @@ public sealed interface User extends Serializable {
     public String uLink() {
       return uLink;
     }
+
+    @Override
+    public User withULink(String uLink) {
+      return new LocalUser(
+              this.username,
+              this.password,
+              this.email,
+              this.displayName,
+              this.theme,
+              uLink
+      );
+    }
   }
 
   @Entity
@@ -198,6 +212,16 @@ public sealed interface User extends Serializable {
     }
     public String uLink() {
       return uLink;
+    }
+    @Override
+    public User withULink(String uLink) {
+      return new SSOUser(
+              this.username,
+              this.email,
+              this.displayName,
+              this.theme,
+              uLink
+      );
     }
 
 
@@ -266,6 +290,15 @@ public sealed interface User extends Serializable {
     }
     public String grade() {
       return grade;
+    }
+
+    @Override
+    public String toString() {
+      return "Course{" +
+              "username='" + username() + '\'' +
+              ", code='" + code() + '\'' +
+              ", grade='" + grade + '\'' +
+              '}';
     }
   }
   enum Theme {

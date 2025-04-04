@@ -283,6 +283,14 @@
   <span th:case="NOT_APPLIED" class="badge badge-neutral">Not Applied</span>
 </div>
 
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="payment-status-badge(status)" th:switch="${status}"
+     class="contents">
+  <span th:case="FULLY_PAID" class="badge badge-success">Fully Paid</span>
+  <span th:case="UNPAID" class="badge badge-error">Unpaid</span>
+  <span th:case="PARTIALLY_PAID" class="badge badge-warning">Partially Paid</span>
+</div>
+
 <form action="/profile/theme" method="post" class="flex flex-row gap-2" th:fragment="theme-form(theme)">
   <select class="select" name="theme">
     <option value="DEFAULT" th:selected="${user.theme.name == 'DEFAULT'}">Default</option>

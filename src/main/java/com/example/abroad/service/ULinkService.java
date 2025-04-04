@@ -9,7 +9,7 @@ public record ULinkService(UserService userService, TranscriptService transcript
 
 
   public sealed interface SetULink {
-    record Success() implements SetULink {}
+    record Success(User updatedUser) implements SetULink {}
     record IncorrectPin() implements SetULink {}
     record UsernameInUse() implements SetULink {}
     record TranscriptServiceError() implements SetULink {}
@@ -20,27 +20,19 @@ public record ULinkService(UserService userService, TranscriptService transcript
     record TranscriptServiceError() implements RefreshCourses {}
   }
 
-  public SetULink setULink(User.LocalUser user, String uLinkName, String pin) {
+  public SetULink setULink(User user, String uLinkName, String pin) {
     var existingUser = userService.findAll().stream()
       .anyMatch(u -> uLinkName.equals(u.uLink()));
     if (existingUser) {
       return new SetULink.UsernameInUse();
     }
     try {
-      var actualPin = transcriptService.getUserPin(uLinkName);
-      if (!actualPin.equals(pin)) {
+      if (!transcriptService.authenticate(uLinkName, pin)) {
         return new SetULink.IncorrectPin();
       }
-      var updatedUser = new User.LocalUser(
-        user.username(),
-        user.password(),
-        user.email(),
-        user.displayName(),
-        user.theme(),
-        uLinkName
-      );
-      userService.save(updatedUser);
-      return new SetULink.Success();
+      var updatedUser = userService.save(user.withULink(uLinkName));
+      refreshCourses(updatedUser);
+      return new SetULink.Success(updatedUser);
     } catch (Exception e) {
       return new SetULink.TranscriptServiceError();
     }
@@ -54,6 +46,7 @@ public record ULinkService(UserService userService, TranscriptService transcript
       }
       return new RefreshCourses.Success();
     } catch (Exception e) {
+      System.out.println("Error retrieving transcript data: " + e.getMessage());
       return new RefreshCourses.TranscriptServiceError();
     }
   }

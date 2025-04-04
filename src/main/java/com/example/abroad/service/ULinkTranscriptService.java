@@ -5,6 +5,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import org.jsoup.Jsoup;
@@ -15,8 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ULinkTranscriptService implements TranscriptService {
 
-  public static List<CourseInfo> parseTranscript(String html) throws TranscriptServiceException {
-    // We'll hold the parsed course info here
+  public static List<CourseInfo> parseTranscript(String html) {
     List<CourseInfo> courses = new ArrayList<>();
 
     // 1. Parse the HTML with Jsoup
@@ -25,8 +25,8 @@ public class ULinkTranscriptService implements TranscriptService {
     // 2. Grab the <pre> block that contains the transcript lines
     Element preBlock = doc.selectFirst("pre");
     if (preBlock == null) {
-      // Throw an exception rather than returning
-      throw new TranscriptServiceException("No <pre> block found in the provided HTML.");
+      // No <pre> found - return empty list
+      return courses;
     }
 
     // 3. Split the <pre> text into lines
@@ -38,7 +38,7 @@ public class ULinkTranscriptService implements TranscriptService {
     for (String line : lines) {
       line = line.trim();
 
-      // Skip empty lines (that’s not necessarily an error).
+      // Skip empty lines
       if (line.isEmpty()) {
         continue;
       }
@@ -53,44 +53,40 @@ public class ULinkTranscriptService implements TranscriptService {
         continue;
       }
 
-      // At this point, it's expected to be a valid course line
-      // Typically something like:
-      //    CODE        COURSE NAME             GRADE
-      //    "CHEM 101   INTRO CHEMISTRY         A"
+      // Attempt to parse as a course line. Usually in the form:
+      //   CODE (e.g. "CHEM 101")   TITLE (could be multiple words)   GRADE (e.g. "A", "B+", "IP", etc.)
+      // We'll use split on 2+ spaces. The final piece is grade, the first is course code, the middle is the name.
       String[] parts = line.split("\\s{2,}"); // split on runs of 2+ spaces
 
-      // If we can’t split into at least 3 parts, it’s not valid
-      if (parts.length < 3) {
-        throw new TranscriptServiceException("Invalid course line (must have at least 3 columns): " + line);
-      }
+      // We expect at least 3 parts if it's a valid course line
+      if (parts.length >= 3) {
+        String courseCode = parts[0];
+        String grade = parts[parts.length - 1];
 
-      // We also expect a semester header to have been read before any course lines
-      if (currentSemester == null) {
-        throw new TranscriptServiceException("Encountered a course line before any semester heading: " + line);
-      }
-
-      // The first part is the course code, the last part is the grade
-      String courseCode = parts[0];
-      String grade = parts[parts.length - 1];
-
-      // Combine anything in between as the course name
-      StringBuilder nameBuilder = new StringBuilder();
-      for (int i = 1; i < parts.length - 1; i++) {
-        if (nameBuilder.length() > 0) {
-          nameBuilder.append(" ");
+        // Everything between parts[1] and parts[parts.length - 2] is the course name
+        // But if you used split("\\s{2,}"), in these examples it typically yields exactly 3 parts:
+        //   parts[0] -> code
+        //   parts[1] -> course name
+        //   parts[2] -> grade
+        // If there's more, join the middle parts for the course name.
+        StringBuilder nameBuilder = new StringBuilder();
+        for (int i = 1; i < parts.length - 1; i++) {
+          if (nameBuilder.length() > 0) {
+            nameBuilder.append(" ");
+          }
+          nameBuilder.append(parts[i]);
         }
-        nameBuilder.append(parts[i]);
-      }
-      String courseName = nameBuilder.toString();
+        String courseName = nameBuilder.toString();
 
-      // Create the CourseInfo record (or class)
-      CourseInfo record = new CourseInfo(
-        currentSemester,
-        courseCode,
-        courseName,
-        grade
-      );
-      courses.add(record);
+        // Create the record object
+        var record = new CourseInfo(
+          currentSemester == null ? "" : currentSemester,
+          courseCode,
+          courseName,
+          grade
+        );
+        courses.add(record);
+      }
     }
 
     return courses;
@@ -122,9 +118,8 @@ public class ULinkTranscriptService implements TranscriptService {
       throw new TranscriptServiceException("Failed to retrieve transcript data: " + e.getMessage());
     }
   }
-
   @Override
-  public String getUserPin(String student) throws TranscriptServiceException {
+  public Boolean authenticate(String student, String pin) throws TranscriptServiceException {
     try {
       String username = "abroad";
       String password = "ece@458";
@@ -145,11 +140,12 @@ public class ULinkTranscriptService implements TranscriptService {
         throw new TranscriptServiceException("Failed to retrieve pin");
       }
       String html = response.body();
-      return extractPin(html);
+      return extractPin(html).equals(pin);
     } catch (Exception e) {
       throw new TranscriptServiceException("Failed to retrieve user pin: " + e.getMessage());
     }
   }
+
   public static String extractPin(String html) throws TranscriptServiceException {
     // Parse the HTML
     Document doc = Jsoup.parse(html);

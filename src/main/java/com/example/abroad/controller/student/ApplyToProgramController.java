@@ -32,7 +32,7 @@ public record ApplyToProgramController(
     Model model, @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     return switch (service.getPageData(programId, session)) {
-      case GetApplyPageData.Success(var program, var user, var questions, var maxDayOfBirth, var letterRequests) -> {
+      case GetApplyPageData.Success(var program, var user, var questions, var maxDayOfBirth, var letterRequests, var missingPreReqs) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "user", user,
@@ -40,7 +40,8 @@ public record ApplyToProgramController(
           "questions", questions,
           "maxDayOfBirth", maxDayOfBirth,
           "formatter", formatter,
-          "letterRequests", letterRequests
+          "letterRequests", letterRequests,
+          "missingPreReqs", missingPreReqs
         ));
         yield "student/apply-to-program :: page";
       }
@@ -53,6 +54,8 @@ public record ApplyToProgramController(
         id, username);
       case GetApplyPageData.UserNotStudent() ->
         String.format("redirect:/admin/programs/%d?error=You are not a student", programId);
+      case GetApplyPageData.ULinkNotSet() ->
+        "redirect:/profile?error=You need to set your uLink before applying to a program#ulink";
     };
   }
 

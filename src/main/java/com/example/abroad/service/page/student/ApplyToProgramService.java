@@ -3,9 +3,11 @@ package com.example.abroad.service.page.student;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.PaymentStatus;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.PreReq;
 import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Status;
+import com.example.abroad.model.User.Course;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.EmailService;
@@ -39,6 +41,10 @@ public record ApplyToProgramService(
     if (program == null) {
       return new GetApplyPageData.ProgramNotFound();
     }
+    var prereqs = programService.getPreReqs(program);
+    if (user.uLink() == null && !prereqs.isEmpty()) {
+      return new GetApplyPageData.ULinkNotSet();
+    }
     var existingApplication = applicationService.findByProgramAndStudent(program, user);
     if (existingApplication.isPresent()) {
       return new GetApplyPageData.StudentAlreadyApplied(existingApplication.get().programId(), user.username());
@@ -46,8 +52,20 @@ public record ApplyToProgramService(
     var maxDayOfBirth = LocalDate.now().minusYears(10).format(DateTimeFormatter.ISO_DATE);
     var questions = programService.getQuestions(program);
     var letterRequests = letterOfRecInfo(user, program);
+    var takenCourseCodes = userService.findCoursesByUsername(user.username())
+      .stream()
+      .filter(course -> course.grade().matches("^(?:[ABCD][+-]?|S|IP)$"))
+      .map(Course::code)
+      .toList();
 
-    return new GetApplyPageData.Success(program, user, questions, maxDayOfBirth, letterRequests);
+    var preReqs = programService.getPreReqs(program);
+
+    var missingPreReqs = preReqs.stream()
+      .map(PreReq::courseCode)
+      .filter(o -> !takenCourseCodes.contains(o))
+      .toList();
+
+    return new GetApplyPageData.Success(program, user, questions, maxDayOfBirth, letterRequests, missingPreReqs);
   }
 
 
@@ -82,11 +100,12 @@ public record ApplyToProgramService(
 
   public sealed interface GetApplyPageData {
     record Success(Program program, User user, List<Question> questions,
-                   String maxDateOfBirth, List<LetterOfRecInfo> letterRequests) implements GetApplyPageData { }
+                   String maxDateOfBirth, List<LetterOfRecInfo> letterRequests, List<String> missingPreReqs) implements GetApplyPageData { }
     record UserNotFound() implements GetApplyPageData { }
     record ProgramNotFound() implements GetApplyPageData { }
     record StudentAlreadyApplied(Integer programId, String student) implements GetApplyPageData { }
     record UserNotStudent() implements GetApplyPageData { }
+    record ULinkNotSet() implements GetApplyPageData { }
   }
 
   public record LetterOfRecInfo(String email, String name, Boolean submitted) { }

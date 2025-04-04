@@ -5,10 +5,14 @@ import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
+import com.example.abroad.model.Program.Partner;
+import com.example.abroad.model.Program.PreReq;
 import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
 import com.example.abroad.respository.ApplicationRepository;
 import com.example.abroad.respository.FacultyLeadRepository;
+import com.example.abroad.respository.PartnerRepository;
+import com.example.abroad.respository.PreReqRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.QuestionRepository;
 
@@ -37,12 +41,21 @@ public record ProgramService(
   FacultyLeadRepository facultyLeadRepository,
   QuestionRepository questionRepository,
   ResponseRepository responseRepository,
-  UserService userService
+  UserService userService,
+  PreReqRepository preReqRepository,
+  PartnerRepository partnerRepository
 ) {
 
   private static final Logger logger = LoggerFactory.getLogger(ProgramService.class);
 
 
+  public List<PreReq> getPreReqs(Program program) {
+    return preReqRepository.findById_ProgramId(program.id());
+  }
+
+  public List<Partner> getPartners(Program program) {
+    return partnerRepository.findById_ProgramId(program.id());
+  }
 
   public SaveProgram saveProgram(Program program) {
     if (program.title().isBlank()) {

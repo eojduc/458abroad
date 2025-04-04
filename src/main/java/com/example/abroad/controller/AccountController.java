@@ -92,4 +92,18 @@ public record AccountController(
         userService.setTheme(theme, session);
         return "redirect:/profile#set-theme";
     }
+
+
+    @PostMapping("/profile/set-ulink")
+    public String setULink(@RequestParam String uLink, @RequestParam String pin, HttpSession session) {
+        return switch (accountService.setULink(uLink, pin, session)) {
+            case AccountService.SetULink.Success() -> "redirect:/profile?success=ULink set successfully#ulink";
+            case AccountService.SetULink.UserNotFound() -> "redirect:/login";
+            case AccountService.SetULink.IncorrectPin() -> "redirect:/profile?error=Invalid PIN#ulink";
+            case AccountService.SetULink.ConnectionError() -> "redirect:/profile?error=Error Connecting to ULink Server#ulink";
+            case AccountService.SetULink.UserNotLocalUser() -> "redirect:/profile?error=Cannot set ULink for SSO user#ulink";
+            case AccountService.SetULink.UsernameInUse() -> "redirect:/profile?error=Username already in use#ulink";
+            case AccountService.SetULink.AlreadySet() -> "redirect:/profile?info=ULink already set#ulink";
+        };
+    }
 }
