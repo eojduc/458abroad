@@ -156,21 +156,23 @@ After=syslog.target
 [Service]
 User=root
 WorkingDirectory=/opt/458abroad
-Environment="RESET_DB=true"
-Environment="FILL_DB=true"
-
+EnvironmentFile=/opt/458abroad/service.conf
 ExecStart=/usr/bin/java -jar /opt/458abroad/abroad-0.0.1-SNAPSHOT.jar \
+  --fillDb=${FILL_DB} --resetDb=${RESET_DB} \
   --spring.profiles.active=beta \
-  --spring.config.additional-location=file:/opt/458abroad/application.properties \
-  --server.port=8081 \
-  ${FILL_DB:+--fillDb=true} \
-  ${RESET_DB:+--resetDb=true}
-
+  --spring.config.additional-location=file:application.properties \
+  --server.port=8081
 SuccessExitStatus=143
-Restart=on-failure
-
+Restart=on-failure                                                                                                                                          
 [Install]
 WantedBy=multi-user.target
+```
+
+Create a configuration file for the service in the main application directory:
+
+```properties
+FILL_DB=true
+RESET_DB=true
 ```
 
 3. **Enable and start the service**

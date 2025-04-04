@@ -1,6 +1,4 @@
 
---install postgres with homebrew
-
 # How to Run
 
 - Test API and services

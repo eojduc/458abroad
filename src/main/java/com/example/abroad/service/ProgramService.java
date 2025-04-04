@@ -2,6 +2,7 @@ package com.example.abroad.service;
 
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
 import com.example.abroad.model.Program.Question;
@@ -11,8 +12,10 @@ import com.example.abroad.respository.FacultyLeadRepository;
 import com.example.abroad.respository.ProgramRepository;
 import com.example.abroad.respository.QuestionRepository;
 
+import com.example.abroad.respository.ResponseRepository;
 import com.example.abroad.service.ProgramService.SaveProgram.DatabaseError;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import java.util.stream.IntStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 /**
  * Service class for Program. wraps the ProgramRepository and provides additional functionality.
@@ -31,8 +36,11 @@ public record ProgramService(
   ApplicationRepository applicationRepository,
   FacultyLeadRepository facultyLeadRepository,
   QuestionRepository questionRepository,
+  ResponseRepository responseRepository,
   UserService userService
 ) {
+
+  private static final Logger logger = LoggerFactory.getLogger(ProgramService.class);
 
 
 
@@ -68,7 +76,7 @@ public record ProgramService(
       return new SaveProgram.DatabaseError(e.getMessage());
     }
   }
-  public SaveProgram addProgram(Program program, List<? extends User> facultyLeads, List<String> questions) {
+  public SaveProgram addProgram(Program program, List<? extends User> facultyLeads, List<String> questions, List<Integer> removedQuestions) {
     // Validate faculty leads
     if (facultyLeads == null || facultyLeads.isEmpty()) {
       return new SaveProgram.InvalidProgramInfo("Program must have at least one faculty lead");
@@ -91,12 +99,14 @@ public record ProgramService(
         try {
           setFacultyLeads(savedProgram, facultyLeads);
           setQuestions(savedProgram.id(), questions);
+          if (!removedQuestions.isEmpty()) {
+            updateResponses(savedProgram, removedQuestions);
+          }
           yield success;
         } catch (Exception e) {
           try {
             deleteProgram(savedProgram);
           } catch (Exception deleteError) {
-            // Log the delete error, but return the original error
           }
           yield new DatabaseError(e.getMessage());
         }
@@ -238,6 +248,58 @@ public record ProgramService(
       throw new RuntimeException("Failed to set faculty leads: " + e.getMessage());
     }
   }
+
+
+
+  public void updateResponses(Program program, List<Integer> removedQuestions) {
+    try {
+      List<Response> programResponses = responseRepository.findById_ProgramId(program.id());
+
+      // Remove responses to removed questions
+      List<Response> responsesToRemove = programResponses.stream()
+          .filter(response -> removedQuestions.contains(response.question()))
+          .toList();
+
+      responseRepository.deleteAll(responsesToRemove);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to remove responses: " + e.getMessage());
+    }
+
+    try {
+      List<Response> programResponses = responseRepository.findById_ProgramId(program.id());
+
+      List<Integer> sortedRemovedQuestions = new ArrayList<>(removedQuestions);
+      Collections.sort(sortedRemovedQuestions);
+
+      List<Response> updatedResponses = new ArrayList<>();
+
+      for (Response response : programResponses) {
+        int oldQuestionId = response.question();
+
+        // Count how many removed questions have a smaller ID
+        long shiftAmount = sortedRemovedQuestions.stream()
+            .filter(removedId -> removedId < oldQuestionId)
+            .count();
+
+        int newQuestionId = oldQuestionId - (int) shiftAmount;
+
+        if (newQuestionId != oldQuestionId) {
+          // Create a new Response object with the updated ID
+          Response newResponse = new Response(response.programId(), response.student(), newQuestionId, response.response());
+          updatedResponses.add(newResponse);
+        } else {
+          updatedResponses.add(response);
+        }
+      }
+
+      // Remove the old responses and insert the updated ones
+      responseRepository.deleteAll(programResponses);
+      responseRepository.saveAll(updatedResponses);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to update responses: " + e.getMessage());
+    }
+  }
+
 
   public void setQuestions(Integer programId, List<String> questions) {
     try {

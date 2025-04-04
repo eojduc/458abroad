@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -54,7 +55,7 @@ public record AddProgramService(UserService userService, ProgramService programS
     var leadUsers = userService.findAll().stream()
         .filter(u -> facultyLeads.contains(u.username()))
         .toList();
-   return switch (programService.addProgram(program, leadUsers, questions)) {
+   return switch (programService.addProgram(program, leadUsers, questions, List.of())) {
      case SaveProgram.InvalidProgramInfo(var message) -> new AddProgramInfo.InvalidProgramInfo(message);
      case SaveProgram.Success(var prog) -> {
         auditService.logEvent(String.format("Program %s(%d) added by %s", prog.title(), prog.id(), user.username()));
