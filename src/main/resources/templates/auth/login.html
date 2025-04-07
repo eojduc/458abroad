@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
-<head th:replace="~{components :: head('Login')}"></head>
+<head th:replace="~{components/head :: head('Login')}"></head>
 
 <body>
-<div th:replace="~{components :: logged-out-navbar}"></div>
+<div th:replace="~{components/logged-out-navbar :: logged-out-navbar}"></div>
 
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
     <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-        <div th:replace="~{components :: alerts(${alerts})}"></div>
+        <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
     </div>
     <div class="card card-normal w-96 bg-base-200">
         <div class="card-body">
@@ -48,6 +48,6 @@
     </div>
 </div>
 
-<div th:replace="~{components :: footer}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
 </body>
 </html>

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(user, alerts, formatter)"
       th:data-theme="${user.theme.name.toLowerCase}">
-<head th:replace="~{components :: head('Browse Programs')}"></head>
+<head th:replace="~{components/head :: head('Browse Programs')}"></head>
 <body>
-<div th:replace="~{components :: student-navbar(${user.displayName})}"></div>
+<div th:replace="~{components/student-navbar :: student-navbar(${user.displayName})}"></div>
 <div
     class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10 overflow-x-auto">
@@ -34,7 +34,7 @@
                     Open
                   </div>
                   <div th:case="*"
-                       th:replace="~{components :: statusBadge(${programAndStatus.status.name})}"></div>
+                       th:replace="~{components/statusBadge :: statusBadge(${programAndStatus.status.name})}"></div>
                 </div>
               </div>
               <p th:text="${formatter.formatDateRange(programAndStatus.program.startDate, programAndStatus.program.endDate)}"></p>
@@ -78,8 +78,8 @@
   </div>
 </div>
 
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 </html>
 

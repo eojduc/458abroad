@@ -94,27 +94,27 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
     switch (service.updateApplicationStatus(programId, username, status, session)) {
       case UpdateApplicationStatus.Success(var newStatus) -> {
         model.addAttribute("status", newStatus);
-        return "components :: statusBadge";
+        return "components/statusBadge :: statusBadge";
       }
       case UpdateApplicationStatus.ApplicationNotFound() -> {
         model.addAttribute("status", "error");
-        return "components :: statusBadge";
+        return "components/statusBadge :: statusBadge";
       }
       case UpdateApplicationStatus.NotLoggedIn() -> {
         model.addAttribute("status", "error");
-        return "components :: statusBadge";
+        return "components/statusBadge :: statusBadge";
       }
       case UpdateApplicationStatus.UserNotAdmin() -> {
         model.addAttribute("status", "error");
-        return "components :: statusBadge";
+        return "components/statusBadge :: statusBadge";
       }
       case UpdateApplicationStatus.UserLacksPermission() -> {
         model.addAttribute("status", "error");
-        return "components :: statusBadge";
+        return "components/statusBadge :: statusBadge";
       }
       case UpdateApplicationStatus.ProgramNotFound() -> {
         model.addAttribute("status", "error");
-        return "components :: statusBadge";
+        return "components/statusBadge :: statusBadge";
       }
     }
   }
@@ -126,11 +126,11 @@ public record AdminApplicationInfoController(AdminApplicationInfoService service
     switch (service.updatePaymentStatus(session, status, programId, username)) {
       case UpdatePaymentStatus.Success(var newStatus) -> {
         model.addAttribute("status", newStatus);
-        return "components :: payment-status-badge";
+        return "components/payment-status-badge :: payment-status-badge";
       }
       default -> {
         model.addAttribute("status", "error");
-        return "components :: payment-status-badge";
+        return "components/payment-status-badge :: payment-status-badge";
       }
     }
   }

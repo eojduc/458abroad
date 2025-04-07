@@ -1,0 +1,23 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="student-navbar(name)"
+     class="bg-base-100 navbar">
+  <div class="flex-1">
+    <a href="/" class="btn btn-ghost text-xl">
+      <div class="w-8 h-8 flex items-center">
+        <svg th:replace="~{components/logo :: logo}"/>
+      </div>
+      HCC Abroad
+    </a>
+    <a href="/programs" class="btn btn-ghost">Browse Programs</a>
+    <a href="/applications" class="btn btn-ghost">My Applications</a>
+    <a th:if="${isNotStudent}" href="/admin/programs" class="btn btn-ghost">Admin View</a>
+  </div>
+  <div class="flex-none gap-2">
+    <a href="/profile"
+       class="avatar placeholder">
+      <div class="bg-neutral text-neutral-content w-8 rounded-full">
+        <span class="text-sm" th:text="${formatter.abbreviateName(name)}"></span>
+      </div>
+    </a>
+    <a href="/logout" class="btn btn-ghost">Log out</a>
+  </div>
+</div>

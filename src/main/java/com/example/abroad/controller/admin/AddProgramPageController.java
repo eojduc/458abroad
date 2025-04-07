@@ -75,24 +75,24 @@ public record AddProgramPageController(AddProgramService service, FormatService 
           essentialDocsDate, semester, applicationOpen, applicationClose, selectedQuestions, session)) {
         case AddProgramInfo.Success(Integer programId) -> {
         response.setHeader("HX-Redirect", String.format("/admin/programs/%d?success=Program created", programId));
-        yield "components :: empty";  // Return a minimal fragment
+        yield "";  // Never reached
       }
       case AddProgramInfo.NotLoggedIn() -> {
         response.setHeader("HX-Redirect", "/login?error=You are not logged in");
-        yield "components :: empty";  // Return a minimal fragment
+        yield "";  // Never reached
       }
       case AddProgramInfo.UserNotAdmin() -> {
         response.setHeader("HX-Redirect", "/?error=You are not an admin");
-        yield "components :: empty";  // Return a minimal fragment
+        yield "";  // Return a minimal fragment
       }
       case AddProgramInfo.InvalidProgramInfo(var message) -> {
         model.addAttribute("alerts", new Alerts(Optional.of(message), Optional.empty(), Optional.empty(), Optional.empty()));
-        yield "components :: alerts";  // Return the alerts fragment
+        yield "components/alerts :: alerts";  // Return the alerts fragment
       }
       case AddProgramInfo.DatabaseError(var message) -> {
         logger.error("Error saving program: {}", message);
         model.addAttribute("alerts", new Alerts(Optional.of("An unknown error occurred"), Optional.empty(), Optional.empty(), Optional.empty()));
-        yield "components :: alerts";  // Return the alerts fragment
+        yield "components/alerts :: alerts";  // Return the alerts fragment
       }
     };
   }

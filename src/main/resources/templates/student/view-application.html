@@ -4,13 +4,13 @@
         th:fragment="page"
         th:data-theme="${user.theme.name.toLowerCase}"
 >
-<head th:replace="~{components :: head('Application Details')}"></head>
+<head th:replace="~{components/head :: head('Application Details')}"></head>
 <body>
 <div
-        th:replace="~{components :: student-navbar(${user.displayName()})}"
+        th:replace="~{components/student-navbar :: student-navbar(${user.displayName()})}"
 ></div>
 <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
 </div>
 <div
         id="applicationContent"
@@ -85,7 +85,7 @@
           <div class="card-actions justify-between">
             <h2 class="card-title">My Application</h2>
             <div
-                    th:replace="~{components :: statusBadge(${app.status.name()})}"
+                    th:replace="~{components/statusBadge :: statusBadge(${app.status.name()})}"
             ></div>
           </div>
 
@@ -475,8 +475,8 @@
     </div>
   </div>
 </div>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 
 <!-- Reactivate Modal -->
 <dialog id="reactivate_modal" class="modal">

@@ -1,0 +1,12 @@
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="guest-navbar"
+     class="bg-base-100 navbar">
+  <div class="flex-1">
+    <a href="/" class="btn btn-ghost text-xl">
+      <div class="w-8 h-8 flex items-center">
+        <svg th:replace="~{components/logo :: logo}"/>
+      </div>
+      HCC Abroad
+    </a>
+  </div>
+</div>

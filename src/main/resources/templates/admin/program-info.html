@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, applicants, user, formatter, alerts)" th:data-theme="${user.theme.name.toLowerCase}">
 
-<head th:replace="~{components :: head(${program.title})}"></head>
+<head th:replace="~{components/head :: head(${program.title})}"></head>
 
 <body>
-<div th:replace="~{components :: admin-navbar(${user.displayName}, ${isAdmin})}"></div>
+<div th:replace="~{components/admin-navbar :: admin-navbar(${user.displayName}, ${isAdmin})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
@@ -76,8 +76,8 @@
     </div>
   </div>
 </div>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 
 </html>
@@ -216,7 +216,7 @@
         <td>[[${applicant.dateOfBirth}]]</td>
         <td>
           <div th:id="'status-badge-' + ${applicant.username}">
-            <div th:replace="~{components :: statusBadge(${applicant.status})}"></div>
+            <div th:replace="~{components/statusBadge :: statusBadge(${applicant.status})}"></div>
           </div>
         </td>
         <td th:each="document : ${applicant.documents}">
@@ -231,7 +231,7 @@
         <td th:if="${program.trackPayment}">
           <div th:id="'payment-status-badge-' + ${applicant.username}">
             <!-- Payment status badge -->
-            <div th:replace="~{components :: payment-status-badge(${applicant.paymentStatus})}"></div>
+            <div th:replace="~{components/payment-status-badge :: payment-status-badge(${applicant.paymentStatus})}"></div>
           </div>
         </td>
         <td>
