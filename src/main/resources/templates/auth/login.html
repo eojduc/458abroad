@@ -13,11 +13,6 @@
         <div class="card-body">
             <h1 class="card-title text-center">Login</h1>
 
-            <!-- Show error message if exists -->
-            <div th:if="${error}" class="alert alert-error mb-4">
-                <span th:text="${error}"></span>
-            </div>
-
             <!-- Show success message if registered -->
             <div th:if="${param.registered}" class="alert alert-success mb-4">
                 <span>Registration successful! Please login.</span>

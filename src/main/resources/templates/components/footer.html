@@ -1,4 +1,5 @@
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="footer"
      class="footer bg-base-300 p-20 footer-center">
-  <h1 class="footer-title">&copy; 2025 Hypothetical City College. All rights reserved.</h1>
+  <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+  <h1 class="footer-title" th:utext="${themeConfig.getFooterText()}">&copy; 2025 Hypothetical City College. All rights reserved.</h1>
 </div>

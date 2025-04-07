@@ -49,6 +49,9 @@ public class DataInitializerService {
   @Value("${data.partners.path}")
   private String partnersCsvFilePath;
 
+  @Value("${data.theme_config.path}")
+  private String themeConfigCsvFilePath;
+
   @Value("${fillDb:false}")
   private boolean fillDb;
 
@@ -79,7 +82,7 @@ public class DataInitializerService {
       dataInitializationService.initializeRoles(rolesCsvFilePath);
       dataInitializationService.initializePreReqs(preReqCsvFilePath);
       dataInitializationService.initializePartners(partnersCsvFilePath);
-
+      dataInitializationService.initializeThemeConfig(themeConfigCsvFilePath);
     } else {
       logger.info("Skipping data initialization.");
     }

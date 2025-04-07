@@ -4,6 +4,7 @@ import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.PaymentStatus;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.FacultyLead;
+import com.example.abroad.model.ThemeConfig;
 import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Response;
@@ -21,6 +22,7 @@ import com.example.abroad.respository.ResponseRepository;
 import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
 
+import com.example.abroad.respository.ThemeConfigRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -62,6 +64,7 @@ public class DataInitializationService {
   private final RoleRepository roleRepository;
   private final PreReqRepository preReqRepository;
   private final PartnerRepository partnerRepository;
+  private final ThemeConfigRepository themeConfigRepository;
   private final CSVFormat csvFormat;
   @PersistenceContext
   private EntityManager entityManager;
@@ -79,7 +82,8 @@ public class DataInitializationService {
       QuestionRepository questionRepository,
       RoleRepository roleRepository,
       PreReqRepository preReqRepository,
-      PartnerRepository partnerRepository
+      PartnerRepository partnerRepository,
+      ThemeConfigRepository themeConfigRepository
     ) {
     this.localUserRepository = localUserRepository;
     this.ssoUserRepository = ssoUserRepository;
@@ -93,6 +97,7 @@ public class DataInitializationService {
     this.questionRepository = questionRepository;
     this.roleRepository = roleRepository;
     this.partnerRepository = partnerRepository;
+    this.themeConfigRepository = themeConfigRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
     this.csvFormat = CSVFormat.DEFAULT.builder()
         .setHeader()
@@ -284,6 +289,18 @@ public class DataInitializationService {
   }
 
   @Transactional
+  protected void initializeThemeConfig(String path) {
+    initializeData(
+        path,
+        record -> new ThemeConfig(
+          record.get("key"),
+            record.get("value")
+        ),
+        themeConfigRepository
+    );
+  }
+
+  @Transactional
   protected void initializePrograms(String path) {
     initializeData(
         path,
@@ -324,13 +341,18 @@ public class DataInitializationService {
   @Transactional
   protected void resetDatabase() {
     applicationRepository.deleteAll();
+    programRepository.deleteAll();
     localUserRepository.deleteAll();
     ssoUserRepository.deleteAll();
-    noteRepository.deleteAll();
     facultyLeadRepository.deleteAll();
+    noteRepository.deleteAll();
     documentRepository.deleteAll();
-    entityManager.createNativeQuery("ALTER SEQUENCE programs_seq RESTART WITH 1").executeUpdate();
-    programRepository.deleteAll();
+    responseRepository.deleteAll();
     questionRepository.deleteAll();
+    roleRepository.deleteAll();
+    preReqRepository.deleteAll();
+    partnerRepository.deleteAll();
+    themeConfigRepository.deleteAll();
+    entityManager.createNativeQuery("ALTER SEQUENCE programs_seq RESTART WITH 1").executeUpdate();
   }
 }
