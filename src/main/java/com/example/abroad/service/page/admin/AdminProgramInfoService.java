@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,6 +44,7 @@ public record AdminProgramInfoService(
   FormatService formatService,
   AuditService auditService
 ) {
+  private static final Logger logger = LoggerFactory.getLogger(AdminProgramInfoService.class);
 
   public DeleteProgram deleteProgram(Integer programId, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -250,7 +253,7 @@ public record AdminProgramInfoService(
       case ENROLLED -> program.endDate().isBefore(LocalDate.now()) ? "COMPLETED" : "ENROLLED";
       default -> application.status().toString();
     };
-    System.out.println(application.student());
+    logger.debug("Student: {}", application.student());
     return students.filter(student -> student.username().equals(application.student()))
       .map(student -> new Applicant(
         student.username(),

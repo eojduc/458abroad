@@ -1,12 +1,13 @@
 package com.example.abroad.service;
 
 import com.example.abroad.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public record ULinkService(UserService userService, TranscriptService transcriptService) {
-
-
+  private static final Logger log = LoggerFactory.getLogger(ULinkService.class);
 
   public sealed interface SetULink {
     record Success(User updatedUser) implements SetULink {}
@@ -46,7 +47,7 @@ public record ULinkService(UserService userService, TranscriptService transcript
       }
       return new RefreshCourses.Success();
     } catch (Exception e) {
-      System.out.println("Error retrieving transcript data: " + e.getMessage());
+      log.error("Error retrieving transcript data: " + e.getMessage());
       return new RefreshCourses.TranscriptServiceError();
     }
   }

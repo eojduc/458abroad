@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,7 +38,7 @@ public record AdminApplicationInfoService(
   AuditService auditService,
   ULinkService uLinkService
 ) {
-
+  private static final Logger logger = LoggerFactory.getLogger(AdminApplicationInfoService.class);
 
   public GetApplicationInfo getApplicationInfo(Integer programId, String username, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -86,7 +88,7 @@ public record AdminApplicationInfoService(
       .filter(course -> course.grade().matches("^(?:[ABCD][+-]?|S|IP)$"))
       .map(Course::code)
       .toList();
-    System.out.println(userService.findCoursesByUsername(student.username()));
+    logger.debug(userService.findCoursesByUsername(student.username()).toString());
     var preReqs = programService.getPreReqs(program)
       .stream()
       .map(p -> new PreReqInfo(p.courseCode(), takenCourseCodes.contains(p.courseCode())))

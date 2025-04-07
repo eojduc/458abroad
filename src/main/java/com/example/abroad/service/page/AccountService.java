@@ -133,7 +133,6 @@ public record AccountService(
             return new SetULink.AlreadySet();
         }
         if (!(user instanceof User.LocalUser)) {
-            System.out.println("USER: " + user.username());
             return new SetULink.UserNotLocalUser();
         }
         return switch (uLinkService.setULink(user, uLink, pin)) {

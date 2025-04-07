@@ -38,7 +38,7 @@ public record LetterOfRecommendationService(
     record RequestNotFound() implements GetRequestPage { }
   }
   public GetRequestPage getRequestPage(String code) {
-    System.out.println("Code: " + code);
+    log.debug("Code: " + code);
     var requests = applicationService.getRecRequestsByCode(code);
     if (requests.isEmpty()) {
       return new RequestNotFound();
