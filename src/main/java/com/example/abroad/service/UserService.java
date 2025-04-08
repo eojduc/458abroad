@@ -2,11 +2,13 @@ package com.example.abroad.service;
 
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Course;
+import com.example.abroad.model.User.LocalUser;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.respository.CourseRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
+import jakarta.persistence.Id;
 import jakarta.servlet.http.HttpSession;
 import com.example.abroad.model.User.Role;
 import com.example.abroad.model.User.Role.ID;
@@ -53,6 +55,11 @@ public record UserService(
       case User.LocalUser localUser -> localUserRepository.save(localUser);
       case User.SSOUser ssoUser -> ssoUserRepository.save(ssoUser);
     };
+  }
+
+  public User previewUser() {
+    return new LocalUser("previewUser", "NA", "preview@gmail.com", "Preview",
+                          Theme.DEFAULT, "previewUser");
   }
 
   public Boolean isAdmin(User user) {
