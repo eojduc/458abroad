@@ -159,8 +159,11 @@
     </button>
   </div>
   <div class="m-4">
-    <textarea id="emailList" class="sr-only" readonly>
+    <textarea id="emailList" class="sr-only" readonly th:if="${applicants.size() > 0}">
       [[${T(java.lang.String).join('; ', applicants.![email])}]]
+    </textarea>
+    <textarea id="emailList" class="sr-only" readonly th:if="${applicants.size() == 0}">
+      No emails selected.
     </textarea>
     <!-- Copy button styled with Tailwind -->
     <button
