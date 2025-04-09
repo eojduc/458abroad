@@ -206,21 +206,36 @@ public record AdminProgramInfoService(
     };
   }
 
-  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast) {
+  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast, Status currentStatus) {
     if (isAdmin) {
-      return Stream.of(
-        Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
-        .map(status -> statusOption(status, programIsPast)).toList();
-    }
-    if (isReviewer) {
-      return Stream.of(Status.ELIGIBLE, Status.APPLIED)
-        .map(status -> statusOption(status, programIsPast)).toList();
+      if (currentStatus == Status.WITHDRAWN) {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
+      else {
+        return Stream.of(
+            Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
     }
     if (isLead) {
-      return Stream.of(Status.ELIGIBLE, Status.APPLIED, Status.APPROVED)
-        .map(status -> statusOption(status, programIsPast)).toList();
+      if (currentStatus == Status.ELIGIBLE || currentStatus == Status.APPLIED || currentStatus == Status.APPROVED) {
+        return Stream.of(Status.APPLIED, Status.ELIGIBLE , Status.APPROVED)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
+      else {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
     }
-    return List.of();
+    if (isReviewer) {
+      if (currentStatus == Status.ELIGIBLE || currentStatus == Status.APPLIED) {
+        return Stream.of(Status.APPLIED, Status.ELIGIBLE)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
+      else {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
+    }
+    return List.of(statusOption(currentStatus, programIsPast));
   }
 
   public ApplicantDetails getApplicantDetails(Program program) {
@@ -354,7 +369,7 @@ public record AdminProgramInfoService(
         getDocumentInfo(applicant.documents.assumptionOfRisk(), deadlinePassed),
         getDocumentInfo(applicant.documents.housing(), deadlinePassed)
      ),
-      statusChangeOptions(isAdmin, isReviewer, isLead, programIsDone),
+      statusChangeOptions(isAdmin, isReviewer, isLead, programIsDone, applicant.status),
       applicant.noteCount(),
       applicant.latestNote().map(note -> note.author() + " on " + formatService.formatInstant(note.timestamp())).orElse(""),
       applicant.displayStatus(),

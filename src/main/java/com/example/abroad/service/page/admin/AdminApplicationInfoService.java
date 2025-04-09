@@ -18,6 +18,7 @@ import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.ULinkService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.PostNote.UserLacksPermission;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.StatusOption;
 import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -194,21 +195,36 @@ public record AdminApplicationInfoService(
       case WITHDRAWN -> new StatusOption(Status.WITHDRAWN.name(), "Withdrawn");
     };
   }
-  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast) {
+  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast, Status currentStatus) {
     if (isAdmin) {
-      return Stream.of(
-          Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
-        .map(status -> statusOption(status, programIsPast)).toList();
-    }
-    if (isReviewer) {
-      return Stream.of(Status.ELIGIBLE, Status.APPLIED)
-        .map(status -> statusOption(status, programIsPast)).toList();
+      if (currentStatus == Status.WITHDRAWN) {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
+      else {
+        return Stream.of(
+            Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
     }
     if (isLead) {
-      return Stream.of(Status.ELIGIBLE, Status.APPLIED, Status.APPROVED)
-        .map(status -> statusOption(status, programIsPast)).toList();
+      if (currentStatus == Status.ELIGIBLE || currentStatus == Status.APPLIED || currentStatus == Status.APPROVED) {
+        return Stream.of(Status.APPLIED, Status.ELIGIBLE , Status.APPROVED)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
+      else {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
     }
-    return List.of();
+    if (isReviewer) {
+      if (currentStatus == Status.ELIGIBLE || currentStatus == Status.APPLIED) {
+        return Stream.of(Status.APPLIED, Status.ELIGIBLE)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
+      else {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
+    }
+    return List.of(statusOption(currentStatus, programIsPast));
   }
 
   public record ApplicationDetails(
@@ -221,7 +237,7 @@ public record AdminApplicationInfoService(
 
   public ApplicationDetails getAppDetails(Boolean programIsPast, Application application, User student,
     Boolean isAdmin, Boolean isReviewer, Boolean isLead) {
-    return new ApplicationDetails(statusChangeOptions(isAdmin, isReviewer, isLead, programIsPast),
+    return new ApplicationDetails(statusChangeOptions(isAdmin, isReviewer, isLead, programIsPast, application.status()),
       List.of(
         new Field("User", formatService.displayUser(student)),
         new Field ("Email", student.email()),
