@@ -93,6 +93,12 @@ public record UserService(
       .anyMatch(role -> role.type().equals(User.Role.Type.FACULTY));
   }
 
+
+  public Boolean isPartner(User user) {
+    return roleRepository.findById_Username(user.username()).stream()
+            .anyMatch(role -> role.type().equals(User.Role.Type.PARTNER));
+  }
+
   public void setTheme(User.Theme theme, HttpSession session) {
     var user = findUserFromSession(session).orElse(null);
     if (user == null) {

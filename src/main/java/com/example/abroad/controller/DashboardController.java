@@ -44,6 +44,10 @@ public record DashboardController(
         model.addAttribute("isHeadAdmin", isHeadAdmin);
         yield "admin/admin-dashboard :: page";
       }
+      case GetDashboard.PartnerDashboard(var user) -> {
+        model.addAttribute("user", user);
+        yield "partner/partner-dashboard :: page";
+      }
       case GetDashboard.SSOUsernameTaken(var redirect) -> "redirect:" + redirect;
     };
   }

@@ -16,6 +16,7 @@ public record DashboardService(UserService userService, SSOService ssoService, U
     record AdminDashboard(User user, Boolean isAdmin, Boolean isHeadAdmin) implements GetDashboard {}
     record SSOUsernameTaken(String redirect) implements GetDashboard {}
     record NotLoggedIn() implements GetDashboard {}
+    record PartnerDashboard(User user) implements GetDashboard {}
   }
 
   public GetDashboard getDashboard(HttpSession session, HttpServletRequest request) {
@@ -28,6 +29,11 @@ public record DashboardService(UserService userService, SSOService ssoService, U
     if (user == null) {
       return new GetDashboard.NotLoggedIn();
     }
+
+    if (userService.isPartner(user)) {
+      return new GetDashboard.PartnerDashboard(user);
+    }
+
     if (!userService.isStudent(user)) {
       return new GetDashboard.AdminDashboard(user, userService.isAdmin(user), userService.isHeadAdmin(user));
     }

@@ -17,14 +17,13 @@ import com.example.abroad.respository.NoteRepository;
 import com.example.abroad.respository.QuestionRepository;
 import com.example.abroad.respository.RecommendationRequestRepository;
 import com.example.abroad.respository.ResponseRepository;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import com.example.abroad.service.UserService;
 
 @Service
 public record ApplicationService(
@@ -33,7 +32,8 @@ public record ApplicationService(
   DocumentRepository documentRepository,
   ResponseRepository responseRepository,
   LetterOfRecommendationRepository letterOfRecommendationRepository,
-  RecommendationRequestRepository recommendationRequestRepository
+  RecommendationRequestRepository recommendationRequestRepository,
+  UserService userService
 ) {
 
   public void deleteNote(Integer noteId) {
@@ -167,4 +167,74 @@ public record ApplicationService(
   public void updatePaymentStatus(Application application, Application.PaymentStatus paymentStatus) {
     applicationRepository.save(application.withPaymentStatus(paymentStatus));
   }
+
+  // Add these methods to ApplicationService
+  public List<ApplicantDTO> getApprovedAndEnrolledApplicants(Integer programId) {
+    // Find applications with "APPROVED" or "ENROLLED" status for this program
+    List<String> statuses = Arrays.asList("APPROVED", "ENROLLED");
+    List<Application> applications = applicationRepository.findById_ProgramId(programId)
+            .stream()
+            .filter(app -> statuses.contains(app.status().toString()))
+            .collect(Collectors.toList());
+
+    // Convert to DTOs with user information
+    return applications.stream()
+            .map(app -> {
+              Optional<? extends User> userOpt = userService.findByUsername(app.student());
+              if (userOpt.isEmpty()) {
+                return null;
+              }
+              User user = userOpt.get();
+
+              return new ApplicantDTO(
+                      user.displayName(),
+                      user.username(),
+                      user.email(),
+                      app.status().toString(),
+                      app.paymentStatus() != null ? app.paymentStatus().toString() : "UNPAID"
+              );
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+  }
+
+  public long countApprovedAndEnrolled(Integer programId) {
+    List<Application.Status> statuses = Arrays.asList(Application.Status.APPROVED, Application.Status.ENROLLED);
+    return applicationRepository.countByProgramIdAndStatuses(programId, statuses);
+  }
+
+  public long countFullyPaid(Integer programId) {
+    List<Application.Status> statuses = Arrays.asList(Application.Status.APPROVED, Application.Status.ENROLLED);
+    Application.PaymentStatus paymentStatus = Application.PaymentStatus.FULLY_PAID;
+    return applicationRepository.countByProgramIdAndStatusesAndPaymentStatus(programId, statuses, paymentStatus);
+  }
+
+  public boolean updatePaymentStatus(Integer programId, String username, String paymentStatus) {
+    Optional<Application> appOpt = applicationRepository.findById_ProgramIdAndId_Student(programId, username);
+    if (appOpt.isEmpty()) {
+      return false;
+    }
+
+    Application app = appOpt.get();
+    Application.PaymentStatus status;
+    try {
+      status = Application.PaymentStatus.valueOf(paymentStatus);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+
+    // Update payment status
+    Application updatedApp = app.withPaymentStatus(status);
+    applicationRepository.save(updatedApp);
+    return true;
+  }
+
+  // DTO for displaying applicant information
+  public record ApplicantDTO(
+          String displayName,
+          String username,
+          String email,
+          String status,
+          String paymentStatus
+  ) {}
 }

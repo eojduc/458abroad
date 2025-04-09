@@ -43,7 +43,8 @@ public record ProgramService(
   ResponseRepository responseRepository,
   UserService userService,
   PreReqRepository preReqRepository,
-  PartnerRepository partnerRepository
+  PartnerRepository partnerRepository,
+  ApplicationService applicationService
 ) {
 
   private static final Logger logger = LoggerFactory.getLogger(ProgramService.class);
@@ -341,4 +342,46 @@ public record ProgramService(
   public List<Application> getApplications(Program program) {
     return applicationRepository.findById_ProgramId(program.id());
   }
+
+  public List<ProgramWithCounts> getPartnerPrograms(String username) {
+    // Find all partner records for this username
+    List<Integer> programIds = partnerRepository.findById_Username(username)
+            .stream()
+            .map(Partner::programId)
+            .collect(Collectors.toList());
+
+    // Get all programs with those IDs, adding counts for display
+    return programRepository.findAllById(programIds)
+            .stream()
+            .map(program -> {
+              // Get counts of students in appropriate statuses
+              long approvedEnrolledCount = applicationService.countApprovedAndEnrolled(program.id());
+              long fullyPaidCount = applicationService.countFullyPaid(program.id());
+
+              // Return the program with counts
+              return new ProgramWithCounts(
+                      program,
+                      approvedEnrolledCount,
+                      fullyPaidCount
+              );
+            })
+            .collect(Collectors.toList());
+  }
+
+
+
+  public boolean isPartnerForProgram(String username, Integer programId) {
+    return partnerRepository.findById(new Partner.ID(programId, username)).isPresent();
+  }
+
+  public Optional<Program> getProgram(Integer id) {
+    return programRepository.findById(id);
+  }
+
+  // If you don't want to create a subclass, you could use a DTO pattern instead
+  public record ProgramWithCounts(
+          Program program,
+          long approvedEnrolledCount,
+          long fullyPaidCount
+  ) {}
 }

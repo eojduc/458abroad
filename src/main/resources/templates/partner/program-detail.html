@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
+<head th:replace="~{components/head :: head('Program Details')}"></head>
+<body>
+<div th:replace="~{components/partner-navbar :: partner-navbar(${user.displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-3/4 md:w-4/5 sm:w-full gap-5">
+    <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+        <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
+    </div>
+
+    <div class="card w-full bg-base-200">
+        <div class="card-body">
+            <div class="flex justify-between items-center">
+                <h1 class="card-title text-2xl" th:text="${program.title()}"></h1>
+                <div class="badge badge-primary" th:text="${program.year() + ' ' + program.semester()}"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <h2 class="text-xl font-semibold">Program Details</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p><strong>Faculty Lead(s):</strong></p>
+                    <p th:text="${#strings.listJoin(facultyLeadNames, ', ')}"></p>
+                </div>
+                <div>
+                    <p><strong>Payment Deadline:</strong> <span th:text="${#temporals.format(program.paymentDeadline(), 'MMM dd, yyyy')}"></span></p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <h2 class="text-xl font-semibold mb-4">Student Payment Status</h2>
+
+            <!-- Copy Emails Button -->
+            <div class="mb-4">
+                <button id="copyEmailsBtn" class="btn btn-sm btn-outline" onclick="copyEmails()">Copy All Emails</button>
+                <span id="copyConfirmation" class="ml-2 text-success hidden">Emails copied to clipboard!</span>
+            </div>
+
+            <div th:if="${applicants.empty}" class="alert alert-info">
+                <div>
+                    <span>There are no approved or enrolled students for this program.</span>
+                </div>
+            </div>
+
+            <div th:unless="${applicants.empty}" class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Payment Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="applicant : ${applicants}">
+                        <td th:text="${applicant.displayName()}"></td>
+                        <td th:text="${applicant.username()}"></td>
+                        <td th:text="${applicant.email()}" th:attr="data-email=${applicant.email()}"></td>
+                        <td th:text="${applicant.status()}"></td>
+                        <td>
+                            <span th:if="${applicant.paymentStatus() == 'UNPAID'}" class="badge badge-error">Unpaid</span>
+                            <span th:if="${applicant.paymentStatus() == 'PARTIALLY_PAID'}" class="badge badge-warning">Partially Paid</span>
+                            <span th:if="${applicant.paymentStatus() == 'FULLY_PAID'}" class="badge badge-success">Fully Paid</span>
+                        </td>
+                        <td>
+                            <div class="dropdown dropdown-end">
+                                <label tabindex="0" class="btn btn-sm m-1">Update</label>
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
+                                    <li>
+                                        <form th:action="@{/partner/programs/{id}/update-payment(id=${program.id()})}" method="POST">
+                                            <input type="hidden" name="username" th:value="${applicant.username()}" />
+                                            <input type="hidden" name="paymentStatus" value="UNPAID" />
+                                            <button type="submit" class="w-full text-left">Mark as Unpaid</button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <form th:action="@{/partner/programs/{id}/update-payment(id=${program.id()})}" method="POST">
+                                            <input type="hidden" name="username" th:value="${applicant.username()}" />
+                                            <input type="hidden" name="paymentStatus" value="PARTIALLY_PAID" />
+                                            <button type="submit" class="w-full text-left">Mark as Partially Paid</button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <form th:action="@{/partner/programs/{id}/update-payment(id=${program.id()})}" method="POST">
+                                            <input type="hidden" name="username" th:value="${applicant.username()}" />
+                                            <input type="hidden" name="paymentStatus" value="FULLY_PAID" />
+                                            <button type="submit" class="w-full text-left">Mark as Fully Paid</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6">
+                <a href="/partner/programs" class="btn btn-outline">Back to Programs</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyEmails() {
+        const emailElements = document.querySelectorAll('[data-email]');
+        const emails = Array.from(emailElements).map(el => el.getAttribute('data-email'));
+        const emailText = emails.join(';');
+
+        navigator.clipboard.writeText(emailText).then(() => {
+            const confirmation = document.getElementById('copyConfirmation');
+            confirmation.classList.remove('hidden');
+            setTimeout(() => {
+                confirmation.classList.add('hidden');
+            }, 3000);
+        });
+    }
+</script>
+
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
+</body>
+</html>

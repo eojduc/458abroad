@@ -21,7 +21,7 @@ import java.util.Objects;
 public final class Application {
 
   @Embeddable
-  static class ID implements Serializable {
+  public static class ID implements Serializable {
     @Column(nullable = false)
     private String student;
     @Column(nullable = false)

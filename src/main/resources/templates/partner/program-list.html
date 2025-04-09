@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
+<head th:replace="~{components/head :: head('Partner Programs')}"></head>
+<body>
+<div th:replace="~{components/partner-navbar :: partner-navbar(${user.displayName})}"></div>
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-3/4 md:w-4/5 sm:w-full gap-5">
+    <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+        <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
+    </div>
+
+    <div class="card w-full bg-base-200">
+        <div class="card-body">
+            <h1 class="card-title text-2xl mb-4">Your Partner Programs</h1>
+
+            <div th:if="${programs.empty}" class="alert alert-info">
+                <div>
+                    <span>You are not currently assigned to any programs as a partner.</span>
+                </div>
+            </div>
+
+            <div th:unless="${programs.empty}" class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Semester</th>
+                        <th>Faculty Lead(s)</th>
+                        <th>Payment Deadline</th>
+                        <th>Total Students</th>
+                        <th>Fully Paid</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="program : ${programs}">
+                        <td th:text="${program.program().program().title()}"></td>
+                        <td th:text="${program.program().program().year() + ' ' + program.program().program().semester()}"></td>
+                        <td>
+                            <span th:text="${#strings.listJoin(program.facultyLeadNames(), ', ')}"></span>
+                        </td>
+                        <td th:text="${#temporals.format(program.program().program().paymentDeadline(), 'MMM dd, yyyy')}"></td>
+                        <td th:text="${program.program().approvedEnrolledCount()}"></td>
+                        <td th:text="${program.program().fullyPaidCount()}"></td>
+                        <td>
+                            <a th:href="@{/partner/programs/{id}(id=${program.program().program().id()})}" class="btn btn-sm btn-primary">View</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
+</body>
+</html>
