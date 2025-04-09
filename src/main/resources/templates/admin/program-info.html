@@ -214,20 +214,23 @@
         <td>[[${applicant.major}]]</td>
         <td>[[${applicant.gpa}]]</td>
         <td>[[${applicant.dateOfBirth}]]</td>
-        <td>
-          <div th:id="'status-badge-' + ${applicant.username}">
-            <div th:replace="~{components/statusBadge :: statusBadge(${applicant.status})}"></div>
-          </div>
-        </td>
         <td th:each="document : ${applicant.documents}">
           <div th:switch="${document.status}">
-            <span th:case="'SUBMITTED'" class="badge badge-success">[[${document.text}]]</span>
+            <div th:case="'SUBMITTED'" class="flex flex-col">
+              <span class="badge badge-success">Submitted</span>
+              [[${document.text}]]
+            </div>
             <span th:case="'PENDING'" class="badge badge-warning">[[${document.text}]]</span>
             <span th:case="'MISSING'" class="badge badge-error">[[${document.text}]]</span>
           </div>
         </td>
         <td class="text-center">[[${applicant.noteCount}]]</td>
         <td>[[${applicant.latestNote}]]</td>
+        <td>
+          <div th:id="'status-badge-' + ${applicant.username}">
+            <div th:replace="~{components/statusBadge :: statusBadge(${applicant.status})}"></div>
+          </div>
+        </td>
         <td th:if="${program.trackPayment}">
           <div th:id="'payment-status-badge-' + ${applicant.username}">
             <!-- Payment status badge -->

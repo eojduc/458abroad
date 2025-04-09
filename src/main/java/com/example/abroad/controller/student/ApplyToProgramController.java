@@ -50,8 +50,8 @@ public record ApplyToProgramController(
       case GetApplyPageData.ProgramNotFound() ->
         "redirect:/programs?error=That program does not exist";
       case GetApplyPageData.StudentAlreadyApplied(Integer id, String username) -> String.format(
-        "redirect:/applications/%s/%s?error=You have already applied to this program",
-        id, username);
+        "redirect:/applications/%s?error=You have already applied to this program",
+        id);
       case GetApplyPageData.UserNotStudent() ->
         String.format("redirect:/admin/programs/%d?error=You are not a student", programId);
       case GetApplyPageData.ULinkNotSet() ->

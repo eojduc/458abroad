@@ -25,6 +25,7 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -230,13 +231,13 @@ public record AdminProgramInfoService(
       new Field("Major", "MAJOR"),
       new Field("GPA", "GPA"),
       new Field("Date of Birth", "DOB"),
-      new Field("Status", "STATUS"),
       new Field("Medical History", "MEDICAL_HISTORY"),
       new Field("Code of Conduct", "CODE_OF_CONDUCT"),
       new Field("Assumption of Risk", "ASSUMPTION_OF_RISK"),
       new Field("Housing", "HOUSING"),
       new Field("Note Count", "NOTE_COUNT"),
-      new Field("Latest Note", "LATEST_NOTE")
+      new Field("Latest Note", "LATEST_NOTE"),
+      new Field("Status", "STATUS")
     ));
     if (program.trackPayment()) {
       fields.add(new Field("Payment Status", "PAYMENT_STATUS"));
@@ -307,7 +308,8 @@ public record AdminProgramInfoService(
   }
   public DocumentInfo getDocumentInfo(Optional<Document> document, Boolean deadlinePassed) {
     return document.map(doc -> new DocumentInfo("SUBMITTED",
-      String.format("%s at %s", doc.timestamp().atZone(ZoneId.systemDefault()).toLocalDate(), doc.timestamp().atZone(ZoneId.systemDefault()).toLocalTime())))
+      String.format("%s at %s", doc.timestamp().atZone(ZoneId.systemDefault()).toLocalDate(), doc.timestamp().atZone(ZoneId.systemDefault()).toLocalTime()
+        .format(DateTimeFormatter.ofPattern("hh:mm")))))
       .orElse(deadlinePassed ?
         new DocumentInfo("MISSING", "Missing")
         : new DocumentInfo("PENDING", "Pending"));
