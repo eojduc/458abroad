@@ -11,8 +11,8 @@
         <div class="card-body gap-4">
             <h1 class="card-title text-center" th:text="'Welcome, ' + ${user.displayName}"></h1>
             <p class="text-center">
-                Oversee study abroad programs or create a new program directly from the admin dashboard.
-                You can review student applications by navigating to a specific program.
+                <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+                <span th:text="${themeConfig.getAdminContent()}" class="whitespace-pre-line"></span>
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Browse Programs Section -->
@@ -46,7 +46,7 @@
                         <p class="text-sm">
                             Change the theme and branding of the website to match your institution's identity.
                         </p>
-                        <a href="/admin/brand/edit" class="btn btn-primary btn-sm">
+                        <a href="/admin/brand" class="btn btn-primary btn-sm">
                             Rebrand UI
                         </a>
                     </div>

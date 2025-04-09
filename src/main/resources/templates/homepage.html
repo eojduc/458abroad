@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${theme}">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${'default'}">
 <head th:replace="~{components/head :: head('Home')}"></head>
 <body>
 <div th:replace="~{components/logged-out-navbar :: logged-out-navbar}"></div>
@@ -8,6 +8,7 @@
 </div>
 <div class="hero min-h-screen bg-base-200">
   <div class="hero-content text-center">
+    <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
     <div class="max-w-2xl">
       <div class="mb-6">
         <figure class="w-32 mx-auto">
@@ -15,31 +16,14 @@
         </figure>
       </div>
 
-        <h1 class="text-4xl font-bold mb-6">Welcome to HCC Study Abroad</h1>
-        <p class="text-xl mb-8">Transform Your Education Through Global Experience</p>
+        <h1 class="text-4xl font-bold mb-6" th:utext="${themeConfig.getHomeTitle()}">Welcome to HCC Study Abroad</h1>
+        <p class="text-xl mb-8" th:utext="${themeConfig.getHomeSubtitle()}">Transform Your Education Through Global Experience</p>
 
         <div class="card bg-base-100 shadow-xl">
           <div class="card-body p-6">
-            <h2 class="card-title text-lg mb-3">Our faculty-led programs offer:</h2>
-            <ul class="text-left space-y-1 mb-6 text-sm">
-              <li>• Immersive cultural experiences with expert faculty</li>
-              <li>• Programs aligned with your academic goals</li>
-              <li>• Fall, Spring, and Summer semester options</li>
-              <li>• Simple online application process</li>
-            </ul>
-
-            <div class="divider my-2"></div>
-
-            <h2 class="card-title text-lg mb-3">Getting Started</h2>
-            <ol class="text-left space-y-1 mb-6 text-sm">
-              <li>1. Create an account or login to browse available programs</li>
-              <li>2. Review program details and requirements</li>
-              <li>3. Submit your application online</li>
-              <li>4. Track your application status</li>
-            </ol>
-
+            <p th:utext="${themeConfig.getHomeCardContentHTML()}"></p>
             <div class="card-actions justify-center gap-4">
-              <a href="/Shibboleth.sso/Login" class="btn btn-primary">Login with Duke Shibboleth</a>
+              <a href="/Shibboleth.sso/Login" class="btn btn-primary">Login with SSO</a>
               <a href="/login" class="btn btn-outline">Login</a>
               <a href="/register" class="btn btn-outline">Register</a>
             </div>

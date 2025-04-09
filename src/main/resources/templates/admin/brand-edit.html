@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="page">
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
 <head th:replace="~{components/head :: head('Rebrand Pages')}"></head>
 <body>
 <div th:replace="~{components/admin-navbar :: admin-navbar(${user.displayName}, ${true})}"></div>
@@ -26,9 +26,9 @@
             <li th:each="entry : ${pages}">
               <a th:hx-get="@{/admin/brand/preview-redirect(page=${entry.key})}"
                  th:hx-swap="none"
-                 th:attr="data-title=${entry.value}"
+                 th:attr="data-title=${entry.value}, data-page=${entry.key}"
                  th:text="${entry.value}"
-                 onclick="setPreviewTitle(this.dataset.title)">
+                 onclick="setPreviewTitle(this.dataset.title, this.dataset.page)">
               </a>
             </li>
           </ul>
@@ -36,40 +36,78 @@
       </div>
     </div>
   </div>
-
   <div class="flex flex-col lg:flex-row gap-4 w-full">
     <!-- Left: Form Card (smaller) -->
     <div class="card w-1/4 bg-base-200 shadow-xl">
       <div class="card-body p-4">
-        <form method="post" enctype="multipart/form-data" class="flex flex-col gap-3">
-          <!-- Header Title -->
-          <div>
-            <label class="label font-semibold text-sm p-1">Header Title</label>
-            <input type="text" name="headerTitle" placeholder="e.g., Customer University – Global Study"
-                   class="input input-bordered w-full input-sm" oninput="updatePreview()" id="headerInput" />
-          </div>
-          <!-- Footer Text -->
-          <div>
-            <label class="label font-semibold text-sm p-1">Footer Text</label>
-            <input type="text" name="footerText" placeholder="e.g., © 2025 Customer University"
-                   class="input input-bordered w-full input-sm" oninput="updatePreview()" id="footerInput" />
-          </div>
-          <!-- Logo Upload (simulate preview with URL for now) -->
-          <div>
-            <label class="label font-semibold text-sm p-1">Logo URL</label>
-            <input type="text" name="logoUrl" placeholder="Paste logo URL here..."
-                   class="input input-bordered w-full input-sm" oninput="updatePreview()" id="logoUrlInput" />
-          </div>
-          <!-- Highlight Color -->
-          <div>
-            <label class="label font-semibold text-sm p-1">Primary Highlight Color</label>
-            <input type="color" name="highlightColor"
-                   class="w-16 h-8 p-0 border-2 border-base-content rounded-md"
-                   onchange="updatePreview()" id="colorInput" />
+        <form method="post" enctype="multipart/form-data" class="flex flex-col gap-3" th:action="@{/admin/brand/edit}">
+          <!-- Head Name (Header) -->
+          <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+          <!--/*@thymesVar id="formFields" type="java.util.List<java.util.Map<String, Object>>"*/-->
+          <input type="hidden" id="currentPage" name="currentPage" value="admin" />
+          <!-- Dynamically generated form fields -->
+          <div th:each="field : ${formFields}"
+               th:class="${field.pages.contains('all') ? '' : 'page-specific-field'}"
+               th:data-page="${field.pages.contains('all') ? '' : field.pages[0]}">
+
+            <label class="label font-semibold text-sm p-1" th:text="${field.label}"></label>
+            <!-- Text input -->
+            <input th:if="${field.type == 'text'}"
+                   type="text"
+                   th:name="${field.name}"
+                   th:placeholder="${field.placeholder}"
+                   th:value="${field.name == 'headName' ? themeConfig.getHeadName() :
+                  field.name == 'homeTitle' ? themeConfig.getHomeTitle() :
+                  field.name == 'homeSubtitle' ? themeConfig.getHomeSubtitle() :
+                  field.name == 'footerText' ? themeConfig.getFooterText() : ''}"
+                   class="input input-bordered w-full input-sm"
+                   th:hx-post="@{'/preview/update/' + ${field.name}}"
+                   hx-trigger="input delay:400ms"
+                   hx-swap="none"
+                   autocomplete="off"
+                   th:id="${field.id}" />
+            <!-- Textarea input -->
+            <textarea th:if="${field.type == 'textarea'}"
+                      th:name="${field.name}"
+                      th:placeholder="${field.placeholder}"
+                      th:text="${field.name == 'homeCardContent' ? themeConfig.getHomeCardContent():
+                    field.name == 'adminContent' ? themeConfig.getAdminContent() :
+                    field.name == 'studentContent' ? themeConfig.getStudentContent() : ''}"
+                      th:class="'textarea textarea-bordered w-full'"
+                      th:id="${field.id}"
+                      th:hx-post="@{'/preview/update/' + ${field.name}}"
+                      hx-trigger="input delay:400ms"
+                      hx-swap="none"
+                      th:rows="${field.height}"
+                      autocomplete="off"></textarea>
+            <div th:if="${field.type == 'color'}" class="flex items-center gap-2">
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500">oklch(</span>
+                <input type="text"
+                       th:name="${field.name}"
+                       th:id="${field.id}"
+                       th:value="${'0.6569 0.196 275.75'}"
+                       class="w-56 pl-14 pr-6 py-1 border-2 border-base-content rounded-md"
+                       pattern="[0-9.]+ [0-9.]+ [0-9.]+"
+                       placeholder="0.66 0.2 276">
+<!--                       oninput="validateOklchInput(this)"-->
+<!--                       onblur="formatOklchInput(this)" />-->
+                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">)</span>
+              </div>
+              <!-- Color preview box -->
+              <div th:id="${field.id + '_preview'}"
+                   class="w-8 h-8 border border-base-content rounded-md"
+                   th:style="'background-color: oklch(' + ${'0.6569 0.196 275.75'} + ');'"></div>
+            </div>
           </div>
           <!-- Submit -->
-          <div class="mt-2">
-            <button class="btn btn-primary btn-sm">Save Changes</button>
+          <div class="flex flex-row gap-6">
+            <div class="mt-2">
+              <button class="btn btn-warning btn-sm" th:hx-post="@{'/preview/reset'}">Reset Changes</button>
+            </div>
+            <div class="mt-2">
+              <button class="btn btn-primary btn-sm">Save Changes</button>
+            </div>
           </div>
         </form>
       </div>
@@ -92,11 +130,25 @@
 </div>
 
 <script>
-  function updatePreview() {
+  function setPreviewTitle(title, page) {
+    document.getElementById("previewTitle").innerText = "Preview: " + title;
+    document.getElementById("currentPage").value = page;
+    updateVisibleFields(page);
   }
 
-  function setPreviewTitle(title) {
-    document.getElementById("previewTitle").innerText = "Preview: " + title;
+  function updateVisibleFields(currentPage) {
+    // Hide all page-specific fields first
+    const allPageFields = document.querySelectorAll('.page-specific-field');
+    allPageFields.forEach(field => {
+      field.style.display = 'none';
+    });
+
+    // Show only the fields for the current page
+    const visibleFields = document.querySelectorAll(`.page-specific-field[data-page=${currentPage}]`);
+    visibleFields.forEach(field => {
+      field.style.display = 'block';
+    });
+
   }
 
   document.body.addEventListener('htmx:beforeOnLoad', function(evt) {
@@ -105,6 +157,11 @@
       evt.preventDefault(); // stop HTMX from doing a full redirect
       document.getElementById("inlineFrameExample").src = redirectHeader;
     }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    let DEFAULT_PAGE = 'admin';
+    updateVisibleFields(DEFAULT_PAGE);
   });
 
 </script>
