@@ -298,13 +298,13 @@ public record AdminApplicationInfoService(
     var adminStatuses = List.of(Status.ENROLLED, Status.CANCELLED, Status.ELIGIBLE, Status.APPROVED, Status.APPLIED);
     var facultyStatuses = List.of(Status.APPLIED, Status.ELIGIBLE, Status.APPROVED);
     var reviewerStatuses = List.of(Status.APPLIED, Status.ELIGIBLE);
-    if (isAdmin && !adminStatuses.contains(status)) {
+    if (isAdmin && (!adminStatuses.contains(status) || !adminStatuses.contains(application.status()))) {
       return new UpdateApplicationStatus.UserLacksPermission();
     }
-    if (isFacultyLead && !facultyStatuses.contains(status)) {
+    if (isFacultyLead && (!facultyStatuses.contains(status) || !facultyStatuses.contains(application.status()))) {
       return new UpdateApplicationStatus.UserLacksPermission();
     }
-    if (isReviewer && !reviewerStatuses.contains(status)) {
+    if (isReviewer && (!reviewerStatuses.contains(status) || !reviewerStatuses.contains(application.status()))) {
       return new UpdateApplicationStatus.UserLacksPermission();
     }
     auditService.logEvent(String.format("User %s updated status of application %d for student %s to %s",
