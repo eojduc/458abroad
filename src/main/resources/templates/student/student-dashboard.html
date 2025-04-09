@@ -11,7 +11,8 @@
         <div class="card-body gap-4">
           <h1 class="card-title text-center" th:text="'Welcome, ' + ${user.displayName}"></h1>
           <p class="text-center">
-            Explore available study abroad programs or check the status of your applications below.
+            <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+            <span th:text="${themeConfig.getStudentContent()}" class="whitespace-pre-line"></span>
           </p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Browse Programs Section -->

@@ -1,6 +1,14 @@
 <head xmlns:th="http://www.thymeleaf.org" th:fragment="head(title)">
   <title th:text="${title}"></title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet"/>
+  <style>
+    [data-theme=default] {
+      --p: [[${themeConfig.getPrimaryColor()}]];
+      --s: [[${themeConfig.getSecondaryColor()}]];
+      --a: [[${themeConfig.getAccentColor()}]];
+      --b1: [[${themeConfig.getBase100()}]];
+    }
+  </style>
 </head>

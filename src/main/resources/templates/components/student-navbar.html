@@ -5,7 +5,8 @@
       <div class="w-8 h-8 flex items-center">
         <svg th:replace="~{components/logo :: logo}"/>
       </div>
-      HCC Abroad
+      <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+      <span th:text="${themeConfig.getHeadName()}">HCC Abroad</span>
     </a>
     <a href="/programs" class="btn btn-ghost">Browse Programs</a>
     <a href="/applications" class="btn btn-ghost">My Applications</a>

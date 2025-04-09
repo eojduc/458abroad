@@ -1,6 +1,10 @@
 package com.example.abroad.controller.admin;
 
+import com.example.abroad.model.RebrandConfig;
+import com.example.abroad.service.page.admin.RebrandPagesService.EditRebrandPageInfo;
 import com.example.abroad.service.page.admin.RebrandPagesService.GetRebrandPageInfo;
+import com.example.abroad.service.page.student.ApplyToProgramService.ApplyToProgram;
+import com.example.abroad.service.page.student.ApplyToProgramService.GetApplyPageData;
 import com.example.abroad.view.Alerts;
 import com.example.abroad.service.page.admin.RebrandPagesService;
 import com.example.abroad.model.Program.Semester;
@@ -12,6 +16,7 @@ import com.example.abroad.service.page.admin.AddProgramService.GetAddProgramInfo
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,13 +39,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 public record RebrandPagesController(RebrandPagesService service, FormatService formatter,
                                      UserService userService) {
 
-  private static final Map<String, String> PAGE_DISPLAY_NAMES = Map.of(
-      "admin", "Admin Dashboard",
-      "student", "Student Dashboard",
-      "home", "Home Page"
-  );
 
-  @GetMapping("/admin/brand/edit")
+  @GetMapping("/admin/brand")
   public String addProgramPage(HttpSession session,
       @RequestParam Optional<String> error,
       @RequestParam Optional<String> success,
@@ -48,12 +49,13 @@ public record RebrandPagesController(RebrandPagesService service, FormatService 
       Model model) {
 
     switch (service.getRebrandPageInfo(session)) {
-      case GetRebrandPageInfo.Success(var user) -> {
+      case GetRebrandPageInfo.Success(var user, var pageNames, var formFields) -> {
 
         model.addAllAttributes(
             Map.of("user", user,
                 "alerts", new Alerts(error, success, warning, info),
-                "pages", PAGE_DISPLAY_NAMES,
+                "pages", pageNames,
+                "formFields", formFields,
                 "formatter", formatter));
 
         return "admin/brand-edit :: page";
@@ -73,6 +75,22 @@ public record RebrandPagesController(RebrandPagesService service, FormatService 
         .status(HttpStatus.OK)
         .header("HX-Redirect", "/preview/" + page)
         .build();
+  }
+
+  @PostMapping("/admin/brand/edit")
+  public String editRebrandPage(
+      @RequestParam Map<String, String> formData,
+      HttpSession session,
+      HttpServletResponse response) {
+
+    return switch (service.editBrandInfo(session, formData)) {
+      case EditRebrandPageInfo.Success(String message) -> "redirect:/?success=" + message;
+      case EditRebrandPageInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
+      case EditRebrandPageInfo.UserNotAdmin() -> "redirect:/?error=You are not the head admin";
+      case EditRebrandPageInfo.InvalidField(String message) -> "redirect:/admin/brand?error=" + message;
+      case EditRebrandPageInfo.DatabaseError(String message) -> "redirect:/admin/brand?error=" + message;
+    };
+
   }
 
 }

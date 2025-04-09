@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html
         xmlns:th="http://www.thymeleaf.org"
-        th:fragment="page"
-        th:data-theme="${user.theme.name.toLowerCase}"
->
+        th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
 <head th:replace="~{components/head :: head('Application Details')}"></head>
 <body>
 <div

@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
-<head th:replace="~{components/head :: head('Admin Dashboard Preview')}"></head>
+<head th:replace="~{components/head :: head('Admin Dashboard')}"></head>
 <body>
-<div th:replace="~{components/admin-navbar :: admin-navbar(${user.displayName}, true)}"></div>
+<div th:replace="~{components/admin-navbar :: admin-navbar(${user.displayName}, ${isAdmin})}"></div>
 <div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-4/5 sm:w-full gap-5">
     <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
 <!--        <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>-->
     </div>
     <div class="card w-1/2 bg-base-200 w-full">
         <div class="card-body gap-4">
-            <h1 class="card-title text-center" th:text="'Welcome '+ ${user.displayName}"></h1>
+            <h1 class="card-title text-center" th:text="'Welcome, ' + ${user.displayName}"></h1>
             <p class="text-center">
-                Oversee study abroad programs or create a new program directly from the admin dashboard.
-                You can review student applications by navigating to a specific program.
+                <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+                <span th:text="${themeConfig.getAdminContent()}" class="whitespace-pre-line"></span>
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Browse Programs Section -->
@@ -40,7 +40,7 @@
                     </div>
                 </div>
                 <!-- Rebrand Website UI Section -->
-                <div th:if="${false}" class="card card-normal bg-base-300 md:col-span-2 md:mx-auto md:w-1/2">
+                <div th:if="${isHeadAdmin}" class="card card-normal bg-base-300 md:col-span-2 md:mx-auto md:w-1/2">
                     <div class="card-body">
                         <h2 class="card-title">Rebrand UI</h2>
                         <p class="text-sm">
@@ -57,5 +57,6 @@
 </div>
 
 <div th:replace="~{components/footer :: footer}"></div>
+<!--<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>-->
 </body>
 </html>
