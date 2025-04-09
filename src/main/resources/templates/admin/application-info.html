@@ -127,7 +127,7 @@
         <h1 class="text-lg">Documents</h1>
         <div class="m-4 flex flex-col gap-5">
           <div class="flex flex-col gap-2">
-            <div th:unless="${isReviewer}" th:each="documentInfo: ${documentInfos}" class="contents">
+            <div th:unless="${isReviewer && !isLead && !isAdmin}" th:each="documentInfo: ${documentInfos}" class="contents">
               <div th:if="${documentInfo.isPresent}" class="flex flex-row gap-2 items-center">
                 <a th:href="@{/admin/applications/{programId}/{username}/documents/{type}/view(programId=${programId}, username=${studentUsername}, type=${documentInfo.type})}"
                    class="link link-secondary" th:text="${documentInfo.name}"></a>
@@ -137,7 +137,7 @@
                 <span class="text-xs" th:text="${documentInfo.name} + ' not uploaded'"></span>
               </div>
             </div>
-            <div th:if="${isReviewer}" th:each="documentInfo: ${documentInfos}" class="contents">
+            <div th:if="${isReviewer && !isLead && !isAdmin}" th:each="documentInfo: ${documentInfos}" class="contents">
               <div th:if="${documentInfo.isPresent}" class="flex flex-row gap-2 items-center">
                 <span class="text-success" th:text="${documentInfo.name}"></span>
                 <span class="text-xs" th:text="${documentInfo.timestamp}"></span>

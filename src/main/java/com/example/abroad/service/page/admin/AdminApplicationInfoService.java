@@ -98,7 +98,7 @@ public record AdminApplicationInfoService(
     return new GetApplicationInfo.Success(noteInfos, documents, theme,
       responses, programDetails,
       applicationDetails, user.displayName(), isReviewer, getLetters(student, program), isAdmin,
-      program.trackPayment(), preReqs);
+      program.trackPayment(), preReqs, isLead);
   }
 
   public record ResponseInfo(String question, String response) {
@@ -386,7 +386,7 @@ public record AdminApplicationInfoService(
                    List<DocumentInfo> documentInfos, String theme,
                     List<ResponseInfo> responses,
                    ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName, Boolean isReviewer,
-                   List<LetterInfo> requests, Boolean isAdmin, Boolean trackPayment, List<PreReqInfo> preReqs
+                   List<LetterInfo> requests, Boolean isAdmin, Boolean trackPayment, List<PreReqInfo> preReqs, Boolean isLead
     ) implements
       GetApplicationInfo {
 
