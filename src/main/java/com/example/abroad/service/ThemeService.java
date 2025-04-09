@@ -27,9 +27,9 @@ public record ThemeService(ThemeConfigRepository themeConfigRepository) {
                 case "adminContent" -> config.setAdminContent(entry.getValue());
                 case "studentContent" -> config.setStudentContent(entry.getValue());
                 case "primaryColor" -> config.setPrimaryColor(entry.getValue());
-                case "secondaryColor" -> config.setSecondaryColor(entry.getValue());
-                case "accentColor" -> config.setAccentColor(entry.getValue());
                 case "base100" -> config.setBase100(entry.getValue());
+                case "base200" -> config.setBase200(entry.getValue());
+                case "base300" -> config.setBase300(entry.getValue());
             }
         }
 

@@ -15,7 +15,7 @@
     </div>
     <div class="w-3/4 px-4 flex justify-between items-center">
       <div class="flex items-center gap-2">
-        <h2 id="previewTitle" class="text-xl font-semibold">Preview: Admin Dashboard</h2>
+        <h2 id="previewTitle" class="text-xl font-semibold">Live Preview: Admin Dashboard</h2>
         <div class="dropdown dropdown-end">
           <label tabindex="0" class="btn btn-ghost btn-xs btn-circle">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
@@ -40,6 +40,12 @@
     <!-- Left: Form Card (smaller) -->
     <div class="card w-1/4 bg-base-200 shadow-xl">
       <div class="card-body p-4">
+        <!-- Color toggle switch -->
+        <div class="flex justify-between items-center mb-3">
+          <span class="font-semibold text-sm">Show Color Settings</span>
+          <input type="checkbox" id="color-toggle" class="toggle toggle-primary" onchange="toggleColorInputs(this.checked)">
+        </div>
+
         <form method="post" enctype="multipart/form-data" class="flex flex-col gap-3" th:action="@{/admin/brand/edit}">
           <!-- Head Name (Header) -->
           <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
@@ -47,7 +53,7 @@
           <input type="hidden" id="currentPage" name="currentPage" value="admin" />
           <!-- Dynamically generated form fields -->
           <div th:each="field : ${formFields}"
-               th:class="${field.pages.contains('all') ? '' : 'page-specific-field'}"
+               th:class="${field.pages.contains('all') ? '' : 'page-specific-field'} + (${field.type == 'color'} ? ' color-field' : '')"
                th:data-page="${field.pages.contains('all') ? '' : field.pages[0]}">
 
             <label class="label font-semibold text-sm p-1" th:text="${field.label}"></label>
@@ -57,9 +63,9 @@
                    th:name="${field.name}"
                    th:placeholder="${field.placeholder}"
                    th:value="${field.name == 'headName' ? themeConfig.getHeadName() :
-                  field.name == 'homeTitle' ? themeConfig.getHomeTitle() :
-                  field.name == 'homeSubtitle' ? themeConfig.getHomeSubtitle() :
-                  field.name == 'footerText' ? themeConfig.getFooterText() : ''}"
+              field.name == 'homeTitle' ? themeConfig.getHomeTitle() :
+              field.name == 'homeSubtitle' ? themeConfig.getHomeSubtitle() :
+              field.name == 'footerText' ? themeConfig.getFooterText() : ''}"
                    class="input input-bordered w-full input-sm"
                    th:hx-post="@{'/preview/update/' + ${field.name}}"
                    hx-trigger="input delay:400ms"
@@ -71,8 +77,8 @@
                       th:name="${field.name}"
                       th:placeholder="${field.placeholder}"
                       th:text="${field.name == 'homeCardContent' ? themeConfig.getHomeCardContent():
-                    field.name == 'adminContent' ? themeConfig.getAdminContent() :
-                    field.name == 'studentContent' ? themeConfig.getStudentContent() : ''}"
+                field.name == 'adminContent' ? themeConfig.getAdminContent() :
+                field.name == 'studentContent' ? themeConfig.getStudentContent() : ''}"
                       th:class="'textarea textarea-bordered w-full'"
                       th:id="${field.id}"
                       th:hx-post="@{'/preview/update/' + ${field.name}}"
@@ -86,18 +92,27 @@
                 <input type="text"
                        th:name="${field.name}"
                        th:id="${field.id}"
-                       th:value="${'0.6569 0.196 275.75'}"
+                       th:hx-post="@{'/preview/update/' + ${field.name}}"
+                       hx-trigger="input delay:400ms"
+                       hx-swap="none"
+                       autocomplete="off"
+                       th:value="${field.name == 'primaryColor' ? themeConfig.getPrimaryColor() :
+                            field.name == 'base200' ? themeConfig.getBase200() :
+                            field.name == 'base300' ? themeConfig.getBase300() :
+                            field.name == 'base100' ? themeConfig.getBase100() : '0.7 0.1 310'}"
                        class="w-56 pl-14 pr-6 py-1 border-2 border-base-content rounded-md"
                        pattern="[0-9.]+ [0-9.]+ [0-9.]+"
-                       placeholder="0.66 0.2 276">
-<!--                       oninput="validateOklchInput(this)"-->
-<!--                       onblur="formatOklchInput(this)" />-->
+                       oninput="updatePreview(this)"
+                       placeholder="0.7 0.1 310">
                 <span class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">)</span>
               </div>
               <!-- Color preview box -->
               <div th:id="${field.id + '_preview'}"
                    class="w-8 h-8 border border-base-content rounded-md"
-                   th:style="'background-color: oklch(' + ${'0.6569 0.196 275.75'} + ');'"></div>
+                   th:style="'background-color: oklch(' + ${field.name == 'primaryColor' ? themeConfig.getPrimaryColor() :
+                        field.name == 'base200' ? themeConfig.getBase200() :
+                        field.name == 'base300' ? themeConfig.getBase300() :
+                        field.name == 'base100' ? themeConfig.getBase100() : '0.7 0.1 310'} + ');'"></div>
             </div>
           </div>
           <!-- Submit -->
@@ -148,8 +163,28 @@
     visibleFields.forEach(field => {
       field.style.display = 'block';
     });
-
   }
+
+  // JavaScript function to update preview when input value changes
+  function updatePreview(inputElement) {
+    const previewBox = document.getElementById(inputElement.id + "_preview");
+    const colorValue = inputElement.value.trim();
+    previewBox.style.backgroundColor = `oklch(${colorValue})`;
+  }
+
+
+  // Function to toggle visibility of color inputs
+  function toggleColorInputs(show) {
+    const colorFields = document.querySelectorAll('.color-field');
+    colorFields.forEach(field => {
+      if (show) {
+        field.style.display = 'block';
+      } else {
+        field.style.display = 'none';
+      }
+    });
+  }
+
 
   document.body.addEventListener('htmx:beforeOnLoad', function(evt) {
     const redirectHeader = evt.detail.xhr.getResponseHeader("HX-Redirect");
@@ -162,6 +197,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     let DEFAULT_PAGE = 'admin';
     updateVisibleFields(DEFAULT_PAGE);
+    toggleColorInputs(false);
   });
 
 </script>

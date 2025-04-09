@@ -17,9 +17,9 @@ public class RebrandConfig {
 
   // Colors
   private String primaryColor;
-  private String secondaryColor;
-  private String accentColor;
   private String base100;
+  private String base200;
+  private String base300;
 
 
   // Getters and Setters
@@ -114,28 +114,27 @@ public class RebrandConfig {
   public void setPrimaryColor(String primaryColor) {
     this.primaryColor = primaryColor;
   }
-
-  public String getSecondaryColor() {
-    return secondaryColor;
-  }
-
-  public void setSecondaryColor(String secondaryColor) {
-    this.secondaryColor = secondaryColor;
-  }
-
-  public String getAccentColor() {
-    return accentColor;
-  }
-
-  public void setAccentColor(String accentColor) {
-    this.accentColor = accentColor;
-  }
-
   public String getBase100() {
     return base100;
   }
 
   public void setBase100(String base100) {
     this.base100 = base100;
+  }
+
+  public String getBase200() {
+    return base200;
+  }
+
+  public void setBase200(String base200) {
+    this.base200 = base200;
+  }
+
+  public String getBase300() {
+    return base300;
+  }
+
+  public void setBase300(String base300) {
+    this.base300 = base300;
   }
 }

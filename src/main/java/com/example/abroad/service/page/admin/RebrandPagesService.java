@@ -97,24 +97,24 @@ public record RebrandPagesService(UserService userService, ThemeService themeSer
           "pages", List.of("all")
       ),
       Map.of(
-          "name", "secondaryColor",
-          "label", "Secondary Color",
-          "type", "color",
-          "id", "secondaryColorInput",
-          "pages", List.of("all")
-      ),
-      Map.of(
-          "name", "accentColor",
-          "label", "Accent Color",
-          "type", "color",
-          "id", "accentColorInput",
-          "pages", List.of("all")
-      ),
-      Map.of(
           "name", "base100",
           "label", "Base Color",
           "type", "color",
           "id", "baseColorInput",
+          "pages", List.of("all")
+      ),
+      Map.of(
+          "name", "base200",
+          "label", "Base Color 2",
+          "type", "color",
+          "id", "baseColor2Input",
+          "pages", List.of("all")
+      ),
+      Map.of(
+          "name", "base300",
+          "label", "Base Color 3",
+          "type", "color",
+          "id", "baseColor3Input",
           "pages", List.of("all")
       )
   );
