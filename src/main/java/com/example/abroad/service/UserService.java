@@ -132,6 +132,14 @@ public record UserService(
         .toList();
   }
 
+  public List<? extends User> findFacultyLeads() {
+    return findUsersWithRole(User.Role.Type.FACULTY);
+  }
+
+  public List<? extends User> findPaymentPartners() {
+    return findUsersWithRole(User.Role.Type.PARTNER);
+  }
+
   public void saveCourse(String courseCode, String username, String grade) {
     courseRepository.save(new Course(courseCode, username, grade));
   }

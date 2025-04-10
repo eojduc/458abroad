@@ -87,6 +87,7 @@
     <th th:replace="~{this :: sortableHeader('App Opens', 'APP_OPENS', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('App Closes', 'APP_CLOSES', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('Documents Due', 'ESSENTIAL_DOCS', 'date-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Payment Due', 'PAYMENT_DATE', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('Start Date', 'START_DATE', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('End Date', 'END_DATE', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('Applied', 'APPLIED', 'count-col')}"></th>
@@ -112,6 +113,7 @@
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.applicationOpen)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.applicationClose)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.documentDeadline)}"></td>
+    <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.paymentDeadline)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.startDate)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.endDate)}"></td>
     <td class="count-col text-center" th:text="${programAndStatus.applied}"></td>
@@ -161,7 +163,7 @@
         <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
         <select name="leadFilter" multiple
                 class="select"
-                size="4"
+                size="3"
                 th:value="${leadKeyword}"
                 th:hx-get="@{${path}}"
                 hx-trigger="change"

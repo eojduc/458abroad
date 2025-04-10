@@ -183,6 +183,22 @@ public final class Program {
     );
   }
 
+  public Program withPaymentDate(LocalDate paymentDate) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description,
+      paymentDate, this.trackPayment
+    );
+  }
+
+  public Program withTrackPayment(Boolean trackPayment) {
+    return new Program(
+      this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,
+      this.documentDeadline, this.startDate, this.endDate, this.description,
+      this.paymentDeadline, trackPayment
+    );
+  }
+
   public Program withDescription(String description) {
     return new Program(
       this.id, this.title, this.year, this.semester, this.applicationOpen, this.applicationClose,

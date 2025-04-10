@@ -55,6 +55,10 @@
                   <td>All Documents Due</td>
                   <td th:text="${formatter.formatLocalDate(programAndStatus.program.documentDeadline)}"></td>
                 </tr>
+                <tr class="border-base-200 border-y-2" th:if="${programAndStatus.program.trackPayment}">
+                  <td>Payment Due</td>
+                  <td th:text="${formatter.formatLocalDate(programAndStatus.program.paymentDeadline)}"></td>
+                </tr>
                 <tr class="border-base-200 border-y-2">
                   <td>Application Closes</td>
                   <td th:text="${formatter.formatLocalDate(programAndStatus.program.applicationClose)}"></td>
@@ -110,7 +114,7 @@
         <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
           <select name="leadFilter" multiple
                   class="select"
-                  size="4"
+                  size="3"
                   th:value="${leadKeyword}"
                   th:hx-get="@{${path}}"
                   hx-trigger="change"
