@@ -203,9 +203,17 @@ public sealed interface User extends Serializable {
       );
     }
 
+    /* TODO changed this because it wont let me login
     public boolean isMfaEnabled() {
       return mfaEnabled;
     }
+
+    */
+
+    public boolean isMfaEnabled() {
+      return mfaEnabled != null ? mfaEnabled : false;
+    }
+
     public String mfaSecret() {
       return mfaSecret;
     }

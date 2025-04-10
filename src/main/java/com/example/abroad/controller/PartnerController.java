@@ -27,7 +27,9 @@ public record PartnerController(
 
     // Define Sort enum for program sorting
     public enum Sort {
-        TITLE, SEMESTER, FACULTY, DEADLINE, TOTAL, PAID
+        TITLE, SEMESTER, FACULTY,
+        APP_OPEN, APP_CLOSE, DOC_DEADLINE, PAYMENT_DEADLINE,
+        START_DATE, END_DATE, TOTAL, PAID
     }
 
     @GetMapping("/programs")
@@ -37,7 +39,8 @@ public record PartnerController(
             @RequestParam Optional<String> error,
             @RequestParam Optional<String> success,
             @RequestParam Optional<String> warning,
-            @RequestParam Optional<String> info
+            @RequestParam Optional<String> info,
+            @RequestParam Optional<String> titleSearch
     ) {
         // Get user from session
         Optional<User> userOpt = userService.findUserFromSession(session);
@@ -53,6 +56,15 @@ public record PartnerController(
 
         // Get programs associated with this partner with default sorting (by TITLE ascending)
         List<ProgramService.ProgramWithCounts> programs = programService.getPartnerPrograms(user.username());
+
+        // Apply search filter if present
+        if (titleSearch.isPresent() && !titleSearch.get().isEmpty()) {
+            String search = titleSearch.get().toLowerCase();
+            programs = programs.stream()
+                    .filter(p -> p.program().title().toLowerCase().startsWith(search))
+                    .toList();
+        }
+
         List<ProgramWithFaculty> programsWithFaculty = preparePrograms(programs);
 
         model.addAttribute("user", user);
@@ -60,6 +72,7 @@ public record PartnerController(
         model.addAttribute("alerts", new Alerts(error, success, warning, info));
         model.addAttribute("sort", "TITLE");
         model.addAttribute("ascending", true);
+        model.addAttribute("titleSearch", titleSearch.orElse(""));
 
         return "partner/program-list :: page";
     }
@@ -69,7 +82,8 @@ public record PartnerController(
             HttpSession session,
             Model model,
             @RequestParam Sort sort,
-            @RequestParam Boolean ascending
+            @RequestParam Boolean ascending,
+            @RequestParam(required = false) String titleSearch
     ) {
         // Get user from session
         Optional<User> userOpt = userService.findUserFromSession(session);
@@ -85,12 +99,22 @@ public record PartnerController(
 
         // Get programs associated with this partner with sorting
         List<ProgramService.ProgramWithCounts> programs = programService.getPartnerProgramsSorted(user.username(), sort, ascending);
+
+        // Apply search filter if present
+        if (titleSearch != null && !titleSearch.isEmpty()) {
+            String search = titleSearch.toLowerCase();
+            programs = programs.stream()
+                    .filter(p -> p.program().title().toLowerCase().startsWith(search))
+                    .toList();
+        }
+
         List<ProgramWithFaculty> programsWithFaculty = preparePrograms(programs);
 
         model.addAttribute("user", user);
         model.addAttribute("programs", programsWithFaculty);
         model.addAttribute("sort", sort.name());
         model.addAttribute("ascending", ascending);
+        model.addAttribute("titleSearch", titleSearch);
 
         return "partner/program-list :: programTable";
     }
@@ -282,5 +306,4 @@ public record PartnerController(
                 .sorted(ascending ? comparator : comparator.reversed())
                 .toList();
     }
-
 }
