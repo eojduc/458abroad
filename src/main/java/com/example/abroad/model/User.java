@@ -110,13 +110,19 @@ public sealed interface User extends Serializable {
     @Column(nullable = true)
     private String uLink;
 
+    @Column(nullable = true)
+    private Boolean mfaEnabled;
+    @Column(nullable = true)
+    private String mfaSecret;
+
     public LocalUser() {
       this.username = null;
       this.password = null;
       this.email = null;
       this.displayName = null;
+      this.mfaEnabled = false;
+      this.mfaSecret = null;
     }
-
 
     public LocalUser(String username, String password, String email, String displayName, Theme theme, String uLink) {
       this.username = username;
@@ -125,6 +131,19 @@ public sealed interface User extends Serializable {
       this.displayName = displayName;
       this.theme = theme;
       this.uLink = uLink;
+      this.mfaEnabled = false;
+      this.mfaSecret = null;
+    }
+
+    public LocalUser(String username, String password, String email, String displayName, Theme theme, String uLink, boolean mfaEnabled, String mfaSecret) {
+      this.username = username;
+      this.password = password;
+      this.email = email;
+      this.displayName = displayName;
+      this.theme = theme;
+      this.uLink = uLink;
+      this.mfaEnabled = mfaEnabled;
+      this.mfaSecret = mfaSecret;
     }
 
     public String username() {
@@ -169,6 +188,26 @@ public sealed interface User extends Serializable {
               this.theme,
               uLink
       );
+    }
+
+    public User withMfa(boolean enabled, String secret) {
+      return new LocalUser(
+              this.username,
+              this.password,
+              this.email,
+              this.displayName,
+              this.theme,
+              this.uLink,
+              enabled,
+              secret
+      );
+    }
+
+    public boolean isMfaEnabled() {
+      return mfaEnabled;
+    }
+    public String mfaSecret() {
+      return mfaSecret;
     }
   }
 
