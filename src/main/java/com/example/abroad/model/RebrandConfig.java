@@ -17,6 +17,7 @@ public class RebrandConfig {
 
   // Colors
   private String primaryColor;
+  private String neutralColor;
   private String base100;
   private String base200;
   private String base300;
@@ -145,5 +146,13 @@ public class RebrandConfig {
 
   public void setLogoSvg(String logoSvg) {
     this.logoSvg = logoSvg;
+  }
+
+  public String getNeutralColor() {
+    return neutralColor;
+  }
+
+  public void setNeutralColor(String neutralColor) {
+    this.neutralColor = neutralColor;
   }
 }

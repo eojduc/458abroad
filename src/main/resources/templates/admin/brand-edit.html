@@ -105,28 +105,40 @@
                 <input type="text"
                        th:name="${field.name}"
                        th:id="${field.id}"
+                       data-init-oklch="true"
                        th:hx-post="@{'/preview/update/' + ${field.name}}"
                        hx-trigger="input delay:400ms"
                        hx-swap="none"
                        autocomplete="off"
+                       inputmode="decimal"
+                       onkeydown="return event.key !== 'Enter';"
                        th:value="${field.name == 'primaryColor' ? themeConfig.getPrimaryColor() :
                             field.name == 'base200' ? themeConfig.getBase200() :
+                            field.name == 'neutralColor' ? themeConfig.getNeutralColor() :
                             field.name == 'base300' ? themeConfig.getBase300() :
                             field.name == 'base100' ? themeConfig.getBase100() : '0.7 0.1 310'}"
-                       class="w-56 pl-14 pr-6 py-1 border-2 border-base-content rounded-md"
-                       pattern="[0-9.]+ [0-9.]+ [0-9.]+"
-                       oninput="updatePreview(this)"
-                       placeholder="0.7 0.1 310">
+                       class="w-56 pl-14 pr-6 py-1 border-2 border-base-content rounded-md
+                      invalid:border-red-500 focus:invalid:border-red-500 focus:ring-0 focus:outline-none"
+                       pattern="^\d*\.?\d+ \d*\.?\d+ \d*\.?\d+$"
+                       oninput="updatePreview(this); filterOKLCHInput(this);"
+                placeholder="0.7 0.1 310">
                 <span class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">)</span>
               </div>
               <!-- Color preview box -->
-              <div th:id="${field.id + '_preview'}"
-                   class="w-8 h-8 border border-base-content rounded-md"
+              <a th:id="${field.id + '_preview'}"
+                 target="_blank"
+                 href="#"
+                 class="w-16 h-8 ml-6 border border-base-content rounded-md cursor-pointer block"
                    th:style="'background-color: oklch(' + ${field.name == 'primaryColor' ? themeConfig.getPrimaryColor() :
                         field.name == 'base200' ? themeConfig.getBase200() :
+                        field.name == 'neutralColor' ? themeConfig.getNeutralColor() :
                         field.name == 'base300' ? themeConfig.getBase300() :
-                        field.name == 'base100' ? themeConfig.getBase100() : '0.7 0.1 310'} + ');'"></div>
+                        field.name == 'base100' ? themeConfig.getBase100() : '0.7 0.1 310'} + ');'"></a>
             </div>
+          </div>
+          <!-- Learn more link -->
+          <div class="mt-2 text-sm color-field">
+            <a href="https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl" target="_blank" class="link link-info">Learn more about the oklch color format</a>
           </div>
           <!-- Submit -->
           <div class="flex flex-row gap-6">
@@ -170,6 +182,27 @@
       console.error("Could not modify iframe content:", e);
     }
   }
+  function filterOKLCHInput(input) {
+    // Get the current value of the input
+    let value = input.value;
+
+    // Remove any characters that are not digits, dots, or spaces
+    value = value.replace(/[^\d. ]+/g, '');
+
+    // Replace multiple spaces with a single space and trim leading/trailing spaces
+    value = value.replace(/\s+/g, ' ');
+
+    if (value.split(' ').length > 3) {
+      // If there are more than 3 values, keep only the first 3
+      value = value.split(' ').slice(0, 3).join(' ');
+    }
+
+    // Update the input with the cleaned value
+    input.value = value;
+  }
+
+
+
   function setPreviewTitle(title, page) {
     document.getElementById("previewTitle").innerText = "Preview: " + title;
     document.getElementById("currentPage").value = page;
@@ -195,6 +228,13 @@
     const previewBox = document.getElementById(inputElement.id + "_preview");
     const colorValue = inputElement.value.trim();
     previewBox.style.backgroundColor = `oklch(${colorValue})`;
+    const colorComponents = colorValue.split(' ');
+    if (colorComponents.length === 3) {
+      const [lightness, chroma, hue] = colorComponents;
+      previewBox.href = `https://oklch.com/#${lightness},${chroma},${hue},100`;
+    } else {
+      previewBox.style.backgroundColor = `oklch(0.7 0.1 310)`;
+    }
   }
 
 
@@ -216,6 +256,9 @@
     if (redirectHeader) {
       evt.preventDefault(); // stop HTMX from doing a full redirect
       document.getElementById("inlineFrameExample").src = redirectHeader;
+      document.querySelectorAll('input[data-init-oklch="true"]').forEach(input => {
+        updatePreview(input);
+      });
     }
   });
 
@@ -223,6 +266,9 @@
     let DEFAULT_PAGE = 'admin';
     updateVisibleFields(DEFAULT_PAGE);
     toggleColorInputs(false);
+    document.querySelectorAll('input[data-init-oklch="true"]').forEach(input => {
+      updatePreview(input);
+    });
   });
 
 </script>

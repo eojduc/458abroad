@@ -106,6 +106,13 @@ public record RebrandPagesService(UserService userService, ThemeService themeSer
           "pages", List.of("all")
       ),
       Map.of(
+          "name", "neutralColor",
+          "label", "Neutral Color",
+          "type", "color",
+          "id", "neutralColorInput",
+          "pages", List.of("all")
+      ),
+      Map.of(
           "name", "base100",
           "label", "Base Color",
           "type", "color",

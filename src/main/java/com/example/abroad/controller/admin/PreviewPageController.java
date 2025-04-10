@@ -91,6 +91,7 @@ public record PreviewPageController(
       @RequestParam String studentContent,
       @RequestParam String footerText,
       @RequestParam String primaryColor,
+      @RequestParam String neutralColor,
       @RequestParam String base100,
       @RequestParam String base200,
       @RequestParam String base300,
@@ -107,6 +108,7 @@ public record PreviewPageController(
     config.setStudentContent(studentContent);
     config.setFooterText(footerText);
     config.setPrimaryColor(primaryColor);
+    config.setNeutralColor(neutralColor);
     config.setBase100(base100);
     config.setBase200(base200);
     config.setBase300(base300);

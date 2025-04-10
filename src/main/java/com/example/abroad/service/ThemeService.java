@@ -32,6 +32,7 @@ public record ThemeService(ThemeConfigRepository themeConfigRepository) {
                 case "base100" -> config.setBase100(entry.getValue());
                 case "base200" -> config.setBase200(entry.getValue());
                 case "base300" -> config.setBase300(entry.getValue());
+                case "neutralColor" -> config.setNeutralColor(entry.getValue());
                 case "logoSvg" -> config.setLogoSvg(entry.getSvgData());
             }
         }
