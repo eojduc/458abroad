@@ -2,20 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <div class="navbar bg-primary text-primary-content" th:fragment="partner-navbar(displayName)">
     <div class="flex-1">
-        <a class="btn btn-ghost normal-case text-xl" href="/static">Study Abroad</a>
+        <a class="btn btn-ghost normal-case text-xl" href="/">Study Abroad</a>
     </div>
     <div class="flex-none">
         <ul class="menu menu-horizontal px-1">
             <li><a href="/partner/programs">Programs</a></li>
-            <li>
-                <details>
-                    <summary th:text="${displayName}"></summary>
-                    <ul class="p-2 bg-primary">
-                        <li><a href="/settings">Settings</a></li>
-                        <li><a href="/logout">Logout</a></li>
-                    </ul>
-                </details>
-            </li>
+            <li><a href="/logout">Logout</a></li>
         </ul>
     </div>
 </div>

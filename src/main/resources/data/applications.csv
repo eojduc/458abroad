@@ -1,10 +1,10 @@
 student,programId,dateOfBirth,gpa,major,status
-tylerharris352,1,2004-09-01,3.52,Biology,APPLIED
-tylerharris352,7,2004-09-01,3.52,Biology,ENROLLED
-davidclark074,1,2004-06-15,2.54,Psychology,CANCELLED
-elizabethjohnson303,2,2008-03-20,3.95,Psychology,ENROLLED
-emilyharris658,1,2001-04-12,3.64,Biology,WITHDRAWN
-elizabethlewis588,3,2000-03-16,3.1,Psychology,ENROLLED
+tylerharris352,1,2004-09-01,3.52,Biology,ENROLLED
+tylerharris352,7,2004-09-01,3.52,Biology,APPROVED
+davidclark074,1,2004-06-15,2.54,Psychology,ENROLLED
+elizabethjohnson303,2,2008-03-20,3.95,Psychology,WITHDRAWN
+emilyharris658,1,2001-04-12,3.64,Biology,ENROLLED
+elizabethlewis588,3,2000-03-16,3.1,Psychology,WITHDRAWN
 jessicasmith684,3,2008-08-08,3.00,Engineering,WITHDRAWN
-jessicasmith684,2,2008-08-08,3.00,Engineering,ENROLLED
-jessicasmith610,2,2001-07-07,3.60,Computer Science,APPLIED
+jessicasmith684,2,2008-08-08,3.00,Engineering,WITHDRAWN
+jessicasmith610,2,2001-07-07,3.60,Computer Science,WITHDRAWN

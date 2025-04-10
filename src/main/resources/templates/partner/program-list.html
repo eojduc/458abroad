@@ -33,7 +33,11 @@
                     </thead>
                     <tbody>
                     <tr th:each="program : ${programs}">
-                        <td th:text="${program.program().program().title()}"></td>
+                        <td>
+                            <a th:href="@{/partner/programs/{id}(id=${program.program().program().id()})}"
+                               class="text-primary hover:underline font-medium"
+                               th:text="${program.program().program().title()}"></a>
+                        </td>
                         <td th:text="${program.program().program().year() + ' ' + program.program().program().semester()}"></td>
                         <td>
                             <span th:text="${#strings.listJoin(program.facultyLeadNames(), ', ')}"></span>

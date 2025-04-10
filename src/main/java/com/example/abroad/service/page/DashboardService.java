@@ -31,6 +31,7 @@ public record DashboardService(UserService userService, SSOService ssoService, U
     }
 
     if (userService.isPartner(user)) {
+      System.out.println("user is partner");
       return new GetDashboard.PartnerDashboard(user);
     }
 
