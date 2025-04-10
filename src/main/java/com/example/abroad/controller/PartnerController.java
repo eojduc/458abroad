@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -162,6 +163,9 @@ public record PartnerController(
         model.addAttribute("facultyLeadNames", facultyLeadNames);
         model.addAttribute("applicants", applicants);
         model.addAttribute("alerts", new Alerts(error, success, warning, info));
+        model.addAttribute("sort", "NAME");
+        model.addAttribute("ascending", true);
+        model.addAttribute("statusFilter", "ALL");
 
         return "partner/program-detail :: page";
     }
@@ -198,6 +202,85 @@ public record PartnerController(
         } else {
             return "redirect:/partner/programs/" + programId + "?error=Failed to update payment status";
         }
+    }
+
+    // Add this to your PartnerController class
+    public enum ApplicantSort {
+        NAME, USERNAME, EMAIL, STATUS, PAYMENT
+    }
+
+    @GetMapping("/programs/{programId}/table")
+    public String getApplicantsTable(
+            @PathVariable Integer programId,
+            HttpSession session,
+            Model model,
+            @RequestParam(required = false, defaultValue = "NAME") ApplicantSort sort,
+            @RequestParam(required = false, defaultValue = "true") Boolean ascending,
+            @RequestParam(required = false, defaultValue = "ALL") String statusFilter
+    ) {
+        // Get user from session
+        Optional<User> userOpt = userService.findUserFromSession(session);
+        if (userOpt.isEmpty()) {
+            return "redirect:/login?error=Please log in to access the partner portal";
+        }
+
+        User user = userOpt.get();
+        // Verify the user is a partner
+        if (!userService.isPartner(user)) {
+            return "redirect:/?error=You do not have access to the partner portal";
+        }
+
+        // Check if this partner is associated with this program
+        if (!programService.isPartnerForProgram(user.username(), programId)) {
+            return "redirect:/partner/programs?error=You do not have access to this program";
+        }
+
+        // Get program details
+        Optional<Program> programOpt = programService.getProgram(programId);
+        if (programOpt.isEmpty()) {
+            return "redirect:/partner/programs?error=Program not found";
+        }
+
+        Program program = programOpt.get();
+
+        // Get approved/enrolled students for this program with payment status and apply sorting/filtering
+        var applicants = applicationService.getApprovedAndEnrolledApplicants(programId);
+
+        // Apply status filtering if needed
+        if (!statusFilter.equals("ALL")) {
+            applicants = applicants.stream()
+                    .filter(applicant -> applicant.status().equals(statusFilter))
+                    .toList();
+        }
+
+        // Apply sorting
+        applicants = sortApplicants(applicants, sort, ascending);
+
+        model.addAttribute("program", program);
+        model.addAttribute("applicants", applicants);
+        model.addAttribute("sort", sort.name());
+        model.addAttribute("ascending", ascending);
+        model.addAttribute("statusFilter", statusFilter);
+
+        return "partner/program-detail :: applicantTable";
+    }
+
+    private List<ApplicationService.ApplicantDTO> sortApplicants(
+            List<ApplicationService.ApplicantDTO> applicants,
+            ApplicantSort sort,
+            boolean ascending
+    ) {
+        Comparator<ApplicationService.ApplicantDTO> comparator = switch (sort) {
+            case NAME -> Comparator.comparing(a -> a.displayName().toLowerCase());
+            case USERNAME -> Comparator.comparing(a -> a.username().toLowerCase());
+            case EMAIL -> Comparator.comparing(a -> a.email().toLowerCase());
+            case STATUS -> Comparator.comparing(ApplicationService.ApplicantDTO::status);
+            case PAYMENT -> Comparator.comparing(ApplicationService.ApplicantDTO::paymentStatus);
+        };
+
+        return applicants.stream()
+                .sorted(ascending ? comparator : comparator.reversed())
+                .toList();
     }
 
 }
