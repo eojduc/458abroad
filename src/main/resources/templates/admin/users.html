@@ -79,7 +79,6 @@
                   <!-- Don't show any buttons for the admin user -->
                   <div th:if="${userInfo.user.username != 'admin'}" class="flex flex-row gap-2 items-center">
                     <!-- Role management dropdown -->
-                    <!-- Role management dropdown -->
                     <div class="dropdown dropdown-hover text-base-content">
                       <label tabindex="0" class="btn btn-sm btn-primary">Manage Roles</label>
                       <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
@@ -121,12 +120,8 @@
                           </form>
                         </li>
                         <li th:if="${userInfo.role.contains('REVIEWER')}">
-                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
-                                method="POST" class="w-full">
-                            <input type="hidden" name="roleType" value="REVIEWER"/>
-                            <input type="hidden" name="grantRole" value="false"/>
-                            <button type="submit" class="w-full text-left">Revoke Reviewer Role</button>
-                          </form>
+                          <button th:attr="onclick=|document.getElementById('reviewerConfirm-${userInfo.user.username}').showModal()|"
+                                  class="w-full text-left">Revoke Reviewer Role</button>
                         </li>
                       </ul>
                     </div>
@@ -144,20 +139,14 @@
                             th:attr="onclick=|document.getElementById('deleteUser-${userInfo.user.username}').showModal()|">
                       Delete User
                     </button>
+
+                    <!-- Admin Role Revocation Dialog - Simplified -->
                     <dialog th:id="|adminConfirm-${userInfo.user.username}|" class="modal text-base-content">
                       <div class="modal-box">
-                        <h3 class="font-bold text-lg">Confirm Admin Privilege Removal</h3>
-                        <div th:unless="${userInfo.facultyLeadPrograms.isEmpty()}">
-                          <p class="py-4">
-                            This user is currently a faculty lead for the following programs:
-                          </p>
-                          <ul class="list-disc list-inside mb-4">
-                            <li th:each="program : ${userInfo.facultyLeadPrograms}" th:text="${program.title()}"></li>
-                          </ul>
-                          <p>
-                            For programs where they are the only faculty lead, the lead role will be transferred to the admin account.
-                          </p>
-                        </div>
+                        <h3 class="font-bold text-lg">Confirm Admin Role Removal</h3>
+                        <p class="py-4">
+                          Are you sure you want to revoke the admin role from this user?
+                        </p>
                         <div class="modal-action">
                           <form th:action="@{/admin/users/{username}/admin-status(username=${userInfo.user.username},confirmed=true)}"
                                 method="POST"
@@ -174,6 +163,33 @@
                         <button>close</button>
                       </form>
                     </dialog>
+
+                    <!-- Reviewer Role Revocation Dialog - New Simple Dialog -->
+                    <dialog th:id="|reviewerConfirm-${userInfo.user.username}|" class="modal text-base-content">
+                      <div class="modal-box">
+                        <h3 class="font-bold text-lg">Confirm Reviewer Role Removal</h3>
+                        <p class="py-4">
+                          Are you sure you want to revoke the reviewer role from this user?
+                        </p>
+                        <div class="modal-action">
+                          <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
+                                method="POST"
+                                class="inline">
+                            <input type="hidden" name="roleType" value="REVIEWER"/>
+                            <input type="hidden" name="grantRole" value="false"/>
+                            <button type="submit" class="btn btn-primary">Proceed</button>
+                          </form>
+                          <form method="dialog">
+                            <button class="btn btn-outline">Cancel</button>
+                          </form>
+                        </div>
+                      </div>
+                      <form method="dialog" class="modal-backdrop">
+                        <button>close</button>
+                      </form>
+                    </dialog>
+
+                    <!-- Reset Password Dialog -->
                     <dialog th:id="|resetPasswordModal-${userInfo.user.username}|" class="modal text-base-content">
                       <div class="modal-box">
                         <h3 class="font-bold text-lg">Reset User Password</h3>
@@ -219,6 +235,8 @@
                         <button>close</button>
                       </form>
                     </dialog>
+
+                    <!-- Delete User Dialog -->
                     <dialog th:id="|deleteUser-${userInfo.user.username}|" class="modal text-base-content">
                       <div class="modal-box">
                         <h3 class="font-bold text-lg text-error">Confirm User Deletion</h3>
@@ -262,6 +280,8 @@
                         <button>close</button>
                       </form>
                     </dialog>
+
+                    <!-- Faculty Role Revocation Dialog - Keep showing programs -->
                     <dialog th:id="|facultyConfirm-${userInfo.user.username}|" class="modal text-base-content">
                       <div class="modal-box">
                         <h3 class="font-bold text-lg">Confirm Faculty Role Removal</h3>

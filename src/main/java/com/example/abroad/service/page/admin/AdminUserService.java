@@ -206,9 +206,12 @@ public record AdminUserService(
         return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
       }
 
+      /*
       for (Program program : facultyLeadPrograms) {
         programService.removeFacultyLead(program, targetUser);
       }
+      */
+
 
       // After handling faculty lead status, remove the ADMIN role
       userService.removeRole(targetUser, Role.Type.ADMIN);
