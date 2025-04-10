@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public record RebrandPagesController(RebrandPagesService service, FormatService formatter,
@@ -80,10 +81,11 @@ public record RebrandPagesController(RebrandPagesService service, FormatService 
   @PostMapping("/admin/brand/edit")
   public String editRebrandPage(
       @RequestParam Map<String, String> formData,
+      @RequestParam(required = false) MultipartFile logoSvg,
       HttpSession session,
       HttpServletResponse response) {
 
-    return switch (service.editBrandInfo(session, formData)) {
+    return switch (service.editBrandInfo(session, formData, logoSvg)) {
       case EditRebrandPageInfo.Success(String message) -> "redirect:/?success=" + message;
       case EditRebrandPageInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";
       case EditRebrandPageInfo.UserNotAdmin() -> "redirect:/?error=You are not the head admin";

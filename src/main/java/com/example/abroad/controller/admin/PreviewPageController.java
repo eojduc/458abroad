@@ -1,6 +1,7 @@
 package com.example.abroad.controller.admin;
 
 import com.example.abroad.model.RebrandConfig;
+import com.example.abroad.model.ThemeConfig;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ThemeService;
 import com.example.abroad.service.UserService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public record PreviewPageController(
@@ -81,6 +83,7 @@ public record PreviewPageController(
   public ResponseEntity<Void> updatePreviewField(
       HttpSession session,
       @RequestParam String headName,
+      @RequestParam(required = false) MultipartFile logoSvg,
       @RequestParam String homeTitle,
       @RequestParam String homeSubtitle,
       @RequestParam String homeCardContent,
@@ -107,6 +110,19 @@ public record PreviewPageController(
     config.setBase100(base100);
     config.setBase200(base200);
     config.setBase300(base300);
+
+    // Handle the logoSvg file
+    if (logoSvg != null && !logoSvg.isEmpty()) {
+      try {
+        String logoSvgContent = new String(logoSvg.getBytes());
+        config.setLogoSvg(logoSvgContent);
+      } catch (Exception e) {
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .header("HX-Redirect", "/preview/" + currentPage + "?error=Failed to process logo SVG")
+            .build();
+      }
+    }
 
     model.addAttribute("themeConfig", config);
     session.setAttribute("previewConfig", config);

@@ -57,6 +57,18 @@
                th:data-page="${field.pages.contains('all') ? '' : field.pages[0]}">
 
             <label class="label font-semibold text-sm p-1" th:text="${field.label}"></label>
+            <!-- File input -->
+            <input th:if="${field.type == 'file'}"
+                   type="file"
+                   th:name="${field.name}"
+                   th:accept="${field.accept}"
+                   class="file-input file-input-bordered w-full file-input-sm"
+                   th:hx-post="@{'/preview/update/' + ${field.name}}"
+                   hx-encoding="multipart/form-data"
+                   hx-trigger="change delay:400ms"
+                   hx-swap="none"
+                   autocomplete="off"
+                   th:id="${field.id}" />
             <!-- Text input -->
             <input th:if="${field.type == 'text'}"
                    type="text"
@@ -71,6 +83,7 @@
                    hx-trigger="input delay:400ms"
                    hx-swap="none"
                    autocomplete="off"
+                   onkeydown="return event.key !== 'Enter';"
                    th:id="${field.id}" />
             <!-- Textarea input -->
             <textarea th:if="${field.type == 'textarea'}"
@@ -130,14 +143,15 @@
 
     <!-- Right: Live Preview (maximized) -->
     <div class="w-3/4">
-      <div id="preview" class="bg-base-100 rounded-lg shadow-2xl" style="height: calc(100vh - 200px);">
+      <div id="preview" class="bg-base-100 rounded-lg shadow-2xl relative" style="height: calc(100vh - 200px);">
         <iframe
             id="inlineFrameExample"
             title="Inline Frame Example"
             width="100%"
             height="100%"
             style="border: none; border-radius: 0.5rem;"
-            src="/preview">
+            src="/preview"
+            onload="disableClicks(this)">
         </iframe>
       </div>
     </div>
@@ -145,6 +159,17 @@
 </div>
 
 <script>
+  function disableClicks(iframe) {
+    try {
+      iframe.contentWindow.document.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }, true);
+    } catch(e) {
+      console.error("Could not modify iframe content:", e);
+    }
+  }
   function setPreviewTitle(title, page) {
     document.getElementById("previewTitle").innerText = "Preview: " + title;
     document.getElementById("currentPage").value = page;

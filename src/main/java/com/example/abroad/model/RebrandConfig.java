@@ -20,6 +20,7 @@ public class RebrandConfig {
   private String base100;
   private String base200;
   private String base300;
+  private String logoSvg; // SVG DATA BIG
 
 
   // Getters and Setters
@@ -136,5 +137,13 @@ public class RebrandConfig {
 
   public void setBase300(String base300) {
     this.base300 = base300;
+  }
+
+  public String getLogoSvg() {
+    return logoSvg;
+  }
+
+  public void setLogoSvg(String logoSvg) {
+    this.logoSvg = logoSvg;
   }
 }

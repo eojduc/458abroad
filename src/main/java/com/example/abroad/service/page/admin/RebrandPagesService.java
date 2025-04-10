@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public record RebrandPagesService(UserService userService, ThemeService themeServce,
@@ -31,6 +32,14 @@ public record RebrandPagesService(UserService userService, ThemeService themeSer
           "type", "text",
           "placeholder", "e.g., Customer University",
           "id", "headNameInput",
+          "pages", List.of("all")
+      ),
+      Map.of(
+          "name", "logoSvg",
+          "label", "Logo (SVG)",
+          "type", "file",
+          "accept", "image/svg+xml",
+          "id", "svgFileInput",
           "pages", List.of("all")
       ),
       // Home page specific fields
@@ -130,7 +139,7 @@ public record RebrandPagesService(UserService userService, ThemeService themeSer
     return new GetRebrandPageInfo.Success(user, PAGE_DISPLAY_NAMES, FORM_FIELDS);
   }
 
-  public EditRebrandPageInfo editBrandInfo(HttpSession session, Map<String, String> formData) {
+  public EditRebrandPageInfo editBrandInfo(HttpSession session, Map<String, String> formData, MultipartFile logoSvg) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
       return new EditRebrandPageInfo.NotLoggedIn();
@@ -142,9 +151,7 @@ public record RebrandPagesService(UserService userService, ThemeService themeSer
       return new EditRebrandPageInfo.InvalidField("Footer must be less than 100 characters.");
     }
 
-    System.out.println("Editing brand info with data: " + formData);
-
-    return switch (themeServce.saveThemeConfig(formData)) {
+    return switch (themeServce.saveThemeConfig(formData, logoSvg)) {
       case SaveThemeConfig.DatabaseError(var message) -> new EditRebrandPageInfo.DatabaseError(message);
       case SaveThemeConfig.InvalidThemeInfo(var message) -> new EditRebrandPageInfo.InvalidField(message);
       case SaveThemeConfig.Success(var themeConfig) -> {
