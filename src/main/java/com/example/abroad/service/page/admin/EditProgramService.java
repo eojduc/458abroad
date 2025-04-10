@@ -3,6 +3,7 @@ package com.example.abroad.service.page.admin;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.model.User;
+import com.example.abroad.model.User.Role.Type;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.ProgramService.SaveProgram;
@@ -33,9 +34,7 @@ public record EditProgramService(UserService userService, ProgramService program
     if (program == null) {
       return new EditProgramPage.ProgramNotFound();
     }
-    var facultyLeads = programService.findFacultyLeads(program)
-      .stream()
-      .toList();
+    var facultyLeads = userService.findUsersWithRole(Type.FACULTY);
 
     var facultyUsernames = facultyLeads.stream()
       .map(User::username)

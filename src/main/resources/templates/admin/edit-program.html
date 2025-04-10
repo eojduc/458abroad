@@ -63,9 +63,6 @@
                     th:value="${facultyLead.username}"
                     th:text="${formatter.displayUser(facultyLead)}"
                     selected></option>
-            <option th:each="nonFacultyLead : ${nonFacultyLeads}"
-                    th:value="${nonFacultyLead.username}"
-                    th:text="${formatter.displayUser(nonFacultyLead)}"></option>
           </select>
           </div>
         </label>
