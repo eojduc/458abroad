@@ -50,7 +50,7 @@ public final class Program {
   @Column(nullable = false, length = 10000)
   private String description;
 
-  @Column(nullable = true)
+  @Column(nullable = false)
   private LocalDate paymentDeadline;
 
   @Column(nullable = false)
