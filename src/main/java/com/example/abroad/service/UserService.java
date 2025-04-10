@@ -139,4 +139,12 @@ public record UserService(
   public List<Course> findCoursesByUsername(String username) {
     return courseRepository.findById_Username(username);
   }
+
+  public void updateMfaSettings(String username, boolean mfaEnabled, String secret) {
+    Optional<? extends User> optUser = findByUsername(username);
+    if (optUser.isPresent() && optUser.get() instanceof User.LocalUser localUser) {
+        User updatedUser = localUser.withMfa(mfaEnabled, secret);
+        save(updatedUser);
+    }
+}
 }

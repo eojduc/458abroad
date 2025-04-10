@@ -21,6 +21,7 @@ public record AuthService(
 
   public sealed interface Login {
     record Success(User user) implements Login {}
+    record MfaRequired(User user) implements Login {}
     record InvalidCredentials() implements Login {}
   }
 
@@ -33,11 +34,16 @@ public record AuthService(
     ) {
       return new Login.InvalidCredentials();
     }
+
+    if (localUser.isMfaEnabled()) {
+      session.setAttribute("mfaPendingUser", localUser);
+      auditService.logEvent("Local User " + username + " passed primary login; MFA pending");
+      return new Login.MfaRequired(localUser);
+    }
+
     userService.saveUserToSession(localUser, session);
-    
     MDC.put("username", user.username());
     auditService.logEvent("Local User " + username + " logged in.");
-
     return new Login.Success(localUser);
   }
 

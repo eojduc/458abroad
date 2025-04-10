@@ -1,6 +1,8 @@
 package com.example.abroad.controller;
 
 import com.example.abroad.view.Alerts;
+import com.warrenstrange.googleauth.GoogleAuthenticator;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import com.example.abroad.model.User;
 import com.example.abroad.model.User.Theme;
 import com.example.abroad.service.page.AccountService;
@@ -11,6 +13,7 @@ import com.example.abroad.service.page.AccountService.GetProfile.Success;
 import com.example.abroad.service.page.AccountService.GetProfile.UserNotFound;
 import com.example.abroad.service.page.AccountService.UpdateProfile;
 import com.example.abroad.service.page.AccountService.ChangePassword;
+import com.example.abroad.service.AuditService;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -19,13 +22,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Controller
 public record AccountController(
         AccountService accountService,
         FormatService formatter,
-        UserService userService
+        UserService userService,
+        AuditService auditService
 ) {
     @GetMapping("/profile")
     public String getProfile(HttpSession session, Model model,
@@ -105,5 +112,95 @@ public record AccountController(
             case AccountService.SetULink.UsernameInUse() -> "redirect:/profile?error=Username already in use#ulink";
             case AccountService.SetULink.AlreadySet() -> "redirect:/profile?info=ULink already set#ulink";
         };
+    }
+
+    @GetMapping("/profile/mfa/enroll")
+    public String showMfaEnrollment(
+            HttpSession session, 
+            Model model, 
+            @RequestParam Optional<String> error,
+            @RequestParam Optional<String> success,
+            @RequestParam Optional<String> warning,
+            @RequestParam Optional<String> info
+    ) {
+        var optUser = userService.findUserFromSession(session);
+        if (optUser.isEmpty() || !(optUser.get() instanceof User.LocalUser localUser)) {
+            return "redirect:/login?error=Please log in to enroll in MFA.";
+        }
+        
+        if (localUser.isMfaEnabled()) {
+            return "redirect:/profile?info=MFA is already enabled.";
+        }
+
+        GoogleAuthenticator gAuth = new GoogleAuthenticator();
+        GoogleAuthenticatorKey key = gAuth.createCredentials();
+        String secret = key.getKey();
+        
+        session.setAttribute("mfaEnrollmentSecret", secret);
+        
+        // Prepare an otpauth URL
+        String issuer = "458Abroad";
+        String label = issuer + ":" + localUser.username();
+        String encodedLabel = URLEncoder.encode(label, StandardCharsets.UTF_8);
+        String encodedIssuer = URLEncoder.encode(issuer, StandardCharsets.UTF_8);
+        String otpauthUrl = "otpauth://totp/" + encodedLabel
+                + "?secret=" + secret
+                + "&issuer=" + encodedIssuer;
+        
+        model.addAttribute("user", localUser);
+        model.addAttribute("alerts", new Alerts(error, success, warning, info));
+        model.addAttribute("isStudent", userService.isStudent(localUser));
+        model.addAttribute("isAdmin", userService.isAdmin(localUser));
+        model.addAttribute("formatter", formatter);
+        model.addAttribute("isLocalUser", localUser instanceof User.LocalUser);
+        model.addAttribute("qrUrl", otpauthUrl);
+        model.addAttribute("secret", secret);
+        return "auth/mfa-enroll";
+    }
+
+    @PostMapping("/profile/mfa/verify")
+    public String verifyMfaEnrollment(@RequestParam String code, HttpSession session) {
+        var optUser = userService.findUserFromSession(session);
+        if (optUser.isEmpty() || !(optUser.get() instanceof User.LocalUser localUser)) {
+            return "redirect:/login?error=Please log in to enroll in MFA.";
+        }
+        
+        String secret = (String) session.getAttribute("mfaEnrollmentSecret");
+        if (secret == null) {
+            return "redirect:/profile?error=MFA enrollment session expired. Please try again.";
+        }
+        
+        GoogleAuthenticator gAuth = new GoogleAuthenticator();
+        try {
+            int totpCode = Integer.parseInt(code);
+            boolean isValid = gAuth.authorize(secret, totpCode);
+            if (!isValid) {
+                return "redirect:/profile/mfa/enroll?error=Invalid code. Please try again.";
+            }
+        } catch (NumberFormatException e) {
+            return "redirect:/profile/mfa/enroll?error=Invalid code format. Please try again.";
+        }
+        
+        userService.updateMfaSettings(localUser.username(), true, secret);
+        var updatedUser = userService.findByUsername(localUser.username()).orElse(null);
+        
+        session.removeAttribute("mfaEnrollmentSecret");
+        session.setAttribute("user", updatedUser);
+        
+        auditService.logEvent("User " + localUser.username() + " successfully enrolled in MFA.");
+        return "redirect:/profile?success=MFA enrollment successful";
+    }
+
+    @PostMapping("/profile/mfa/disable")
+    public String disableMfa(HttpSession session) {
+        var optUser = userService.findUserFromSession(session);
+        if (optUser.isEmpty() || !(optUser.get() instanceof User.LocalUser localUser)) {
+            return "redirect:/login?error=Please log in.";
+        }
+        userService.updateMfaSettings(localUser.username(), false, null);
+        var updatedUser = userService.findByUsername(localUser.username()).orElse(null);
+        session.setAttribute("user", updatedUser);
+        auditService.logEvent("User " + localUser.username() + " disabled MFA.");
+        return "redirect:/profile?success=MFA disabled";
     }
 }

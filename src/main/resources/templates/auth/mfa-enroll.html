@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${'default'}">
+<head th:replace="~{components/head :: head('MFA Enrollment')}"></head>
+<body>
+    <div th:replace="${isStudent} ? ~{components/student-navbar :: student-navbar(${user.displayName})}
+    : ~{components/admin-navbar :: admin-navbar(${user.displayName}, ${isAdmin})}"></div>
+  <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+    <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+        <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
+      </div>
+    <div class="card card-normal w-96 bg-base-200">
+      <div class="card-body">
+        <h1 class="card-title text-center">MFA Enrollment</h1>
+        
+        <p class="mb-4 text-center">
+          Scan the QR code below with your authenticator app (e.g., Google Authenticator, Authy) or manually enter the secret.
+        </p>
+        
+        <div class="flex justify-center mb-4">
+            <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/'(size='200x200', data=${qrUrl})}"
+     alt="MFA QR Code"/>
+        </div>
+        
+        <p class="text-center mb-4">Secret: <strong th:text="${secret}"></strong></p>
+        
+        <form class="form-control gap-4" action="/profile/mfa/verify" method="post">
+          <label class="label" for="code">
+            <span class="label-text">Enter the 6-digit code from your app</span>
+          </label>
+          <input type="text" id="code" name="code" placeholder="e.g. 123456" class="input input-bordered" required />
+          <button class="btn btn-primary" type="submit">Verify Enrollment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div th:replace="~{components/footer :: footer}"></div>
+</body>
+</html>
