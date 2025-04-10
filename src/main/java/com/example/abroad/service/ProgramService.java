@@ -1,6 +1,5 @@
 package com.example.abroad.service;
 
-
 import com.example.abroad.controller.PartnerController;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.PaymentStatus;
@@ -37,23 +36,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import static com.example.abroad.controller.PartnerController.Sort.*;
-
 /**
  * Service class for Program. wraps the ProgramRepository and provides additional functionality.
  */
 @Service
 public record ProgramService(
-  ProgramRepository programRepository,
-  ApplicationRepository applicationRepository,
-  FacultyLeadRepository facultyLeadRepository,
-  QuestionRepository questionRepository,
-  ResponseRepository responseRepository,
-  UserService userService,
-  PreReqRepository preReqRepository,
-  PrereqService prereqService,
-  PartnerRepository partnerRepository,
-  ApplicationService applicationService
+        ProgramRepository programRepository,
+        ApplicationRepository applicationRepository,
+        FacultyLeadRepository facultyLeadRepository,
+        QuestionRepository questionRepository,
+        ResponseRepository responseRepository,
+        UserService userService,
+        PreReqRepository preReqRepository,
+        PartnerRepository partnerRepository,
+        ApplicationService applicationService
 ) {
 
   private static final Logger logger = LoggerFactory.getLogger(ProgramService.class);
@@ -102,7 +98,8 @@ public record ProgramService(
       return new SaveProgram.DatabaseError(e.getMessage());
     }
   }
-  public SaveProgram addProgram(Program program, List<? extends User> facultyLeads, List<? extends User> paymentPartner, List<String> questions, List<String> prereqs, List<Integer> removedQuestions, Boolean removePartners) {
+
+  public SaveProgram addProgram(Program program, List<? extends User> facultyLeads, List<String> questions, List<Integer> removedQuestions) {
     // Validate faculty leads
     if (facultyLeads == null || facultyLeads.isEmpty()) {
       return new SaveProgram.InvalidProgramInfo("Program must have at least one faculty lead");
@@ -117,20 +114,6 @@ public record ProgramService(
       return new SaveProgram.InvalidProgramInfo("Questions cannot be blank");
     }
 
-    Set<String> prereqSet = new HashSet<>();
-
-    for (String prereq : prereqs) {
-      var result = prereqService.normalizeCourse(prereq);
-      switch (result) {
-        case PrereqService.ParsePrereq.Success (var normalizedCourse) -> {
-          prereqSet.add(normalizedCourse);
-        }
-        case PrereqService.ParsePrereq.InvalidInput (var message) -> {
-          return new SaveProgram.InvalidProgramInfo(message);
-        }
-      }
-    }
-
     SaveProgram saveResult = saveProgram(program);
 
     return switch (saveResult) {
@@ -138,16 +121,10 @@ public record ProgramService(
         Program savedProgram = success.program();
         try {
           setFacultyLeads(savedProgram, facultyLeads);
-          if (!removePartners){
-            setPartners(savedProgram, paymentPartner);
-          } else {
-            removePartners(savedProgram);
-          }
           setQuestions(savedProgram.id(), questions);
           if (!removedQuestions.isEmpty()) {
             updateResponses(savedProgram, removedQuestions);
           }
-          setPrereqs(savedProgram, prereqSet.stream().toList());
           yield success;
         } catch (Exception e) {
           try {
@@ -184,44 +161,44 @@ public record ProgramService(
 
   public List<? extends User> findFacultyLeads(Program program) {
     var facultyLeadUsernames = facultyLeadRepository.findById_ProgramId(program.id())
-      .stream().map(FacultyLead::username).toList();
+            .stream().map(FacultyLead::username).toList();
 
     // if the program does not have a faculty lead, include the head admin
     if (facultyLeadUsernames.isEmpty()) {
       return userService.findAll()
-        .stream()
-        .filter(userService::isHeadAdmin)
-        .toList();
+              .stream()
+              .filter(userService::isHeadAdmin)
+              .toList();
     }
     return userService.findAll()
-      .stream().filter(u -> facultyLeadUsernames.contains(u.username())).toList();
+            .stream().filter(u -> facultyLeadUsernames.contains(u.username())).toList();
   }
 
   public List<Program> findProgramsWithoutFaculty() {
     var facultyLeadProgramIds = facultyLeadRepository.findAll()
-      .stream()
-      .map(FacultyLead::programId)
-      .toList();
+            .stream()
+            .map(FacultyLead::programId)
+            .toList();
     return programRepository.findAll()
-      .stream()
-      .filter(program -> !facultyLeadProgramIds.contains(program.id()))
-      .toList();
+            .stream()
+            .filter(program -> !facultyLeadProgramIds.contains(program.id()))
+            .toList();
   }
 
   public List<Program> findFacultyPrograms(User user) {
     List<Integer> facultyLeadProgramIds = new ArrayList<>(
-        facultyLeadRepository.findById_Username(user.username())
-            .stream()
-            .map(FacultyLead::programId)
-            .toList());
+            facultyLeadRepository.findById_Username(user.username())
+                    .stream()
+                    .map(FacultyLead::programId)
+                    .toList());
 
     // If the user is the head admin, also include programs without a faculty lead
     if (userService.isHeadAdmin(user)) {
       List<Program> programsWithoutFaculty = findProgramsWithoutFaculty();
       facultyLeadProgramIds.addAll(
-          programsWithoutFaculty.stream()
-              .map(Program::id)
-              .toList()
+              programsWithoutFaculty.stream()
+                      .map(Program::id)
+                      .toList()
       );
     }
     return programRepository.findAllById(facultyLeadProgramIds);
@@ -229,9 +206,9 @@ public record ProgramService(
 
   public List<? extends User> findAllFacultyLeads() {
     var facultyLeadUsernames = new ArrayList<>(facultyLeadRepository.findAll()
-      .stream()
-      .map(FacultyLead::username)
-      .toList());
+            .stream()
+            .map(FacultyLead::username)
+            .toList());
 
     // If there are programs without faculty leads, include the head admin
     List<Program> programsWithoutFaculty = findProgramsWithoutFaculty();
@@ -240,9 +217,9 @@ public record ProgramService(
     }
 
     return userService.findAll()
-      .stream()
-      .filter(u -> facultyLeadUsernames.contains(u.username()))
-      .toList();
+            .stream()
+            .filter(u -> facultyLeadUsernames.contains(u.username()))
+            .toList();
   }
 
   public void deleteProgram(Program program) {
@@ -251,75 +228,16 @@ public record ProgramService(
 
   public void removeFacultyLead(Program program, User user) {
     var facultyLeads = facultyLeadRepository.findById_ProgramId(program.id())
-      .stream()
-      .filter(lead -> !lead.username().equals(user.username()))
-      .flatMap(lead -> userService.findByUsername(lead.username()).stream())
-      .toList();
+            .stream()
+            .filter(lead -> !lead.username().equals(user.username()))
+            .flatMap(lead -> userService.findByUsername(lead.username()).stream())
+            .toList();
     setFacultyLeads(program, facultyLeads);
 
   }
 
   public Optional<Question> findQuestion(Program program, Integer id) {
     return questionRepository.findById_ProgramIdAndId_id(program.id(), id);
-  }
-
-  public void setPrereqs(Program program, List<String> prereqs) {
-    if (prereqs == null || prereqs.isEmpty()) {
-      return;
-    }
-    try {
-      // Find and delete existing prereqs for this program
-      var existingPrereqs = preReqRepository.findById_ProgramId(program.id());
-      preReqRepository.deleteAll(existingPrereqs);
-
-      // Create new prereqs
-      var newPrereqs = prereqs.stream()
-          .map(prereq -> new PreReq(program.id(), prereq))
-          .toList();
-
-      // Save new prereqs
-      preReqRepository.saveAll(newPrereqs);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to set prerequisites: " + e.getMessage());
-    }
-  }
-
-  public void setPartners(Program program, List<? extends User> users) {
-    if (users == null || users.isEmpty()) {
-      return;
-    }
-    try {
-      // Find and delete existing partners for this program
-      var partners = partnerRepository.findById_ProgramId(program.id());
-      partnerRepository.deleteAll(partners);
-
-      // Create new partners
-      var newPartners = users.stream()
-          .map(User::username)
-          .map(username -> new Partner(program.id(), username))
-          .toList();
-
-      // Save new partners
-      partnerRepository.saveAll(newPartners);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to set partners: " + e.getMessage());
-    }
-  }
-
-  public void removePartners(Program program) {
-    try {
-      var partners = partnerRepository.findById_ProgramId(program.id());
-      partnerRepository.deleteAll(partners);
-
-      var programApplications = applicationRepository.findById_ProgramId(program.id());
-      for (var application : programApplications) {
-        var newApplication = application
-            .withPaymentStatus(PaymentStatus.UNPAID);
-        applicationRepository.save(newApplication);
-      }
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to remove partners from program: " + e.getMessage());
-    }
   }
 
   public void setFacultyLeads(Program program, List<? extends User> users) {
@@ -330,22 +248,22 @@ public record ProgramService(
 
       // Get admin usernames
       var adminUsernames = userService.findAll()
-          .stream()
-          .filter(userService::isAdmin)
-          .map(User::username)
-          .toList();
+              .stream()
+              .filter(userService::isAdmin)
+              .map(User::username)
+              .toList();
 
       // Create new faculty leads
       var newFacultyLeads = users.stream()
-          .map(User::username)
-          .filter(adminUsernames::contains)
-          .map(username -> new FacultyLead(program.id(), username))
-          .toList();
+              .map(User::username)
+              .filter(adminUsernames::contains)
+              .map(username -> new FacultyLead(program.id(), username))
+              .toList();
 
       // If no admin faculty leads, add default admin
       var facultyLeadsToAdd = newFacultyLeads.isEmpty() ?
-          List.of(new FacultyLead(program.id(), "admin"))
-          : newFacultyLeads;
+              List.of(new FacultyLead(program.id(), "admin"))
+              : newFacultyLeads;
 
       // Save new faculty leads
       facultyLeadRepository.saveAll(facultyLeadsToAdd);
@@ -362,8 +280,8 @@ public record ProgramService(
 
       // Remove responses to removed questions
       List<Response> responsesToRemove = programResponses.stream()
-          .filter(response -> removedQuestions.contains(response.question()))
-          .toList();
+              .filter(response -> removedQuestions.contains(response.question()))
+              .toList();
 
       responseRepository.deleteAll(responsesToRemove);
     } catch (Exception e) {
@@ -383,8 +301,8 @@ public record ProgramService(
 
         // Count how many removed questions have a smaller ID
         long shiftAmount = sortedRemovedQuestions.stream()
-            .filter(removedId -> removedId < oldQuestionId)
-            .count();
+                .filter(removedId -> removedId < oldQuestionId)
+                .count();
 
         int newQuestionId = oldQuestionId - (int) shiftAmount;
 
@@ -413,8 +331,8 @@ public record ProgramService(
       questionRepository.deleteAll(existingQuestions);
 
       List<Question> newQuestions = IntStream.range(0, questions.size())
-          .mapToObj(i -> new Question(i, questions.get(i), programId))
-          .toList();
+              .mapToObj(i -> new Question(i, questions.get(i), programId))
+              .toList();
 
       // Save new questions
       questionRepository.saveAll(newQuestions);
@@ -425,9 +343,9 @@ public record ProgramService(
 
   public List<Question> getQuestions(Program program) {
     return questionRepository.findById_ProgramId(program.id())
-        .stream()
-        .sorted(Comparator.comparing(Question::id))
-        .toList();
+            .stream()
+            .sorted(Comparator.comparing(Question::id))
+            .toList();
   }
 
   public List<Application> getApplications(Program program) {
@@ -496,12 +414,12 @@ public record ProgramService(
           boolean ascending
   ) {
     Comparator<ProgramWithCounts> comparator = switch (sortBy) {
-      case PartnerController.Sort.TITLE -> Comparator.comparing(p -> p.program().title().toLowerCase());
-      case PartnerController.Sort.SEMESTER -> Comparator
+      case TITLE -> Comparator.comparing(p -> p.program().title().toLowerCase());
+      case SEMESTER -> Comparator
               .comparing(ProgramWithCounts::program,
                       Comparator.comparing(Program::year)
                               .thenComparing(p -> p.semester().toString()));
-      case PartnerController.Sort.FACULTY -> (p1, p2) -> {
+      case FACULTY -> (p1, p2) -> {
         List<? extends User> faculty1 = findFacultyLeads(p1.program());
         List<? extends User> faculty2 = findFacultyLeads(p2.program());
         String faculty1Names = faculty1.stream()
@@ -514,9 +432,14 @@ public record ProgramService(
                 .collect(Collectors.joining(", "));
         return faculty1Names.compareToIgnoreCase(faculty2Names);
       };
-      case PartnerController.Sort.DEADLINE -> Comparator.comparing(p -> p.program().paymentDeadline());
-      case PartnerController.Sort.TOTAL -> Comparator.comparing(ProgramWithCounts::approvedEnrolledCount);
-      case PartnerController.Sort.PAID -> Comparator.comparing(ProgramWithCounts::fullyPaidCount);
+      case APP_OPEN -> Comparator.comparing(p -> p.program().applicationOpen());
+      case APP_CLOSE -> Comparator.comparing(p -> p.program().applicationClose());
+      case DOC_DEADLINE -> Comparator.comparing(p -> p.program().documentDeadline());
+      case PAYMENT_DEADLINE -> Comparator.comparing(p -> p.program().paymentDeadline());
+      case START_DATE -> Comparator.comparing(p -> p.program().startDate());
+      case END_DATE -> Comparator.comparing(p -> p.program().endDate());
+      case TOTAL -> Comparator.comparing(ProgramWithCounts::approvedEnrolledCount);
+      case PAID -> Comparator.comparing(ProgramWithCounts::fullyPaidCount);
     };
 
     return programs.stream()

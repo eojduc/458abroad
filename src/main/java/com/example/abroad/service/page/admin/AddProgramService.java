@@ -72,7 +72,7 @@ public record AddProgramService(UserService userService, ProgramService programS
     var leadUsers = userService.findAll().stream()
         .filter(u -> facultyLeads.contains(u.username()))
         .toList();
-   return switch (programService.addProgram(program, leadUsers, paymentPartnersUsers, questions, prereqs, List.of(), false)) {
+    return switch (programService.addProgram(program, leadUsers, questions, List.of())) {
      case SaveProgram.InvalidProgramInfo(var message) -> new AddProgramInfo.InvalidProgramInfo(message);
      case SaveProgram.Success(var prog) -> {
         auditService.logEvent(String.format("Program %s(%d) added by %s", prog.title(), prog.id(), user.username()));
