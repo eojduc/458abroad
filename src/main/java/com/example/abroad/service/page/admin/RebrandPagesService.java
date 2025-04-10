@@ -38,7 +38,7 @@ public record RebrandPagesService(UserService userService, ThemeService themeSer
           "name", "logoSvg",
           "label", "Logo (SVG)",
           "type", "file",
-          "accept", "image/svg+xml",
+          "accept", ".svg,image/svg+xml",
           "id", "svgFileInput",
           "pages", List.of("all")
       ),
