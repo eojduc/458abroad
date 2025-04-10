@@ -3,7 +3,8 @@
 <head th:replace="~{components/head :: head('Program Details')}"></head>
 <body>
 <div th:replace="~{components/partner-navbar :: partner-navbar(${user.displayName})}"></div>
-<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-3/4 md:w-4/5 sm:w-full gap-5">
+<!-- Reduce top margin and set a minimum height for the main container -->
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-5 lg:w-3/4 md:w-4/5 sm:w-full gap-3">
     <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
         <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
     </div>
@@ -15,10 +16,10 @@
                 <div class="badge badge-primary" th:text="${program.year() + ' ' + program.semester()}"></div>
             </div>
 
-            <div class="divider"></div>
+            <div class="divider my-2"></div>
 
             <h2 class="text-xl font-semibold">Program Details</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                 <div>
                     <p><strong>Faculty Lead(s):</strong></p>
                     <p th:text="${#strings.listJoin(facultyLeadNames, ', ')}"></p>
@@ -28,12 +29,12 @@
                 </div>
             </div>
 
-            <div class="divider"></div>
+            <div class="divider my-2"></div>
 
-            <h2 class="text-xl font-semibold mb-4">Student Payment Status</h2>
+            <h2 class="text-xl font-semibold mb-2">Student Payment Status</h2>
 
             <!-- Filter and Copy Emails Section -->
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-2">
                 <div class="flex items-center gap-4">
                     <!-- Status Filter Dropdown -->
                     <form id="filterForm" th:fragment="filterForm">
@@ -71,11 +72,11 @@
                 </div>
             </div>
 
-            <!-- Applicant Table Container -->
-            <div id="applicantTableContainer">
+            <!-- Applicant Table Container with minimum height -->
+            <div id="applicantTableContainer" class="min-h-[400px] flex-grow">
                 <!-- Applicant Table Fragment -->
-                <div th:fragment="applicantTable" id="applicantTable" class="contents">
-                    <div th:unless="${applicants.empty}" class="overflow-x-auto">
+                <div th:fragment="applicantTable" id="applicantTable" class="contents h-full">
+                    <div th:unless="${applicants.empty}" class="overflow-x-auto h-full">
                         <table class="table w-full">
                             <thead>
                             <tr>
@@ -88,7 +89,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="applicant : ${applicants}">
+                            <tr th:each="applicant : ${applicants}" class="h-16">
                                 <td th:text="${applicant.displayName()}"></td>
                                 <td th:text="${applicant.username()}"></td>
                                 <td th:text="${applicant.email()}" th:attr="data-email=${applicant.email()}"></td>
@@ -100,7 +101,7 @@
                                 </td>
                                 <td>
                                     <div class="dropdown dropdown-end">
-                                        <label tabindex="0" class="btn btn-sm m-1">Update</label>
+                                        <label tabindex="0" class="btn btn-sm btn-primary m-1">Update</label>
                                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
                                             <li>
                                                 <form th:action="@{/partner/programs/{id}/update-payment(id=${program.id()})}" method="POST">
@@ -127,6 +128,10 @@
                                     </div>
                                 </td>
                             </tr>
+                            <!-- Add empty rows to fill space when few students -->
+                            <tr th:if="${applicants.size() < 8}" th:each="i : ${#numbers.sequence(1, 8 - applicants.size())}" class="h-12 opacity-0">
+                                <td colspan="6">&nbsp;</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -137,7 +142,7 @@
                 </div>
             </div>
 
-            <div class="mt-6">
+            <div class="mt-4">
                 <a href="/partner/programs" class="btn btn-primary">Back to Programs</a>
             </div>
         </div>
