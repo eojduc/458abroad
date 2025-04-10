@@ -1,6 +1,7 @@
 package com.example.abroad.service;
 
 
+import com.example.abroad.controller.PartnerController;
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
@@ -31,6 +32,9 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import static com.example.abroad.controller.PartnerController.Sort.*;
+
 /**
  * Service class for Program. wraps the ProgramRepository and provides additional functionality.
  */
@@ -384,4 +388,52 @@ public record ProgramService(
           long approvedEnrolledCount,
           long fullyPaidCount
   ) {}
+
+  /**
+   * Get sorted programs associated with a partner
+   */
+  public List<ProgramWithCounts> getPartnerProgramsSorted(
+          String partnerUsername,
+          PartnerController.Sort sortBy,
+          boolean ascending
+  ) {
+    List<ProgramWithCounts> programs = getPartnerPrograms(partnerUsername);
+
+    // Apply sorting based on the sort parameter
+    return sortPrograms(programs, sortBy, ascending);
+  }
+
+  private List<ProgramWithCounts> sortPrograms(
+          List<ProgramWithCounts> programs,
+          PartnerController.Sort sortBy,
+          boolean ascending
+  ) {
+    Comparator<ProgramWithCounts> comparator = switch (sortBy) {
+      case PartnerController.Sort.TITLE -> Comparator.comparing(p -> p.program().title().toLowerCase());
+      case PartnerController.Sort.SEMESTER -> Comparator
+              .comparing(ProgramWithCounts::program,
+                      Comparator.comparing(Program::year)
+                              .thenComparing(p -> p.semester().toString()));
+      case PartnerController.Sort.FACULTY -> (p1, p2) -> {
+        List<? extends User> faculty1 = findFacultyLeads(p1.program());
+        List<? extends User> faculty2 = findFacultyLeads(p2.program());
+        String faculty1Names = faculty1.stream()
+                .map(User::displayName)
+                .sorted()
+                .collect(Collectors.joining(", "));
+        String faculty2Names = faculty2.stream()
+                .map(User::displayName)
+                .sorted()
+                .collect(Collectors.joining(", "));
+        return faculty1Names.compareToIgnoreCase(faculty2Names);
+      };
+      case PartnerController.Sort.DEADLINE -> Comparator.comparing(p -> p.program().paymentDeadline());
+      case PartnerController.Sort.TOTAL -> Comparator.comparing(ProgramWithCounts::approvedEnrolledCount);
+      case PartnerController.Sort.PAID -> Comparator.comparing(ProgramWithCounts::fullyPaidCount);
+    };
+
+    return programs.stream()
+            .sorted(ascending ? comparator : comparator.reversed())
+            .toList();
+  }
 }

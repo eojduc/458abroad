@@ -23,6 +23,12 @@ public record PartnerController(
         ApplicationService applicationService
 ) {
 
+
+    // Define Sort enum for program sorting
+    public enum Sort {
+        TITLE, SEMESTER, FACULTY, DEADLINE, TOTAL, PAID
+    }
+
     @GetMapping("/programs")
     public String listPrograms(
             HttpSession session,
@@ -44,11 +50,53 @@ public record PartnerController(
             return "redirect:/?error=You do not have access to the partner portal";
         }
 
-        // Get programs associated with this partner
+        // Get programs associated with this partner with default sorting (by TITLE ascending)
         List<ProgramService.ProgramWithCounts> programs = programService.getPartnerPrograms(user.username());
+        List<ProgramWithFaculty> programsWithFaculty = preparePrograms(programs);
 
+        model.addAttribute("user", user);
+        model.addAttribute("programs", programsWithFaculty);
+        model.addAttribute("alerts", new Alerts(error, success, warning, info));
+        model.addAttribute("sort", "TITLE");
+        model.addAttribute("ascending", true);
+
+        return "partner/program-list :: page";
+    }
+
+    @GetMapping("/programs/table")
+    public String getProgramsTable(
+            HttpSession session,
+            Model model,
+            @RequestParam Sort sort,
+            @RequestParam Boolean ascending
+    ) {
+        // Get user from session
+        Optional<User> userOpt = userService.findUserFromSession(session);
+        if (userOpt.isEmpty()) {
+            return "redirect:/login?error=Please log in to access the partner portal";
+        }
+
+        User user = userOpt.get();
+        // Verify the user is a partner
+        if (!userService.isPartner(user)) {
+            return "redirect:/?error=You do not have access to the partner portal";
+        }
+
+        // Get programs associated with this partner with sorting
+        List<ProgramService.ProgramWithCounts> programs = programService.getPartnerProgramsSorted(user.username(), sort, ascending);
+        List<ProgramWithFaculty> programsWithFaculty = preparePrograms(programs);
+
+        model.addAttribute("user", user);
+        model.addAttribute("programs", programsWithFaculty);
+        model.addAttribute("sort", sort.name());
+        model.addAttribute("ascending", ascending);
+
+        return "partner/program-list :: programTable";
+    }
+
+    private List<ProgramWithFaculty> preparePrograms(List<ProgramService.ProgramWithCounts> programs) {
         // Add faculty lead information for each program
-        List<ProgramWithFaculty> programsWithFaculty = programs.stream()
+        return programs.stream()
                 .map(program -> {
                     List<? extends User> facultyLeads = programService.findFacultyLeads(program.program());
                     List<String> facultyLeadNames = facultyLeads.stream()
@@ -57,12 +105,6 @@ public record PartnerController(
                     return new ProgramWithFaculty(program, facultyLeadNames);
                 })
                 .toList();
-
-        model.addAttribute("user", user);
-        model.addAttribute("programs", programsWithFaculty);
-        model.addAttribute("alerts", new Alerts(error, success, warning, info));
-
-        return "partner/program-list :: page";
     }
 
     // Add this record to your controller
