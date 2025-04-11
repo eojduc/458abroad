@@ -183,6 +183,103 @@
 
 <div th:replace="~{components/footer :: footer}"></div>
 <div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
+<!-- Modal dialogs for confirmation -->
+<!-- Admin role revocation confirmation -->
+<dialog th:each="userInfo : ${users}" th:id="'adminConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Admin Role Revocation</h3>
+    <p class="py-4">Are you sure you want to revoke admin privileges from <span th:text="${userInfo.user.displayName()}"></span>?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="ADMIN"/>
+        <input type="hidden" name="grantRole" value="false"/>
+        <button type="submit" class="btn btn-error">Revoke Admin Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Faculty role revocation confirmation -->
+<dialog th:each="userInfo : ${users}" th:id="'facultyConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Faculty Role Revocation</h3>
+    <p class="py-4">Are you sure you want to revoke faculty privileges from <span th:text="${userInfo.user.displayName()}"></span>?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="FACULTY"/>
+        <input type="hidden" name="grantRole" value="false"/>
+        <button type="submit" class="btn btn-error">Revoke Faculty Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Reviewer role revocation confirmation -->
+<dialog th:each="userInfo : ${users}" th:id="'reviewerConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Reviewer Role Revocation</h3>
+    <p class="py-4">Are you sure you want to revoke reviewer privileges from <span th:text="${userInfo.user.displayName()}"></span>?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="REVIEWER"/>
+        <input type="hidden" name="grantRole" value="false"/>
+        <button type="submit" class="btn btn-error">Revoke Reviewer Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Reset Password Modal -->
+<dialog th:each="userInfo : ${users}" th:id="'resetPasswordModal-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Reset Password for <span th:text="${userInfo.user.displayName()}"></span></h3>
+    <form th:action="@{/admin/users/{username}/reset-password(username=${userInfo.user.username})}" method="POST">
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">New Password</span>
+        </label>
+        <input type="password" name="newPassword" placeholder="New Password" class="input input-bordered" required />
+      </div>
+      <div class="form-control mt-4">
+        <label class="label">
+          <span class="label-text">Confirm Password</span>
+        </label>
+        <input type="password" name="confirmPassword" placeholder="Confirm Password" class="input input-bordered" required />
+      </div>
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn">Cancel</button>
+        </form>
+        <button type="submit" class="btn btn-primary">Reset Password</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<!-- Delete User Modal -->
+<dialog th:each="userInfo : ${users}" th:id="'deleteUser-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg text-error">Delete User</h3>
+    <p class="py-4">Are you sure you want to permanently delete <span th:text="${userInfo.user.displayName()}"></span>? This action cannot be undone.</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/delete-user(username=${userInfo.user.username})}" method="POST">
+        <button type="submit" class="btn btn-error">Delete User</button>
+      </form>
+    </div>
+  </div>
+</dialog>
 </body>
 </html>
 

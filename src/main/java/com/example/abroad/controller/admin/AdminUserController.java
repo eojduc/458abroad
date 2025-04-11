@@ -116,7 +116,7 @@ public record AdminUserController(
                 model.addAttribute("programs", programs);
                 model.addAttribute("formatter", formatter);
                 // Redirect to main page for regular form submissions
-                yield "redirect:/admin/users";
+                yield "redirect:/admin/users?warning=User has faculty programs, confirmation required";
             }
             case AdminUserService.ModifyUserResult.Success(var user) ->
                     "redirect:/admin/users?success=User admin status updated successfully";
@@ -150,7 +150,7 @@ public record AdminUserController(
                 model.addAttribute("programs", programs);
                 model.addAttribute("roleType", roleType);
                 model.addAttribute("formatter", formatter);
-                yield "admin/users?warning=User has faculty programs, confirmation required";
+                yield "redirect:/admin/users?warning=User has faculty programs, confirmation required";
             }
             case AdminUserService.ModifyUserResult.Success(var user) ->
                     "redirect:/admin/users?success=User roles updated successfully";
