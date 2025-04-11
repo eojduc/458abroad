@@ -516,4 +516,99 @@ public record AdminUserService(
 
     return new DeleteUserResult.Success();
   }
+
+  public sealed interface CreateUserResult {
+    record Success() implements CreateUserResult {}
+    record UserNotFound() implements CreateUserResult {}
+    record UserNotAdmin() implements CreateUserResult {}
+    record UsernameExists() implements CreateUserResult {}
+    record EmailExists() implements CreateUserResult {}
+    record PasswordsDoNotMatch() implements CreateUserResult {}
+    record PasswordTooShort() implements CreateUserResult {}
+    record InvalidUsername() implements CreateUserResult {}
+  }
+
+  /**
+   * Creates a new local user
+   */
+  public CreateUserResult createLocalUser(
+          HttpSession session,
+          String username,
+          String email,
+          String displayName,
+          String password,
+          String confirmPassword,
+          String uLink,
+          User.Theme theme,
+          String role
+  ) {
+    // Check if requesting user is admin
+    var adminUser = userService.findUserFromSession(session).orElse(null);
+    if (adminUser == null) {
+      return new CreateUserResult.UserNotFound();
+    }
+    if (!userService.isAdmin(adminUser)) {
+      return new CreateUserResult.UserNotAdmin();
+    }
+
+    // Validate username format (only letters, numbers, hyphens and underscores)
+    if (!username.matches("[a-zA-Z0-9_-]+")) {
+      return new CreateUserResult.InvalidUsername();
+    }
+
+    // Check if username is already taken
+    if (userService.findByUsername(username).isPresent()) {
+      return new CreateUserResult.UsernameExists();
+    }
+
+    // Check if email already exists
+    if (userService.localUserRepository().existsByEmail(email)) {
+      return new CreateUserResult.EmailExists();
+    }
+
+    // Validate passwords match
+    if (!password.equals(confirmPassword)) {
+      return new CreateUserResult.PasswordsDoNotMatch();
+    }
+
+    // Validate password length
+    if (password.length() < 8) {
+      return new CreateUserResult.PasswordTooShort();
+    }
+
+    // Hash the password
+    String hashedPassword = hashPassword(password);
+
+    // Create the new user
+    User.LocalUser newUser = new User.LocalUser(
+            username,
+            hashedPassword,
+            email,
+            displayName,
+            theme,
+            uLink,
+            false,  // MFA disabled by default
+            null    // No MFA secret
+    );
+
+    // Save the user
+    userService.save(newUser);
+
+    // Add the requested role if not STUDENT
+    // For PARTNER role, we use the special handler since it's exclusive
+    if ("PARTNER".equals(role)) {
+      userService.addRole(newUser, Role.Type.PARTNER);
+    }
+    else if (!"STUDENT".equals(role)) {
+      try {
+        // Try to parse the role string to an enum value
+        Role.Type roleType = Role.Type.valueOf(role);
+        userService.addRole(newUser, roleType);
+      } catch (IllegalArgumentException e) {
+        // If role is not valid, just ignore and continue (user will be a student)
+      }
+    }
+
+    return new CreateUserResult.Success();
+  }
 }

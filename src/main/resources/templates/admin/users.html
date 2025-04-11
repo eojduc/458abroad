@@ -17,6 +17,9 @@
     <div class="card-body gap-10">
       <div class="flex justify-between items-center">
         <h1 class="card-title">Users</h1>
+        <button class="btn btn-primary" onclick="document.getElementById('createUserModal').showModal()">
+          CREATE LOCAL USER
+        </button>
       </div>
 
       <!-- Filter Form -->
@@ -347,6 +350,106 @@
         <button type="submit" class="btn btn-error">Delete User</button>
       </form>
     </div>
+  </div>
+</dialog>
+
+<!-- Create User Modal -->
+<dialog id="createUserModal" class="modal">
+  <div class="modal-box w-11/12 max-w-3xl">
+    <h3 class="font-bold text-lg">Create Local User</h3>
+    <form th:action="@{/admin/users/create}" method="POST" class="py-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Username -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Username</span>
+          </label>
+          <input type="text" name="username" class="input input-bordered" required
+                 placeholder="Username (e.g., jsmith)" pattern="[a-zA-Z0-9_-]+"
+                 title="Username can only contain letters, numbers, hyphens and underscores" />
+        </div>
+
+        <!-- Email -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Email</span>
+          </label>
+          <input type="email" name="email" class="input input-bordered" required
+                 placeholder="Email address" />
+        </div>
+
+        <!-- Display Name -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Display Name</span>
+          </label>
+          <input type="text" name="displayName" class="input input-bordered" required
+                 placeholder="Full Name" />
+        </div>
+
+        <!-- ULink ID (Optional) -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">ULink ID (Optional)</span>
+          </label>
+          <input type="text" name="uLink" class="input input-bordered"
+                 placeholder="ULink ID (if applicable)" />
+        </div>
+
+        <!-- Theme -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Theme</span>
+          </label>
+          <select name="theme" class="select select-bordered">
+            <option th:each="theme : ${T(com.example.abroad.model.User.Theme).values()}"
+                    th:value="${theme.name()}"
+                    th:text="${theme.name()}"
+                    th:selected="${theme.name() == 'DEFAULT'}"></option>
+          </select>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Role</span>
+          </label>
+          <select name="role" class="select select-bordered">
+            <option value="STUDENT">Student</option>
+            <option value="FACULTY">Faculty</option>
+            <option value="REVIEWER">Reviewer</option>
+            <option value="ADMIN">Admin</option>
+            <option value="PARTNER">Partner</option>
+          </select>
+        </div>
+
+        <!-- Password -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Password</span>
+          </label>
+          <input type="password" name="password" class="input input-bordered" required
+                 placeholder="Password" minlength="8" />
+          <label class="label">
+            <span class="label-text-alt">Minimum 8 characters</span>
+          </label>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Confirm Password</span>
+          </label>
+          <input type="password" name="confirmPassword" class="input input-bordered" required
+                 placeholder="Confirm Password" minlength="8" />
+        </div>
+      </div>
+
+      <div class="modal-action">
+        <button type="button" class="btn" onclick="document.getElementById('createUserModal').close()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create User</button>
+      </div>
+    </form>
   </div>
 </dialog>
 </body>
