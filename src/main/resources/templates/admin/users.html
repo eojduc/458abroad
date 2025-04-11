@@ -91,6 +91,7 @@
                     <span th:if="${userInfo.role.contains('ADMIN')}" class="badge badge-accent">ADMIN</span>
                     <span th:if="${userInfo.role.contains('FACULTY')}" class="badge badge-secondary">FACULTY</span>
                     <span th:if="${userInfo.role.contains('REVIEWER')}" class="badge badge-primary">REVIEWER</span>
+                    <span th:if="${userInfo.role.contains('PARTNER')}" class="badge badge-warning">PARTNER</span>
                     <span th:if="${userInfo.role == 'STUDENT'}" class="badge badge-neutral">STUDENT</span>
                   </div>
                 </td>
@@ -107,7 +108,7 @@
                       <label tabindex="0" class="btn btn-sm btn-primary">Manage Roles</label>
                       <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                         <!-- Admin role -->
-                        <li th:unless="${userInfo.role.contains('ADMIN')}">
+                        <li th:unless="${userInfo.role.contains('ADMIN') || userInfo.role.contains('PARTNER')}">
                           <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
                                 method="POST" class="w-full">
                             <input type="hidden" name="roleType" value="ADMIN"/>
@@ -121,7 +122,7 @@
                         </li>
 
                         <!-- Faculty role -->
-                        <li th:unless="${userInfo.role.contains('FACULTY')}">
+                        <li th:unless="${userInfo.role.contains('FACULTY') || userInfo.role.contains('PARTNER')}">
                           <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
                                 method="POST" class="w-full">
                             <input type="hidden" name="roleType" value="FACULTY"/>
@@ -135,7 +136,7 @@
                         </li>
 
                         <!-- Reviewer role -->
-                        <li th:unless="${userInfo.role.contains('REVIEWER')}">
+                        <li th:unless="${userInfo.role.contains('REVIEWER') || userInfo.role.contains('PARTNER')}">
                           <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
                                 method="POST" class="w-full">
                             <input type="hidden" name="roleType" value="REVIEWER"/>
@@ -146,6 +147,16 @@
                         <li th:if="${userInfo.role.contains('REVIEWER')}">
                           <button th:attr="onclick=|document.getElementById('reviewerConfirm-${userInfo.user.username}').showModal()|"
                                   class="w-full text-left">Revoke Reviewer Role</button>
+                        </li>
+
+                        <!-- Partner role (new) -->
+                        <li th:unless="${userInfo.role.contains('PARTNER')}">
+                          <button th:attr="onclick=|document.getElementById('partnerGrantConfirm-${userInfo.user.username}').showModal()|"
+                                  class="w-full text-left">Grant Partner Role</button>
+                        </li>
+                        <li th:if="${userInfo.role.contains('PARTNER')}">
+                          <button th:attr="onclick=|document.getElementById('partnerRevokeConfirm-${userInfo.user.username}').showModal()|"
+                                  class="w-full text-left">Revoke Partner Role</button>
                         </li>
                       </ul>
                     </div>
@@ -233,6 +244,64 @@
         <input type="hidden" name="roleType" value="REVIEWER"/>
         <input type="hidden" name="grantRole" value="false"/>
         <button type="submit" class="btn btn-error">Revoke Reviewer Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Partner role grant confirmation (new) -->
+<dialog th:each="userInfo : ${users}" th:id="'partnerGrantConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Partner Role Assignment</h3>
+    <p class="py-4">
+      Are you sure you want to grant partner role to <span th:text="${userInfo.user.displayName()}"></span>?
+    </p>
+    <p class="text-warning font-bold py-2" th:if="${!userInfo.role.equals('STUDENT')}">
+      Warning: This will remove all of the user's current roles as PARTNER role is exclusive.
+    </p>
+    <div th:if="${userInfo.role.contains('ADMIN')}" class="alert alert-warning mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+      <span>This user is an admin. Admin privileges will be removed.</span>
+    </div>
+    <div th:if="${userInfo.role.contains('FACULTY') && !userInfo.facultyLeadPrograms.isEmpty()}" class="alert alert-warning mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+      <span>This user is a faculty lead for programs. Faculty lead status will be removed.</span>
+      <ul class="mt-2 list-disc pl-5">
+        <li th:each="program : ${userInfo.facultyLeadPrograms}" th:text="${program.title}"></li>
+      </ul>
+    </div>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="PARTNER"/>
+        <input type="hidden" name="grantRole" value="true"/>
+        <input type="hidden" name="confirmed" value="true"/>
+        <button type="submit" class="btn btn-warning">Grant Partner Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Partner role revocation confirmation (new) -->
+<dialog th:each="userInfo : ${users}" th:id="'partnerRevokeConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Partner Role Revocation</h3>
+    <p class="py-4">
+      Are you sure you want to revoke partner role from <span th:text="${userInfo.user.displayName()}"></span>?
+    </p>
+    <p class="text-warning font-bold py-2">
+      Note: The user will have no roles after this action and will be a regular student.
+    </p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="PARTNER"/>
+        <input type="hidden" name="grantRole" value="false"/>
+        <button type="submit" class="btn btn-error">Revoke Partner Role</button>
       </form>
     </div>
   </div>

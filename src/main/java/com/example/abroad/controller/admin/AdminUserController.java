@@ -150,10 +150,23 @@ public record AdminUserController(
                 model.addAttribute("programs", programs);
                 model.addAttribute("roleType", roleType);
                 model.addAttribute("formatter", formatter);
-                yield "redirect:/admin/users?warning=User has faculty programs, confirmation required";
+
+                // Customize the warning message based on the role type
+                String warningMessage = roleType == User.Role.Type.PARTNER
+                        ? "Granting Partner role will remove all other roles"
+                        : "User has faculty programs, confirmation required";
+
+                yield "redirect:/admin/users?warning=" + warningMessage;
             }
-            case AdminUserService.ModifyUserResult.Success(var user) ->
-                    "redirect:/admin/users?success=User roles updated successfully";
+            case AdminUserService.ModifyUserResult.Success(var user) -> {
+                String successMessage = roleType == User.Role.Type.PARTNER
+                        ? grantRole
+                        ? "Partner role granted successfully, all other roles removed"
+                        : "Partner role revoked successfully"
+                        : "User roles updated successfully";
+
+                yield "redirect:/admin/users?success=" + successMessage;
+            }
         };
     }
 

@@ -272,6 +272,17 @@ public record AdminUserService(
       return new ModifyUserResult.CannotModifySelf();
     }
 
+    // Special handling for PARTNER role addition
+    if (roleType == Role.Type.PARTNER && grantRole) {
+      return handlePartnerRoleAddition(targetUser, confirmed);
+    }
+
+    // Special handling for PARTNER role removal
+    if (roleType == Role.Type.PARTNER && !grantRole) {
+      userService.removeRole(targetUser, Role.Type.PARTNER);
+      return new ModifyUserResult.Success(targetUser);
+    }
+
     // Special handling for FACULTY role removal - check faculty lead status
     if (roleType == Role.Type.FACULTY && !grantRole) {
       var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
@@ -298,7 +309,7 @@ public record AdminUserService(
 
     // Special handling for ADMIN role removal
     if (roleType == Role.Type.ADMIN && !grantRole) {
-      return modifyUserAdminStatus(session, targetUsername, false, false);
+      return modifyUserAdminStatus(session, targetUsername, false, confirmed);
     }
 
     // For other role types or adding roles
@@ -307,6 +318,41 @@ public record AdminUserService(
     } else {
       userService.removeRole(targetUser, roleType);
     }
+
+    return new ModifyUserResult.Success(targetUser);
+  }
+
+  /**
+   * Handle the addition of PARTNER role to a user
+   * This requires removing all other roles as PARTNER is exclusive
+   */
+  private ModifyUserResult handlePartnerRoleAddition(User targetUser, boolean confirmed) {
+    // Check for ADMIN role
+    boolean hasAdminRole = userService.roleRepository().findById(new ID(Role.Type.ADMIN, targetUser.username())).isPresent();
+
+    // Check for FACULTY role and if the user is a faculty lead
+    boolean hasFacultyRole = userService.roleRepository().findById(new ID(Role.Type.FACULTY, targetUser.username())).isPresent();
+    List<Program> facultyLeadPrograms = hasFacultyRole ? programService.findFacultyPrograms(targetUser) : List.of();
+
+    // If user has admin or faculty role and confirmation is required
+    if ((hasAdminRole || !facultyLeadPrograms.isEmpty()) && !confirmed) {
+      return new ModifyUserResult.RequiresConfirmation(targetUser.username(), facultyLeadPrograms);
+    }
+
+    // Remove existing roles
+    for (Role.Type type : Role.Type.values()) {
+      if (type != Role.Type.PARTNER) { // Skip the PARTNER role itself
+        userService.removeRole(targetUser, type);
+      }
+    }
+
+    // Handle faculty lead programs if any
+    for (var program : facultyLeadPrograms) {
+      programService.removeFacultyLead(program, targetUser);
+    }
+
+    // Add the PARTNER role
+    userService.addRole(targetUser, Role.Type.PARTNER);
 
     return new ModifyUserResult.Success(targetUser);
   }
