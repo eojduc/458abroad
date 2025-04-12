@@ -33,17 +33,21 @@ public class DocumentService {
     private static final String PDF_MAGIC_NUMBER = "%PDF-";
     private static final Logger logger = LoggerFactory.getLogger(DocumentService.class);
     private final UserService userService;
+    private final AuditService auditService;
 
     public DocumentService(
             DocumentRepository documentRepository,
             ProgramRepository programRepository,
             ApplicationRepository applicationRepository,
-            FormatService formatService, UserService userService) {
+            FormatService formatService, 
+            UserService userService,
+            AuditService auditService) {
         this.documentRepository = documentRepository;
         this.programRepository = programRepository;
         this.formatService = formatService;
         this.applicationRepository = applicationRepository;
         this.userService = userService;
+        this.auditService = auditService;
     }
 
     public record DocumentStatus(
@@ -108,6 +112,7 @@ public class DocumentService {
 
         try {
             logger.info("Uploading document of size: {}", file.getSize());
+            auditService.logEvent("Uploading document of type: " + type.name());
 
             Optional<Application.Document> existingDoc = documentRepository.findById(
                     new Application.Document.ID(type, programId, student)
