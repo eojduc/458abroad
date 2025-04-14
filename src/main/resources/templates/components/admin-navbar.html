@@ -1,0 +1,26 @@
+
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="admin-navbar(name, isAdmin)"
+     class="bg-base-100 navbar">
+  <div class="flex-1">
+    <a href="/" class="btn btn-ghost text-xl">
+      <div class="w-8 h-8 flex items-center">
+        <svg th:replace="~{components/logo :: logo}"/>
+      </div>
+<!--      /*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+      <span th:text="${themeConfig.getHeadName()}">HCC Abroad</span>
+    </a>
+    <a href="/admin/programs" class="btn btn-ghost">Programs</a>
+    <a th:if="${isAdmin}" href="/admin/programs/new" class="btn btn-ghost">Create Program</a>
+    <a th:if="${isAdmin}" href="/admin/users" class="btn btn-ghost">Users</a>
+    <a href="/programs" class="btn btn-ghost">Student View</a>
+  </div>
+  <div class="flex-none gap-2">
+    <a href="/profile"  class="avatar placeholder">
+      <div class="bg-neutral text-neutral-content w-8 rounded-full">
+        <span class="text-sm" th:text="${formatter.abbreviateName(name)}"></span>
+      </div>
+    </a>
+    <a href="/logout" class="btn btn-ghost">Log out</a>
+  </div>
+</div>

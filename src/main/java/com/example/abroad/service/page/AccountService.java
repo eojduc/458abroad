@@ -1,6 +1,7 @@
 package com.example.abroad.service.page;
 import com.example.abroad.model.User;
 import com.example.abroad.service.AuditService;
+import com.example.abroad.service.ULinkService;
 import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Service;
 public record AccountService(
         PasswordEncoder passwordEncoder,
         UserService userService,
-        AuditService auditService
+        AuditService auditService,
+        ULinkService uLinkService
 ) {
     public sealed interface GetProfile permits GetProfile.Success, GetProfile.UserNotFound {
         record Success(User user) implements GetProfile {}
@@ -46,7 +48,8 @@ public record AccountService(
                         localUser.password(),
                         email,
                         displayName,
-                        localUser.theme()
+                        localUser.theme(),
+                        localUser.uLink()
                 );
                 userService.save(updatedUser);
                 auditService.logEvent("User " + user.username() + " successfully updated account information");
@@ -57,7 +60,8 @@ public record AccountService(
                         ssoUser.username(),
                         email,
                         displayName,
-                        ssoUser.theme()
+                        ssoUser.theme(),
+                        ssoUser.uLink()
                 );
                 userService.save(updatedUser);
                 auditService.logEvent("User " + user.username() + " successfully updated account information");
@@ -103,9 +107,42 @@ public record AccountService(
                 hashedPassword,
                 localUser.email(),
                 localUser.displayName(),
-                localUser.theme()
+                localUser.theme(),
+                localUser.uLink()
         );
         userService.save(updatedUser);
         return new ChangePassword.Success(updatedUser);
+    }
+
+    public sealed interface SetULink {
+        record Success() implements SetULink {}
+        record UserNotFound() implements SetULink {}
+        record UserNotLocalUser() implements SetULink {}
+        record IncorrectPin() implements SetULink {}
+        record ConnectionError() implements SetULink {}
+        record UsernameInUse() implements SetULink {}
+        record AlreadySet() implements SetULink {}
+    }
+
+    public SetULink setULink(String uLink, String pin, HttpSession session) {
+        User user = userService.findUserFromSession(session).orElse(null);
+        if (user == null) {
+            return new SetULink.UserNotFound();
+        }
+        if (user.uLink() != null && user.uLink().equals(uLink)) {
+            return new SetULink.AlreadySet();
+        }
+        if (!(user instanceof User.LocalUser)) {
+            return new SetULink.UserNotLocalUser();
+        }
+        return switch (uLinkService.setULink(user, uLink, pin)) {
+            case ULinkService.SetULink.UsernameInUse() -> new SetULink.UsernameInUse();
+            case ULinkService.SetULink.IncorrectPin() -> new SetULink.IncorrectPin();
+            case ULinkService.SetULink.TranscriptServiceError() -> new SetULink.ConnectionError();
+            case ULinkService.SetULink.Success(var updatedUser) -> {
+                userService.saveUserToSession(updatedUser, session);
+                yield new SetULink.Success();
+            }
+        };
     }
 }

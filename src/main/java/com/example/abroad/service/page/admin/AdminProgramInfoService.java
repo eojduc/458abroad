@@ -2,6 +2,7 @@ package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.Partner;
 import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Note;
@@ -24,12 +25,16 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -40,6 +45,7 @@ public record AdminProgramInfoService(
   FormatService formatService,
   AuditService auditService
 ) {
+  private static final Logger logger = LoggerFactory.getLogger(AdminProgramInfoService.class);
 
   public DeleteProgram deleteProgram(Integer programId, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -67,22 +73,32 @@ public record AdminProgramInfoService(
   public record ProgramDetails(
     String title,
     String description,
-    List<Field> fields, List<String> facultyLeads) {
+    List<Field> fields, List<String> facultyLeads, List<String> partners) {
   }
 
   public ProgramDetails getProgramDetails(Program program) {
-    var fields = List.of(
+    var fields = new ArrayList<>(List.of(
       new Field("Term", formatService.formatTerm(program.semester(), program.year())),
       new Field("Application Opens", formatService.formatLocalDate(program.applicationOpen())),
       new Field("Application Closes", formatService.formatLocalDate(program.applicationClose())),
       new Field("Document Deadline", formatService.formatLocalDate(program.documentDeadline())),
       new Field("Start Date", formatService.formatLocalDate(program.startDate())),
-      new Field("End Date", formatService.formatLocalDate(program.endDate()))
-    );
+      new Field("End Date", formatService.formatLocalDate(program.endDate())),
+      new Field("Track Payment", program.trackPayment() ? "Yes" : "No")
+    ));
+    if (program.trackPayment()) {
+      fields.add(new Field("Payment Deadline", formatService.formatLocalDate(program.paymentDeadline())));
+    }
     var facultyLeads = programService.findFacultyLeads(program)
       .stream().map(formatService::displayUser)
       .toList();
-    return new ProgramDetails(program.title(), program.description(), fields, facultyLeads);
+    var partners = programService.getPartners(program)
+      .stream()
+      .map(Partner::username)
+      .flatMap(s -> userService.findByUsername(s).stream())
+      .map(formatService::displayUser)
+      .toList();
+    return new ProgramDetails(program.title(), program.description(), fields, facultyLeads, partners);
   }
   public sealed interface GetProgramInfo {
 
@@ -150,6 +166,7 @@ public record AdminProgramInfoService(
       case CODE_OF_CONDUCT -> Comparator.comparing(applicant -> applicant.documents().codeOfConduct().map(Document::timestamp).orElse(Instant.MIN));
       case ASSUMPTION_OF_RISK -> Comparator.comparing(applicant -> applicant.documents().assumptionOfRisk().map(Document::timestamp).orElse(Instant.MIN));
       case HOUSING -> Comparator.comparing(applicant -> applicant.documents().housing().map(Document::timestamp).orElse(Instant.MIN));
+      case PAYMENT_STATUS -> Comparator.comparing(Applicant::paymentStatus);
     };
     var reversed = sort.orElse(Sort.ASCENDING) == Sort.DESCENDING;
     var programIsDone = program.endDate().isBefore(LocalDate.now());
@@ -174,7 +191,7 @@ public record AdminProgramInfoService(
       .toList();
     var programDetails = getProgramDetails(program);
     var facultyLeads = programService.findFacultyLeads(program);
-    var applicantDetails = getApplicantDetails();
+    var applicantDetails = getApplicantDetails(program);
     return new GetProgramInfo.Success(program, applicants, user, documentDeadlinePassed, programIsDone, facultyLeads, programDetails, applicantDetails, canSeeApplicants);
   }
 
@@ -189,40 +206,58 @@ public record AdminProgramInfoService(
     };
   }
 
-  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast) {
+  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast, Status currentStatus) {
     if (isAdmin) {
-      return Stream.of(
-        Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
-        .map(status -> statusOption(status, programIsPast)).toList();
-    }
-    if (isReviewer) {
-      return Stream.of(Status.ELIGIBLE, Status.APPLIED)
-        .map(status -> statusOption(status, programIsPast)).toList();
+      if (currentStatus == Status.WITHDRAWN) {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
+      else {
+        return Stream.of(
+            Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
     }
     if (isLead) {
-      return Stream.of(Status.ELIGIBLE, Status.APPLIED, Status.APPROVED)
-        .map(status -> statusOption(status, programIsPast)).toList();
+      if (currentStatus == Status.ELIGIBLE || currentStatus == Status.APPLIED || currentStatus == Status.APPROVED) {
+        return Stream.of(Status.APPLIED, Status.ELIGIBLE , Status.APPROVED)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
+      else {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
     }
-    return List.of();
+    if (isReviewer) {
+      if (currentStatus == Status.ELIGIBLE || currentStatus == Status.APPLIED) {
+        return Stream.of(Status.APPLIED, Status.ELIGIBLE)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
+      else {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
+    }
+    return List.of(statusOption(currentStatus, programIsPast));
   }
 
-  public ApplicantDetails getApplicantDetails() {
-    return new ApplicantDetails(List.of(
+  public ApplicantDetails getApplicantDetails(Program program) {
+    var fields = new ArrayList<Field>(List.of(
       new Field("Name", "NAME"),
       new Field("Username", "USERNAME"),
       new Field("Email", "EMAIL"),
       new Field("Major", "MAJOR"),
       new Field("GPA", "GPA"),
       new Field("Date of Birth", "DOB"),
-      new Field("Status", "STATUS"),
       new Field("Medical History", "MEDICAL_HISTORY"),
       new Field("Code of Conduct", "CODE_OF_CONDUCT"),
       new Field("Assumption of Risk", "ASSUMPTION_OF_RISK"),
       new Field("Housing", "HOUSING"),
       new Field("Note Count", "NOTE_COUNT"),
-      new Field("Latest Note", "LATEST_NOTE")
-    )
-    );
+      new Field("Latest Note", "LATEST_NOTE"),
+      new Field("Status", "STATUS")
+    ));
+    if (program.trackPayment()) {
+      fields.add(new Field("Payment Status", "PAYMENT_STATUS"));
+    }
+    return new ApplicantDetails(fields);
   }
 
 
@@ -234,7 +269,7 @@ public record AdminProgramInfoService(
       case ENROLLED -> program.endDate().isBefore(LocalDate.now()) ? "COMPLETED" : "ENROLLED";
       default -> application.status().toString();
     };
-    System.out.println(application.student());
+    logger.debug("Student: {}", application.student());
     return students.filter(student -> student.username().equals(application.student()))
       .map(student -> new Applicant(
         student.username(),
@@ -247,7 +282,8 @@ public record AdminProgramInfoService(
         documents,
         notes.size(),
         notes.stream().max(Comparator.comparing(Note::timestamp)),
-        displayStatus
+        displayStatus,
+        application.paymentStatus().name()
       )
     );
   }
@@ -258,7 +294,7 @@ public record AdminProgramInfoService(
 
   public enum Column {
     USERNAME, DISPLAY_NAME, EMAIL, MAJOR, GPA, DOB, STATUS, NONE, NOTE_COUNT, LATEST_NOTE, MEDICAL_HISTORY,
-    CODE_OF_CONDUCT, ASSUMPTION_OF_RISK, HOUSING
+    CODE_OF_CONDUCT, ASSUMPTION_OF_RISK, HOUSING, PAYMENT_STATUS
   }
   public enum Sort {
     ASCENDING, DESCENDING
@@ -287,7 +323,8 @@ public record AdminProgramInfoService(
   }
   public DocumentInfo getDocumentInfo(Optional<Document> document, Boolean deadlinePassed) {
     return document.map(doc -> new DocumentInfo("SUBMITTED",
-      String.format("%s at %s", doc.timestamp().atZone(ZoneId.systemDefault()).toLocalDate(), doc.timestamp().atZone(ZoneId.systemDefault()).toLocalTime())))
+      String.format("%s at %s", doc.timestamp().atZone(ZoneId.systemDefault()).toLocalDate(), doc.timestamp().atZone(ZoneId.systemDefault()).toLocalTime()
+        .format(DateTimeFormatter.ofPattern("hh:mm")))))
       .orElse(deadlinePassed ?
         new DocumentInfo("MISSING", "Missing")
         : new DocumentInfo("PENDING", "Pending"));
@@ -309,7 +346,9 @@ public record AdminProgramInfoService(
     List<StatusOption> statusOptions,
     Integer noteCount,
     String latestNote,
-    String displayStatus) {
+    String displayStatus,
+    String paymentStatus
+    ) {
   }
 
   public record StatusOption(String value, String text){ }
@@ -330,17 +369,19 @@ public record AdminProgramInfoService(
         getDocumentInfo(applicant.documents.assumptionOfRisk(), deadlinePassed),
         getDocumentInfo(applicant.documents.housing(), deadlinePassed)
      ),
-      statusChangeOptions(isAdmin, isReviewer, isLead, programIsDone),
+      statusChangeOptions(isAdmin, isReviewer, isLead, programIsDone, applicant.status),
       applicant.noteCount(),
       applicant.latestNote().map(note -> note.author() + " on " + formatService.formatInstant(note.timestamp())).orElse(""),
-      applicant.displayStatus());
+      applicant.displayStatus(),
+      applicant.paymentStatus());
   }
   public record Applicant(String username, String displayName, String email, String major,
                           Double gpa, LocalDate dob, Status status,
                           Documents documents,
                           Integer noteCount,
                           Optional<Note> latestNote,
-                          String displayStatus) {
+                          String displayStatus,
+                          String paymentStatus) {
   }
 
 }

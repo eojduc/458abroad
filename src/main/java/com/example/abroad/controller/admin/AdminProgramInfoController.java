@@ -36,7 +36,6 @@ public record AdminProgramInfoController(AdminProgramInfoService service, Format
       case GetProgramInfo.UserLacksPermission() -> "redirect:/admin/programs?error=You do not have permission to view this program";
       case GetProgramInfo.Success(var program, var applicants, var user, var documentDeadlinePassed,
                                   var programisDone, var facultyLeads, var programDetails, var applicantDetails, var canSeeApplicants) -> {
-        System.out.println(applicantDetails);
         model.addAllAttributes(Map.of(
           "program", program,
           "applicants", applicants,

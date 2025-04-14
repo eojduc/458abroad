@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${theme}">
-<head th:replace="~{components :: head(${programDetails.title})}"></head>
+<head th:replace="~{components/head :: head(${programDetails.title})}"></head>
 
 <body>
-<div th:replace="~{components :: admin-navbar(${displayName}, ${isAdmin})}"></div>
+<div th:replace="~{components/admin-navbar :: admin-navbar(${displayName}, ${isAdmin})}"></div>
 <div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
       <div class="card-actions justify-between">
         <h1 class="card-title" th:text="${applicationDetails.studentDisplayName}"></h1>
-        <div id="status-badge">
-          <div th:replace="~{components :: statusBadge(${applicationDetails.status})}"></div>
+        <div class="flex flex-row gap-2">
+          <div id="status-badge">
+            <div th:replace="~{components/statusBadge :: statusBadge(${applicationDetails.status})}"></div>
+          </div>
+          <div id="payment-status-badge" th:if="${trackPayments}">
+            <div th:replace="~{components/payment-status-badge :: payment-status-badge(${applicationDetails.paymentStatus})}"></div>
+          </div>
         </div>
       </div>
       <div>
@@ -31,6 +36,20 @@
                           th:value="${statusOption.status}"
                           th:text="${statusOption.displayedStatus}"
                           th:selected="${applicationDetails.status == statusOption.status}"></option>
+                </select>
+              </form>
+            </td>
+          </tr>
+          <tr class="border-base-300" th:if="${trackPayments}">
+            <td>Payment Status</td>
+            <td>
+              <form class="contents" th:hx-post="@{/admin/applications/{programId}/{username}/payment-status(programId=${programId}, username=${studentUsername})}"
+                    hx-trigger="change"
+                    hx-target="#payment-status-badge">
+                <select name="status" class="select select-sm">
+                  <option value="FULLY_PAID" th:selected="${applicationDetails.paymentStatus == 'FULLY_PAID'}">Fully Paid</option>
+                  <option value="PARTIALLY_PAID" th:selected="${applicationDetails.paymentStatus == 'PARTIALLY_PAID'}">Partially Paid</option>
+                  <option value="UNPAID" th:selected="${applicationDetails.paymentStatus == 'UNPAID'}">Unpaid</option>
                 </select>
               </form>
             </td>
@@ -63,12 +82,37 @@
               </ul>
             </td>
           </tr>
+          <tr class="border-base-300">
+            <td>Partners</td>
+            <td>
+              <ul class="list-disc list-inside">
+                <li th:each="partner : ${programDetails.partners}" th:text="${partner}">
+                </li>
+              </ul>
+            </td>
+          </tr>
           <tr class="border-base-300" th:each="programField : ${programDetails.fields}">
             <td th:text="${programField.name}"></td>
             <td th:text="${programField.value}"></td>
           </tr>
           </tbody>
         </table>
+      </div>
+      <div id="prereqs">
+        <h1 class="text-lg">Pre-Requisites</h1>
+        <div class="m-4 flex flex-col gap-5">
+          <div th:each="preReq : ${preReqs}" class="flex flex-col gap-2">
+            <h2 th:if="${preReq.completed}" class="text-xs font-bold text-success">[[${preReq.code}]]</h2>
+            <h2 th:unless="${preReq.completed}" class="text-xs font-bold text-error">[[${preReq.code}]] (Not Satisfied)</h2>
+          </div>
+          <div th:if="${preReqs.isEmpty()}" class="flex flex-col gap-2">
+            <h2 class="text-xs font-bold">No Pre-Requisites</h2>
+          </div>
+        <form
+              th:action="@{/admin/applications/{programId}/{username}/refresh-ulink(programId=${programId}, username=${studentUsername})}"
+              method="POST">
+          <button class="btn btn-primary">Refresh ULink</button>
+        </form>
       </div>
       <div>
         <h1 class="text-lg">Responses</h1>
@@ -83,7 +127,7 @@
         <h1 class="text-lg">Documents</h1>
         <div class="m-4 flex flex-col gap-5">
           <div class="flex flex-col gap-2">
-            <div th:unless="${isReviewer}" th:each="documentInfo: ${documentInfos}" class="contents">
+            <div th:unless="${isReviewer && !isLead && !isAdmin}" th:each="documentInfo: ${documentInfos}" class="contents">
               <div th:if="${documentInfo.isPresent}" class="flex flex-row gap-2 items-center">
                 <a th:href="@{/admin/applications/{programId}/{username}/documents/{type}/view(programId=${programId}, username=${studentUsername}, type=${documentInfo.type})}"
                    class="link link-secondary" th:text="${documentInfo.name}"></a>
@@ -93,7 +137,7 @@
                 <span class="text-xs" th:text="${documentInfo.name} + ' not uploaded'"></span>
               </div>
             </div>
-            <div th:if="${isReviewer}" th:each="documentInfo: ${documentInfos}" class="contents">
+            <div th:if="${isReviewer && !isLead && !isAdmin}" th:each="documentInfo: ${documentInfos}" class="contents">
               <div th:if="${documentInfo.isPresent}" class="flex flex-row gap-2 items-center">
                 <span class="text-success" th:text="${documentInfo.name}"></span>
                 <span class="text-xs" th:text="${documentInfo.timestamp}"></span>
@@ -167,7 +211,7 @@
     </div>
   </div>
 </div>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 </html>

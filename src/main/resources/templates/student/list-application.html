@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html
         xmlns:th="http://www.thymeleaf.org"
-        th:fragment="page"
-        th:data-theme="${user.theme.name.toLowerCase}"
->
-<head th:replace="~{components :: head('My Applications')}"></head>
+        th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
+<head th:replace="~{components/head :: head('My Applications')}"></head>
 <body class="min-h-screen flex flex-col">
 <div
-        th:replace="~{components :: student-navbar(${user.displayName()})}"
+        th:replace="~{components/student-navbar :: student-navbar(${user.displayName()})}"
 ></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-4">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
 
 
@@ -64,7 +62,7 @@
               <td class="text-center" th:text="${formatter.formatLocalDate(pair.prog().applicationOpen())}"></td>
               <td class="text-center" th:text="${formatter.formatLocalDate(pair.prog().applicationClose())}"></td>
               <td class="text-center">
-                <div th:replace="~{components :: statusBadge(${pair.app().status().name()})}"></div>
+                <div th:replace="~{components/statusBadge :: statusBadge(${pair.app().status().name()})}"></div>
               </td>
 
               <!-- Document Deadline Column -->
@@ -234,8 +232,8 @@
     </div>
   </div>
 </div>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 </html>
 

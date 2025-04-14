@@ -1,0 +1,6 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="payment-status-badge(status)" th:switch="${status}"
+     class="contents">
+  <span th:case="FULLY_PAID" class="badge badge-success">Fully Paid</span>
+  <span th:case="UNPAID" class="badge badge-error">Unpaid</span>
+  <span th:case="PARTIALLY_PAID" class="badge badge-warning">Partially Paid</span>
+</div>

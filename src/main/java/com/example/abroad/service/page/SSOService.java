@@ -1,5 +1,6 @@
 package com.example.abroad.service.page;
 
+import com.example.abroad.service.ULinkService;
 import java.nio.charset.StandardCharsets;
 import java.net.URLEncoder;
 
@@ -16,7 +17,9 @@ import jakarta.servlet.http.HttpSession;
 import org.slf4j.MDC;
 
 @Service
-public record SSOService(UserService userService, AuditService auditService, @Value("${redirect.url}") String redirectUrl) {
+public record SSOService(UserService userService, AuditService auditService,
+                         ULinkService uLinkService,
+                         @Value("${redirect.url}") String redirectUrl) {
 
   public sealed interface SSOResult {
     record Success(User user) implements SSOResult {}
@@ -52,9 +55,12 @@ public record SSOService(UserService userService, AuditService auditService, @Va
       }
     }
 
-    SSOUser newUser = new SSOUser(username, email, displayName, User.Theme.DEFAULT);
+    SSOUser newUser = new SSOUser(username, email, displayName, User.Theme.DEFAULT, username);
+
     userService.save(newUser);
     userService.saveUserToSession(newUser, session);
+    uLinkService.refreshCourses(newUser);
+
     MDC.put("username", username);
     auditService.logEvent("SSO User " + username + " registered.");
     return new SSOResult.Success(newUser);

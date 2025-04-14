@@ -1,6 +1,5 @@
-<div
-    xmlns:th="http://www.thymeleaf.org"
-    class="footer bg-base-200 p-20"
-    th:fragment="footer">
-  <h1 class="footer-title">Brought to you by Abhishek Chataut, Arnav Nayak, Delali Cudjoe, and Joseph O</h1>
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="footer"
+     class="footer bg-base-300 p-20 footer-center">
+  <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+  <h1 class="footer-title" th:utext="${themeConfig.getFooterText()}">&copy; 2025 Hypothetical City College. All rights reserved.</h1>
 </div>

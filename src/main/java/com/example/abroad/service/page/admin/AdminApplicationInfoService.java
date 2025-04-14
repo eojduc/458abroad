@@ -1,6 +1,7 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Application;
+import com.example.abroad.model.Application.PaymentStatus;
 import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.Program.Question;
@@ -8,19 +9,25 @@ import com.example.abroad.model.User;
 import com.example.abroad.model.Application.Document;
 import com.example.abroad.model.Application.Note;
 import com.example.abroad.model.Application.Status;
+import com.example.abroad.model.User.Course;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.ApplicationService.Documents;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.ProgramService;
+import com.example.abroad.service.ULinkService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.admin.AdminApplicationInfoService.PostNote.UserLacksPermission;
+import com.example.abroad.service.page.admin.AdminProgramInfoService.StatusOption;
 import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,9 +36,10 @@ public record AdminApplicationInfoService(
   UserService userService,
   ProgramService programService,
   ApplicationService applicationService,
-  AuditService auditService
+  AuditService auditService,
+  ULinkService uLinkService
 ) {
-
+  private static final Logger logger = LoggerFactory.getLogger(AdminApplicationInfoService.class);
 
   public GetApplicationInfo getApplicationInfo(Integer programId, String username, HttpSession session) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -62,12 +70,7 @@ public record AdminApplicationInfoService(
       .map(this::getNoteInfo)
       .toList();
     var questions = programService.getQuestions(program);
-    System.out.println("HELLO WORLD");
-    System.out.println(questions.stream().map(Question::id).toList());
-    System.out.println(questions.stream().map(Question::text).toList());
     var responses2 = applicationService.getResponses(application);
-    System.out.println(responses2.stream().map(Response::question).toList());
-    System.out.println(responses2.stream().map(Response::response).toList());
     var responses = questions.stream()
       .map(question -> {
         var response = applicationService.getResponse(application, question.id());
@@ -75,15 +78,27 @@ public record AdminApplicationInfoService(
         return new ResponseInfo(question.text(), text);
       })
       .toList();
-    System.out.println(responses);
     var documents = getDocInfo(applicationService.getDocuments(application));
     var programIsPast = program.endDate().isBefore(LocalDate.now());
     var theme = user.theme().name().toLowerCase();
     var programDetails = getProgramDetails(program);
+
+
+    var takenCourseCodes = userService.findCoursesByUsername(student.username())
+      .stream()
+      .filter(course -> course.grade().matches("^(?:[ABCD][+-]?|S|IP)$"))
+      .map(Course::code)
+      .toList();
+    logger.debug(userService.findCoursesByUsername(student.username()).toString());
+    var preReqs = programService.getPreReqs(program)
+      .stream()
+      .map(p -> new PreReqInfo(p.courseCode(), takenCourseCodes.contains(p.courseCode())))
+      .toList();
     var applicationDetails = getAppDetails(programIsPast, application, student, isAdmin, isReviewer, isLead);
     return new GetApplicationInfo.Success(noteInfos, documents, theme,
       responses, programDetails,
-      applicationDetails, user.displayName(), isReviewer, getLetters(student, program), isAdmin);
+      applicationDetails, user.displayName(), isReviewer, getLetters(student, program), isAdmin,
+      program.trackPayment(), preReqs, isLead);
   }
 
   public record ResponseInfo(String question, String response) {
@@ -94,27 +109,76 @@ public record AdminApplicationInfoService(
       .stream()
       .map(formatService::displayUser)
       .toList();
-    var programFields = List.of(
+
+    var partners = programService.getPartners(program)
+      .stream()
+      .flatMap(u -> userService.findByUsername(u.username()).stream())
+      .map(formatService::displayUser)
+      .toList();
+    var programFields = new ArrayList<>(List.of(
       new Field("Description", program.description()),
       new Field("Term", formatService.formatTerm(program.semester(), program.year())),
       new Field("Start Date", formatService.formatLocalDate(program.startDate())),
       new Field("End Date", formatService.formatLocalDate(program.endDate())),
       new Field("Essential Docs Due", formatService.formatLocalDate(program.documentDeadline())),
       new Field("Application Open", formatService.formatLocalDate(program.applicationOpen())),
-      new Field("Application Close", formatService.formatLocalDate(program.applicationClose()))
-    );
+      new Field("Application Close", formatService.formatLocalDate(program.applicationClose())),
+      new Field("Track Payment", program.trackPayment() ? "Yes" : "No")
+    ));
+    if (program.trackPayment()) {
+      programFields.add(new Field("Payment Deadline", formatService.formatLocalDate(program.paymentDeadline())));
+    }
     return new ProgramDetails(
       program.id(),
-      program.title(), facultyLeads, programFields);
+      program.title(), facultyLeads, programFields, partners);
   }
 
   public record Field(String name, String value) {
 
   }
 
+  public record PreReqInfo(String code, Boolean completed) {
+  }
+
   public record ProgramDetails(
     Integer id,
-    String title, List<String> facultyLeads, List<Field> fields) {
+    String title, List<String> facultyLeads, List<Field> fields, List<String> partners) {
+  }
+
+  public sealed interface UpdatePaymentStatus {
+    record Success(String status) implements UpdatePaymentStatus {
+    }
+
+    record ApplicationNotFound() implements UpdatePaymentStatus {
+    }
+
+    record ProgramNotFound() implements UpdatePaymentStatus {
+    }
+
+    record UserLacksPermission() implements UpdatePaymentStatus {
+    }
+
+    record NotLoggedIn() implements UpdatePaymentStatus {
+    }
+  }
+
+  public UpdatePaymentStatus updatePaymentStatus(HttpSession session, PaymentStatus status, Integer programId, String username) {
+    var user = userService.findUserFromSession(session).orElse(null);
+    if (user == null) {
+      return new UpdatePaymentStatus.NotLoggedIn();
+    }
+    var application = applicationService.findByProgramIdAndStudentUsername(programId, username).orElse(null);
+    if (application == null) {
+      return new UpdatePaymentStatus.ApplicationNotFound();
+    }
+    var isAdmin = userService.isAdmin(user);
+    if (!isAdmin) {
+      return new UpdatePaymentStatus.UserLacksPermission();
+    }
+    auditService.logEvent(String.format("User %s updated payment status of application %d for student %s to %s",
+      user.username(), programId, username, status));
+    applicationService.updatePaymentStatus(application, status);
+    return new UpdatePaymentStatus.Success(status.toString());
   }
 
 
@@ -131,33 +195,49 @@ public record AdminApplicationInfoService(
       case WITHDRAWN -> new StatusOption(Status.WITHDRAWN.name(), "Withdrawn");
     };
   }
-  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast) {
+  public List<StatusOption> statusChangeOptions(Boolean isAdmin, Boolean isReviewer, Boolean isLead, Boolean programIsPast, Status currentStatus) {
     if (isAdmin) {
-      return Stream.of(
-          Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
-        .map(status -> statusOption(status, programIsPast)).toList();
-    }
-    if (isReviewer) {
-      return Stream.of(Status.ELIGIBLE, Status.APPLIED)
-        .map(status -> statusOption(status, programIsPast)).toList();
+      if (currentStatus == Status.WITHDRAWN) {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
+      else {
+        return Stream.of(
+            Status.APPLIED, Status.ELIGIBLE, Status.APPROVED, Status.ENROLLED, Status.CANCELLED)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
     }
     if (isLead) {
-      return Stream.of(Status.ELIGIBLE, Status.APPLIED, Status.APPROVED)
-        .map(status -> statusOption(status, programIsPast)).toList();
+      if (currentStatus == Status.ELIGIBLE || currentStatus == Status.APPLIED || currentStatus == Status.APPROVED) {
+        return Stream.of(Status.APPLIED, Status.ELIGIBLE , Status.APPROVED)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
+      else {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
     }
-    return List.of();
+    if (isReviewer) {
+      if (currentStatus == Status.ELIGIBLE || currentStatus == Status.APPLIED) {
+        return Stream.of(Status.APPLIED, Status.ELIGIBLE)
+          .map(status -> statusOption(status, programIsPast)).toList();
+      }
+      else {
+        return List.of(statusOption(currentStatus, programIsPast));
+      }
+    }
+    return List.of(statusOption(currentStatus, programIsPast));
   }
 
   public record ApplicationDetails(
     List<StatusOption> statusOptions,
     List<Field> fields,
     String studentDisplayName,
-    String status
+    String status,
+    String paymentStatus
   ){}
 
   public ApplicationDetails getAppDetails(Boolean programIsPast, Application application, User student,
     Boolean isAdmin, Boolean isReviewer, Boolean isLead) {
-    return new ApplicationDetails(statusChangeOptions(isAdmin, isReviewer, isLead, programIsPast),
+    return new ApplicationDetails(statusChangeOptions(isAdmin, isReviewer, isLead, programIsPast, application.status()),
       List.of(
         new Field("User", formatService.displayUser(student)),
         new Field ("Email", student.email()),
@@ -166,7 +246,8 @@ public record AdminApplicationInfoService(
         new Field("Date of Birth", formatService.formatLocalDate(application.dateOfBirth()))
       ),
       formatService.displayUser(student),
-      programIsPast && application.status() == Status.ENROLLED ? "COMPLETED" : application.status().toString()
+      programIsPast && application.status() == Status.ENROLLED ? "COMPLETED" : application.status().toString(),
+      application.paymentStatus().toString()
     );
   }
 
@@ -217,13 +298,13 @@ public record AdminApplicationInfoService(
     var adminStatuses = List.of(Status.ENROLLED, Status.CANCELLED, Status.ELIGIBLE, Status.APPROVED, Status.APPLIED);
     var facultyStatuses = List.of(Status.APPLIED, Status.ELIGIBLE, Status.APPROVED);
     var reviewerStatuses = List.of(Status.APPLIED, Status.ELIGIBLE);
-    if (isAdmin && !adminStatuses.contains(status)) {
+    if (isAdmin && (!adminStatuses.contains(status) || !adminStatuses.contains(application.status()))) {
       return new UpdateApplicationStatus.UserLacksPermission();
     }
-    if (isFacultyLead && !facultyStatuses.contains(status)) {
+    if (isFacultyLead && (!facultyStatuses.contains(status) || !facultyStatuses.contains(application.status()))) {
       return new UpdateApplicationStatus.UserLacksPermission();
     }
-    if (isReviewer && !reviewerStatuses.contains(status)) {
+    if (isReviewer && (!reviewerStatuses.contains(status) || !reviewerStatuses.contains(application.status()))) {
       return new UpdateApplicationStatus.UserLacksPermission();
     }
     auditService.logEvent(String.format("User %s updated status of application %d for student %s to %s",
@@ -305,7 +386,7 @@ public record AdminApplicationInfoService(
                    List<DocumentInfo> documentInfos, String theme,
                     List<ResponseInfo> responses,
                    ProgramDetails programDetails, ApplicationDetails applicationDetails, String displayName, Boolean isReviewer,
-                   List<LetterInfo> requests, Boolean isAdmin
+                   List<LetterInfo> requests, Boolean isAdmin, Boolean trackPayment, List<PreReqInfo> preReqs, Boolean isLead
     ) implements
       GetApplicationInfo {
 
@@ -351,6 +432,54 @@ public record AdminApplicationInfoService(
     record NotLoggedIn() implements UpdateApplicationStatus {
 
     }
+
+  }
+
+
+  public sealed interface RefreshULink {
+    record Success() implements RefreshULink {
+    }
+
+    record UserNotFound() implements RefreshULink {
+    }
+
+    record NotLoggedIn() implements RefreshULink {
+    }
+    record ConnectionError() implements RefreshULink {
+    }
+    record UserLacksPermission() implements RefreshULink {
+    }
+  }
+
+
+  public RefreshULink refreshULink(HttpSession session, String username, Integer programId) {
+    var user = userService.findUserFromSession(session).orElse(null);
+    if (user == null) {
+      return new RefreshULink.NotLoggedIn();
+    }
+    var application = applicationService.findByProgramIdAndStudentUsername(programId, username).orElse(null);
+    if (application == null) {
+      return new RefreshULink.UserNotFound();
+    }
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new RefreshULink.UserNotFound();
+    }
+    var isAdmin = userService.isAdmin(user);
+    var isReviewer = userService.isReviewer(user);
+    var isFacultyLead = programService.isFacultyLead(program, user);
+    if (!isReviewer && !isFacultyLead && !isAdmin) {
+      return new RefreshULink.UserLacksPermission();
+    }
+    var student = userService.findByUsername(username).orElse(null);
+    if (student == null) {
+      return new RefreshULink.UserNotFound();
+    }
+
+    return switch(uLinkService.refreshCourses(student)) {
+      case ULinkService.RefreshCourses.Success() -> new RefreshULink.Success();
+      case ULinkService.RefreshCourses.TranscriptServiceError() -> new RefreshULink.ConnectionError();
+    };
 
   }
 }

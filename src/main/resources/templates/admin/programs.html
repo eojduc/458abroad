@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(name, alerts, formatter)"
       th:data-theme="${user.theme.name.toLowerCase}">
-<head th:replace="~{components :: head('Admin Programs')}"></head>
+<head th:replace="~{components/head :: head('Admin Programs')}"></head>
 <style>
   /* Initially hide eligible columns */
   .count-col {
@@ -31,10 +31,10 @@
   }
 </style>
 <body>
-<div th:replace="~{components :: admin-navbar(${name}, ${isAdmin})}"></div>
+<div th:replace="~{components/admin-navbar :: admin-navbar(${name}, ${isAdmin})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-8">
@@ -73,8 +73,8 @@
   </div>
 </div>
 
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 </html>
 
@@ -87,6 +87,7 @@
     <th th:replace="~{this :: sortableHeader('App Opens', 'APP_OPENS', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('App Closes', 'APP_CLOSES', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('Documents Due', 'ESSENTIAL_DOCS', 'date-col')}"></th>
+    <th th:replace="~{this :: sortableHeader('Payment Due', 'PAYMENT_DATE', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('Start Date', 'START_DATE', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('End Date', 'END_DATE', 'date-col')}"></th>
     <th th:replace="~{this :: sortableHeader('Applied', 'APPLIED', 'count-col')}"></th>
@@ -112,6 +113,7 @@
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.applicationOpen)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.applicationClose)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.documentDeadline)}"></td>
+    <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.paymentDeadline)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.startDate)}"></td>
     <td class="date-col" th:text="${formatter.formatLocalDate(programAndStatus.program.endDate)}"></td>
     <td class="count-col text-center" th:text="${programAndStatus.applied}"></td>
@@ -161,7 +163,7 @@
         <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
         <select name="leadFilter" multiple
                 class="select"
-                size="4"
+                size="3"
                 th:value="${leadKeyword}"
                 th:hx-get="@{${path}}"
                 hx-trigger="change"

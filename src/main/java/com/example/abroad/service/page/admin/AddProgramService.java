@@ -10,7 +10,11 @@ import com.example.abroad.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -38,7 +42,8 @@ public record AddProgramService(UserService userService, ProgramService programS
 
   public AddProgramInfo addProgramInfo(
     String title, String description, List<String> facultyLeads, Integer year, LocalDate startDate, LocalDate endDate, LocalDate essentialDocsDate,
-    Semester semester, LocalDate applicationOpen, LocalDate applicationClose, List<String> questions, HttpSession session
+    LocalDate paymentDate, List<String> paymentPartners, Semester semester, LocalDate applicationOpen, LocalDate applicationClose, List<String> questions,
+      List<String> prereqs, HttpSession session
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -47,14 +52,27 @@ public record AddProgramService(UserService userService, ProgramService programS
     if (!userService.isAdmin(user)) {
       return new AddProgramInfo.UserNotAdmin();
     }
+    boolean trackPayment = (paymentDate != null);
     Program program = new Program(
       null, title, Year.of(year), semester, applicationOpen, applicationClose,
-      essentialDocsDate, startDate, endDate, description
+      essentialDocsDate, startDate, endDate, description, essentialDocsDate, trackPayment
     );
+    List<? extends User> paymentPartnersUsers;
+    if(trackPayment) {
+      program = program.withPaymentDate(paymentDate);
+    }
+    if (paymentPartners != null) {
+      paymentPartnersUsers = userService.findPaymentPartners().stream()
+        .filter(u -> paymentPartners.contains(u.username()))
+        .toList();
+    } else {
+      paymentPartnersUsers = Collections.emptyList();
+    }
+
     var leadUsers = userService.findAll().stream()
         .filter(u -> facultyLeads.contains(u.username()))
         .toList();
-   return switch (programService.addProgram(program, leadUsers, questions, List.of())) {
+    return switch (programService.addProgram(program, leadUsers, questions, List.of())) {
      case SaveProgram.InvalidProgramInfo(var message) -> new AddProgramInfo.InvalidProgramInfo(message);
      case SaveProgram.Success(var prog) -> {
         auditService.logEvent(String.format("Program %s(%d) added by %s", prog.title(), prog.id(), user.username()));
@@ -64,11 +82,15 @@ public record AddProgramService(UserService userService, ProgramService programS
     };
   }
 
-  public List<? extends User> getFacultyList() {
-    return userService.findUsersWithRole(User.Role.Type.FACULTY);
-  }
   public List<String> getDefaultQuestions() {
     return DEFAULT_QUESTIONS;
+  }
+  public List<? extends User> getFacultyList() {
+    return userService.findFacultyLeads();
+  }
+
+  public List<? extends User> getPartnerList() {
+    return userService.findPaymentPartners();
   }
 
 

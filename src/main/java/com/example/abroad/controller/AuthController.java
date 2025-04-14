@@ -53,6 +53,7 @@ public record AuthController(AuthService authService) {
       HttpServletRequest request) {
     return switch (authService.login(username, password, session)) {
       case Login.Success(var user) -> "redirect:/";
+      case Login.MfaRequired(var user) -> "redirect:/mfa";
       case Login.InvalidCredentials() -> "redirect:/login?error=Invalid username or password";
     };
   }

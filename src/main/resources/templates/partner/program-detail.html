@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
+<head th:replace="~{components/head :: head('Program Details')}"></head>
+<body>
+<div th:replace="~{components/partner-navbar :: partner-navbar(${user.displayName})}"></div>
+<!-- Reduce top margin and set a minimum height for the main container -->
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-5 lg:w-3/4 md:w-4/5 sm:w-full gap-3">
+    <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+        <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
+    </div>
+
+    <div class="card w-full bg-base-200">
+        <div class="card-body">
+            <div class="flex justify-between items-center">
+                <h1 class="card-title text-2xl" th:text="${program.title()}"></h1>
+                <div class="badge badge-primary" th:text="${program.year() + ' ' + program.semester()}"></div>
+            </div>
+
+            <div class="divider my-2"></div>
+
+            <h2 class="text-xl font-semibold">Program Details</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                <div>
+                    <p><strong>Faculty Lead(s):</strong></p>
+                    <p th:text="${#strings.listJoin(facultyLeadNames, ', ')}"></p>
+                </div>
+                <div>
+                    <p><strong>Payment Deadline:</strong> <span th:text="${#temporals.format(program.paymentDeadline(), 'MMM dd, yyyy')}"></span></p>
+                </div>
+            </div>
+
+            <div class="divider my-2"></div>
+
+            <h2 class="text-xl font-semibold mb-2">Student Payment Status</h2>
+
+            <!-- Filter and Copy Emails Section -->
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-4">
+                    <!-- Status Filter Dropdown -->
+                    <form id="filterForm" th:fragment="filterForm">
+                        <div id="filterSortParams">
+                            <input type="hidden" name="sort" th:value="${sort}" />
+                            <input type="hidden" name="ascending" th:value="${ascending}" />
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <label>Status: </label>
+                            <select
+                                    name="statusFilter"
+                                    class="select select-bordered select-sm"
+                                    th:hx-get="@{/partner/programs/{id}/table(id=${program.id()})}"
+                                    hx-trigger="change"
+                                    hx-include="#filterForm"
+                                    hx-target="#applicantTableContainer"
+                                    hx-swap="innerHTML">
+                                <option value="ALL" th:selected="${statusFilter == 'ALL'}">All</option>
+                                <option value="APPROVED" th:selected="${statusFilter == 'APPROVED'}">Approved</option>
+                                <option value="ENROLLED" th:selected="${statusFilter == 'ENROLLED'}">Enrolled</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <!-- Copy Emails Button -->
+                <div>
+                    <button id="copyEmailsBtn" class="btn btn-sm btn-primary" onclick="copyEmails()">Copy All Emails</button>
+                    <span id="copyConfirmation" class="ml-2 text-success hidden">Emails copied to clipboard!</span>
+                </div>
+            </div>
+
+            <div th:if="${applicants.empty}" class="alert alert-info">
+                <div>
+                    <span>There are no approved or enrolled students for this program.</span>
+                </div>
+            </div>
+
+            <!-- Applicant Table Container with minimum height -->
+            <div id="applicantTableContainer" class="min-h-[400px] flex-grow">
+                <!-- Applicant Table Fragment -->
+                <div th:fragment="applicantTable" id="applicantTable" class="contents h-full">
+                    <div th:unless="${applicants.empty}" class="overflow-x-auto h-full">
+                        <table class="table w-full">
+                            <thead>
+                            <tr>
+                                <th th:replace="~{this :: sortableHeader('Name', '/partner/programs/' + ${program.id()} + '/table', 'NAME', '#applicantTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Username', '/partner/programs/' + ${program.id()} + '/table', 'USERNAME', '#applicantTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Email', '/partner/programs/' + ${program.id()} + '/table', 'EMAIL', '#applicantTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Status', '/partner/programs/' + ${program.id()} + '/table', 'STATUS', '#applicantTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Payment Status', '/partner/programs/' + ${program.id()} + '/table', 'PAYMENT', '#applicantTableContainer')}"></th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="applicant : ${applicants}" class="h-16">
+                                <td th:text="${applicant.displayName()}"></td>
+                                <td th:text="${applicant.username()}"></td>
+                                <td th:text="${applicant.email()}" th:attr="data-email=${applicant.email()}"></td>
+                                <td th:text="${applicant.status()}"></td>
+                                <td>
+                                    <span th:if="${applicant.paymentStatus() == 'UNPAID'}" class="badge badge-error">Unpaid</span>
+                                    <span th:if="${applicant.paymentStatus() == 'PARTIALLY_PAID'}" class="badge badge-warning">Partially Paid</span>
+                                    <span th:if="${applicant.paymentStatus() == 'FULLY_PAID'}" class="badge badge-success">Fully Paid</span>
+                                </td>
+                                <td>
+                                    <div class="dropdown dropdown-end">
+                                        <label tabindex="0" class="btn btn-sm btn-primary m-1">Update</label>
+                                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
+                                            <li>
+                                                <form th:action="@{/partner/programs/{id}/update-payment(id=${program.id()})}" method="POST">
+                                                    <input type="hidden" name="username" th:value="${applicant.username()}" />
+                                                    <input type="hidden" name="paymentStatus" value="UNPAID" />
+                                                    <button type="submit" class="w-full text-left">Mark as Unpaid</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form th:action="@{/partner/programs/{id}/update-payment(id=${program.id()})}" method="POST">
+                                                    <input type="hidden" name="username" th:value="${applicant.username()}" />
+                                                    <input type="hidden" name="paymentStatus" value="PARTIALLY_PAID" />
+                                                    <button type="submit" class="w-full text-left">Mark as Partially Paid</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form th:action="@{/partner/programs/{id}/update-payment(id=${program.id()})}" method="POST">
+                                                    <input type="hidden" name="username" th:value="${applicant.username()}" />
+                                                    <input type="hidden" name="paymentStatus" value="FULLY_PAID" />
+                                                    <button type="submit" class="w-full text-left">Mark as Fully Paid</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Add empty rows to fill space when few students -->
+                            <tr th:if="${applicants.size() < 8}" th:each="i : ${#numbers.sequence(1, 8 - applicants.size())}" class="h-12 opacity-0">
+                                <td colspan="6">&nbsp;</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div hx-swap-oob="true" id="filterSortParams">
+                        <input type="hidden" name="sort" th:value="${sort}" />
+                        <input type="hidden" name="ascending" th:value="${ascending}" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="/partner/programs" class="btn btn-primary">Back to Programs</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyEmails() {
+        const emailElements = document.querySelectorAll('[data-email]');
+        const emails = Array.from(emailElements).map(el => el.getAttribute('data-email'));
+        const emailText = emails.join(';');
+
+        navigator.clipboard.writeText(emailText).then(() => {
+            const confirmation = document.getElementById('copyConfirmation');
+            confirmation.classList.remove('hidden');
+            setTimeout(() => {
+                confirmation.classList.add('hidden');
+            }, 3000);
+        });
+    }
+</script>
+
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
+</body>
+</html>
+
+<!-- Add the sortableHeader fragment -->
+<div th:fragment="sortableHeader(label, path, column, target)" th:remove="tag">
+    <th th:class="${sort == column ? 'bg-base-300 cursor-pointer' : 'bg-base-200 cursor-pointer'}"
+        th:hx-get="@{${path}(sort=${column}, ascending=${!ascending}, statusFilter=${statusFilter})}"
+        th:hx-target="${target}"
+        hx-swap="innerHTML">
+        <div class="flex items-center gap-2">
+            <span th:if="${sort == column}" th:text="${ascending} ? '▲' : '▼'"></span>
+            <div th:unless="${sort == column}" class="invisible">▼</div>
+            <span th:text="${label}"></span>
+        </div>
+    </th>
+</div>

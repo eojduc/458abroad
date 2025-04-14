@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page(program, applicants, user, formatter, alerts)" th:data-theme="${user.theme.name.toLowerCase}">
 
-<head th:replace="~{components :: head(${program.title})}"></head>
+<head th:replace="~{components/head :: head(${program.title})}"></head>
 
 <body>
-<div th:replace="~{components :: admin-navbar(${user.displayName}, ${isAdmin})}"></div>
+<div th:replace="~{components/admin-navbar :: admin-navbar(${user.displayName}, ${isAdmin})}"></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body gap-10">
@@ -28,6 +28,14 @@
               <ul class="list-disc list-inside">
                 <li th:each="facultyLead : ${programDetails.facultyLeads}" th:text="${facultyLead}">
                 </li>
+              </ul>
+            </td>
+          </tr>
+          <tr class="border-base-300">
+            <td>Partners</td>
+            <td>
+              <ul class="list-disc list-inside">
+                <li th:each="partner : ${programDetails.partners}">[[${partner}]]</li>
               </ul>
             </td>
           </tr>
@@ -68,8 +76,8 @@
     </div>
   </div>
 </div>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 
 </html>
@@ -151,8 +159,11 @@
     </button>
   </div>
   <div class="m-4">
-    <textarea id="emailList" class="sr-only" readonly>
+    <textarea id="emailList" class="sr-only" readonly th:if="${applicants.size() > 0}">
       [[${T(java.lang.String).join('; ', applicants.![email])}]]
+    </textarea>
+    <textarea id="emailList" class="sr-only" readonly th:if="${applicants.size() == 0}">
+      No emails selected.
     </textarea>
     <!-- Copy button styled with Tailwind -->
     <button
@@ -188,7 +199,8 @@
           [[${sort} == 'ASCENDING' ? '▼' : '▲']]
         </span>
       </th>
-      <th>update</th>
+      <th>Update App Status</th>
+      <th th:if="${program.trackPayment}">Update Payment Status</th>
     </tr>
 
     </thead>
@@ -205,21 +217,29 @@
         <td>[[${applicant.major}]]</td>
         <td>[[${applicant.gpa}]]</td>
         <td>[[${applicant.dateOfBirth}]]</td>
-        <td>
-          <div th:id="'status-badge-' + ${applicant.username}">
-            <div th:replace="~{components :: statusBadge(${applicant.status})}"></div>
-          </div>
-        </td>
         <td th:each="document : ${applicant.documents}">
           <div th:switch="${document.status}">
-            <span th:case="'SUBMITTED'" class="badge badge-success">[[${document.text}]]</span>
+            <div th:case="'SUBMITTED'" class="flex flex-col">
+              <span class="badge badge-success">Submitted</span>
+              [[${document.text}]]
+            </div>
             <span th:case="'PENDING'" class="badge badge-warning">[[${document.text}]]</span>
             <span th:case="'MISSING'" class="badge badge-error">[[${document.text}]]</span>
           </div>
         </td>
         <td class="text-center">[[${applicant.noteCount}]]</td>
+        <td>[[${applicant.latestNote}]]</td>
         <td>
-         [[${applicant.latestNote}]]</td>
+          <div th:id="'status-badge-' + ${applicant.username}">
+            <div th:replace="~{components/statusBadge :: statusBadge(${applicant.status})}"></div>
+          </div>
+        </td>
+        <td th:if="${program.trackPayment}">
+          <div th:id="'payment-status-badge-' + ${applicant.username}">
+            <!-- Payment status badge -->
+            <div th:replace="~{components/payment-status-badge :: payment-status-badge(${applicant.paymentStatus})}"></div>
+          </div>
+        </td>
         <td>
           <form class="contents"
                 th:hx-post="@{/admin/applications/{programId}/{username}/status(programId=${program.id}, username=${applicant.username})}"
@@ -230,6 +250,18 @@
                       th:value="${statusOption.value}"
                       th:selected="${applicant.status == statusOption.value}"
                       >[[${statusOption.text}]]</option>
+            </select>
+          </form>
+        </td>
+        <td th:if="${program.trackPayment}">
+          <form class="contents"
+                th:hx-post="@{/admin/applications/{programId}/{username}/payment-status(programId=${program.id}, username=${applicant.username})}"
+                hx-trigger="change"
+                th:hx-target="'#payment-status-badge-' + ${applicant.username}">
+            <select name="status" class="select select-sm">
+              <option value="FULLY_PAID" th:selected="${applicant.paymentStatus == 'FULLY_PAID'}">Fully Paid</option>
+              <option value="UNPAID" th:selected="${applicant.paymentStatus == 'UNPAID'}">Unpaid</option>
+              <option value="PARTIALLY_PAID" th:selected="${applicant.paymentStatus == 'PARTIALLY_PAID'}">Partially Paid</option>
             </select>
           </form>
         </td>

@@ -22,20 +22,20 @@ import java.util.stream.Collectors;
 
 @Service
 public record AdminUserService(
-  ProgramService programService,
-  ApplicationService applicationService,
-  UserService userService,
-  PasswordEncoder passwordEncoder
+        ProgramService programService,
+        ApplicationService applicationService,
+        UserService userService,
+        PasswordEncoder passwordEncoder
 ) {
 
   public enum Sort {
-    NAME, USERNAME, EMAIL, ROLE, USER_TYPE
+    NAME, USERNAME, EMAIL, ROLE, USER_TYPE, ULINK
   }
 
   public sealed interface GetAllUsersInfo {
     record Success(
-      List<UserInfo> users,
-      User adminUser
+            List<UserInfo> users,
+            User adminUser
     ) implements GetAllUsersInfo {
     }
 
@@ -51,15 +51,15 @@ public record AdminUserService(
           List<Program> facultyLeadPrograms,
           List<Application> applications,
           Map<String, String> applicationPrograms,
-          boolean isAdmin, // Added in previous step
-          String role // Add this field
+          boolean isAdmin,
+          String role
   ) {}
 
   public GetAllUsersInfo getUsersInfo(
-    HttpSession session,
-    Sort sort,
-    String searchFilter,
-    Boolean ascending
+          HttpSession session,
+          Sort sort,
+          String searchFilter,
+          Boolean ascending
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -72,18 +72,18 @@ public record AdminUserService(
   }
 
   private GetAllUsersInfo processAuthorizedRequest(
-    Sort sort,
-    String searchFilter,
-    Boolean ascending,
-    User adminUser
+          Sort sort,
+          String searchFilter,
+          Boolean ascending,
+          User adminUser
   ) {
     var usersInfo =
-      userService.findAll()
-        .stream()
-        .map(this::getUserInfo)
-        .filter(matchesSearchFilter(searchFilter))
-        .sorted(getSortComparator(sort, ascending))
-        .toList();
+            userService.findAll()
+                    .stream()
+                    .map(this::getUserInfo)
+                    .filter(matchesSearchFilter(searchFilter))
+                    .sorted(getSortComparator(sort, ascending))
+                    .toList();
 
     return new GetAllUsersInfo.Success(usersInfo, adminUser);
   }
@@ -124,7 +124,9 @@ public record AdminUserService(
       String lowercaseSearch = searchTerm.toLowerCase();
       return userInfo.user().displayName().toLowerCase().contains(lowercaseSearch) ||
               userInfo.user().username().toLowerCase().contains(lowercaseSearch) ||
-              userInfo.user().email().toLowerCase().contains(lowercaseSearch);
+              userInfo.user().email().toLowerCase().contains(lowercaseSearch) ||
+              (userInfo.user().uLink() != null &&
+                      userInfo.user().uLink().toLowerCase().contains(lowercaseSearch));
     };
   }
 
@@ -133,9 +135,24 @@ public record AdminUserService(
       case NAME -> Comparator.comparing(userInfo -> userInfo.user().displayName());
       case USERNAME -> Comparator.comparing(userInfo -> userInfo.user().username());
       case EMAIL -> Comparator.comparing(userInfo -> userInfo.user().email());
-      case ROLE -> Comparator.comparing(userInfo -> userInfo.role); // Change this line
+      case ROLE -> Comparator.comparing(userInfo -> userInfo.role);
       case USER_TYPE -> Comparator.comparing(userInfo -> userInfo.user().isLocal() ? "Local" : "SSO");
+      case ULINK -> Comparator.comparing((UserInfo userInfo) -> {
+        String uLink = userInfo.user().uLink();
+
+        // Handle different scenarios for uLink
+        if (uLink == null || uLink.isEmpty()) {
+          return ""; // Use empty string for "Not Connected"
+        }
+
+        return uLink;
+      }).thenComparing(userInfo -> {
+        // Secondary sorting to ensure "Not Connected" is always last
+        String uLink = userInfo.user().uLink();
+        return uLink == null || uLink.isEmpty() ? 1 : 0;
+      });
     };
+
     return ascending ? comparator : comparator.reversed();
   }
 
@@ -156,8 +173,8 @@ public record AdminUserService(
     }
 
     record RequiresConfirmation(
-      String username,
-      List<Program> affectedPrograms
+            String username,
+            List<Program> affectedPrograms
     ) implements ModifyUserResult {
     }
   }
@@ -206,9 +223,12 @@ public record AdminUserService(
         return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
       }
 
+      /*
       for (Program program : facultyLeadPrograms) {
         programService.removeFacultyLead(program, targetUser);
       }
+      */
+
 
       // After handling faculty lead status, remove the ADMIN role
       userService.removeRole(targetUser, Role.Type.ADMIN);
@@ -317,10 +337,10 @@ public record AdminUserService(
    * Resets a user's password
    */
   public PasswordResetResult resetUserPassword(
-    HttpSession session,
-    String targetUsername,
-    String newPassword,
-    String confirmPassword
+          HttpSession session,
+          String targetUsername,
+          String newPassword,
+          String confirmPassword
   ) {
     // Check if requesting user is admin
     var adminUser = userService.findUserFromSession(session).orElse(null);
@@ -360,11 +380,14 @@ public record AdminUserService(
     // Update the password - assuming you have a way to hash passwords
     String hashedPassword = hashPassword(newPassword);
     User.LocalUser updatedUser = new User.LocalUser(
-      localUser.username(),
-      hashedPassword,
-      localUser.email(),
-      localUser.displayName(),
-      localUser.theme()
+            localUser.username(),
+            hashedPassword,
+            localUser.email(),
+            localUser.displayName(),
+            localUser.theme(),
+            localUser.uLink(),
+            localUser.isMfaEnabled(),
+            localUser.mfaSecret()
     );
 
     // Save the updated user
@@ -433,17 +456,17 @@ public record AdminUserService(
     List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUser);
     for (Application.Note note : userNotes) {
       Application.Note updatedNote = new Application.Note(
-        note.programId(),
-        note.student(),
-        "DELETED USER",
-        note.content(),
-        note.timestamp()
+              note.programId(),
+              note.student(),
+              "DELETED USER",
+              note.content(),
+              note.timestamp()
       );
       applicationService.deleteNote(note.id());
       applicationService.saveNote(updatedNote);
     }
     userService.findByUsername(targetUsername)
-      .ifPresent(userService::deleteUser);
+            .ifPresent(userService::deleteUser);
 
     return new DeleteUserResult.Success();
   }

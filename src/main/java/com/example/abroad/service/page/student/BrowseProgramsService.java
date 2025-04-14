@@ -36,7 +36,7 @@ public record BrowseProgramsService(
   }
 
   public List<? extends  User> getKnownFacultyLeads() {
-    return programService.findAllFacultyLeads();
+    return userService.findFacultyLeads();
   }
 
   // Default: sort by application close date. If the dates are the same, sort by program title.
