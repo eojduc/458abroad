@@ -116,7 +116,7 @@ public record AdminUserController(
                 model.addAttribute("programs", programs);
                 model.addAttribute("formatter", formatter);
                 // Redirect to main page for regular form submissions
-                yield "redirect:/admin/users";
+                yield "redirect:/admin/users?warning=User has faculty programs, confirmation required";
             }
             case AdminUserService.ModifyUserResult.Success(var user) ->
                     "redirect:/admin/users?success=User admin status updated successfully";
@@ -150,10 +150,23 @@ public record AdminUserController(
                 model.addAttribute("programs", programs);
                 model.addAttribute("roleType", roleType);
                 model.addAttribute("formatter", formatter);
-                yield "admin/users?warning=User has faculty programs, confirmation required";
+
+                // Customize the warning message based on the role type
+                String warningMessage = roleType == User.Role.Type.PARTNER
+                        ? "Granting Partner role will remove all other roles"
+                        : "User has faculty programs, confirmation required";
+
+                yield "redirect:/admin/users?warning=" + warningMessage;
             }
-            case AdminUserService.ModifyUserResult.Success(var user) ->
-                    "redirect:/admin/users?success=User roles updated successfully";
+            case AdminUserService.ModifyUserResult.Success(var user) -> {
+                String successMessage = roleType == User.Role.Type.PARTNER
+                        ? grantRole
+                        ? "Partner role granted successfully, all other roles removed"
+                        : "Partner role revoked successfully"
+                        : "User roles updated successfully";
+
+                yield "redirect:/admin/users?success=" + successMessage;
+            }
         };
     }
 
@@ -207,6 +220,50 @@ public record AdminUserController(
                     "redirect:/admin/users?error=You cannot delete your own account";
             case AdminUserService.DeleteUserResult.Success() ->
                     "redirect:/admin/users?success=User deleted successfully";
+        };
+    }
+
+    @PostMapping("/create")
+    public String createUser(
+            HttpSession session,
+            @RequestParam String username,
+            @RequestParam String email,
+            @RequestParam String displayName,
+            @RequestParam String password,
+            @RequestParam String confirmPassword,
+            @RequestParam(required = false) String uLink,
+            @RequestParam User.Theme theme,
+            @RequestParam(defaultValue = "STUDENT") String role
+    ) {
+        var result = adminUserService.createLocalUser(
+                session,
+                username,
+                email,
+                displayName,
+                password,
+                confirmPassword,
+                uLink,
+                theme,
+                role
+        );
+
+        return switch (result) {
+            case AdminUserService.CreateUserResult.UserNotFound() ->
+                    "redirect:/login?error=You are not logged in";
+            case AdminUserService.CreateUserResult.UserNotAdmin() ->
+                    "redirect:/login?error=You are not authorized to create users";
+            case AdminUserService.CreateUserResult.UsernameExists() ->
+                    "redirect:/admin/users?error=Username already exists";
+            case AdminUserService.CreateUserResult.EmailExists() ->
+                    "redirect:/admin/users?error=Email already exists";
+            case AdminUserService.CreateUserResult.PasswordsDoNotMatch() ->
+                    "redirect:/admin/users?error=Passwords do not match";
+            case AdminUserService.CreateUserResult.PasswordTooShort() ->
+                    "redirect:/admin/users?error=Password must be at least 8 characters";
+            case AdminUserService.CreateUserResult.InvalidUsername() ->
+                    "redirect:/admin/users?error=Username can only contain letters, numbers, hyphens and underscores";
+            case AdminUserService.CreateUserResult.Success() ->
+                    "redirect:/admin/users?success=User created successfully";
         };
     }
 }

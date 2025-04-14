@@ -17,6 +17,9 @@
     <div class="card-body gap-10">
       <div class="flex justify-between items-center">
         <h1 class="card-title">Users</h1>
+        <button class="btn btn-primary" onclick="document.getElementById('createUserModal').showModal()">
+          CREATE LOCAL USER
+        </button>
       </div>
 
       <!-- Filter Form -->
@@ -91,6 +94,7 @@
                     <span th:if="${userInfo.role.contains('ADMIN')}" class="badge badge-accent">ADMIN</span>
                     <span th:if="${userInfo.role.contains('FACULTY')}" class="badge badge-secondary">FACULTY</span>
                     <span th:if="${userInfo.role.contains('REVIEWER')}" class="badge badge-primary">REVIEWER</span>
+                    <span th:if="${userInfo.role.contains('PARTNER')}" class="badge badge-warning">PARTNER</span>
                     <span th:if="${userInfo.role == 'STUDENT'}" class="badge badge-neutral">STUDENT</span>
                   </div>
                 </td>
@@ -107,7 +111,7 @@
                       <label tabindex="0" class="btn btn-sm btn-primary">Manage Roles</label>
                       <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                         <!-- Admin role -->
-                        <li th:unless="${userInfo.role.contains('ADMIN')}">
+                        <li th:unless="${userInfo.role.contains('ADMIN') || userInfo.role.contains('PARTNER')}">
                           <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
                                 method="POST" class="w-full">
                             <input type="hidden" name="roleType" value="ADMIN"/>
@@ -121,7 +125,7 @@
                         </li>
 
                         <!-- Faculty role -->
-                        <li th:unless="${userInfo.role.contains('FACULTY')}">
+                        <li th:unless="${userInfo.role.contains('FACULTY') || userInfo.role.contains('PARTNER')}">
                           <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
                                 method="POST" class="w-full">
                             <input type="hidden" name="roleType" value="FACULTY"/>
@@ -135,7 +139,7 @@
                         </li>
 
                         <!-- Reviewer role -->
-                        <li th:unless="${userInfo.role.contains('REVIEWER')}">
+                        <li th:unless="${userInfo.role.contains('REVIEWER') || userInfo.role.contains('PARTNER')}">
                           <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}"
                                 method="POST" class="w-full">
                             <input type="hidden" name="roleType" value="REVIEWER"/>
@@ -146,6 +150,16 @@
                         <li th:if="${userInfo.role.contains('REVIEWER')}">
                           <button th:attr="onclick=|document.getElementById('reviewerConfirm-${userInfo.user.username}').showModal()|"
                                   class="w-full text-left">Revoke Reviewer Role</button>
+                        </li>
+
+                        <!-- Partner role (new) -->
+                        <li th:unless="${userInfo.role.contains('PARTNER')}">
+                          <button th:attr="onclick=|document.getElementById('partnerGrantConfirm-${userInfo.user.username}').showModal()|"
+                                  class="w-full text-left">Grant Partner Role</button>
+                        </li>
+                        <li th:if="${userInfo.role.contains('PARTNER')}">
+                          <button th:attr="onclick=|document.getElementById('partnerRevokeConfirm-${userInfo.user.username}').showModal()|"
+                                  class="w-full text-left">Revoke Partner Role</button>
                         </li>
                       </ul>
                     </div>
@@ -183,6 +197,261 @@
 
 <div th:replace="~{components/footer :: footer}"></div>
 <div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
+<!-- Modal dialogs for confirmation -->
+<!-- Admin role revocation confirmation -->
+<dialog th:each="userInfo : ${users}" th:id="'adminConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Admin Role Revocation</h3>
+    <p class="py-4">Are you sure you want to revoke admin privileges from <span th:text="${userInfo.user.displayName()}"></span>?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="ADMIN"/>
+        <input type="hidden" name="grantRole" value="false"/>
+        <button type="submit" class="btn btn-error">Revoke Admin Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Faculty role revocation confirmation -->
+<dialog th:each="userInfo : ${users}" th:id="'facultyConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Faculty Role Revocation</h3>
+    <p class="py-4">Are you sure you want to revoke faculty privileges from <span th:text="${userInfo.user.displayName()}"></span>?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="FACULTY"/>
+        <input type="hidden" name="grantRole" value="false"/>
+        <button type="submit" class="btn btn-error">Revoke Faculty Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Reviewer role revocation confirmation -->
+<dialog th:each="userInfo : ${users}" th:id="'reviewerConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Reviewer Role Revocation</h3>
+    <p class="py-4">Are you sure you want to revoke reviewer privileges from <span th:text="${userInfo.user.displayName()}"></span>?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="REVIEWER"/>
+        <input type="hidden" name="grantRole" value="false"/>
+        <button type="submit" class="btn btn-error">Revoke Reviewer Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Partner role grant confirmation (new) -->
+<dialog th:each="userInfo : ${users}" th:id="'partnerGrantConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Partner Role Assignment</h3>
+    <p class="py-4">
+      Are you sure you want to grant partner role to <span th:text="${userInfo.user.displayName()}"></span>?
+    </p>
+    <p class="text-warning font-bold py-2" th:if="${!userInfo.role.equals('STUDENT')}">
+      Warning: This will remove all of the user's current roles as PARTNER role is exclusive.
+    </p>
+    <div th:if="${userInfo.role.contains('ADMIN')}" class="alert alert-warning mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+      <span>This user is an admin. Admin privileges will be removed.</span>
+    </div>
+    <div th:if="${userInfo.role.contains('FACULTY') && !userInfo.facultyLeadPrograms.isEmpty()}" class="alert alert-warning mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+      <span>This user is a faculty lead for programs. Faculty lead status will be removed.</span>
+      <ul class="mt-2 list-disc pl-5">
+        <li th:each="program : ${userInfo.facultyLeadPrograms}" th:text="${program.title}"></li>
+      </ul>
+    </div>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="PARTNER"/>
+        <input type="hidden" name="grantRole" value="true"/>
+        <input type="hidden" name="confirmed" value="true"/>
+        <button type="submit" class="btn btn-warning">Grant Partner Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Partner role revocation confirmation (new) -->
+<dialog th:each="userInfo : ${users}" th:id="'partnerRevokeConfirm-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Confirm Partner Role Revocation</h3>
+    <p class="py-4">
+      Are you sure you want to revoke partner role from <span th:text="${userInfo.user.displayName()}"></span>?
+    </p>
+    <p class="text-warning font-bold py-2">
+      Note: The user will have no roles after this action and will be a regular student.
+    </p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/role(username=${userInfo.user.username})}" method="POST">
+        <input type="hidden" name="roleType" value="PARTNER"/>
+        <input type="hidden" name="grantRole" value="false"/>
+        <button type="submit" class="btn btn-error">Revoke Partner Role</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Reset Password Modal -->
+<dialog th:each="userInfo : ${users}" th:id="'resetPasswordModal-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Reset Password for <span th:text="${userInfo.user.displayName()}"></span></h3>
+    <form th:action="@{/admin/users/{username}/reset-password(username=${userInfo.user.username})}" method="POST">
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">New Password</span>
+        </label>
+        <input type="password" name="newPassword" placeholder="New Password" class="input input-bordered" required />
+      </div>
+      <div class="form-control mt-4">
+        <label class="label">
+          <span class="label-text">Confirm Password</span>
+        </label>
+        <input type="password" name="confirmPassword" placeholder="Confirm Password" class="input input-bordered" required />
+      </div>
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn">Cancel</button>
+        </form>
+        <button type="submit" class="btn btn-primary">Reset Password</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<!-- Delete User Modal -->
+<dialog th:each="userInfo : ${users}" th:id="'deleteUser-' + ${userInfo.user.username}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg text-error">Delete User</h3>
+    <p class="py-4">Are you sure you want to permanently delete <span th:text="${userInfo.user.displayName()}"></span>? This action cannot be undone.</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form th:action="@{/admin/users/{username}/delete-user(username=${userInfo.user.username})}" method="POST">
+        <button type="submit" class="btn btn-error">Delete User</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- Create User Modal -->
+<dialog id="createUserModal" class="modal">
+  <div class="modal-box w-11/12 max-w-3xl">
+    <h3 class="font-bold text-lg">Create Local User</h3>
+    <form th:action="@{/admin/users/create}" method="POST" class="py-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Username -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Username</span>
+          </label>
+          <input type="text" name="username" class="input input-bordered" required
+                 placeholder="Username (e.g., jsmith)" pattern="[a-zA-Z0-9_-]+"
+                 title="Username can only contain letters, numbers, hyphens and underscores" />
+        </div>
+
+        <!-- Email -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Email</span>
+          </label>
+          <input type="email" name="email" class="input input-bordered" required
+                 placeholder="Email address" />
+        </div>
+
+        <!-- Display Name -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Display Name</span>
+          </label>
+          <input type="text" name="displayName" class="input input-bordered" required
+                 placeholder="Full Name" />
+        </div>
+
+        <!-- ULink ID (Optional) -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">ULink ID (Optional)</span>
+          </label>
+          <input type="text" name="uLink" class="input input-bordered"
+                 placeholder="ULink ID (if applicable)" />
+        </div>
+
+        <!-- Theme -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Theme</span>
+          </label>
+          <select name="theme" class="select select-bordered">
+            <option th:each="theme : ${T(com.example.abroad.model.User.Theme).values()}"
+                    th:value="${theme.name()}"
+                    th:text="${theme.name()}"
+                    th:selected="${theme.name() == 'DEFAULT'}"></option>
+          </select>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Role</span>
+          </label>
+          <select name="role" class="select select-bordered">
+            <option value="STUDENT">Student</option>
+            <option value="FACULTY">Faculty</option>
+            <option value="REVIEWER">Reviewer</option>
+            <option value="ADMIN">Admin</option>
+            <option value="PARTNER">Partner</option>
+          </select>
+        </div>
+
+        <!-- Password -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Password</span>
+          </label>
+          <input type="password" name="password" class="input input-bordered" required
+                 placeholder="Password" minlength="8" />
+          <label class="label">
+            <span class="label-text-alt">Minimum 8 characters</span>
+          </label>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Confirm Password</span>
+          </label>
+          <input type="password" name="confirmPassword" class="input input-bordered" required
+                 placeholder="Confirm Password" minlength="8" />
+        </div>
+      </div>
+
+      <div class="modal-action">
+        <button type="button" class="btn" onclick="document.getElementById('createUserModal').close()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create User</button>
+      </div>
+    </form>
+  </div>
+</dialog>
 </body>
 </html>
 

@@ -272,6 +272,17 @@ public record AdminUserService(
       return new ModifyUserResult.CannotModifySelf();
     }
 
+    // Special handling for PARTNER role addition
+    if (roleType == Role.Type.PARTNER && grantRole) {
+      return handlePartnerRoleAddition(targetUser, confirmed);
+    }
+
+    // Special handling for PARTNER role removal
+    if (roleType == Role.Type.PARTNER && !grantRole) {
+      userService.removeRole(targetUser, Role.Type.PARTNER);
+      return new ModifyUserResult.Success(targetUser);
+    }
+
     // Special handling for FACULTY role removal - check faculty lead status
     if (roleType == Role.Type.FACULTY && !grantRole) {
       var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
@@ -298,7 +309,7 @@ public record AdminUserService(
 
     // Special handling for ADMIN role removal
     if (roleType == Role.Type.ADMIN && !grantRole) {
-      return modifyUserAdminStatus(session, targetUsername, false, false);
+      return modifyUserAdminStatus(session, targetUsername, false, confirmed);
     }
 
     // For other role types or adding roles
@@ -307,6 +318,41 @@ public record AdminUserService(
     } else {
       userService.removeRole(targetUser, roleType);
     }
+
+    return new ModifyUserResult.Success(targetUser);
+  }
+
+  /**
+   * Handle the addition of PARTNER role to a user
+   * This requires removing all other roles as PARTNER is exclusive
+   */
+  private ModifyUserResult handlePartnerRoleAddition(User targetUser, boolean confirmed) {
+    // Check for ADMIN role
+    boolean hasAdminRole = userService.roleRepository().findById(new ID(Role.Type.ADMIN, targetUser.username())).isPresent();
+
+    // Check for FACULTY role and if the user is a faculty lead
+    boolean hasFacultyRole = userService.roleRepository().findById(new ID(Role.Type.FACULTY, targetUser.username())).isPresent();
+    List<Program> facultyLeadPrograms = hasFacultyRole ? programService.findFacultyPrograms(targetUser) : List.of();
+
+    // If user has admin or faculty role and confirmation is required
+    if ((hasAdminRole || !facultyLeadPrograms.isEmpty()) && !confirmed) {
+      return new ModifyUserResult.RequiresConfirmation(targetUser.username(), facultyLeadPrograms);
+    }
+
+    // Remove existing roles
+    for (Role.Type type : Role.Type.values()) {
+      if (type != Role.Type.PARTNER) { // Skip the PARTNER role itself
+        userService.removeRole(targetUser, type);
+      }
+    }
+
+    // Handle faculty lead programs if any
+    for (var program : facultyLeadPrograms) {
+      programService.removeFacultyLead(program, targetUser);
+    }
+
+    // Add the PARTNER role
+    userService.addRole(targetUser, Role.Type.PARTNER);
 
     return new ModifyUserResult.Success(targetUser);
   }
@@ -469,5 +515,100 @@ public record AdminUserService(
             .ifPresent(userService::deleteUser);
 
     return new DeleteUserResult.Success();
+  }
+
+  public sealed interface CreateUserResult {
+    record Success() implements CreateUserResult {}
+    record UserNotFound() implements CreateUserResult {}
+    record UserNotAdmin() implements CreateUserResult {}
+    record UsernameExists() implements CreateUserResult {}
+    record EmailExists() implements CreateUserResult {}
+    record PasswordsDoNotMatch() implements CreateUserResult {}
+    record PasswordTooShort() implements CreateUserResult {}
+    record InvalidUsername() implements CreateUserResult {}
+  }
+
+  /**
+   * Creates a new local user
+   */
+  public CreateUserResult createLocalUser(
+          HttpSession session,
+          String username,
+          String email,
+          String displayName,
+          String password,
+          String confirmPassword,
+          String uLink,
+          User.Theme theme,
+          String role
+  ) {
+    // Check if requesting user is admin
+    var adminUser = userService.findUserFromSession(session).orElse(null);
+    if (adminUser == null) {
+      return new CreateUserResult.UserNotFound();
+    }
+    if (!userService.isAdmin(adminUser)) {
+      return new CreateUserResult.UserNotAdmin();
+    }
+
+    // Validate username format (only letters, numbers, hyphens and underscores)
+    if (!username.matches("[a-zA-Z0-9_-]+")) {
+      return new CreateUserResult.InvalidUsername();
+    }
+
+    // Check if username is already taken
+    if (userService.findByUsername(username).isPresent()) {
+      return new CreateUserResult.UsernameExists();
+    }
+
+    // Check if email already exists
+    if (userService.localUserRepository().existsByEmail(email)) {
+      return new CreateUserResult.EmailExists();
+    }
+
+    // Validate passwords match
+    if (!password.equals(confirmPassword)) {
+      return new CreateUserResult.PasswordsDoNotMatch();
+    }
+
+    // Validate password length
+    if (password.length() < 8) {
+      return new CreateUserResult.PasswordTooShort();
+    }
+
+    // Hash the password
+    String hashedPassword = hashPassword(password);
+
+    // Create the new user
+    User.LocalUser newUser = new User.LocalUser(
+            username,
+            hashedPassword,
+            email,
+            displayName,
+            theme,
+            uLink,
+            false,  // MFA disabled by default
+            null    // No MFA secret
+    );
+
+    // Save the user
+    userService.save(newUser);
+
+    // Add the requested role if not STUDENT
+    // For PARTNER role, we use the special handler since it's exclusive
+    if ("PARTNER".equals(role)) {
+      userService.addRole(newUser, Role.Type.PARTNER);
+    }
+    else if (!"STUDENT".equals(role)) {
+      try {
+        // Try to parse the role string to an enum value
+        Role.Type roleType = Role.Type.valueOf(role);
+        userService.addRole(newUser, roleType);
+      } catch (IllegalArgumentException e) {
+        // If role is not valid, just ignore and continue (user will be a student)
+      }
+    }
+
+    return new CreateUserResult.Success();
   }
 }
