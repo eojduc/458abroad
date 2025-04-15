@@ -1,5 +1,14 @@
 package com.example.abroad.service.page.student;
 
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import org.springframework.stereotype.Service;
+
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
@@ -8,16 +17,8 @@ import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.DocumentService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
+
 import jakarta.servlet.http.HttpSession;
-
-import java.util.stream.Stream;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 @Service
 public record ListApplicationsService(
@@ -32,6 +33,10 @@ public record ListApplicationsService(
     // Check user authentication
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
+      return new GetApplicationsResult.UserNotFound();
+    }
+
+    if (userService.isPartner(user)) {
       return new GetApplicationsResult.UserNotFound();
     }
 

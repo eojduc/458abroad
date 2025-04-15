@@ -11,6 +11,7 @@ import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.student.ListApplicationsService.GetApplicationsResult;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -40,6 +41,9 @@ public record ViewApplicationService(
       return new GetApplicationResult.UserNotFound();
     }
     User user = userOpt.get();
+    if (userService.isPartner(user)) {
+      return new GetApplicationResult.UserNotFound();
+    }
     var program = programService.findById(programId).orElse(null);
     if (program == null) {
       return new GetApplicationResult.ProgramNotFound();
