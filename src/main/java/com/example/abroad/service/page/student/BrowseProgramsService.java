@@ -63,7 +63,7 @@ public record BrowseProgramsService(
   ) {
 
       if (userService.isPartner(user)) {
-          return new UserNotFound());
+          return new UserNotFound();
         }
 
     return new Success(
