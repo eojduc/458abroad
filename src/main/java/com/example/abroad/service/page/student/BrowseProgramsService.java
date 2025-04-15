@@ -62,6 +62,10 @@ public record BrowseProgramsService(
       User user
   ) {
 
+      if (userService.isPartner(user)) {
+          return new UserNotFound());
+        }
+
     return new Success(
         programService.findAll().stream()
             .filter(matchesNamePredicate(nameFilter, program -> List.of(program.title())))
