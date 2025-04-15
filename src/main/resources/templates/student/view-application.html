@@ -143,7 +143,9 @@
                             th:name="|answers[${question.id()}]|"
                             th:text="${responseMap[question.id()] != null ? responseMap[question.id()].response() : ''}"
                             th:disabled="${!editable}"
-                            th:attr="required=${editable ? 'required' : null}">
+                            th:attr="required=${editable ? 'required' : null}"
+                            maxlength="10000"
+                            rows="20">
                   </textarea>
                 </div>
               </div>
