@@ -80,11 +80,16 @@
               class="card bg-base-300"
       >
         <div class="card-body gap-4">
-          <div class="card-actions justify-between">
+          <div class="card-actions justify-between items-center">
             <h2 class="card-title">My Application</h2>
-            <div
-                    th:replace="~{components/statusBadge :: statusBadge(${app.status.name()})}"
-            ></div>
+            <div class="flex items-center gap-2">
+                <div th:replace="~{components/statusBadge :: statusBadge(${app.status.name()})}"></div>
+                <div th:if="${pair.prog.trackPayment and ((pair.app.status.name == 'APPROVED') or (pair.app.status.name == 'ENROLLED'))}">
+                  <div th:id="'payment-status-badge-' + ${user.username}">
+                    <div th:replace="~{components/payment-status-badge :: payment-status-badge(${pair.app.paymentStatus.name})}"></div>
+                  </div>
+                </div>
+            </div>
           </div>
 
           <!-- Application Responses -->
