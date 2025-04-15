@@ -50,6 +50,15 @@ public record ListApplicationsService(
       case APPLICATION_OPEN -> Comparator.comparing(pair -> pair.prog().applicationOpen());
       case APPLICATION_CLOSED -> Comparator.comparing(pair -> pair.prog().applicationClose());
       case STATUS -> Comparator.comparing(pair -> pair.app().status().toString());
+      case PAYMENT_STATUS ->
+          Comparator.comparing(pair -> {
+              if (pair.prog().trackPayment() &&
+                  (pair.app().status() == Application.Status.APPROVED ||
+                   pair.app().status() == Application.Status.ENROLLED)) {
+                  return pair.app().paymentStatus().name();
+              }
+              return "";
+          });
       case DOCUMENT_RISK -> documentTypeComparator(ascending, Application.Document.Type.ASSUMPTION_OF_RISK);
       case DOCUMENT_CONDUCT -> documentTypeComparator(ascending, Application.Document.Type.CODE_OF_CONDUCT);
       case DOCUMENT_MEDICAL -> documentTypeComparator(ascending, Application.Document.Type.MEDICAL_HISTORY);
@@ -310,6 +319,7 @@ public record ListApplicationsService(
     APPLICATION_OPEN,
     APPLICATION_CLOSED,
     STATUS,
+    PAYMENT_STATUS,
     DOCUMENTS,               // Keep for backward compatibility
     DOCUMENT_RISK,           // Assumption of Risk document
     DOCUMENT_CONDUCT,        // Code of Conduct document
