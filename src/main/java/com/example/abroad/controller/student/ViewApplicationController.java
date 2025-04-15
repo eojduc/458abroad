@@ -80,6 +80,7 @@ public record ViewApplicationController(
         allAttributes.put("facultyLeads", facultyLeads);
         allAttributes.put("isNotStudent", !userService.isStudent(successRes.user()));
         allAttributes.put("letterRequests", successRes.letterRequests());
+        allAttributes.put("preReqs", successRes.preReqs());
 
         model.addAllAttributes(allAttributes);
         yield "student/view-application :: page";
@@ -168,6 +169,7 @@ public record ViewApplicationController(
                 "questions", success.questions(),
                 "isNotStudent", !userService.isStudent(success.user())));
         model.addAttribute("letterRequests", success.letterRequests());
+        model.addAttribute("preReqs", success.preReqs());
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
@@ -221,6 +223,7 @@ public record ViewApplicationController(
                 "formatter", formatter,
                 "isNotStudent", !userService.isStudent(success.user())));
         model.addAttribute("letterRequests", success.letterRequests());
+        model.addAttribute("preReqs", success.preReqs());
         yield "student/view-application :: applicationContent";
       }
       case ViewApplicationService.GetApplicationResult.UserNotFound() ->
