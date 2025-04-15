@@ -11,6 +11,7 @@ import com.example.abroad.model.User.Course;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
+import com.example.abroad.service.ULinkService;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.student.ListApplicationsService.GetApplicationsResult;
 
@@ -33,7 +34,8 @@ public record ViewApplicationService(
     ApplicationService applicationService,
     ProgramService programService,
     UserService userService,
-    AuditService auditService
+    AuditService auditService,
+    ULinkService uLinkService
 ) {
 
   public GetApplicationResult getApplication(Integer programId, HttpSession session) {
@@ -221,6 +223,47 @@ public record ViewApplicationService(
          return new LetterOfRecInfo(rec.email(), rec.name(), isSubmitted, timestamp);
       })
       .collect(Collectors.toList());
+  }
+
+  public sealed interface RefreshULink {
+    record Success() implements RefreshULink {
+    }
+
+    record UserNotFound() implements RefreshULink {
+    }
+
+    record NotLoggedIn() implements RefreshULink {
+    }
+    record ConnectionError() implements RefreshULink {
+    }
+    record UserLacksPermission() implements RefreshULink {
+    }
+  }
+
+
+  public RefreshULink refreshULink(HttpSession session, Integer programId) {
+    var user = userService.findUserFromSession(session).orElse(null);
+    if (user == null) {
+      return new RefreshULink.NotLoggedIn();
+    }
+    var application = applicationService.findByProgramIdAndStudentUsername(programId, user.username()).orElse(null);
+    if (application == null) {
+      return new RefreshULink.UserNotFound();
+    }
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new RefreshULink.UserNotFound();
+    }
+    var student = userService.findByUsername(user.username()).orElse(null);
+    if (student == null) {
+      return new RefreshULink.UserNotFound();
+    }
+
+    return switch(uLinkService.refreshCourses(student)) {
+      case ULinkService.RefreshCourses.Success() -> new RefreshULink.Success();
+      case ULinkService.RefreshCourses.TranscriptServiceError() -> new RefreshULink.ConnectionError();
+    };
+
   }
 
   public record PreReqInfo(String code, Boolean completed) {

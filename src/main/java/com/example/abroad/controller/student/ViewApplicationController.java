@@ -11,6 +11,7 @@ import com.example.abroad.service.LetterOfRecommendationService.DeleteRecommenda
 import com.example.abroad.service.LetterOfRecommendationService.RequestRecommendation;
 import com.example.abroad.service.UserService;
 import com.example.abroad.service.page.student.ViewApplicationService;
+import com.example.abroad.service.page.student.ViewApplicationService.RefreshULink;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -263,6 +264,20 @@ public record ViewApplicationController(
         yield "redirect:/applications/" + programId + "?success=Request sent#letter-requests";
       }
       case RequestRecommendation.EmailError() -> "redirect:/applications/" + programId + "?error=Error sending email#letter-requests";
+    };
+  }
+
+  @PostMapping("/applications/{programId}/refresh-ulink")
+  public String refreshULink(@PathVariable Integer programId, HttpSession session) {
+    return switch (applicationService.refreshULink(session, programId)) {
+      case RefreshULink.Success() -> String.format(
+        "redirect:/applications/%s?success=ULink refreshed#prereqs", programId);
+      case RefreshULink.NotLoggedIn() -> "redirect:/login?error=You must be logged in to view this page";
+      case RefreshULink.UserNotFound() -> "redirect:/login?error=That Application does not exist";
+      case RefreshULink.UserLacksPermission() -> String.format(
+        "redirect:/applications/%s?error=You can't do that", programId);
+      case RefreshULink.ConnectionError() -> String.format(
+        "redirect:/applications/%s?error=Error connecting to ulink", programId);
     };
   }
 }

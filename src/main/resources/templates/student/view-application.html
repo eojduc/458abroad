@@ -87,7 +87,7 @@
                 <h2 class="text-xs font-bold">No Pre-Requisites</h2>
               </div>
               <form
-                    th:action="@{/admin/applications/{programId}/{username}/refresh-ulink(programId=${programId}, username=${studentUsername})}"
+                    th:action="@{/applications/{programId}/refresh-ulink(programId=${prog.id})}"
                     method="POST">
                 <button class="btn btn-primary">Refresh ULink</button>
               </form>
