@@ -45,5 +45,44 @@
     </div>
     <div th:replace="~{components/footer :: footer}"></div>
     <div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
+  
+    <!-- ULink Modal -->
+    <dialog id="connect-ulink-modal" class="modal">
+      <div class="modal-box bg-base-200">
+        <p>
+          Would you like to connect your ULink account? Connecting your ULink account is required before applying to programs with course prerequisites.
+        </p>
+        <!-- The form posts to your set-ulink endpoint -->
+        <form action="/profile/set-ulink" method="post">
+          <input type="text" name="uLink" placeholder="ULink username" required />
+          <input type="text" name="pin" placeholder="PIN" required />
+          <div class="modal-action gap-2">
+            <button type="submit" class="btn btn-primary w-1/4">
+              Connect ULink
+            </button>
+            <!-- The Skip button closes the modal -->
+            <button type="button" class="btn btn-outline w-1/4" onclick="document.getElementById('connect-ulink-modal').close()">
+              Skip
+            </button>
+          </div>
+        </form>
+      </div>
+      <!-- Optional backdrop that closes the modal when clicked -->
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+
+    <!-- Script to automatically show the ULink modal if ulinkPrompt is present -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // Check if the URL has the "ulinkPrompt" query parameter
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('ulinkPrompt')) {
+          // Show the modal (using the native <dialog> API)
+          document.getElementById('connect-ulink-modal').showModal();
+        }
+      });
+    </script>
   </body>
 </html>

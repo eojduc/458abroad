@@ -145,7 +145,9 @@ public class RebrandConfig {
   }
 
   public void setLogoSvg(String logoSvg) {
-    this.logoSvg = logoSvg;
+    // Remove width and height from the opening <svg> tag
+    this.logoSvg = logoSvg.replaceAll("\\s*width=\"[^\"]*\"", "")
+        .replaceAll("\\s*height=\"[^\"]*\"", "");
   }
 
   public String getNeutralColor() {
