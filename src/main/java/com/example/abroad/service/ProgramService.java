@@ -118,14 +118,16 @@ public record ProgramService(
 
     Set<String> prereqSet = new HashSet<>();
 
-    for (String prereq : prereqs) {
-      var result = prereqService.normalizeCourse(prereq);
-      switch (result) {
-        case PrereqService.ParsePrereq.Success (var normalizedCourse) -> {
-          prereqSet.add(normalizedCourse);
-        }
-        case PrereqService.ParsePrereq.InvalidInput (var message) -> {
-          return new SaveProgram.InvalidProgramInfo(message);
+    if(prereqs != null) {
+      for (String prereq : prereqs) {
+        var result = prereqService.normalizeCourse(prereq);
+        switch (result) {
+          case PrereqService.ParsePrereq.Success (var normalizedCourse) -> {
+            prereqSet.add(normalizedCourse);
+          }
+          case PrereqService.ParsePrereq.InvalidInput (var message) -> {
+            return new SaveProgram.InvalidProgramInfo(message);
+          }
         }
       }
     }
