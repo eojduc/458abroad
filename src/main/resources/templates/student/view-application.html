@@ -68,6 +68,15 @@
                       th:text="${formatter.formatLocalDate(prog.applicationClose)}"
               ></td>
             </tr>
+            <tr class="border-base-100 border-y-2" th:if="${prog.documentDeadline != null}">
+              <td>Essential Document Deadline</td>
+              <td th:text="${formatter.formatLocalDate(prog.documentDeadline)}"></td>
+            </tr>
+            
+            <tr class="border-base-100 border-y-2" th:if="${prog.trackPayment and prog.paymentDeadline != null}">
+              <td>Payment Deadline</td>
+              <td th:text="${formatter.formatLocalDate(prog.paymentDeadline)}"></td>
+            </tr>
             </tbody>
           </table>
 

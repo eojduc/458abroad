@@ -64,6 +64,7 @@ public record ListApplicationsService(
               }
               return "";
           });
+      case PAYMENT_DEADLINE -> Comparator.comparing(pair -> pair.prog().paymentDeadline());
       case DOCUMENT_RISK -> documentTypeComparator(ascending, Application.Document.Type.ASSUMPTION_OF_RISK);
       case DOCUMENT_CONDUCT -> documentTypeComparator(ascending, Application.Document.Type.CODE_OF_CONDUCT);
       case DOCUMENT_MEDICAL -> documentTypeComparator(ascending, Application.Document.Type.MEDICAL_HISTORY);
@@ -325,6 +326,7 @@ public record ListApplicationsService(
     APPLICATION_CLOSED,
     STATUS,
     PAYMENT_STATUS,
+    PAYMENT_DEADLINE,
     DOCUMENTS,               // Keep for backward compatibility
     DOCUMENT_RISK,           // Assumption of Risk document
     DOCUMENT_CONDUCT,        // Code of Conduct document
