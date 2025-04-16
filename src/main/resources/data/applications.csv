@@ -1,10 +1,11 @@
-student,programId,dateOfBirth,gpa,major,status
-tylerharris352,1,2004-09-01,3.52,Biology,ENROLLED
-tylerharris352,7,2004-09-01,3.52,Biology,APPROVED
-davidclark074,1,2004-06-15,2.54,Psychology,ENROLLED
-elizabethjohnson303,2,2008-03-20,3.95,Psychology,WITHDRAWN
-emilyharris658,1,2001-04-12,3.64,Biology,ENROLLED
-elizabethlewis588,3,2000-03-16,3.1,Psychology,WITHDRAWN
-jessicasmith684,3,2008-08-08,3.00,Engineering,WITHDRAWN
-jessicasmith684,2,2008-08-08,3.00,Engineering,WITHDRAWN
-jessicasmith610,2,2001-07-07,3.60,Computer Science,WITHDRAWN
+student,programId,dateOfBirth,gpa,major,status,paymentStatus
+tylerharris352,1,2004-09-01,3.52,Biology,APPLIED,UNPAID
+tylerharris352,7,2004-09-01,3.52,Biology,ENROLLED,UNPAID
+davidclark074,1,2004-06-15,2.54,Psychology,ENROLLED,FULLY_PAID
+elizabethjohnson303,2,2008-03-20,3.95,Psychology,ENROLLED,PARTIALLY_PAID
+jamestaylor121,1,2000-02-29,2.60,Psychology,APPLIED,UNPAID
+emilyharris658,1,2001-04-12,3.64,Biology,WITHDRAWN,PARTIALLY_PAID
+elizabethlewis588,3,2000-03-16,3.1,Psychology,APPLIED,UNPAID
+jessicasmith684,3,2008-08-08,3.00,Engineering,WITHDRAWN,UNPAID
+jessicasmith684,2,2008-08-08,3.00,Engineering,APPLIED,UNPAID
+jessicasmith610,2,2001-07-07,3.60,Computer Science,APPLIED,UNPAID

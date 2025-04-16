@@ -1,14 +1,17 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<div class="navbar bg-primary text-primary-content" th:fragment="partner-navbar(displayName)">
+
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="partner-navbar(displayName)"
+     class="bg-base-100 navbar">
     <div class="flex-1">
-        <a class="btn btn-ghost normal-case text-xl" href="/">Study Abroad</a>
+        <a href="/" class="btn btn-ghost text-xl">
+            <div class="w-8 h-8 flex items-center">
+                <svg th:replace="~{components/logo :: logo}"/>
+            </div>
+            <!--      /*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+            <span th:text="${themeConfig.getHeadName()}">HCC Abroad</span>
+        </a>
     </div>
-    <div class="flex-none">
-        <ul class="menu menu-horizontal px-1">
-            <li><a href="/partner/programs">Programs</a></li>
-            <li><a href="/logout">Logout</a></li>
-        </ul>
+    <div class="flex-none gap-2">
+        <a href="/logout" class="btn btn-ghost">Log out</a>
     </div>
 </div>
-</html>
