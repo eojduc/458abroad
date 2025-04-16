@@ -175,7 +175,7 @@ public class DataInitializationService {
             Double.parseDouble(record.get("gpa")),
             record.get("major"),
             Application.Status.valueOf(record.get("status").toUpperCase()),
-            Application.PaymentStatus.valueOf(record.get("paymentStatus").toUpperCase())
+          PaymentStatus.UNPAID
         ),
         applicationRepository
     );
@@ -376,7 +376,7 @@ public class DataInitializationService {
                 LocalDate.parse(record.get("startDate")),
                 LocalDate.parse(record.get("endDate")),
                 record.get("description"),
-                LocalDate.parse(record.get("paymentDeadline")),
+                LocalDate.parse(record.get("documentDeadline")),
                 Boolean.parseBoolean(record.get("trackPayment"))
             );
           }

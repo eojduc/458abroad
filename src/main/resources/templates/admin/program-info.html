@@ -39,14 +39,6 @@
               </ul>
             </td>
           </tr>
-          <tr class="border-base-300">
-            <td>Pre Reqs</td>
-            <td>
-              <ul class="list-disc list-inside">
-                <li th:each="prereq : ${programDetails.prereqs}">[[${prereq}]]</li>
-              </ul>
-            </td>
-          </tr>
           <tr th:each="field : ${programDetails.fields}" class="border-base-300 border-y-2">
             <td th:text="${field.name}"></td>
             <td th:text="${field.value}"></td>

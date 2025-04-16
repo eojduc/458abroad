@@ -73,9 +73,7 @@ public record AdminProgramInfoService(
   public record ProgramDetails(
     String title,
     String description,
-    List<Field> fields, List<String> facultyLeads, List<String> partners,
-    List<String> prereqs
-  ) {
+    List<Field> fields, List<String> facultyLeads, List<String> partners) {
   }
 
   public ProgramDetails getProgramDetails(Program program) {
@@ -100,12 +98,7 @@ public record AdminProgramInfoService(
       .flatMap(s -> userService.findByUsername(s).stream())
       .map(formatService::displayUser)
       .toList();
-
-    var prereqs = programService.getPreReqs(program)
-      .stream()
-      .map(prereq -> prereq.courseCode())
-      .toList();
-    return new ProgramDetails(program.title(), program.description(), fields, facultyLeads, partners, prereqs);
+    return new ProgramDetails(program.title(), program.description(), fields, facultyLeads, partners);
   }
   public sealed interface GetProgramInfo {
 
