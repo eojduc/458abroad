@@ -1,5 +1,14 @@
 package com.example.abroad.service.page.student;
 
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import org.springframework.stereotype.Service;
+
 import com.example.abroad.model.Application;
 import com.example.abroad.model.Program;
 import com.example.abroad.model.User;
@@ -8,16 +17,8 @@ import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.DocumentService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.UserService;
+
 import jakarta.servlet.http.HttpSession;
-
-import java.util.stream.Stream;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 @Service
 public record ListApplicationsService(
@@ -32,6 +33,10 @@ public record ListApplicationsService(
     // Check user authentication
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
+      return new GetApplicationsResult.UserNotFound();
+    }
+
+    if (userService.isPartner(user)) {
       return new GetApplicationsResult.UserNotFound();
     }
 
@@ -50,6 +55,15 @@ public record ListApplicationsService(
       case APPLICATION_OPEN -> Comparator.comparing(pair -> pair.prog().applicationOpen());
       case APPLICATION_CLOSED -> Comparator.comparing(pair -> pair.prog().applicationClose());
       case STATUS -> Comparator.comparing(pair -> pair.app().status().toString());
+      case PAYMENT_STATUS ->
+          Comparator.comparing(pair -> {
+              if (pair.prog().trackPayment() &&
+                  (pair.app().status() == Application.Status.APPROVED ||
+                   pair.app().status() == Application.Status.ENROLLED)) {
+                  return pair.app().paymentStatus().name();
+              }
+              return "";
+          });
       case DOCUMENT_RISK -> documentTypeComparator(ascending, Application.Document.Type.ASSUMPTION_OF_RISK);
       case DOCUMENT_CONDUCT -> documentTypeComparator(ascending, Application.Document.Type.CODE_OF_CONDUCT);
       case DOCUMENT_MEDICAL -> documentTypeComparator(ascending, Application.Document.Type.MEDICAL_HISTORY);
@@ -310,6 +324,7 @@ public record ListApplicationsService(
     APPLICATION_OPEN,
     APPLICATION_CLOSED,
     STATUS,
+    PAYMENT_STATUS,
     DOCUMENTS,               // Keep for backward compatibility
     DOCUMENT_RISK,           // Assumption of Risk document
     DOCUMENT_CONDUCT,        // Code of Conduct document

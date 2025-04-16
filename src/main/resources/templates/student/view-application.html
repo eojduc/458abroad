@@ -70,6 +70,29 @@
             </tr>
             </tbody>
           </table>
+
+          <!-- Pre-Requisites Section -->
+          <div id="prereqs">
+            <h1 class="text-lg">Pre-Requisites</h1>
+            <div class="m-4 flex flex-col gap-5">
+              <div th:each="preReq : ${preReqs}" class="flex flex-col gap-2">
+                <h2 th:if="${preReq.completed}" class="text-xs font-bold text-success">
+                  [[${preReq.code}]]
+                </h2>
+                <h2 th:unless="${preReq.completed}" class="text-xs font-bold text-error">
+                  [[${preReq.code}]] (Not Satisfied)
+                </h2>
+              </div>
+              <div th:if="${preReqs.isEmpty()}" class="flex flex-col gap-2">
+                <h2 class="text-xs font-bold">No Pre-Requisites</h2>
+              </div>
+              <form
+                    th:action="@{/applications/{programId}/refresh-ulink(programId=${prog.id})}"
+                    method="POST">
+                <button class="btn btn-primary">Refresh ULink</button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -80,11 +103,16 @@
               class="card bg-base-300"
       >
         <div class="card-body gap-4">
-          <div class="card-actions justify-between">
+          <div class="card-actions justify-between items-center">
             <h2 class="card-title">My Application</h2>
-            <div
-                    th:replace="~{components/statusBadge :: statusBadge(${app.status.name()})}"
-            ></div>
+            <div class="flex items-center gap-2">
+                <div th:replace="~{components/statusBadge :: statusBadge(${app.status.name()})}"></div>
+                <div th:if="${pair.prog.trackPayment and ((pair.app.status.name == 'APPROVED') or (pair.app.status.name == 'ENROLLED'))}">
+                  <div th:id="'payment-status-badge-' + ${user.username}">
+                    <div th:replace="~{components/payment-status-badge :: payment-status-badge(${pair.app.paymentStatus.name})}"></div>
+                  </div>
+                </div>
+            </div>
           </div>
 
           <!-- Application Responses -->
