@@ -100,7 +100,7 @@ public record EditProgramService(UserService userService, ProgramService program
     } else {
       paymentPartnerUsers = List.of();
     }
-    return switch (programService.addProgram(newProgram, leadUsers, selectedQuestions, removedQuestions)) {
+    return switch (programService.addProgram(newProgram, leadUsers, paymentPartnerUsers, selectedQuestions, selectedPrereqs, removedQuestions, paymentDate==null)) {
       case SaveProgram.InvalidProgramInfo(var message) -> new UpdateProgramInfo.InvalidProgramInfo(message);
       case SaveProgram.Success(var prog) -> {
         auditService.logEvent(String.format("Program %s(%d) updated by %s", prog.title(), prog.id(), user.username()));
