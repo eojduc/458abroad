@@ -47,6 +47,7 @@ public record ProgramService(
         QuestionRepository questionRepository,
         ResponseRepository responseRepository,
         UserService userService,
+        PrereqService prereqService,
         PreReqRepository preReqRepository,
         PartnerRepository partnerRepository,
         ApplicationService applicationService
@@ -99,7 +100,8 @@ public record ProgramService(
     }
   }
 
-  public SaveProgram addProgram(Program program, List<? extends User> facultyLeads, List<String> questions, List<Integer> removedQuestions) {
+  public SaveProgram addProgram(Program program, List<? extends User> facultyLeads,
+      List<? extends User> paymentPartner, List<String> questions, List<String> prereqs, List<Integer> removedQuestions, Boolean removePartners) {
     // Validate faculty leads
     if (facultyLeads == null || facultyLeads.isEmpty()) {
       return new SaveProgram.InvalidProgramInfo("Program must have at least one faculty lead");
@@ -114,6 +116,20 @@ public record ProgramService(
       return new SaveProgram.InvalidProgramInfo("Questions cannot be blank");
     }
 
+    Set<String> prereqSet = new HashSet<>();
+
+    for (String prereq : prereqs) {
+      var result = prereqService.normalizeCourse(prereq);
+      switch (result) {
+        case PrereqService.ParsePrereq.Success (var normalizedCourse) -> {
+          prereqSet.add(normalizedCourse);
+        }
+        case PrereqService.ParsePrereq.InvalidInput (var message) -> {
+          return new SaveProgram.InvalidProgramInfo(message);
+        }
+      }
+    }
+
     SaveProgram saveResult = saveProgram(program);
 
     return switch (saveResult) {
@@ -121,10 +137,16 @@ public record ProgramService(
         Program savedProgram = success.program();
         try {
           setFacultyLeads(savedProgram, facultyLeads);
+          if (!removePartners){
+            setPartners(savedProgram, paymentPartner);
+          } else {
+            removePartners(savedProgram);
+          }
           setQuestions(savedProgram.id(), questions);
           if (!removedQuestions.isEmpty()) {
             updateResponses(savedProgram, removedQuestions);
           }
+          setPrereqs(savedProgram, prereqSet.stream().toList());
           yield success;
         } catch (Exception e) {
           try {
@@ -139,8 +161,67 @@ public record ProgramService(
     };
   }
 
+  public void removePartners(Program program) {
+    try {
+      var partners = partnerRepository.findById_ProgramId(program.id());
+      partnerRepository.deleteAll(partners);
+
+      var programApplications = applicationRepository.findById_ProgramId(program.id());
+      for (var application : programApplications) {
+        var newApplication = application
+            .withPaymentStatus(PaymentStatus.UNPAID);
+        applicationRepository.save(newApplication);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to remove partners from program: " + e.getMessage());
+    }
+  }
+
   public Boolean isFacultyLead(Program program, User user) {
     return findFacultyLeads(program).stream().map(User::username).anyMatch(user.username()::equals);
+  }
+
+  public void setPrereqs(Program program, List<String> prereqs) {
+    if (prereqs == null || prereqs.isEmpty()) {
+      return;
+    }
+    try {
+      // Find and delete existing prereqs for this program
+      var existingPrereqs = preReqRepository.findById_ProgramId(program.id());
+      preReqRepository.deleteAll(existingPrereqs);
+
+      // Create new prereqs
+      var newPrereqs = prereqs.stream()
+          .map(prereq -> new PreReq(program.id(), prereq))
+          .toList();
+
+      // Save new prereqs
+      preReqRepository.saveAll(newPrereqs);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to set prerequisites: " + e.getMessage());
+    }
+  }
+
+  public void setPartners(Program program, List<? extends User> users) {
+    if (users == null || users.isEmpty()) {
+      return;
+    }
+    try {
+      // Find and delete existing partners for this program
+      var partners = partnerRepository.findById_ProgramId(program.id());
+      partnerRepository.deleteAll(partners);
+
+      // Create new partners
+      var newPartners = users.stream()
+          .map(User::username)
+          .map(username -> new Partner(program.id(), username))
+          .toList();
+
+      // Save new partners
+      partnerRepository.saveAll(newPartners);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to set partners: " + e.getMessage());
+    }
   }
 
 
