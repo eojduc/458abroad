@@ -29,7 +29,8 @@
               <th th:replace="~{this :: sortableHeader('Application Open', '/applications/sort', 'APPLICATION_OPEN', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Application Closed', '/applications/sort', 'APPLICATION_CLOSED', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Status', '/applications/sort', 'STATUS', '#programTable')}"></th>
-              <th th:replace="~{this :: sortableHeader('Payment Status', '/applications/sort', 'PAYMENT_STATUS', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Payment Status', '/applications/sort', 'PAYMENT_STATUS', '#paymentStatus')}"></th>
+              <th th:replace="~{this :: sortableHeader('Payment Deadline', '/applications/sort', 'PAYMENT_DEADLINE', '#paymentDeadline')}"></th>
               <th th:replace="~{this :: sortableHeader('Document Deadline', '/applications/sort', 'DOCUMENT_DEADLINE', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Assumption of Risk', '/applications/sort', 'DOCUMENT_RISK', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Code of Conduct', '/applications/sort', 'DOCUMENT_CONDUCT', '#programTable')}"></th>
@@ -74,6 +75,17 @@
                   </div>
                 </div>
                 <div th:unless="${pair.prog.trackPayment and ((pair.app.status.name == 'APPROVED') or (pair.app.status.name == 'ENROLLED'))}">
+                  N/A
+                </div>
+              </td>
+
+              <td class="text-center">
+                <div th:if="${pair.prog.trackPayment and pair.prog.paymentDeadline != null}">
+                  <div th:id="'payment-deadline-' + ${user.username}">
+                    <span th:text="${formatter.formatLocalDate(pair.prog.paymentDeadline)}"></span>
+                  </div>
+                </div>
+                <div th:unless="${pair.prog.trackPayment and pair.prog.paymentDeadline != null}">
                   N/A
                 </div>
               </td>
