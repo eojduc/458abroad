@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
-<head th:replace="~{components :: head('Profile')}">
+<head th:replace="~{components/head :: head('Profile')}">
 </head>
 <body>
 <!-- Choose navbar based on user role -->
-<div th:replace="${isStudent} ? ~{components :: student-navbar(${user.displayName})}
-                              : ~{components :: admin-navbar(${user.displayName}, ${isAdmin})}"></div>
+<div th:replace="${isStudent} ? ~{components/student-navbar :: student-navbar(${user.displayName})}
+                              : ~{components/admin-navbar :: admin-navbar(${user.displayName}, ${isAdmin})}"></div>
 
 <div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-2/5 md:w-3/5 sm:w-full gap-5">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
   <div class="card card-normal w-full bg-base-200">
 
@@ -85,14 +85,48 @@
         </div>
       </div>
 
-      <!-- Message for SSO Users -->
-      <div th:if="${!isLocalUser}">
+      <!-- MFA Enrollment Card -->
+      <div th:if="${isLocalUser}">
+        <div th:if="${!user.isMfaEnabled()}" class="card bg-base-300" id="mfa-enroll">
+          <div class="card-body">
+            <h2 class="card-title">Multi-Factor Authentication (MFA)</h2>
+            <p>Enhance your account security by enabling MFA. You’ll use an authenticator app (like Google Authenticator) to receive a time-based code.</p>
+            <a class="btn btn-primary" th:href="@{/profile/mfa/enroll}">Enable MFA</a>
+          </div>
+        </div>
+        
+        <div th:if="${user.isMfaEnabled()}" class="card bg-base-300" id="mfa-status">
+          <div class="card-body">
+            <h2 class="card-title">MFA is Enabled</h2>
+            <p>Your account is protected with multi-factor authentication.</p>
+            <form th:action="@{/profile/mfa/disable}" method="post" class="mt-4">
+              <button class="btn btn-secondary" type="submit">Disable MFA</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div th:if="${isLocalUser}" id="ulink">
         <div class="card bg-base-300">
           <div class="card-body">
-            <h2 class="card-title">Change Password</h2>
-            <p class="text-sm text-gray-500">
-              Password changes are not available for SSO users.
-            </p>
+            <h2 class="card-title">Set ULink</h2>
+            <form th:action="@{/profile/set-ulink}" method="POST" class="flex flex-col gap-4 m-4">
+              <div class="form-comtrol">
+                <label class="label">
+                  <span class="label-text">ULink</span>
+                </label>
+                <input type="text" name="uLink" th:value="${user.uLink()}" class="input" />
+              </div>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text">ULink PIN</span>
+                </label>
+                <input type="password" name="pin" class="input"  required />
+              </div>
+              <div class="card-actions justify-end">
+                <button class="btn btn-primary w-1/4" type="submit">Save ULink</button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -100,15 +134,14 @@
       <div class="card bg-base-300" id="set-theme">
         <div class="card-body">
           <h2 class="card-title">Choose Theme</h2>
-          <form th:replace="~{components :: theme-form(${theme})}"></form>
+          <form th:replace="~{components/theme-form :: theme-form(${theme})}"></form>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 </html>

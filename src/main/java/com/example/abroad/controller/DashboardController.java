@@ -38,10 +38,15 @@ public record DashboardController(
         model.addAttribute("isAdmin", false);
         yield "student/student-dashboard :: page";
       }
-      case GetDashboard.AdminDashboard(var user, var isAdmin) -> {
+      case GetDashboard.AdminDashboard(var user, var isAdmin, var isHeadAdmin) -> {
         model.addAttribute("user", user);
         model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("isHeadAdmin", isHeadAdmin);
         yield "admin/admin-dashboard :: page";
+      }
+      case GetDashboard.PartnerDashboard(var user) -> {
+        model.addAttribute("user", user);
+        yield "partner/partner-dashboard :: page";
       }
       case GetDashboard.SSOUsernameTaken(var redirect) -> "redirect:" + redirect;
     };

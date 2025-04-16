@@ -1,0 +1,17 @@
+
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="partner-navbar(displayName)"
+     class="bg-base-100 navbar">
+    <div class="flex-1">
+        <a href="/" class="btn btn-ghost text-xl">
+            <div class="w-8 h-8 flex items-center">
+                <svg th:replace="~{components/logo :: logo}"/>
+            </div>
+            <!--      /*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+            <span th:text="${themeConfig.getHeadName()}">HCC Abroad</span>
+        </a>
+    </div>
+    <div class="flex-none gap-2">
+        <a href="/logout" class="btn btn-ghost">Log out</a>
+    </div>
+</div>

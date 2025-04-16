@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
+<head th:replace="~{components/head :: head('Rebrand Pages')}"></head>
+<body>
+<div th:replace="~{components/admin-navbar :: admin-navbar(${user.displayName}, ${true})}"></div>
+<div class="bg-base-100 flex flex-col items-center min-h-screen p-4 gap-4">
+  <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
+  </div>
+
+  <!-- Section titles row with page navigation -->
+  <div class="flex flex-row w-full">
+    <div class="w-1/4 px-4">
+      <h2 class="text-lg font-semibold mb-1">Rebrand Site Appearance</h2>
+    </div>
+    <div class="w-3/4 px-4 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <h2 id="previewTitle" class="text-xl font-semibold">Live Preview: Admin Dashboard</h2>
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-ghost btn-xs btn-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
+            <li th:each="entry : ${pages}">
+              <a th:hx-get="@{/admin/brand/preview-redirect(page=${entry.key})}"
+                 th:hx-swap="none"
+                 th:attr="data-title=${entry.value}, data-page=${entry.key}"
+                 th:text="${entry.value}"
+                 onclick="setPreviewTitle(this.dataset.title, this.dataset.page)">
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="flex flex-col lg:flex-row gap-4 w-full">
+    <!-- Left: Form Card (smaller) -->
+    <div class="card w-1/4 bg-base-200 shadow-xl">
+      <div class="card-body p-4">
+        <!-- Color toggle switch -->
+        <div class="flex justify-between items-center mb-3">
+          <span class="font-semibold text-sm">Show Color Settings</span>
+          <input type="checkbox" id="color-toggle" class="toggle toggle-primary" onchange="toggleColorInputs(this.checked)">
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="flex flex-col gap-3" th:action="@{/admin/brand/edit}">
+          <!-- Head Name (Header) -->
+          <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+          <!--/*@thymesVar id="formFields" type="java.util.List<java.util.Map<String, Object>>"*/-->
+          <input type="hidden" id="currentPage" name="currentPage" value="admin" />
+          <!-- Dynamically generated form fields -->
+          <div th:each="field : ${formFields}"
+               th:class="${field.pages.contains('all') ? '' : 'page-specific-field'} + (${field.type == 'color'} ? ' color-field' : '')"
+               th:data-page="${field.pages.contains('all') ? '' : field.pages[0]}">
+
+            <label class="label font-semibold text-sm p-1" th:text="${field.label}"></label>
+            <!-- File input -->
+            <input th:if="${field.type == 'file'}"
+                   type="file"
+                   th:name="${field.name}"
+                   th:accept="${field.accept}"
+                   class="file-input file-input-bordered w-full file-input-sm"
+                   th:hx-post="@{'/preview/update/' + ${field.name}}"
+                   hx-encoding="multipart/form-data"
+                   hx-trigger="change delay:400ms"
+                   hx-swap="none"
+                   autocomplete="off"
+                   th:id="${field.id}" />
+            <!-- Text input -->
+            <input th:if="${field.type == 'text'}"
+                   type="text"
+                   th:name="${field.name}"
+                   th:placeholder="${field.placeholder}"
+                   th:value="${field.name == 'headName' ? themeConfig.getHeadName() :
+              field.name == 'homeTitle' ? themeConfig.getHomeTitle() :
+              field.name == 'homeSubtitle' ? themeConfig.getHomeSubtitle() :
+              field.name == 'footerText' ? themeConfig.getFooterText() : ''}"
+                   class="input input-bordered w-full input-sm"
+                   th:hx-post="@{'/preview/update/' + ${field.name}}"
+                   hx-trigger="input delay:400ms"
+                   hx-swap="none"
+                   autocomplete="off"
+                   onkeydown="return event.key !== 'Enter';"
+                   th:id="${field.id}" />
+            <!-- Textarea input -->
+            <textarea th:if="${field.type == 'textarea'}"
+                      th:name="${field.name}"
+                      th:placeholder="${field.placeholder}"
+                      th:text="${field.name == 'homeCardContent' ? themeConfig.getHomeCardContent():
+                field.name == 'adminContent' ? themeConfig.getAdminContent() :
+                field.name == 'studentContent' ? themeConfig.getStudentContent() : ''}"
+                      th:class="'textarea textarea-bordered w-full'"
+                      th:id="${field.id}"
+                      th:hx-post="@{'/preview/update/' + ${field.name}}"
+                      hx-trigger="input delay:400ms"
+                      hx-swap="none"
+                      th:rows="${field.height}"
+                      autocomplete="off"></textarea>
+            <div th:if="${field.type == 'color'}" class="flex items-center gap-2">
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500">oklch(</span>
+                <input type="text"
+                       th:name="${field.name}"
+                       th:id="${field.id}"
+                       data-init-oklch="true"
+                       th:hx-post="@{'/preview/update/' + ${field.name}}"
+                       hx-trigger="input delay:400ms"
+                       hx-swap="none"
+                       autocomplete="off"
+                       inputmode="decimal"
+                       onkeydown="return event.key !== 'Enter';"
+                       th:value="${field.name == 'primaryColor' ? themeConfig.getPrimaryColor() :
+                            field.name == 'base200' ? themeConfig.getBase200() :
+                            field.name == 'neutralColor' ? themeConfig.getNeutralColor() :
+                            field.name == 'base300' ? themeConfig.getBase300() :
+                            field.name == 'base100' ? themeConfig.getBase100() : '0.7 0.1 310'}"
+                       class="w-56 pl-14 pr-6 py-1 border-2 border-base-content rounded-md
+                      invalid:border-red-500 focus:invalid:border-red-500 focus:ring-0 focus:outline-none"
+                       pattern="^\d*\.?\d+ \d*\.?\d+ \d*\.?\d+$"
+                       oninput="updatePreview(this); filterOKLCHInput(this);"
+                placeholder="0.7 0.1 310">
+                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">)</span>
+              </div>
+              <!-- Color preview box -->
+              <a th:id="${field.id + '_preview'}"
+                 target="_blank"
+                 href="#"
+                 class="w-16 h-8 ml-6 border border-base-content rounded-md cursor-pointer block"
+                   th:style="'background-color: oklch(' + ${field.name == 'primaryColor' ? themeConfig.getPrimaryColor() :
+                        field.name == 'base200' ? themeConfig.getBase200() :
+                        field.name == 'neutralColor' ? themeConfig.getNeutralColor() :
+                        field.name == 'base300' ? themeConfig.getBase300() :
+                        field.name == 'base100' ? themeConfig.getBase100() : '0.7 0.1 310'} + ');'"></a>
+            </div>
+          </div>
+          <!-- Learn more link -->
+          <div class="mt-2 text-sm color-field">
+            <a href="https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl" target="_blank" class="link link-info">Learn more about the oklch color format</a>
+          </div>
+          <!-- Submit -->
+          <div class="flex flex-row gap-6">
+            <div class="mt-2">
+              <button class="btn btn-warning btn-sm" th:hx-post="@{'/preview/reset'}">Reset Changes</button>
+            </div>
+            <div class="mt-2">
+              <button class="btn btn-primary btn-sm">Save Changes</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right: Live Preview (maximized) -->
+    <div class="w-3/4">
+      <div id="preview" class="bg-base-100 rounded-lg shadow-2xl relative" style="height: calc(100vh - 125px);">
+        <iframe
+            id="inlineFrameExample"
+            title="Inline Frame Example"
+            width="100%"
+            height="100%"
+            style="border: none; border-radius: 0.5rem;"
+            src="/preview"
+            onload="disableClicks(this)">
+        </iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function disableClicks(iframe) {
+    try {
+      iframe.contentWindow.document.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }, true);
+    } catch(e) {
+      console.error("Could not modify iframe content:", e);
+    }
+  }
+  function filterOKLCHInput(input) {
+    // Get the current value of the input
+    let value = input.value;
+
+    // Remove any characters that are not digits, dots, or spaces
+    value = value.replace(/[^\d. ]+/g, '');
+
+    // Replace multiple spaces with a single space and trim leading/trailing spaces
+    value = value.replace(/\s+/g, ' ');
+
+    if (value.split(' ').length > 3) {
+      // If there are more than 3 values, keep only the first 3
+      value = value.split(' ').slice(0, 3).join(' ');
+    }
+
+    // Update the input with the cleaned value
+    input.value = value;
+  }
+
+
+
+  function setPreviewTitle(title, page) {
+    document.getElementById("previewTitle").innerText = "Live Preview: " + title;
+    document.getElementById("currentPage").value = page;
+    updateVisibleFields(page);
+  }
+
+  function updateVisibleFields(currentPage) {
+    // Hide all page-specific fields first
+    const allPageFields = document.querySelectorAll('.page-specific-field');
+    allPageFields.forEach(field => {
+      field.style.display = 'none';
+    });
+
+    // Show only the fields for the current page
+    const visibleFields = document.querySelectorAll(`.page-specific-field[data-page=${currentPage}]`);
+    visibleFields.forEach(field => {
+      field.style.display = 'block';
+    });
+  }
+
+  // JavaScript function to update preview when input value changes
+  function updatePreview(inputElement) {
+    const previewBox = document.getElementById(inputElement.id + "_preview");
+    const colorValue = inputElement.value.trim();
+    previewBox.style.backgroundColor = `oklch(${colorValue})`;
+    const colorComponents = colorValue.split(' ');
+    if (colorComponents.length === 3) {
+      const [lightness, chroma, hue] = colorComponents;
+      previewBox.href = `https://oklch.com/#${lightness},${chroma},${hue},100`;
+    } else {
+      previewBox.style.backgroundColor = `oklch(0.7 0.1 310)`;
+    }
+  }
+
+
+  // Function to toggle visibility of color inputs
+  function toggleColorInputs(show) {
+    const colorFields = document.querySelectorAll('.color-field');
+    colorFields.forEach(field => {
+      if (show) {
+        field.style.display = 'block';
+      } else {
+        field.style.display = 'none';
+      }
+    });
+  }
+
+
+  document.body.addEventListener('htmx:beforeOnLoad', function(evt) {
+    const redirectHeader = evt.detail.xhr.getResponseHeader("HX-Redirect");
+    if (redirectHeader) {
+      evt.preventDefault(); // stop HTMX from doing a full redirect
+      document.getElementById("inlineFrameExample").src = redirectHeader;
+      document.querySelectorAll('input[data-init-oklch="true"]').forEach(input => {
+        updatePreview(input);
+      });
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    let DEFAULT_PAGE = 'admin';
+    updateVisibleFields(DEFAULT_PAGE);
+    toggleColorInputs(false);
+    document.querySelectorAll('input[data-init-oklch="true"]').forEach(input => {
+      updatePreview(input);
+    });
+  });
+
+</script>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
+</body>
+</html>

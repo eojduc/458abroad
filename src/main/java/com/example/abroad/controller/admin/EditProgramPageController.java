@@ -1,5 +1,6 @@
 package com.example.abroad.controller.admin;
 
+import com.example.abroad.model.Program.Partner;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.service.FormatService;
 import com.example.abroad.service.UserService;
@@ -36,9 +37,13 @@ public record EditProgramPageController(EditProgramService service, FormatServic
       Model model) {
     switch (service.getEditProgramInfo(programId, session)) {
       case EditProgramPage.Success(
-          var program, var user, var facultyLeads, var nonFacultyLeads, var currentQuestions,
+          var program, var user, var facultyLeads, var selectedFaculty, var paymentPartners, var selectedPartners, var currentQuestions,
           var applicantsExist
       ) -> {
+        List<String> selectedPartnerUsernames = selectedPartners.stream()
+            .map(Partner::username)
+            .toList();
+        model.addAttribute("currentPrereqs", service.getCurrentPrereqs(program));
         model.addAllAttributes(Map.of(
             "program", program,
             "user", user,
@@ -47,7 +52,9 @@ public record EditProgramPageController(EditProgramService service, FormatServic
             "currentQuestions", currentQuestions,
             "formatter", formatter,
             "facultyLeads", facultyLeads,
-            "nonFacultyLeads", nonFacultyLeads
+            "selectedFacultyLeads",selectedFaculty,
+            "partnerList", paymentPartners,
+            "selectedPartnerUsernames", selectedPartnerUsernames
         ));
         return "admin/edit-program :: page";
       }
@@ -71,13 +78,16 @@ public record EditProgramPageController(EditProgramService service, FormatServic
       @RequestParam Semester semester, @RequestParam LocalDate applicationOpen,
       @RequestParam LocalDate documentDeadline,
       @RequestParam List<String> facultyLeads,
+      @RequestParam(required = false) List<String> paymentPartners,
+      @RequestParam(required = false) LocalDate paymentDate,
       @RequestParam LocalDate applicationClose,
       @RequestParam(required = false) List<String> selectedQuestions,
+      @RequestParam(required = false) List<String> selectedPrereqs,
       @RequestParam(required = false) List<Integer> removedQuestions,
       HttpSession session) {
     return switch (service.updateProgramInfo(programId, title, description, year, startDate,
-        endDate, semester, applicationOpen, applicationClose, facultyLeads, documentDeadline,
-        selectedQuestions, removedQuestions, session)) {
+        endDate, paymentDate, semester, applicationOpen, applicationClose, facultyLeads, paymentPartners, documentDeadline,
+        selectedQuestions, selectedPrereqs, removedQuestions, session)) {
       case UpdateProgramInfo.Success() ->
           String.format("redirect:/admin/programs/%d/edit?success=Program updated", programId);
       case UpdateProgramInfo.NotLoggedIn() -> "redirect:/login?error=You are not logged in";

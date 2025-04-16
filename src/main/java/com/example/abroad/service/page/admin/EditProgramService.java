@@ -1,8 +1,11 @@
 package com.example.abroad.service.page.admin;
 
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.Partner;
+import com.example.abroad.model.Program.PreReq;
 import com.example.abroad.model.Program.Semester;
 import com.example.abroad.model.User;
+import com.example.abroad.model.User.Role.Type;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
 import com.example.abroad.service.ProgramService.SaveProgram;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,18 +37,13 @@ public record EditProgramService(UserService userService, ProgramService program
     if (program == null) {
       return new EditProgramPage.ProgramNotFound();
     }
-    var facultyLeads = programService.findFacultyLeads(program)
-      .stream()
-      .toList();
+    var facultyLeads = userService.findFacultyLeads();
+    var paymentPartners = userService.findPaymentPartners();
 
-    var facultyUsernames = facultyLeads.stream()
-      .map(User::username)
-      .toList();
+    var selectedFaculty = programService.findFacultyLeads(program);
 
-    var nonFacultyLeads = userService.findAll().stream()
-      .filter(userService::isAdmin)
-      .filter(u -> !facultyUsernames.contains(u.username()))
-      .toList();
+    List<Partner> selectedPartners = programService.getPartners(program);
+
 
     List<String> questions = programService.getQuestions(program).stream()
       .map(Program.Question::text)
@@ -52,13 +51,14 @@ public record EditProgramService(UserService userService, ProgramService program
 
     var applicantsExists = programHasApplicants(programId);
 
-    return new EditProgramPage.Success(program, user, facultyLeads, nonFacultyLeads, questions, applicantsExists);
+    return new EditProgramPage.Success(program, user, facultyLeads, selectedFaculty, paymentPartners, selectedPartners, questions, applicantsExists);
   }
 
   public UpdateProgramInfo updateProgramInfo(
     Integer programId, String title, String description, Integer year, LocalDate startDate,
-    LocalDate endDate, Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
-    List<String> facultyLeads, LocalDate documentDeadline, List<String> selectedQuestions, List<Integer> removedQuestions,
+    LocalDate endDate, LocalDate paymentDate, Semester semester, LocalDate applicationOpen, LocalDate applicationClose,
+    List<String> facultyLeads, List<String> paymentPartners, LocalDate documentDeadline, List<String> selectedQuestions,
+      List<String> selectedPrereqs, List<Integer> removedQuestions,
       HttpSession session
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
@@ -82,9 +82,24 @@ public record EditProgramService(UserService userService, ProgramService program
         .withEndDate(endDate)
         .withDescription(description)
         .withDocumentDeadline(documentDeadline);
+
+    if (paymentDate != null) {
+      newProgram = newProgram.withPaymentDate(paymentDate);
+      newProgram = newProgram.withTrackPayment(true);
+    } else {
+      newProgram = newProgram.withTrackPayment(false);
+    }
     var leadUsers = userService.findAll().stream()
         .filter(u -> facultyLeads.contains(u.username()))
         .toList();
+    List<? extends User> paymentPartnerUsers;
+    if (paymentPartners != null) {
+      paymentPartnerUsers = userService.findPaymentPartners().stream()
+          .filter(u -> paymentPartners.contains(u.username()))
+          .toList();
+    } else {
+      paymentPartnerUsers = List.of();
+    }
     return switch (programService.addProgram(newProgram, leadUsers, selectedQuestions, removedQuestions)) {
       case SaveProgram.InvalidProgramInfo(var message) -> new UpdateProgramInfo.InvalidProgramInfo(message);
       case SaveProgram.Success(var prog) -> {
@@ -100,6 +115,10 @@ public record EditProgramService(UserService userService, ProgramService program
         Objects.requireNonNull(programService.findById(programId).orElse(null))).isEmpty();
   }
 
+  public List<PreReq> getCurrentPrereqs(Program program) {
+    return programService.getPreReqs(program);
+  }
+
 
 
   public sealed interface EditProgramPage {
@@ -107,7 +126,9 @@ public record EditProgramService(UserService userService, ProgramService program
       Program program,
       User admin,
       List<? extends User> facultyLeads,
-      List<? extends User> nonFacultyLeads,
+      List<? extends User> selectedFaculty,
+      List<? extends User> paymentPartners,
+      List<Partner> selectedPartners,
       List<String> currentQuestions,
       Boolean applicantsExist
     ) implements EditProgramPage { }

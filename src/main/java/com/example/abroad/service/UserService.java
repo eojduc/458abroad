@@ -1,10 +1,14 @@
 package com.example.abroad.service;
 
 import com.example.abroad.model.User;
+import com.example.abroad.model.User.Course;
+import com.example.abroad.model.User.LocalUser;
 import com.example.abroad.model.User.Theme;
+import com.example.abroad.respository.CourseRepository;
 import com.example.abroad.respository.LocalUserRepository;
 import com.example.abroad.respository.RoleRepository;
 import com.example.abroad.respository.SSOUserRepository;
+import jakarta.persistence.Id;
 import jakarta.servlet.http.HttpSession;
 import com.example.abroad.model.User.Role;
 import com.example.abroad.model.User.Role.ID;
@@ -21,7 +25,8 @@ import org.springframework.stereotype.Service;
 public record UserService(
   LocalUserRepository localUserRepository,
   SSOUserRepository ssoUserRepository,
-  RoleRepository roleRepository
+  RoleRepository roleRepository,
+  CourseRepository courseRepository
 ) {
 
   public Optional<User> findUserFromSession(HttpSession session){
@@ -50,6 +55,11 @@ public record UserService(
       case User.LocalUser localUser -> localUserRepository.save(localUser);
       case User.SSOUser ssoUser -> ssoUserRepository.save(ssoUser);
     };
+  }
+
+  public User previewUser() {
+    return new LocalUser("previewUser", "NA", "preview@gmail.com", "Preview",
+                          Theme.DEFAULT, "previewUser");
   }
 
   public Boolean isAdmin(User user) {
@@ -83,6 +93,12 @@ public record UserService(
       .anyMatch(role -> role.type().equals(User.Role.Type.FACULTY));
   }
 
+
+  public Boolean isPartner(User user) {
+    return roleRepository.findById_Username(user.username()).stream()
+            .anyMatch(role -> role.type().equals(User.Role.Type.PARTNER));
+  }
+
   public void setTheme(User.Theme theme, HttpSession session) {
     var user = findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -109,8 +125,34 @@ public record UserService(
 
   public List<? extends User> findUsersWithRole(User.Role.Type roleType) {
     return roleRepository.findById_Type(roleType)
-            .stream()
-            .map(role -> findByUsername(role.username()).orElse(null))
-            .toList();
+        .stream()
+        .map(role -> findByUsername(role.username()))
+        .filter(Optional::isPresent)  // Filter out empty Optionals
+        .map(Optional::get)           // Unwrap the Optionals
+        .toList();
   }
+
+  public List<? extends User> findFacultyLeads() {
+    return findUsersWithRole(User.Role.Type.FACULTY);
+  }
+
+  public List<? extends User> findPaymentPartners() {
+    return findUsersWithRole(User.Role.Type.PARTNER);
+  }
+
+  public void saveCourse(String courseCode, String username, String grade) {
+    courseRepository.save(new Course(courseCode, username, grade));
+  }
+
+  public List<Course> findCoursesByUsername(String username) {
+    return courseRepository.findById_Username(username);
+  }
+
+  public void updateMfaSettings(String username, boolean mfaEnabled, String secret) {
+    Optional<? extends User> optUser = findByUsername(username);
+    if (optUser.isPresent() && optUser.get() instanceof User.LocalUser localUser) {
+        User updatedUser = localUser.withMfa(mfaEnabled, secret);
+        save(updatedUser);
+    }
+}
 }

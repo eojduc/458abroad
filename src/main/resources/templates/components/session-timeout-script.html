@@ -1,0 +1,84 @@
+<!-- Add the session timeout script fragment right here -->
+<script xmlns:th="http://www.thymeleaf.org" th:fragment="session-timeout-script">
+  let inactivityTimeout;
+  let sessionExpiredTimeout;
+  const warningTime = 60000; // Show warning 1 minute before timeout
+  const inactivityTime = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimeout);
+    clearTimeout(sessionExpiredTimeout);
+    inactivityTimeout = setTimeout(showTimeoutWarning, inactivityTime - warningTime);
+  }
+
+  function showTimeoutWarning() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+    modal.innerHTML = `
+      <div class="bg-base-200 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <h3 class="font-bold text-lg mb-4">Session Timeout Warning</h3>
+        <p class="mb-4">Your session is about to expire due to inactivity. Would you like to stay logged in?</p>
+        <div class="flex justify-end gap-2">
+          <button id="logout-btn" class="btn btn-ghost">Logout</button>
+          <button id="stay-btn" class="btn btn-primary">Stay Logged In</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('stay-btn').addEventListener('click', function() {
+      // Send a request to server to keep the session alive
+      fetch('/api/keep-alive', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (response.ok) {
+          document.body.removeChild(modal);
+          resetInactivityTimer();
+        } else {
+          window.location.href = "/login?info=Your session has expired. Please log in again.";
+        }
+      })
+      .catch(() => {
+        window.location.href = "/login?info=Your session has expired. Please log in again.";
+      });
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      window.location.href = "/logout";
+    });
+
+    // If user doesn't respond, redirect to login page after the warning period
+    sessionExpiredTimeout = setTimeout(() => {
+      window.location.href = "/login?info=Your session has expired due to inactivity. Please log in again.";
+    }, warningTime);
+  }
+
+  // Check for max session time (24 hours)
+  const sessionStartTime = localStorage.getItem('sessionStartTime');
+  if (!sessionStartTime) {
+    localStorage.setItem('sessionStartTime', Date.now().toString());
+  } else {
+    const startTime = parseInt(sessionStartTime);
+    const currentTime = Date.now();
+    const maxSessionTime = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+    if (currentTime - startTime > maxSessionTime) {
+      localStorage.removeItem('sessionStartTime');
+      window.location.href = "/login?info=Your session has expired due to maximum time limit. Please log in again.";
+    }
+  }
+
+  // Reset timer on user activity
+  document.addEventListener('mousemove', resetInactivityTimer);
+  document.addEventListener('keypress', resetInactivityTimer);
+  document.addEventListener('click', resetInactivityTimer);
+  document.addEventListener('scroll', resetInactivityTimer);
+
+  // Initialize timer when page loads
+  resetInactivityTimer();
+</script>

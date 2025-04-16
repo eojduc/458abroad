@@ -4,13 +4,16 @@ import com.example.abroad.model.Application;
 import com.example.abroad.model.Application.LetterOfRecommendation;
 import com.example.abroad.model.Application.Response;
 import com.example.abroad.model.Program;
+import com.example.abroad.model.Program.PreReq;
 import com.example.abroad.model.Program.Question;
 import com.example.abroad.model.User;
-
+import com.example.abroad.model.User.Course;
 import com.example.abroad.service.ApplicationService;
 import com.example.abroad.service.AuditService;
 import com.example.abroad.service.ProgramService;
+import com.example.abroad.service.ULinkService;
 import com.example.abroad.service.UserService;
+import com.example.abroad.service.page.student.ListApplicationsService.GetApplicationsResult;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -31,7 +34,8 @@ public record ViewApplicationService(
     ApplicationService applicationService,
     ProgramService programService,
     UserService userService,
-    AuditService auditService
+    AuditService auditService,
+    ULinkService uLinkService
 ) {
 
   public GetApplicationResult getApplication(Integer programId, HttpSession session) {
@@ -40,6 +44,9 @@ public record ViewApplicationService(
       return new GetApplicationResult.UserNotFound();
     }
     User user = userOpt.get();
+    if (userService.isPartner(user)) {
+      return new GetApplicationResult.UserNotFound();
+    }
     var program = programService.findById(programId).orElse(null);
     if (program == null) {
       return new GetApplicationResult.ProgramNotFound();
@@ -73,7 +80,17 @@ public record ViewApplicationService(
     var questions = programService.getQuestions(prog);
     var letterRequests = letterOfRecInfo(user, program);
 
-    return new GetApplicationResult.Success(app, prog, user, editable, responseMap, questions, letterRequests);
+    var takenCourseCodes = userService.findCoursesByUsername(user.username())
+      .stream()
+      .filter(course -> course.grade().matches("^(?:[ABCD][+-]?|S|IP)$"))
+      .map(Course::code)
+      .toList();
+    var preReqs = programService.getPreReqs(program)
+      .stream()
+      .map(p -> new PreReqInfo(p.courseCode(), takenCourseCodes.contains(p.courseCode())))
+      .toList();
+
+    return new GetApplicationResult.Success(app, prog, user, editable, responseMap, questions, letterRequests, preReqs);
   }
 
   public GetApplicationResult updateResponses(
@@ -123,10 +140,19 @@ public record ViewApplicationService(
     Program program = programService.findById(newApp.programId()).orElse(null);
     var questions = programService.getQuestions(program);
     var letterRequests = letterOfRecInfo(user, program);
+    var takenCourseCodes = userService.findCoursesByUsername(user.username())
+      .stream()
+      .filter(course -> course.grade().matches("^(?:[ABCD][+-]?|S|IP)$"))
+      .map(Course::code)
+      .toList();
+    var preReqs = programService.getPreReqs(program)
+      .stream()
+      .map(p -> new PreReqInfo(p.courseCode(), takenCourseCodes.contains(p.courseCode())))
+      .toList();
 
     auditService.logEvent("Application updated with new responses");
 
-    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responseMap, questions, letterRequests);
+    return new GetApplicationResult.Success(newApp, success.program(), success.user(), true, responseMap, questions, letterRequests, preReqs);
   }
 
   public GetApplicationResult changeStatus(Integer programId, Application.Status newStatus, HttpSession session) {
@@ -169,10 +195,19 @@ public record ViewApplicationService(
     Program program = programService.findById(app.programId()).orElse(null);
     var questions = programService.getQuestions(program);
     var letterRequests = letterOfRecInfo(user, program);
+    var takenCourseCodes = userService.findCoursesByUsername(user.username())
+      .stream()
+      .filter(course -> course.grade().matches("^(?:[ABCD][+-]?|S|IP)$"))
+      .map(Course::code)
+      .toList();
+    var preReqs = programService.getPreReqs(program)
+      .stream()
+      .map(p -> new PreReqInfo(p.courseCode(), takenCourseCodes.contains(p.courseCode())))
+      .toList();
 
     auditService.logEvent("Application updated with new status: " + newStatus.name());
 
-    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responseMap, questions, letterRequests);
+    return new GetApplicationResult.Success(app, success.program(), success.user(), editable, responseMap, questions, letterRequests, preReqs);
   }
 
   public record LetterOfRecInfo(String email, String name, Boolean submitted, Instant timestamp) { }
@@ -190,9 +225,53 @@ public record ViewApplicationService(
       .collect(Collectors.toList());
   }
 
+  public sealed interface RefreshULink {
+    record Success() implements RefreshULink {
+    }
+
+    record UserNotFound() implements RefreshULink {
+    }
+
+    record NotLoggedIn() implements RefreshULink {
+    }
+    record ConnectionError() implements RefreshULink {
+    }
+    record UserLacksPermission() implements RefreshULink {
+    }
+  }
+
+
+  public RefreshULink refreshULink(HttpSession session, Integer programId) {
+    var user = userService.findUserFromSession(session).orElse(null);
+    if (user == null) {
+      return new RefreshULink.NotLoggedIn();
+    }
+    var application = applicationService.findByProgramIdAndStudentUsername(programId, user.username()).orElse(null);
+    if (application == null) {
+      return new RefreshULink.UserNotFound();
+    }
+    var program = programService.findById(programId).orElse(null);
+    if (program == null) {
+      return new RefreshULink.UserNotFound();
+    }
+    var student = userService.findByUsername(user.username()).orElse(null);
+    if (student == null) {
+      return new RefreshULink.UserNotFound();
+    }
+
+    return switch(uLinkService.refreshCourses(student)) {
+      case ULinkService.RefreshCourses.Success() -> new RefreshULink.Success();
+      case ULinkService.RefreshCourses.TranscriptServiceError() -> new RefreshULink.ConnectionError();
+    };
+
+  }
+
+  public record PreReqInfo(String code, Boolean completed) {
+  }
+
   public sealed interface GetApplicationResult {
 
-    record Success(Application application, Program program, User user, boolean editable, Map<Integer, Response> responses, List<Question> questions, List<LetterOfRecInfo> letterRequests)
+    record Success(Application application, Program program, User user, boolean editable, Map<Integer, Response> responses, List<Question> questions, List<LetterOfRecInfo> letterRequests, List<PreReqInfo> preReqs)
         implements GetApplicationResult {
     }
 

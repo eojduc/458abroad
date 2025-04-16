@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${user.theme.name.toLowerCase()}">
+<head th:replace="~{components/head :: head('Partner Programs')}"></head>
+<!-- ✅ Include HTMX -->
+<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+<body>
+<div th:replace="~{components/partner-navbar :: partner-navbar(${user.displayName})}"></div>
+
+<div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-3/4 md:w-4/5 sm:w-full gap-5">
+    <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+        <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
+    </div>
+
+    <div class="card w-full bg-base-200">
+        <div class="card-body">
+            <h1 class="card-title text-2xl mb-4">Your Partner Programs</h1>
+
+            <!-- ✅ Search & Filter Form with live filtering and enter prevention -->
+            <form id="filterForm" class="mb-4" onsubmit="return false;">
+                <input type="hidden" name="sort" th:value="${sort}" />
+                <input type="hidden" name="ascending" th:value="${ascending}" />
+                <div class="flex flex-row gap-4 items-center">
+                    <div class="form-control w-full max-w-md">
+                        <label class="label" for="titleSearch">
+                            <span class="label-text">Search by Title</span>
+                        </label>
+                        <input
+                                type="text"
+                                id="titleSearch"
+                                name="titleSearch"
+                                th:value="${titleSearch}"
+                                placeholder="Search programs..."
+                                class="input input-bordered w-full"
+                                th:hx-get="@{/partner/programs/table(sort=${sort}, ascending=${ascending})}"
+                                hx-target="#programTableContainer"
+                                hx-trigger="keyup changed delay:300ms"
+                                hx-include="[name=sort],[name=ascending],[name=titleSearch]"
+                                <!--hx-push-url="true" -->
+                    </div>
+                </div>
+            </form>
+
+            <!-- Alerts -->
+            <div th:if="${programs.empty && titleSearch != null && !titleSearch.empty}" class="alert alert-warning">
+                <div>
+                    <span>No programs found matching "<span th:text="${titleSearch}"></span>".</span>
+                </div>
+            </div>
+            <div th:if="${programs.empty && (titleSearch == null || titleSearch.empty)}" class="alert alert-info">
+                <div>
+                    <span>You are not currently assigned to any programs as a partner.</span>
+                </div>
+            </div>
+
+            <!-- Program Table Container -->
+            <div id="programTableContainer">
+                <div th:fragment="programTable" id="programTable" class="contents">
+                    <div th:unless="${programs.empty}" class="overflow-x-auto">
+                        <table class="table w-full">
+                            <thead>
+                            <tr>
+                                <th th:replace="~{this :: sortableHeader('Title', '/partner/programs/table', 'TITLE', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Semester', '/partner/programs/table', 'SEMESTER', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Faculty Lead(s)', '/partner/programs/table', 'FACULTY', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Application Open', '/partner/programs/table', 'APP_OPEN', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Application Close', '/partner/programs/table', 'APP_CLOSE', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Document Deadline', '/partner/programs/table', 'DOC_DEADLINE', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Payment Deadline', '/partner/programs/table', 'PAYMENT_DEADLINE', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Program Start', '/partner/programs/table', 'START_DATE', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Program End', '/partner/programs/table', 'END_DATE', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Total Students', '/partner/programs/table', 'TOTAL', '#programTableContainer')}"></th>
+                                <th th:replace="~{this :: sortableHeader('Fully Paid', '/partner/programs/table', 'PAID', '#programTableContainer')}"></th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="program : ${programs}">
+                                <td>
+                                    <a th:href="@{/partner/programs/{id}(id=${program.program.program.id})}"
+                                       class="text-primary hover:underline font-medium"
+                                       th:text="${program.program.program.title}"></a>
+                                </td>
+                                <td th:text="${program.program.program.year + ' ' + program.program.program.semester}"></td>
+                                <td><span th:text="${#strings.listJoin(program.facultyLeadNames, ', ')}"></span></td>
+                                <td th:text="${#temporals.format(program.program.program.applicationOpen, 'MMM dd, yyyy')}"></td>
+                                <td th:text="${#temporals.format(program.program.program.applicationClose, 'MMM dd, yyyy')}"></td>
+                                <td th:text="${#temporals.format(program.program.program.documentDeadline, 'MMM dd, yyyy')}"></td>
+                                <td th:text="${#temporals.format(program.program.program.paymentDeadline, 'MMM dd, yyyy')}"></td>
+                                <td th:text="${#temporals.format(program.program.program.startDate, 'MMM dd, yyyy')}"></td>
+                                <td th:text="${#temporals.format(program.program.program.endDate, 'MMM dd, yyyy')}"></td>
+                                <td th:text="${program.program.approvedEnrolledCount}"></td>
+                                <td th:text="${program.program.fullyPaidCount}"></td>
+                                <td>
+                                    <a th:href="@{/partner/programs/{id}(id=${program.program.program.id})}" class="btn btn-sm btn-primary">View</a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
+</body>
+</html>
+
+<!-- ✅ Sortable Header Fragment -->
+<div th:fragment="sortableHeader(label, path, column, target)" th:remove="tag">
+    <th th:class="${sort == column ? 'bg-base-300 cursor-pointer' : 'bg-base-200 cursor-pointer'}"
+        th:hx-get="@{${path}(sort=${column}, ascending=${!ascending}, titleSearch=${titleSearch})}"
+        th:hx-target="${target}"
+        hx-swap="innerHTML">
+        <div class="flex items-center gap-2">
+            <span th:if="${sort == column}" th:text="${ascending} ? '▲' : '▼'"></span>
+            <div th:unless="${sort == column}" class="invisible">▼</div>
+            <span th:text="${label}"></span>
+        </div>
+    </th>
+</div>

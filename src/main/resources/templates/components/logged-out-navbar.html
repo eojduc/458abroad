@@ -1,0 +1,9 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="logged-out-navbar" class="bg-base-100 navbar">
+  <!--/*@thymesVar id="themeConfig" type="com.example.abroad.model.RebrandConfig"*/-->
+  <a href="/" class="btn btn-ghost text-xl">
+    <div class="w-8 h-8 flex items-center">
+      <svg th:replace="~{components/logo :: logo}"></svg>
+    </div>
+    <span th:text="${themeConfig.getHeadName()}">HCC Abroad</span>
+  </a>
+</div>

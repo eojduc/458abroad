@@ -281,8 +281,23 @@ sudo systemctl stop 458abroad.service
 
 After restoring the database, restart the application server:
 
+First, change the service configuration to disable the `RESET_DB` and `FILL_DB` flags:
 ```bash
-sudo systemctl set-environment RESET_DB=false FILL_DB=false
-sudo systemctl start 458abroad.service
-sudo systemctl unset-environment RESET_DB FILL_DB
+sudo vim /opt/458abroad/service.conf
 ```
+```properties
+RESET_DB=false
+FILL_DB=false
+```
+
+Then, restart the service:
+```bash
+sudo systemctl start 458abroad.service
+```
+
+Restore the original service configuration after the restore is complete.
+```properties
+RESET_DB=false
+FILL_DB=false
+```
+

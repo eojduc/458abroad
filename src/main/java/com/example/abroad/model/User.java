@@ -25,6 +25,10 @@ public sealed interface User extends Serializable {
 
   User withTheme(Theme theme);
 
+  User withULink(String uLink);
+
+  String uLink();
+
   default boolean isLocal() {
     return this instanceof LocalUser;
   }
@@ -66,6 +70,7 @@ public sealed interface User extends Serializable {
       FACULTY,
       ADMIN,
       REVIEWER,
+      PARTNER
     }
 
     @Id
@@ -102,21 +107,43 @@ public sealed interface User extends Serializable {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Theme theme;
+    @Column(nullable = true)
+    private String uLink;
+
+    @Column(nullable = true)
+    private Boolean mfaEnabled;
+    @Column(nullable = true)
+    private String mfaSecret;
 
     public LocalUser() {
       this.username = null;
       this.password = null;
       this.email = null;
       this.displayName = null;
+      this.mfaEnabled = false;
+      this.mfaSecret = null;
     }
 
-
-    public LocalUser(String username, String password, String email, String displayName, Theme theme) {
+    public LocalUser(String username, String password, String email, String displayName, Theme theme, String uLink) {
       this.username = username;
       this.password = password;
       this.email = email;
       this.displayName = displayName;
       this.theme = theme;
+      this.uLink = uLink;
+      this.mfaEnabled = false;
+      this.mfaSecret = null;
+    }
+
+    public LocalUser(String username, String password, String email, String displayName, Theme theme, String uLink, boolean mfaEnabled, String mfaSecret) {
+      this.username = username;
+      this.password = password;
+      this.email = email;
+      this.displayName = displayName;
+      this.theme = theme;
+      this.uLink = uLink;
+      this.mfaEnabled = mfaEnabled;
+      this.mfaSecret = mfaSecret;
     }
 
     public String username() {
@@ -142,8 +169,53 @@ public sealed interface User extends Serializable {
               this.password,
               this.email,
               this.displayName,
-              theme
+              theme,
+              this.uLink
       );
+    }
+
+    public String uLink() {
+      return uLink;
+    }
+
+    @Override
+    public User withULink(String uLink) {
+      return new LocalUser(
+              this.username,
+              this.password,
+              this.email,
+              this.displayName,
+              this.theme,
+              uLink
+      );
+    }
+
+    public User withMfa(boolean enabled, String secret) {
+      return new LocalUser(
+              this.username,
+              this.password,
+              this.email,
+              this.displayName,
+              this.theme,
+              this.uLink,
+              enabled,
+              secret
+      );
+    }
+
+    /* TODO changed this because it wont let me login
+    public boolean isMfaEnabled() {
+      return mfaEnabled;
+    }
+
+    */
+
+    public boolean isMfaEnabled() {
+      return mfaEnabled != null ? mfaEnabled : false;
+    }
+
+    public String mfaSecret() {
+      return mfaSecret;
     }
   }
 
@@ -159,18 +231,18 @@ public sealed interface User extends Serializable {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Theme theme;
+    @Column(nullable = true)
+    private String uLink;
 
     public SSOUser() {
-      this.username = null;
-      this.email = null;
-      this.displayName = null;
     }
 
-    public SSOUser(String username, String email, String displayName, Theme theme) {
+    public SSOUser(String username, String email, String displayName, Theme theme, String uLink) {
       this.username = username;
       this.email = email;
       this.displayName = displayName;
       this.theme = theme;
+      this.uLink = uLink;
     }
 
     public String username() {
@@ -185,6 +257,19 @@ public sealed interface User extends Serializable {
     public Theme theme() {
       return theme;
     }
+    public String uLink() {
+      return uLink;
+    }
+    @Override
+    public User withULink(String uLink) {
+      return new SSOUser(
+              this.username,
+              this.email,
+              this.displayName,
+              this.theme,
+              uLink
+      );
+    }
 
 
 
@@ -194,10 +279,74 @@ public sealed interface User extends Serializable {
               this.username,
               this.email,
               this.displayName,
-              theme
+              theme,
+              this.uLink
       );
     }
 
+  }
+
+  @Entity
+  @Table(name = "courses")
+  final class Course {
+
+    @Embeddable
+    public static class ID implements Serializable {
+      @Column(nullable = false)
+      private String username;
+      @Column(nullable = false)
+      private String code;
+      public ID() {
+      }
+      public ID(String username, String code) {
+        this.username = username;
+        this.code = code;
+      }
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ID id = (ID) o;
+        return Objects.equals(username, id.username) && Objects.equals(code, id.code);
+      }
+      @Override
+      public int hashCode() {
+        return Objects.hash(username, code);
+      }
+
+    }
+
+    @Id
+    private ID id;
+
+    @Column(nullable = false)
+    private String grade;
+
+    public Course() {
+    }
+
+    public Course(String username, String code, String grade) {
+      this.id = new ID(username, code);
+      this.grade = grade;
+    }
+    public String username() {
+      return id.username;
+    }
+    public String code() {
+      return id.code;
+    }
+    public String grade() {
+      return grade;
+    }
+
+    @Override
+    public String toString() {
+      return "Course{" +
+              "username='" + username() + '\'' +
+              ", code='" + code() + '\'' +
+              ", grade='" + grade + '\'' +
+              '}';
+    }
   }
   enum Theme {
     LIGHT, DARK, CUPCAKE, BUMBLEBEE, EMERALD, CORPORATE, SYNTHWAVE, RETRO, CYBERPUNK, VALENTINE,

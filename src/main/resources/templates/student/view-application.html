@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html
         xmlns:th="http://www.thymeleaf.org"
-        th:fragment="page"
-        th:data-theme="${user.theme.name.toLowerCase}"
->
-<head th:replace="~{components :: head('Application Details')}"></head>
+        th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
+<head th:replace="~{components/head :: head('Application Details')}"></head>
 <body>
 <div
-        th:replace="~{components :: student-navbar(${user.displayName()})}"
+        th:replace="~{components/student-navbar :: student-navbar(${user.displayName()})}"
 ></div>
 <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-  <div th:replace="~{components :: alerts(${alerts})}"></div>
+  <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
 </div>
 <div
         id="applicationContent"
@@ -72,6 +70,29 @@
             </tr>
             </tbody>
           </table>
+
+          <!-- Pre-Requisites Section -->
+          <div id="prereqs">
+            <h1 class="text-lg">Pre-Requisites</h1>
+            <div class="m-4 flex flex-col gap-5">
+              <div th:each="preReq : ${preReqs}" class="flex flex-col gap-2">
+                <h2 th:if="${preReq.completed}" class="text-xs font-bold text-success">
+                  [[${preReq.code}]]
+                </h2>
+                <h2 th:unless="${preReq.completed}" class="text-xs font-bold text-error">
+                  [[${preReq.code}]] (Not Satisfied)
+                </h2>
+              </div>
+              <div th:if="${preReqs.isEmpty()}" class="flex flex-col gap-2">
+                <h2 class="text-xs font-bold">No Pre-Requisites</h2>
+              </div>
+              <form
+                    th:action="@{/applications/{programId}/refresh-ulink(programId=${prog.id})}"
+                    method="POST">
+                <button class="btn btn-primary">Refresh ULink</button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -82,11 +103,16 @@
               class="card bg-base-300"
       >
         <div class="card-body gap-4">
-          <div class="card-actions justify-between">
+          <div class="card-actions justify-between items-center">
             <h2 class="card-title">My Application</h2>
-            <div
-                    th:replace="~{components :: statusBadge(${app.status.name()})}"
-            ></div>
+            <div class="flex items-center gap-2">
+                <div th:replace="~{components/statusBadge :: statusBadge(${app.status.name()})}"></div>
+                <div th:if="${pair.prog.trackPayment and ((pair.app.status.name == 'APPROVED') or (pair.app.status.name == 'ENROLLED'))}">
+                  <div th:id="'payment-status-badge-' + ${user.username}">
+                    <div th:replace="~{components/payment-status-badge :: payment-status-badge(${pair.app.paymentStatus.name})}"></div>
+                  </div>
+                </div>
+            </div>
           </div>
 
           <!-- Application Responses -->
@@ -145,7 +171,9 @@
                             th:name="|answers[${question.id()}]|"
                             th:text="${responseMap[question.id()] != null ? responseMap[question.id()].response() : ''}"
                             th:disabled="${!editable}"
-                            th:attr="required=${editable ? 'required' : null}">
+                            th:attr="required=${editable ? 'required' : null}"
+                            maxlength="10000"
+                            rows="20">
                   </textarea>
                 </div>
               </div>
@@ -475,8 +503,8 @@
     </div>
   </div>
 </div>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 
 <!-- Reactivate Modal -->
 <dialog id="reactivate_modal" class="modal">

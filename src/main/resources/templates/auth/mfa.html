@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page" th:data-theme="${'default'}">
+<head th:replace="~{components/head :: head('MFA Verification')}"></head>
+
+<body>
+  <div th:replace="~{components/logged-out-navbar :: logged-out-navbar}"></div>
+
+  <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-5">
+    <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
+      <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
+    </div>
+    <div class="card card-normal w-96 bg-base-200">
+      <div class="card-body">
+        <h1 class="card-title text-center">MFA Verification</h1>
+
+        <form class="form-control gap-4" action="/mfa" method="post">
+          <div>
+            <input type="text" name="code" placeholder="Enter your 6-digit code" class="input input-bordered w-full" required />
+          </div>
+          <div class="flex flex-col gap-2">
+            <button class="btn btn-primary" type="submit">Verify</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div th:replace="~{components/footer :: footer}"></div>
+</body>
+</html>

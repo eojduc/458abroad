@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html th:fragment="page" th:data-theme="${theme}">
+<html th:fragment="page" th:data-theme="${'default'}">
 
-<head th:replace="~{components :: head(Error)}"></head>
+<head th:replace="~{components/head :: head(Error)}"></head>
 
 
 <body>
-<div th:replace="~{components :: logged-out-navbar}"></div>
+<div th:replace="~{components/logged-out-navbar :: logged-out-navbar}"></div>
 <div class="bg-base-100 flex flex-col items-center h-screen m-10">
   <div class="card card-normal w-full bg-base-200">
     <div class="card-body">
@@ -14,8 +14,8 @@
     </div>
   </div>
 </div>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 
 </html>

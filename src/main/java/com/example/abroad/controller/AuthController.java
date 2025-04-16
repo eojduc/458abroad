@@ -53,6 +53,7 @@ public record AuthController(AuthService authService) {
       HttpServletRequest request) {
     return switch (authService.login(username, password, session)) {
       case Login.Success(var user) -> "redirect:/";
+      case Login.MfaRequired(var user) -> "redirect:/mfa";
       case Login.InvalidCredentials() -> "redirect:/login?error=Invalid username or password";
     };
   }
@@ -95,7 +96,7 @@ public record AuthController(AuthService authService) {
       Model model) {
 
     return switch (authService.registerUser(username, displayName, email, password, confirmPassword, session)) {
-      case RegisterResult.Success() -> "redirect:/";
+      case RegisterResult.Success() -> "redirect:/?ulinkPrompt=true";
       case RegisterResult.UsernameExists() -> "redirect:/register?error=Username is already taken";
       case RegisterResult.EmailExists() -> "redirect:/register?error=Email is already registered";
       case RegisterResult.PasswordMismatch() -> "redirect:/register?error=New passwords do not match";

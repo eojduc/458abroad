@@ -43,6 +43,15 @@ public class DataInitializerService {
   @Value("${data.roles.path}")
   private String rolesCsvFilePath;
 
+  @Value("${data.prereqs.path}")
+  private String preReqCsvFilePath;
+
+  @Value("${data.partners.path}")
+  private String partnersCsvFilePath;
+
+  @Value("${data.theme_config.path}")
+  private String themeConfigCsvFilePath;
+
   @Value("${fillDb:false}")
   private boolean fillDb;
 
@@ -71,7 +80,9 @@ public class DataInitializerService {
       dataInitializationService.initializeResponses(responsesCsvFilePath);
       dataInitializationService.initializeQuestions(questionsCsvFilePath);
       dataInitializationService.initializeRoles(rolesCsvFilePath);
-
+      dataInitializationService.initializePreReqs(preReqCsvFilePath);
+      dataInitializationService.initializePartners(partnersCsvFilePath);
+      dataInitializationService.initializeThemeConfig(themeConfigCsvFilePath);
     } else {
       logger.info("Skipping data initialization.");
     }

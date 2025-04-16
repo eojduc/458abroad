@@ -21,43 +21,43 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/admin/users")
 public record AdminUserController(
-  AdminUserService adminUserService,
-  FormatService formatter,
-  UserService userService
+        AdminUserService adminUserService,
+        FormatService formatter,
+        UserService userService
 ) {
-  // Add a mapping for the root URL that redirects to /page
-  @GetMapping
-  public String getUsers(
-    HttpSession session,
-    Model model,
-    @RequestParam Optional<String> error,
-    @RequestParam Optional<String> success,
-    @RequestParam Optional<String> warning,
-    @RequestParam Optional<String> info
-  ) {
-    GetAllUsersInfo usersInfo = adminUserService.getUsersInfo(session, Sort.NAME, "", true);
-    return switch (usersInfo) {
-      case GetAllUsersInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
-      case GetAllUsersInfo.UserNotAdmin() ->{
-          yield "permission-error";
-      }
-      case GetAllUsersInfo.Success(var users, var adminUser) -> {
-        model.addAllAttributes(
-          Map.ofEntries(
-            entry("name", adminUser.displayName()),
-            entry("sort", "NAME"),
-            entry("alerts", new Alerts(error, success, warning, info)),
-            entry("formatter", formatter),
-            entry("searchFilter", ""),
-            entry("user", adminUser),
-            entry("ascending", true),
-            entry("users", users)
-          )
-        );
-        yield "admin/users :: page";
-      }
-    };
-  }
+    // Add a mapping for the root URL that redirects to /page
+    @GetMapping
+    public String getUsers(
+            HttpSession session,
+            Model model,
+            @RequestParam Optional<String> error,
+            @RequestParam Optional<String> success,
+            @RequestParam Optional<String> warning,
+            @RequestParam Optional<String> info
+    ) {
+        GetAllUsersInfo usersInfo = adminUserService.getUsersInfo(session, Sort.NAME, "", true);
+        return switch (usersInfo) {
+            case GetAllUsersInfo.UserNotFound() -> "redirect:/login?error=You are not logged in";
+            case GetAllUsersInfo.UserNotAdmin() ->{
+                yield "permission-error";
+            }
+            case GetAllUsersInfo.Success(var users, var adminUser) -> {
+                model.addAllAttributes(
+                        Map.ofEntries(
+                                entry("name", adminUser.displayName()),
+                                entry("sort", "NAME"),
+                                entry("alerts", new Alerts(error, success, warning, info)),
+                                entry("formatter", formatter),
+                                entry("searchFilter", ""),
+                                entry("user", adminUser),
+                                entry("ascending", true),
+                                entry("users", users)
+                        )
+                );
+                yield "admin/users :: page";
+            }
+        };
+    }
 
     @GetMapping("/table")
     public String getUsersTable(
@@ -82,7 +82,7 @@ public record AdminUserController(
                                 entry("formatter", formatter),
                                 entry("ascending", ascending),
                                 entry("users", users),
-                                entry("user", adminUser)  // Add this line
+                                entry("user", adminUser)
                         )
                 );
                 yield "admin/users :: userTable";
@@ -90,38 +90,38 @@ public record AdminUserController(
         };
     }
 
-  @PostMapping("/{username}/admin-status")
-  public String modifyAdminStatus(
-    HttpSession session,
-    @PathVariable String username,
-    @RequestParam boolean grantAdmin,
-    @RequestParam(required = false) boolean confirmed,
-    Model model,
-    HttpServletRequest request
-  ) {
-    var result = adminUserService.modifyUserAdminStatus(session, username, grantAdmin, confirmed);
+    @PostMapping("/{username}/admin-status")
+    public String modifyAdminStatus(
+            HttpSession session,
+            @PathVariable String username,
+            @RequestParam boolean grantAdmin,
+            @RequestParam(required = false) boolean confirmed,
+            Model model,
+            HttpServletRequest request
+    ) {
+        var result = adminUserService.modifyUserAdminStatus(session, username, grantAdmin, confirmed);
 
-    return switch (result) {
-      case AdminUserService.ModifyUserResult.UserNotFound() ->
-        "redirect:/login?error=User not found";
-      case AdminUserService.ModifyUserResult.UserNotAdmin() ->{
-          yield "permission-error";
-      }
-      case AdminUserService.ModifyUserResult.CannotModifySuperAdmin() ->
-        "redirect:/admin/users?error=Cannot modify super admin account";
-      case AdminUserService.ModifyUserResult.CannotModifySelf() ->
-        "redirect:/admin/users?error=Cannot modify your own admin status";
-      case AdminUserService.ModifyUserResult.RequiresConfirmation(var targetUser, var programs) -> {
-        model.addAttribute("username", targetUser);
-        model.addAttribute("programs", programs);
-        model.addAttribute("formatter", formatter);
-        // Redirect to main page for regular form submissions
-        yield "redirect:/admin/users";
-      }
-      case AdminUserService.ModifyUserResult.Success(var user) ->
-        "redirect:/admin/users?success=User admin status updated successfully";
-    };
-  }
+        return switch (result) {
+            case AdminUserService.ModifyUserResult.UserNotFound() ->
+                    "redirect:/login?error=User not found";
+            case AdminUserService.ModifyUserResult.UserNotAdmin() ->{
+                yield "permission-error";
+            }
+            case AdminUserService.ModifyUserResult.CannotModifySuperAdmin() ->
+                    "redirect:/admin/users?error=Cannot modify super admin account";
+            case AdminUserService.ModifyUserResult.CannotModifySelf() ->
+                    "redirect:/admin/users?error=Cannot modify your own admin status";
+            case AdminUserService.ModifyUserResult.RequiresConfirmation(var targetUser, var programs) -> {
+                model.addAttribute("username", targetUser);
+                model.addAttribute("programs", programs);
+                model.addAttribute("formatter", formatter);
+                // Redirect to main page for regular form submissions
+                yield "redirect:/admin/users?warning=User has faculty programs, confirmation required";
+            }
+            case AdminUserService.ModifyUserResult.Success(var user) ->
+                    "redirect:/admin/users?success=User admin status updated successfully";
+        };
+    }
 
     @PostMapping("/{username}/role")
     public String modifyUserRole(
@@ -130,7 +130,7 @@ public record AdminUserController(
             @RequestParam User.Role.Type roleType,
             @RequestParam boolean grantRole,
             @RequestParam(required = false) boolean confirmed,
-            Model model  // Added the Model parameter
+            Model model
     ) {
         var result = adminUserService.modifyUserRole(session, username, roleType, grantRole, confirmed);
 
@@ -150,10 +150,23 @@ public record AdminUserController(
                 model.addAttribute("programs", programs);
                 model.addAttribute("roleType", roleType);
                 model.addAttribute("formatter", formatter);
-                yield "admin/users?warning=User has faculty programs, confirmation required";
+
+                // Customize the warning message based on the role type
+                String warningMessage = roleType == User.Role.Type.PARTNER
+                        ? "Granting Partner role will remove all other roles"
+                        : "User has faculty programs, confirmation required";
+
+                yield "redirect:/admin/users?warning=" + warningMessage;
             }
-            case AdminUserService.ModifyUserResult.Success(var user) ->
-                    "redirect:/admin/users?success=User roles updated successfully";
+            case AdminUserService.ModifyUserResult.Success(var user) -> {
+                String successMessage = roleType == User.Role.Type.PARTNER
+                        ? grantRole
+                        ? "Partner role granted successfully, all other roles removed"
+                        : "Partner role revoked successfully"
+                        : "User roles updated successfully";
+
+                yield "redirect:/admin/users?success=" + successMessage;
+            }
         };
     }
 
@@ -197,7 +210,7 @@ public record AdminUserController(
             case AdminUserService.DeleteUserResult.UserNotFound() ->
                     "redirect:/login?error=User not found";
             case AdminUserService.DeleteUserResult.UserNotAdmin() ->{
-                    yield "permission-error";
+                yield "permission-error";
             }
             case AdminUserService.DeleteUserResult.CannotDeleteSSOUser() ->
                     "redirect:/admin/users?error=Cannot delete SSO user";
@@ -210,4 +223,47 @@ public record AdminUserController(
         };
     }
 
+    @PostMapping("/create")
+    public String createUser(
+            HttpSession session,
+            @RequestParam String username,
+            @RequestParam String email,
+            @RequestParam String displayName,
+            @RequestParam String password,
+            @RequestParam String confirmPassword,
+            @RequestParam(required = false) String uLink,
+            @RequestParam User.Theme theme,
+            @RequestParam(defaultValue = "STUDENT") String role
+    ) {
+        var result = adminUserService.createLocalUser(
+                session,
+                username,
+                email,
+                displayName,
+                password,
+                confirmPassword,
+                uLink,
+                theme,
+                role
+        );
+
+        return switch (result) {
+            case AdminUserService.CreateUserResult.UserNotFound() ->
+                    "redirect:/login?error=You are not logged in";
+            case AdminUserService.CreateUserResult.UserNotAdmin() ->
+                    "redirect:/login?error=You are not authorized to create users";
+            case AdminUserService.CreateUserResult.UsernameExists() ->
+                    "redirect:/admin/users?error=Username already exists";
+            case AdminUserService.CreateUserResult.EmailExists() ->
+                    "redirect:/admin/users?error=Email already exists";
+            case AdminUserService.CreateUserResult.PasswordsDoNotMatch() ->
+                    "redirect:/admin/users?error=Passwords do not match";
+            case AdminUserService.CreateUserResult.PasswordTooShort() ->
+                    "redirect:/admin/users?error=Password must be at least 8 characters";
+            case AdminUserService.CreateUserResult.InvalidUsername() ->
+                    "redirect:/admin/users?error=Username can only contain letters, numbers, hyphens and underscores";
+            case AdminUserService.CreateUserResult.Success() ->
+                    "redirect:/admin/users?success=User created successfully";
+        };
+    }
 }

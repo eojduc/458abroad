@@ -22,20 +22,20 @@ import java.util.stream.Collectors;
 
 @Service
 public record AdminUserService(
-  ProgramService programService,
-  ApplicationService applicationService,
-  UserService userService,
-  PasswordEncoder passwordEncoder
+        ProgramService programService,
+        ApplicationService applicationService,
+        UserService userService,
+        PasswordEncoder passwordEncoder
 ) {
 
   public enum Sort {
-    NAME, USERNAME, EMAIL, ROLE, USER_TYPE
+    NAME, USERNAME, EMAIL, ROLE, USER_TYPE, ULINK
   }
 
   public sealed interface GetAllUsersInfo {
     record Success(
-      List<UserInfo> users,
-      User adminUser
+            List<UserInfo> users,
+            User adminUser
     ) implements GetAllUsersInfo {
     }
 
@@ -51,15 +51,15 @@ public record AdminUserService(
           List<Program> facultyLeadPrograms,
           List<Application> applications,
           Map<String, String> applicationPrograms,
-          boolean isAdmin, // Added in previous step
-          String role // Add this field
+          boolean isAdmin,
+          String role
   ) {}
 
   public GetAllUsersInfo getUsersInfo(
-    HttpSession session,
-    Sort sort,
-    String searchFilter,
-    Boolean ascending
+          HttpSession session,
+          Sort sort,
+          String searchFilter,
+          Boolean ascending
   ) {
     var user = userService.findUserFromSession(session).orElse(null);
     if (user == null) {
@@ -72,18 +72,18 @@ public record AdminUserService(
   }
 
   private GetAllUsersInfo processAuthorizedRequest(
-    Sort sort,
-    String searchFilter,
-    Boolean ascending,
-    User adminUser
+          Sort sort,
+          String searchFilter,
+          Boolean ascending,
+          User adminUser
   ) {
     var usersInfo =
-      userService.findAll()
-        .stream()
-        .map(this::getUserInfo)
-        .filter(matchesSearchFilter(searchFilter))
-        .sorted(getSortComparator(sort, ascending))
-        .toList();
+            userService.findAll()
+                    .stream()
+                    .map(this::getUserInfo)
+                    .filter(matchesSearchFilter(searchFilter))
+                    .sorted(getSortComparator(sort, ascending))
+                    .toList();
 
     return new GetAllUsersInfo.Success(usersInfo, adminUser);
   }
@@ -124,7 +124,9 @@ public record AdminUserService(
       String lowercaseSearch = searchTerm.toLowerCase();
       return userInfo.user().displayName().toLowerCase().contains(lowercaseSearch) ||
               userInfo.user().username().toLowerCase().contains(lowercaseSearch) ||
-              userInfo.user().email().toLowerCase().contains(lowercaseSearch);
+              userInfo.user().email().toLowerCase().contains(lowercaseSearch) ||
+              (userInfo.user().uLink() != null &&
+                      userInfo.user().uLink().toLowerCase().contains(lowercaseSearch));
     };
   }
 
@@ -133,9 +135,24 @@ public record AdminUserService(
       case NAME -> Comparator.comparing(userInfo -> userInfo.user().displayName());
       case USERNAME -> Comparator.comparing(userInfo -> userInfo.user().username());
       case EMAIL -> Comparator.comparing(userInfo -> userInfo.user().email());
-      case ROLE -> Comparator.comparing(userInfo -> userInfo.role); // Change this line
+      case ROLE -> Comparator.comparing(userInfo -> userInfo.role);
       case USER_TYPE -> Comparator.comparing(userInfo -> userInfo.user().isLocal() ? "Local" : "SSO");
+      case ULINK -> Comparator.comparing((UserInfo userInfo) -> {
+        String uLink = userInfo.user().uLink();
+
+        // Handle different scenarios for uLink
+        if (uLink == null || uLink.isEmpty()) {
+          return ""; // Use empty string for "Not Connected"
+        }
+
+        return uLink;
+      }).thenComparing(userInfo -> {
+        // Secondary sorting to ensure "Not Connected" is always last
+        String uLink = userInfo.user().uLink();
+        return uLink == null || uLink.isEmpty() ? 1 : 0;
+      });
     };
+
     return ascending ? comparator : comparator.reversed();
   }
 
@@ -156,8 +173,8 @@ public record AdminUserService(
     }
 
     record RequiresConfirmation(
-      String username,
-      List<Program> affectedPrograms
+            String username,
+            List<Program> affectedPrograms
     ) implements ModifyUserResult {
     }
   }
@@ -206,9 +223,12 @@ public record AdminUserService(
         return new ModifyUserResult.RequiresConfirmation(targetUsername, facultyLeadPrograms);
       }
 
+      /*
       for (Program program : facultyLeadPrograms) {
         programService.removeFacultyLead(program, targetUser);
       }
+      */
+
 
       // After handling faculty lead status, remove the ADMIN role
       userService.removeRole(targetUser, Role.Type.ADMIN);
@@ -252,6 +272,17 @@ public record AdminUserService(
       return new ModifyUserResult.CannotModifySelf();
     }
 
+    // Special handling for PARTNER role addition
+    if (roleType == Role.Type.PARTNER && grantRole) {
+      return handlePartnerRoleAddition(targetUser, confirmed);
+    }
+
+    // Special handling for PARTNER role removal
+    if (roleType == Role.Type.PARTNER && !grantRole) {
+      userService.removeRole(targetUser, Role.Type.PARTNER);
+      return new ModifyUserResult.Success(targetUser);
+    }
+
     // Special handling for FACULTY role removal - check faculty lead status
     if (roleType == Role.Type.FACULTY && !grantRole) {
       var facultyLeadPrograms = programService.findFacultyPrograms(targetUser);
@@ -278,7 +309,7 @@ public record AdminUserService(
 
     // Special handling for ADMIN role removal
     if (roleType == Role.Type.ADMIN && !grantRole) {
-      return modifyUserAdminStatus(session, targetUsername, false, false);
+      return modifyUserAdminStatus(session, targetUsername, false, confirmed);
     }
 
     // For other role types or adding roles
@@ -287,6 +318,41 @@ public record AdminUserService(
     } else {
       userService.removeRole(targetUser, roleType);
     }
+
+    return new ModifyUserResult.Success(targetUser);
+  }
+
+  /**
+   * Handle the addition of PARTNER role to a user
+   * This requires removing all other roles as PARTNER is exclusive
+   */
+  private ModifyUserResult handlePartnerRoleAddition(User targetUser, boolean confirmed) {
+    // Check for ADMIN role
+    boolean hasAdminRole = userService.roleRepository().findById(new ID(Role.Type.ADMIN, targetUser.username())).isPresent();
+
+    // Check for FACULTY role and if the user is a faculty lead
+    boolean hasFacultyRole = userService.roleRepository().findById(new ID(Role.Type.FACULTY, targetUser.username())).isPresent();
+    List<Program> facultyLeadPrograms = hasFacultyRole ? programService.findFacultyPrograms(targetUser) : List.of();
+
+    // If user has admin or faculty role and confirmation is required
+    if ((hasAdminRole || !facultyLeadPrograms.isEmpty()) && !confirmed) {
+      return new ModifyUserResult.RequiresConfirmation(targetUser.username(), facultyLeadPrograms);
+    }
+
+    // Remove existing roles
+    for (Role.Type type : Role.Type.values()) {
+      if (type != Role.Type.PARTNER) { // Skip the PARTNER role itself
+        userService.removeRole(targetUser, type);
+      }
+    }
+
+    // Handle faculty lead programs if any
+    for (var program : facultyLeadPrograms) {
+      programService.removeFacultyLead(program, targetUser);
+    }
+
+    // Add the PARTNER role
+    userService.addRole(targetUser, Role.Type.PARTNER);
 
     return new ModifyUserResult.Success(targetUser);
   }
@@ -317,10 +383,10 @@ public record AdminUserService(
    * Resets a user's password
    */
   public PasswordResetResult resetUserPassword(
-    HttpSession session,
-    String targetUsername,
-    String newPassword,
-    String confirmPassword
+          HttpSession session,
+          String targetUsername,
+          String newPassword,
+          String confirmPassword
   ) {
     // Check if requesting user is admin
     var adminUser = userService.findUserFromSession(session).orElse(null);
@@ -360,11 +426,14 @@ public record AdminUserService(
     // Update the password - assuming you have a way to hash passwords
     String hashedPassword = hashPassword(newPassword);
     User.LocalUser updatedUser = new User.LocalUser(
-      localUser.username(),
-      hashedPassword,
-      localUser.email(),
-      localUser.displayName(),
-      localUser.theme()
+            localUser.username(),
+            hashedPassword,
+            localUser.email(),
+            localUser.displayName(),
+            localUser.theme(),
+            localUser.uLink(),
+            localUser.isMfaEnabled(),
+            localUser.mfaSecret()
     );
 
     // Save the updated user
@@ -433,18 +502,113 @@ public record AdminUserService(
     List<Application.Note> userNotes = applicationService.findNotesByAuthor(targetUser);
     for (Application.Note note : userNotes) {
       Application.Note updatedNote = new Application.Note(
-        note.programId(),
-        note.student(),
-        "DELETED USER",
-        note.content(),
-        note.timestamp()
+              note.programId(),
+              note.student(),
+              "DELETED USER",
+              note.content(),
+              note.timestamp()
       );
       applicationService.deleteNote(note.id());
       applicationService.saveNote(updatedNote);
     }
     userService.findByUsername(targetUsername)
-      .ifPresent(userService::deleteUser);
+            .ifPresent(userService::deleteUser);
 
     return new DeleteUserResult.Success();
+  }
+
+  public sealed interface CreateUserResult {
+    record Success() implements CreateUserResult {}
+    record UserNotFound() implements CreateUserResult {}
+    record UserNotAdmin() implements CreateUserResult {}
+    record UsernameExists() implements CreateUserResult {}
+    record EmailExists() implements CreateUserResult {}
+    record PasswordsDoNotMatch() implements CreateUserResult {}
+    record PasswordTooShort() implements CreateUserResult {}
+    record InvalidUsername() implements CreateUserResult {}
+  }
+
+  /**
+   * Creates a new local user
+   */
+  public CreateUserResult createLocalUser(
+          HttpSession session,
+          String username,
+          String email,
+          String displayName,
+          String password,
+          String confirmPassword,
+          String uLink,
+          User.Theme theme,
+          String role
+  ) {
+    // Check if requesting user is admin
+    var adminUser = userService.findUserFromSession(session).orElse(null);
+    if (adminUser == null) {
+      return new CreateUserResult.UserNotFound();
+    }
+    if (!userService.isAdmin(adminUser)) {
+      return new CreateUserResult.UserNotAdmin();
+    }
+
+    // Validate username format (only letters, numbers, hyphens and underscores)
+    if (!username.matches("[a-zA-Z0-9_-]+")) {
+      return new CreateUserResult.InvalidUsername();
+    }
+
+    // Check if username is already taken
+    if (userService.findByUsername(username).isPresent()) {
+      return new CreateUserResult.UsernameExists();
+    }
+
+    // Check if email already exists
+    if (userService.localUserRepository().existsByEmail(email)) {
+      return new CreateUserResult.EmailExists();
+    }
+
+    // Validate passwords match
+    if (!password.equals(confirmPassword)) {
+      return new CreateUserResult.PasswordsDoNotMatch();
+    }
+
+    // Validate password length
+    if (password.length() < 8) {
+      return new CreateUserResult.PasswordTooShort();
+    }
+
+    // Hash the password
+    String hashedPassword = hashPassword(password);
+
+    // Create the new user
+    User.LocalUser newUser = new User.LocalUser(
+            username,
+            hashedPassword,
+            email,
+            displayName,
+            theme,
+            uLink,
+            false,  // MFA disabled by default
+            null    // No MFA secret
+    );
+
+    // Save the user
+    userService.save(newUser);
+
+    // Add the requested role if not STUDENT
+    // For PARTNER role, we use the special handler since it's exclusive
+    if ("PARTNER".equals(role)) {
+      userService.addRole(newUser, Role.Type.PARTNER);
+    }
+    else if (!"STUDENT".equals(role)) {
+      try {
+        // Try to parse the role string to an enum value
+        Role.Type roleType = Role.Type.valueOf(role);
+        userService.addRole(newUser, roleType);
+      } catch (IllegalArgumentException e) {
+        // If role is not valid, just ignore and continue (user will be a student)
+      }
+    }
+
+    return new CreateUserResult.Success();
   }
 }

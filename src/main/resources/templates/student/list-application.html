@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html
         xmlns:th="http://www.thymeleaf.org"
-        th:fragment="page"
-        th:data-theme="${user.theme.name.toLowerCase}"
->
-<head th:replace="~{components :: head('My Applications')}"></head>
+        th:fragment="page" th:data-theme="${user.theme.name.toLowerCase}">
+<head th:replace="~{components/head :: head('My Applications')}"></head>
 <body class="min-h-screen flex flex-col">
 <div
-        th:replace="~{components :: student-navbar(${user.displayName()})}"
+        th:replace="~{components/student-navbar :: student-navbar(${user.displayName()})}"
 ></div>
 <div class="bg-base-100 flex flex-col items-center min-h-screen m-10 gap-4">
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
 
 
@@ -31,6 +29,7 @@
               <th th:replace="~{this :: sortableHeader('Application Open', '/applications/sort', 'APPLICATION_OPEN', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Application Closed', '/applications/sort', 'APPLICATION_CLOSED', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Status', '/applications/sort', 'STATUS', '#programTable')}"></th>
+              <th th:replace="~{this :: sortableHeader('Payment Status', '/applications/sort', 'PAYMENT_STATUS', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Document Deadline', '/applications/sort', 'DOCUMENT_DEADLINE', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Assumption of Risk', '/applications/sort', 'DOCUMENT_RISK', '#programTable')}"></th>
               <th th:replace="~{this :: sortableHeader('Code of Conduct', '/applications/sort', 'DOCUMENT_CONDUCT', '#programTable')}"></th>
@@ -64,7 +63,19 @@
               <td class="text-center" th:text="${formatter.formatLocalDate(pair.prog().applicationOpen())}"></td>
               <td class="text-center" th:text="${formatter.formatLocalDate(pair.prog().applicationClose())}"></td>
               <td class="text-center">
-                <div th:replace="~{components :: statusBadge(${pair.app().status().name()})}"></div>
+                <div th:replace="~{components/statusBadge :: statusBadge(${pair.app().status().name()})}"></div>
+              </td>
+
+              <!-- Payment Status Column -->
+              <td class="text-center">
+                <div th:if="${pair.prog.trackPayment and ((pair.app.status.name == 'APPROVED') or (pair.app.status.name == 'ENROLLED'))}">
+                  <div th:id="'payment-status-badge-' + ${user.username}">
+                    <div th:replace="~{components/payment-status-badge :: payment-status-badge(${pair.app.paymentStatus.name})}"></div>
+                  </div>
+                </div>
+                <div th:unless="${pair.prog.trackPayment and ((pair.app.status.name == 'APPROVED') or (pair.app.status.name == 'ENROLLED'))}">
+                  N/A
+                </div>
               </td>
 
               <!-- Document Deadline Column -->
@@ -234,8 +245,8 @@
     </div>
   </div>
 </div>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 </html>
 

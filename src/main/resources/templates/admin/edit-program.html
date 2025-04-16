@@ -2,15 +2,15 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:fragment="page(program, applicants, user, alerts, formatter)" th:data-theme="${user.theme.name.toLowerCase}">
 
-<head th:replace="~{components :: head(${program.title})}"></head>
+<head th:replace="~{components/head :: head(${program.title})}"></head>
 <body>
 
-<div th:replace="~{components :: admin-navbar(${user.displayName}, ${true})}"></div>
+<div th:replace="~{components/admin-navbar :: admin-navbar(${user.displayName}, ${true})}"></div>
 
 <div class="bg-base-100 flex flex-col items-center mx-auto min-h-screen m-10 lg:w-1/2 md:w-3/4 sm:w-7/8 gap-5">
 
   <div class="fixed bottom-0 right-0 w-1/4 z-50 m-8">
-    <div th:replace="~{components :: alerts(${alerts})}"></div>
+    <div th:replace="~{components/alerts :: alerts(${alerts})}"></div>
   </div>
 
   <div class="card card-normal w-full bg-base-200">
@@ -62,10 +62,7 @@
             <option th:each="facultyLead : ${facultyLeads}"
                     th:value="${facultyLead.username}"
                     th:text="${formatter.displayUser(facultyLead)}"
-                    selected></option>
-            <option th:each="nonFacultyLead : ${nonFacultyLeads}"
-                    th:value="${nonFacultyLead.username}"
-                    th:text="${formatter.displayUser(nonFacultyLead)}"></option>
+                    th:selected="${selectedFacultyLeads.contains(facultyLead)}"></option>
           </select>
           </div>
         </label>
@@ -128,6 +125,45 @@
                  th:value="${program.documentDeadline}"
                  required />
         </label>
+
+
+        <!-- Track Payment Toggle -->
+        <label class="flex items-center gap-2 mt-4">
+          <input type="checkbox" name="trackPayment" id="trackPaymentToggle" class="toggle toggle-primary"
+                 th:checked="${program.trackPayment}"/>
+          <span class="label-text">Track Payment?</span>
+        </label>
+
+        <label class="form-control mt-2">
+          <div class="label">
+            <span class="label-text">Payment Deadline</span>
+          </div>
+          <input class="input w-full"
+                 type="date"
+                 name="paymentDate"
+                 id="paymentDateInput"
+                 th:value="${program.paymentDeadline}"
+                 required
+                 th:disabled="${!program.trackPayment}" />
+        </label>
+
+        <label class="form-control">
+          <div class="label">
+            <span class="label-text">Payment Partners</span>
+          </div>
+          <div class="tooltip" data-tip="Hold Ctrl / ⌘ (Cmd) to select multiple">
+            <select name="paymentPartners" multiple th:disabled="${!program.trackPayment}"
+                    id="paymentPartnersInput"
+                    size="3"
+                    class="select w-full">
+              <option th:each="partner : ${partnerList}" th:value="${partner.username}"
+                      th:text="${formatter.displayUser(partner)}"
+                      th:selected="${selectedPartnerUsernames.contains(partner.username)}">
+              </option>
+            </select>
+          </div>
+        </label>
+
         <label class="form-control">
           <div class="label">
             <span class="label-text">Start Date</span>
@@ -150,6 +186,7 @@
         </label>
 
         <div th:replace="~{this :: programQuestionnaire}"></div>
+        <div th:replace="~{this :: programPreReqs}"></div>
 
         <div class="card-actions justify-end">
           <button class="btn btn-primary w-1/4" type="button" onclick="showModal()">Save</button>
@@ -175,8 +212,22 @@
   </div>
 </div>
 
-<!-- Footer -->
 <script th:inline="javascript">
+  const toggle = document.getElementById('trackPaymentToggle');
+  const paymentInput = document.getElementById('paymentDateInput');
+  const paymentInput2 = document.getElementById('paymentPartnersInput');
+
+  toggle.addEventListener('change', () => {
+    if (toggle.checked) {
+      paymentInput.disabled = false;
+      paymentInput.required = true;
+      paymentInput2.disabled = false;
+    } else {
+      paymentInput.disabled = true;
+      paymentInput.required = false;
+      paymentInput2.disabled = true;
+    }
+  });
   document.addEventListener("DOMContentLoaded", function () {
     const checkboxes = document.querySelectorAll("input[name='selectedQuestions']");
     const removedQuestionsInput = document.getElementById("removedQuestions");
@@ -206,6 +257,7 @@
   async function showModal() {
     const originalQuestions = /*[[${currentQuestions}]]*/ [];
     const programId = /*[[${program.id}]]*/ -1;
+    const programTrackStatus = /*[[${program.trackPayment}]]*/ false;
 
     const modal = document.getElementById('edit_modal');
     const warningDiv = document.getElementById('edit-warning-div');
@@ -239,6 +291,10 @@
         div.querySelector('input[type="checkbox"]')?.checked
     );
 
+    const hasDisabledTrackPayment = (document.getElementById('trackPaymentToggle').checked === false &&
+        programTrackStatus === true);
+
+
     try {
       // Fetch applicantsExist from backend
       const response = await fetch(`/admin/programs/${programId}/edit/has-applicants`, {
@@ -267,6 +323,10 @@
           warningMessage += " Removing questions will delete those responses by applicants.";
         }
 
+        if (hasDisabledTrackPayment) {
+          warningMessage += " Disabling track payment will remove all payment information for existing applicants.";
+        }
+
         if (hasModifiedQuestions || hasRemovedQuestions) {
           warningMessage += " Are you sure you want to proceed?";
         }
@@ -282,7 +342,7 @@
   var defaultQuestions =/*[[${currentQuestions}]]*/ [];
   let questionIndex = defaultQuestions.length;
 
-  function addQuestion() {
+  function addRow(name, id, list) {
     // Create a new checkbox and input field
 
     // Create new elements
@@ -293,7 +353,7 @@
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.classList.add('checkbox', 'checkbox-primary', 'mr-2');
-    checkbox.name = 'selectedQuestions';
+    checkbox.name = name;
     checkbox.value = ''; // You can assign a default value or leave it empty
     checkbox.id = 'checkbox-' + questionIndex;
     checkbox.checked= false;
@@ -304,7 +364,8 @@
     const input = document.createElement('input');
     input.type = 'text';
     input.classList.add('input', 'input-bordered', 'w-full');
-    input.id = 'questionText-' + questionIndex;
+    // input.id = 'questionText-' + questionIndex;
+    input.id = id + questionIndex;
     input.onchange = function() {
       updateCheckboxValue(this);
     };
@@ -318,7 +379,7 @@
     questionIndex++;
 
     // Append the new row to the list
-    document.getElementById('questionList').appendChild(newRow);
+    document.getElementById(list).appendChild(newRow);
   }
 
   function preventEnterKey(event) {
@@ -327,10 +388,47 @@
     }
   }
 </script>
-<div th:replace="~{components :: footer}"></div>
-<div th:replace="~{components :: session-timeout-script}"></div>
+<div th:replace="~{components/footer :: footer}"></div>
+<div th:replace="~{components/session-timeout-script :: session-timeout-script}"></div>
 </body>
 </html>
+
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="programPreReqs">
+  <label class="form-control">
+    <div class="label">
+      <span class="label-text font-bold text-lg">Pre-requisite Courses</span>
+    </div>
+    <ul class="list space-y-2">
+      <li class="text-lg font-bold">Add Pre-reqs</li>
+      <li class="list-row">
+        <div class="space-y-2" id="preReqList">
+          <div th:each="prereq, iterStat : ${currentPrereqs}"
+               class="flex items-center p-2 hover:bg-base-200 rounded-lg group">
+            <input type="checkbox"
+                   class="checkbox checkbox-primary mr-2"
+                   name="selectedPrereqs"
+                   th:value="${prereq.courseCode()}"
+                   th:id="${'checkbox-' + iterStat.index}"
+                   checked/>
+            <div class="editable-question-container flex-grow relative">
+              <input type="text"
+                     class="input input-bordered w-full"
+                     th:value="${prereq.courseCode()}"
+                     th:id="${'prereqText-' + iterStat.index}"
+                     onkeydown="preventEnterKey(event)"
+                     onchange="updateCheckboxValue(this)"/>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <!-- "Add Question" Button -->
+    <div class="mt-4">
+      <button type="button" class="btn btn-accent btn-square btn-sm" onclick="addRow('selectedPrereqs', 'prereqText-', 'preReqList')">+</button>
+    </div>
+  </label>
+</div>
+
 
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="programQuestionnaire">
   <label class="form-control">
@@ -364,9 +462,10 @@
     </ul>
     <!-- "Add Question" Button -->
     <div class="mt-4">
-      <button type="button" class="btn btn-accent btn-square btn-sm text-lg" onclick="addQuestion()">+</button>
+      <button type="button" class="btn btn-accent btn-square btn-sm" onclick="addRow('selectedQuestions', 'questionText-', 'questionList')">+</button>
     </div>
   </label>
 </div>
+
 
 

@@ -32,7 +32,7 @@ public record ApplyToProgramController(
     Model model, @RequestParam Optional<String> error, @RequestParam Optional<String> success,
     @RequestParam Optional<String> warning, @RequestParam Optional<String> info) {
     return switch (service.getPageData(programId, session)) {
-      case GetApplyPageData.Success(var program, var user, var questions, var maxDayOfBirth, var letterRequests) -> {
+      case GetApplyPageData.Success(var program, var user, var questions, var maxDayOfBirth, var letterRequests, var missingPreReqs) -> {
         model.addAllAttributes(Map.of(
           "program", program,
           "user", user,
@@ -40,7 +40,8 @@ public record ApplyToProgramController(
           "questions", questions,
           "maxDayOfBirth", maxDayOfBirth,
           "formatter", formatter,
-          "letterRequests", letterRequests
+          "letterRequests", letterRequests,
+          "missingPreReqs", missingPreReqs
         ));
         yield "student/apply-to-program :: page";
       }
@@ -49,10 +50,12 @@ public record ApplyToProgramController(
       case GetApplyPageData.ProgramNotFound() ->
         "redirect:/programs?error=That program does not exist";
       case GetApplyPageData.StudentAlreadyApplied(Integer id, String username) -> String.format(
-        "redirect:/applications/%s/%s?error=You have already applied to this program",
-        id, username);
+        "redirect:/applications/%s?error=You have already applied to this program",
+        id);
       case GetApplyPageData.UserNotStudent() ->
         String.format("redirect:/admin/programs/%d?error=You are not a student", programId);
+      case GetApplyPageData.ULinkNotSet() ->
+        "redirect:/profile?error=You need to set your uLink before applying to a program#ulink";
     };
   }
 
@@ -68,6 +71,7 @@ public record ApplyToProgramController(
         "redirect:/applications/" + programId + "?success=Application submitted";
       case ApplyToProgram.UserNotFound() -> "redirect:/login?error=You are not logged in";
       case ApplyToProgram.InvalidSubmission() -> "redirect:/programs/" + programId + "/apply?error=Invalid submission";
+      case ApplyToProgram.ProgramNotFound() -> "redirect:/programs?error=That program does not exist";
     };
   }
   @PostMapping("/programs/{programId}/delete-letter-request")
